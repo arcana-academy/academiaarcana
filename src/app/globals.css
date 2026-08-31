@@ -1,0 +1,39 @@
+:root {
+  --aa-bg: #17151c;
+  --aa-surface: #211d28;
+  --aa-surface-raised: #2a2432;
+  --aa-text: #e6dfec;
+  --aa-text-muted: #c2b8c9;
+  --aa-border: #51475a;
+  --aa-accent: #b9a4cf;
+  --aa-focus: #d7c6e6;
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: dark; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--aa-bg);
+  color: var(--aa-text);
+  font-family: system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--aa-focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
