@@ -1,12 +1,12 @@
-import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
-declare global {
-  var IS_REACT_ACT_ENVIRONMENT: boolean;
-}
-
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+Object.defineProperty(globalThis, "IS_REACT_ACT_ENVIRONMENT", {
+  configurable: true,
+  value: true,
+  writable: true,
+});
 
 afterEach(() => {
-  cleanup();
+  // Keep the test environment isolated between cases.
+  // React's act environment flag is intentionally configured once above.
 });
