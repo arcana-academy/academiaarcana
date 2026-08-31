@@ -11,6 +11,9 @@ export default defineConfig([
         version: "19",
       },
     },
+    rules: {
+      "react/display-name": "off",
+    },
   },
   globalIgnores([".next/**", "node_modules/**"]),
 ]);
