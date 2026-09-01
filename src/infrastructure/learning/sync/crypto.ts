@@ -16,12 +16,18 @@ function fromBase64(value: string): Uint8Array {
 
 export async function encryptSyncPayload(payload: string, key: CryptoKey): Promise<EncryptedPayload> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(payload));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv.slice() },
+    key,
+    encoder.encode(payload).slice(),
+  );
   return { iv: toBase64(iv), ciphertext: toBase64(new Uint8Array(ciphertext)) };
 }
 
 export async function decryptSyncPayload(payload: EncryptedPayload, key: CryptoKey): Promise<string> {
-  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromBase64(payload.iv) }, key, fromBase64(payload.ciphertext));
+  const iv = fromBase64(payload.iv).slice();
+  const ciphertext = fromBase64(payload.ciphertext).slice();
+  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
   return decoder.decode(plaintext);
 }
 
