@@ -1,3 +1,4 @@
+```tsx
 "use client";
 
 import { FormEvent, useId, useState } from "react";
@@ -14,22 +15,32 @@ type AuthFormProps = {
 const COPY: Record<AuthMode, { title: string; submit: string }> = {
   login: { title: "Entrar", submit: "Entrar" },
   signup: { title: "Criar conta", submit: "Criar conta" },
-  recover: { title: "Recuperar acesso", submit: "Enviar instruções" },
-  "update-password": { title: "Definir nova senha", submit: "Atualizar senha" },
+  recover: {
+    title: "Recuperar acesso",
+    submit: "Enviar instruções",
+  },
+  "update-password": {
+    title: "Definir nova senha",
+    submit: "Atualizar senha",
+  },
 };
 
-const GENERIC_AUTH_ERROR = "Não foi possível concluir a operação. Tente novamente.";
+const GENERIC_AUTH_ERROR =
+  "Não foi possível concluir a operação. Tente novamente.";
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const emailId = useId();
   const passwordId = useId();
   const confirmPasswordId = useId();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [message, setMessage] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -45,9 +56,14 @@ export function AuthForm({ mode }: AuthFormProps) {
           redirectTo: `${window.location.origin}/auth/callback?next=/redefinir-senha`,
         });
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
+
         setStatus("success");
-        setMessage("Se o endereço estiver cadastrado, você receberá as instruções para recuperar o acesso.");
+        setMessage(
+          "Se o endereço estiver cadastrado, você receberá as instruções para recuperar o acesso.",
+        );
         return;
       }
 
@@ -59,7 +75,11 @@ export function AuthForm({ mode }: AuthFormProps) {
         }
 
         const { error } = await supabase.auth.updateUser({ password });
-        if (error) throw error;
+
+        if (error) {
+          throw error;
+        }
+
         setStatus("success");
         setMessage("Senha atualizada com sucesso.");
         return;
@@ -74,7 +94,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           },
         });
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
+
         setStatus("success");
         setMessage(
           data.session
@@ -84,8 +107,14 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
 
       setStatus("success");
       router.push("/");
@@ -127,13 +156,16 @@ export function AuthForm({ mode }: AuthFormProps) {
               id={passwordId}
               name="password"
               type={passwordInputType}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
               required
               minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={status === "error"}
             />
+
             <button
               type="button"
               onClick={() => setShowPassword((visible) => !visible)}
@@ -174,3 +206,4 @@ export function AuthForm({ mode }: AuthFormProps) {
     </main>
   );
 }
+```
