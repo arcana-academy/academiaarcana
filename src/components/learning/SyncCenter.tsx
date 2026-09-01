@@ -13,6 +13,14 @@ const FILE_LABELS: Record<SyncFileKind, string> = {
   pdf: "PDFs",
 };
 
+const SETTING_KEYS: Record<SyncFileKind, keyof SyncSettings> = {
+  note: "syncNotes",
+  image: "syncImages",
+  audio: "syncAudio",
+  video: "syncVideo",
+  pdf: "syncPdf",
+};
+
 export function SyncCenter({ deviceId }: { deviceId: string }) {
   const [settings, setSettings] = useState<SyncSettings>({ ...DEFAULT_SYNC_SETTINGS, deviceId });
   const [saved, setSaved] = useState(false);
@@ -46,37 +54,27 @@ export function SyncCenter({ deviceId }: { deviceId: string }) {
 
         <div className="aa-sync-section">
           <label className="aa-sync-toggle">
-            <input
-              type="checkbox"
-              checked={settings.enabled}
-              onChange={(event) => update({ enabled: event.target.checked })}
-            />
-            <span>
-              <strong>Sincronização ativa</strong>
-              <small>Alterações locais ficam na fila quando não houver conexão.</small>
-            </span>
+            <input type="checkbox" checked={settings.enabled} onChange={(event) => update({ enabled: event.target.checked })} />
+            <span><strong>Sincronização ativa</strong><small>Alterações locais ficam na fila quando não houver conexão.</small></span>
           </label>
         </div>
 
         <fieldset className="aa-sync-section">
           <legend>Arquivos sincronizados</legend>
-          {syncKinds.map(({ kind }) => (
-            <label key={kind} className="aa-sync-toggle">
-              <input
-                type="checkbox"
-                checked={settings[`sync${kind === "note" ? "Notes" : kind === "pdf" ? "Pdf" : `${kind[0].toUpperCase()}${kind.slice(1)}`} ` as keyof SyncSettings] as boolean}
-                disabled={kind === "note"}
-                onChange={(event) => {
-                  const key = `sync${kind === "note" ? "Notes" : kind === "pdf" ? "Pdf" : `${kind[0].toUpperCase()}${kind.slice(1)}`}` as keyof SyncSettings;
-                  update({ [key]: event.target.checked } as Partial<SyncSettings>);
-                }}
-              />
-              <span>
-                <strong>{FILE_LABELS[kind]}</strong>
-                <small>{kind === "note" ? "Conteúdo principal de aprendizagem." : "Opcional para reduzir transferência de dados."}</small>
-              </span>
-            </label>
-          ))}
+          {syncKinds.map(({ kind }) => {
+            const key = SETTING_KEYS[kind];
+            return (
+              <label key={kind} className="aa-sync-toggle">
+                <input
+                  type="checkbox"
+                  checked={Boolean(settings[key])}
+                  disabled={kind === "note"}
+                  onChange={(event) => update({ [key]: event.target.checked } as Partial<SyncSettings>)}
+                />
+                <span><strong>{FILE_LABELS[kind]}</strong><small>{kind === "note" ? "Conteúdo principal de aprendizagem." : "Opcional para reduzir transferência de dados."}</small></span>
+              </label>
+            );
+          })}
         </fieldset>
 
         <fieldset className="aa-sync-section">
