@@ -1,3 +1,4 @@
+```tsx
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -28,6 +29,7 @@ vi.mock("next/navigation", () => ({
 describe("AuthForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
     signInWithPassword.mockResolvedValue({ error: null });
     signUp.mockResolvedValue({ data: { session: null }, error: null });
     resetPasswordForEmail.mockResolvedValue({ error: null });
@@ -40,9 +42,11 @@ describe("AuthForm", () => {
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "student@example.com" },
     });
+
     fireEvent.change(screen.getByLabelText("Senha"), {
       target: { value: "correct-password" },
     });
+
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
     await waitFor(() => {
@@ -56,15 +60,20 @@ describe("AuthForm", () => {
   });
 
   it("shows a non-sensitive error when login fails", async () => {
-    signInWithPassword.mockResolvedValueOnce({ error: new Error("Invalid login credentials") });
+    signInWithPassword.mockResolvedValueOnce({
+      error: new Error("Invalid login credentials"),
+    });
+
     render(<AuthForm mode="login" />);
 
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "student@example.com" },
     });
+
     fireEvent.change(screen.getByLabelText("Senha"), {
       target: { value: "wrong-password" },
     });
+
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
     await waitFor(() => {
@@ -80,13 +89,21 @@ describe("AuthForm", () => {
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "student@example.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Enviar instruções" }));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Enviar instruções" }),
+    );
 
     await waitFor(() => {
       expect(resetPasswordForEmail).toHaveBeenCalledWith(
         "student@example.com",
-        expect.objectContaining({ redirectTo: expect.stringContaining("/auth/callback?next=/redefinir-senha") }),
+        expect.objectContaining({
+          redirectTo: expect.stringContaining(
+            "/auth/callback?next=/redefinir-senha",
+          ),
+        }),
       );
+
       expect(screen.getByRole("alert").textContent).toContain(
         "Se o endereço estiver cadastrado, você receberá as instruções para recuperar o acesso.",
       );
@@ -99,12 +116,20 @@ describe("AuthForm", () => {
     fireEvent.change(screen.getByLabelText("Senha"), {
       target: { value: "new-password" },
     });
+
     fireEvent.change(screen.getByLabelText("Confirmar senha"), {
       target: { value: "different-password" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Atualizar senha" }));
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Atualizar senha" }),
+    );
 
     expect(updateUser).not.toHaveBeenCalled();
-    expect(screen.getByRole("alert").textContent).toContain("As senhas precisam ser iguais.");
+
+    expect(screen.getByRole("alert").textContent).toContain(
+      "As senhas precisam ser iguais.",
+    );
   });
 });
+```
