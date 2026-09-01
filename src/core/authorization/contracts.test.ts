@@ -28,7 +28,7 @@ describe("authorization contracts", () => {
 
     const denied: AccessDecision = { allowed: false, reason: "policy-denied" };
 
-    expect(policy()).toEqual({
+    expect(policy({ actorId: "user-1", action: "read", resourceId: "resource-1" })).toEqual({
       allowed: true,
       scope: "self",
     });
