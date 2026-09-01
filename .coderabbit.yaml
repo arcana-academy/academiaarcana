@@ -1,0 +1,142 @@
+
+
+language: "pt-BR"
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  high_level_summary: true
+  review_status: true
+
+  auto_review:
+    enabled: true
+    drafts: true
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 5
+
+  path_instructions:
+    - path: "src/**"
+      instructions: |
+        Revise como código de produção da Academia Arcana.
+        - Priorize TypeScript estrito e tipagem segura.
+        - Evite any, casts desnecessários e duplicação.
+        - Preserve a arquitetura existente antes de propor refatorações grandes.
+        - Considere segurança, performance, acessibilidade e manutenção.
+        - Não altere comportamento funcional sem justificativa.
+
+    - path: "src/components/**"
+      instructions: |
+        Preserve o Design System da Academia Arcana.
+        - Não introduza cores arbitrárias quando houver tokens/variáveis de tema.
+        - Não use branco puro (#FFFFFF) como fundo ou texto.
+        - Preserve a identidade Dark Fantasy/Arcana sem tornar a interface infantil ou corporativa.
+        - Verifique WCAG 2.2 AA, teclado, foco visível, semântica e estados interativos.
+        - Evite componentes isolados do Design System.
+
+    - path: "src/app/**"
+      instructions: |
+        Revise seguindo o Next.js App Router.
+        - Use Server Components por padrão.
+        - Client Components somente quando necessários.
+        - Verifique loading, error, empty states e tratamento de erros.
+        - Evite waterfalls e requests desnecessários.
+        - Preserve navegação, responsividade e acessibilidade.
+
+    - path: "src/lib/**"
+      instructions: |
+        Faça revisão rigorosa de segurança e arquitetura.
+        - Não exponha secrets ou service_role keys no cliente.
+        - Valide entradas.
+        - Verifique autenticação e autorização.
+        - Evite vazamento de dados entre usuários.
+        - Prefira menor privilégio e operações previsíveis.
+
+    - path: "src/app/api/**"
+      instructions: |
+        Trate estas rotas como área sensível.
+        - Exija autenticação/autorização quando aplicável.
+        - Nunca confie em IDs ou permissões enviados pelo cliente.
+        - Valide entradas e payloads.
+        - Não exponha dados sensíveis em respostas ou logs.
+        - Verifique rate limiting quando a operação puder ser abusada.
+
+    - path: "supabase/**"
+      instructions: |
+        Revise segurança de banco e RLS.
+        - Verifique Row Level Security.
+        - Garanta isolamento entre usuários.
+        - Não exponha service_role.
+        - Verifique políticas de SELECT/INSERT/UPDATE/DELETE.
+        - Trate qualquer possível bypass de autorização como alta prioridade.
+
+    - path: "src/**/grimorios/**"
+      instructions: |
+        Priorize integridade dos dados dos Grimórios.
+        - Verifique autosave e concorrência.
+        - Evite perda ou sobrescrita de conteúdo.
+        - Trate estados saving/saved/error.
+        - Evite requests excessivos.
+        - Preserve conteúdo e formatação existentes.
+
+    - path: "src/**/xp/**"
+      instructions: |
+        Revise a lógica de gamificação.
+        - Evite duplicação de recompensas.
+        - Evite formas de gerar XP indevidamente.
+        - Preserve progresso existente.
+        - Verifique cálculos de níveis, XP, conquistas e datas.
+        - Prefira operações idempotentes quando aplicável.
+
+    - path: "src/**/missoes/**"
+      instructions: |
+        Revise regras de missões e recompensas.
+        - Evite conclusão ou recompensa duplicada.
+        - Verifique condições de elegibilidade.
+        - Preserve progresso do usuário.
+        - Considere timezone e datas corretamente.
+
+    - path: "src/**/streak/**"
+      instructions: |
+        Revise streaks com atenção a datas e timezone.
+        - Evite reset indevido.
+        - Verifique mudanças de fuso horário.
+        - Preserve mecanismos de proteção de streak.
+        - Evite duplicação de dias ou recompensas.
+
+    - path: ".github/**"
+      instructions: |
+        Trate workflows GitHub Actions como área de alta sensibilidade.
+        - Use least privilege permissions.
+        - Nunca exponha secrets.
+        - Prefira Actions fixadas em SHA confiável quando possível.
+        - Verifique execução de código não confiável em pull_request e pull_request_target.
+        - Não conceda write permissions sem necessidade.
+        - Preserve Harden Runner e demais controles de supply chain.
+        - Não enfraqueça segurança apenas para fazer um check passar.
+
+    - path: "tests/**"
+      instructions: |
+        Revise testes buscando cobertura real.
+        - Cubra happy path, edge cases e erros.
+        - Evite testes frágeis dependentes de timing.
+        - Não remova testes apenas para fazer CI passar.
+        - Prefira testes determinísticos.
+
+    - path: "docs/**"
+      instructions: |
+        Verifique clareza, consistência e precisão da documentação.
+        - Não invente funcionalidades.
+        - Preserve a terminologia oficial da Academia Arcana.
+        - Sinalize documentação desatualizada em relação ao código.
+
+chat:
+  auto_reply: true
+  art: false
+
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - "**/AGENTS.md"
+      - "**/CLAUDE.md"
+      - "**/CONTRIBUTING.md"
+      - "**/docs/**/*.md"
