@@ -8,15 +8,21 @@ function toCssVariableName(path: string): string {
 function flattenTokens(value: unknown, prefix = "", result: Record<string, string> = {}) {
   if (!value || typeof value !== "object") return result;
 
-  for (const [key, child] of Object.entries(value)) {
-    if (key === "id" || key === "name") continue;
-    const path = prefix ? `${prefix}.${key}` : key;
-
-    if (typeof child === "string") {
+  const excludeKeys = new Set(["id", "name"]);
+  const handlers: Record<string, (child: any, path: string, result: Record<string, string>) => void> = {
+    string: (child, path, result) => {
       result[toCssVariableName(path)] = child;
-    } else {
+    },
+    object: (child, path, result) => {
       flattenTokens(child, path, result);
     }
+  };
+
+  for (const [key, child] of Object.entries(value)) {
+    if (excludeKeys.has(key)) continue;
+    const path = prefix ? `${prefix}.${key}` : key;
+    const type = typeof child;
+    (handlers[type] || (() => {}))(child, path, result);
   }
 
   return result;
