@@ -1,0 +1,13 @@
+export { identityDomain } from "./identity";
+export { contextDomain } from "./context";
+export { authorizationDomain } from "./authorization";
+export { learningDomain } from "./learning";
+export { planningDomain } from "./planning";
+export { gamificationDomain } from "./gamification";
+export { educationDomain } from "./education";
+export { socialDomain } from "./social";
+export { adaptiveDomain } from "./adaptive";
+export { intelligenceDomain } from "./intelligence";
+export { flontsDomain } from "./flonts";
+export { trustDomain } from "./trust";
+export { dataDomain } from "./data";
