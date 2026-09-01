@@ -1,16 +1,21 @@
 import { describe, expect, it } from "vitest";
-import type { AccessDecision, AccessRequest, AuthorizationPolicy } from "./contracts";
+import { evaluateAuthorization } from "./contracts";
+import type {
+  AccessDecision,
+  AccessRequest,
+  AuthorizationPolicy,
+} from "./contracts";
 
 describe("authorization contracts", () => {
-  it("models an explicit request without personal profile fields", () => {
-    const request: AccessRequest = {
-      actorId: "user-1",
-      action: "read",
-      resourceId: "resource-1",
-      contextId: "personal",
-      purpose: "study",
-    };
+  const request: AccessRequest = {
+    actorId: "user-1",
+    action: "read",
+    resourceId: "resource-1",
+    contextId: "personal",
+    purpose: "study",
+  };
 
+  it("models an explicit request without personal profile fields", () => {
     expect(request).toEqual({
       actorId: "user-1",
       action: "read",
@@ -20,18 +25,40 @@ describe("authorization contracts", () => {
     });
   });
 
-  it("requires an explicit decision with a bounded allow scope", () => {
+  it("denies when no authorization policy is applicable", () => {
+    const result = evaluateAuthorization(request, undefined);
+
+    expect(result).toEqual({
+      allowed: false,
+      reason: "policy-denied",
+    });
+  });
+
+  it("allows only when the supplied policy explicitly allows", () => {
     const policy: AuthorizationPolicy = (_request) => ({
       allowed: true,
       scope: "self",
     });
 
-    const denied: AccessDecision = { allowed: false, reason: "policy-denied" };
+    const result = evaluateAuthorization(request, policy);
 
-    expect(policy({ actorId: "user-1", action: "read", resourceId: "resource-1" })).toEqual({
+    expect(result).toEqual({
       allowed: true,
       scope: "self",
     });
-    expect(denied.allowed).toBe(false);
+  });
+
+  it("preserves an explicit denial from the applicable policy", () => {
+    const policy: AuthorizationPolicy = (_request) => ({
+      allowed: false,
+      reason: "wrong-context",
+    });
+
+    const result: AccessDecision = evaluateAuthorization(request, policy);
+
+    expect(result).toEqual({
+      allowed: false,
+      reason: "wrong-context",
+    });
   });
 });
