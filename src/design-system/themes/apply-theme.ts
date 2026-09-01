@@ -5,18 +5,32 @@ function toCssVariableName(path: string): string {
   return `--aa-${path.replace(/\./g, "-")}`;
 }
 
-function flattenTokens(value: unknown, prefix = "", result: Record<string, string> = {}) {
+function flattenTokenChild(
+  child: unknown,
+  path: string,
+  result: Record<string, string>,
+): void {
+  if (typeof child === "string") {
+    result[toCssVariableName(path)] = child;
+    return;
+  }
+
+  if (child && typeof child === "object") {
+    flattenTokens(child, path, result);
+  }
+}
+
+function flattenTokens(
+  value: unknown,
+  prefix = "",
+  result: Record<string, string> = {},
+): Record<string, string> {
   if (!value || typeof value !== "object") return result;
 
   for (const [key, child] of Object.entries(value)) {
     if (key === "id" || key === "name") continue;
     const path = prefix ? `${prefix}.${key}` : key;
-
-    if (typeof child === "string") {
-      result[toCssVariableName(path)] = child;
-    } else {
-      flattenTokens(child, path, result);
-    }
+    flattenTokenChild(child, path, result);
   }
 
   return result;
