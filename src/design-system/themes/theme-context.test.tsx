@@ -5,14 +5,14 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, test } from "vitest";
 import { ThemeProvider, useTheme } from "./theme-context";
 
-function Probe(): ReactNode {
+const Probe = (): ReactNode => {
   const { theme, setTheme, tokens } = useTheme();
   return (
     <button type="button" onClick={() => setTheme("noturno")} data-theme={theme}>
       {tokens.accent.primary}
     </button>
   );
-}
+};
 
 describe("ThemeProvider", () => {
   test("provides the deterministic initial theme and updates it through setTheme", () => {

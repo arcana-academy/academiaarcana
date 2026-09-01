@@ -44,7 +44,7 @@ export const THEME_IDS: readonly ThemeId[] = [
   "paper-light",
 ];
 
-function createPreset(
+export function createPreset(
   id: ThemeId,
   name: string,
   overrides: Partial<ThemeTokens>,
