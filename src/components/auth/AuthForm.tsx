@@ -18,13 +18,7 @@ const COPY: Record<AuthMode, { title: string; submit: string }> = {
   "update-password": { title: "Definir nova senha", submit: "Atualizar senha" },
 };
 
-function errorMessage(error: unknown) {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return "Não foi possível concluir a operação. Tente novamente.";
-}
+const GENERIC_AUTH_ERROR = "Não foi possível concluir a operação. Tente novamente.";
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
@@ -96,9 +90,9 @@ export function AuthForm({ mode }: AuthFormProps) {
       setStatus("success");
       router.push("/");
       router.refresh();
-    } catch (error) {
+    } catch {
       setStatus("error");
-      setMessage(errorMessage(error));
+      setMessage(GENERIC_AUTH_ERROR);
     }
   }
 

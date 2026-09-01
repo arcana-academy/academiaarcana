@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const redirect = vi.fn();
-const getClaims = vi.fn();
+const mocks = vi.hoisted(() => ({
+  redirect: vi.fn(),
+  getClaims: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
-  redirect,
+  redirect: mocks.redirect,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
-    auth: { getClaims },
+    auth: { getClaims: mocks.getClaims },
   }),
 }));
 
@@ -22,25 +24,25 @@ describe("requireAuthenticatedUser", () => {
 
   it("returns verified claims when a subject is present", async () => {
     const claims = { sub: "subject-123", role: "authenticated" };
-    getClaims.mockResolvedValue({ data: { claims }, error: null });
+    mocks.getClaims.mockResolvedValue({ data: { claims }, error: null });
 
     await expect(requireAuthenticatedUser()).resolves.toEqual(claims);
-    expect(redirect).not.toHaveBeenCalled();
+    expect(mocks.redirect).not.toHaveBeenCalled();
   });
 
   it("redirects unauthenticated requests to login", async () => {
-    getClaims.mockResolvedValue({ data: { claims: null }, error: null });
+    mocks.getClaims.mockResolvedValue({ data: { claims: null }, error: null });
 
     await requireAuthenticatedUser();
 
-    expect(redirect).toHaveBeenCalledWith("/login");
+    expect(mocks.redirect).toHaveBeenCalledWith("/login");
   });
 
   it("redirects when claims validation fails", async () => {
-    getClaims.mockResolvedValue({ data: { claims: null }, error: new Error("expired") });
+    mocks.getClaims.mockResolvedValue({ data: { claims: null }, error: new Error("expired") });
 
     await requireAuthenticatedUser();
 
-    expect(redirect).toHaveBeenCalledWith("/login");
+    expect(mocks.redirect).toHaveBeenCalledWith("/login");
   });
 });
