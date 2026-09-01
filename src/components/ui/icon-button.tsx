@@ -1,6 +1,7 @@
 import { Button, type ButtonProps } from "./button";
 
-export type IconButtonProps = Omit<ButtonProps, "size" | "children"> & {
+export type IconButtonProps = Omit<ButtonProps, "size" | "children" | "aria-label"> & {
+  "aria-label": string;
   children: ButtonProps["children"];
 };
 
