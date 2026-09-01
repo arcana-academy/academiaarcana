@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 type PackageJson = {
@@ -7,11 +7,11 @@ type PackageJson = {
   engines?: { node?: string };
 };
 
-const root = fileURLToPath(new URL("../../../", import.meta.url));
+const root = process.cwd();
 const packageJson = JSON.parse(
-  readFileSync(`${root}/package.json`, "utf8"),
+  readFileSync(join(root, "package.json"), "utf8"),
 ) as PackageJson;
-const nodeVersion = readFileSync(`${root}/.nvmrc`, "utf8").trim();
+const nodeVersion = readFileSync(join(root, ".nvmrc"), "utf8").trim();
 
 describe("technical tooling contract", () => {
   it("keeps required quality scripts and Node 22 aligned", () => {
