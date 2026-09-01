@@ -24,4 +24,4 @@ jobs:
       id-token: write
     steps:
       - name: Claude Code Action Official
-        uses: anthropics/claude-code-action@fad22eb3fa582b7357fc0ea48af6645851b884fd # v1
+        uses: anthropics/claude-code-action@781d62e4d9bbf9f57cb4f12c69761b1d88e5f6dd # v1.0.212
