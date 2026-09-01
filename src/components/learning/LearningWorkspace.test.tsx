@@ -28,7 +28,7 @@ describe("LearningWorkspace", () => {
 
   it("filters visible documents through search", async () => {
     const { rerender } = render(<LearningWorkspace documents={documents} />);
-    expect(screen.getByText("Anatomia")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Anatomia" })).toBeInTheDocument();
     const search = screen.getByRole("searchbox");
     search.focus();
     // Keep this test focused on the controlled input contract; interaction behavior is covered by the client component runtime.
