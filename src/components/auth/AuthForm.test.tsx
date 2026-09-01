@@ -68,7 +68,7 @@ describe("AuthForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(
+      expect(screen.getByRole("alert").textContent).toContain(
         "Não foi possível concluir a operação. Tente novamente.",
       );
     });
@@ -87,7 +87,7 @@ describe("AuthForm", () => {
         "student@example.com",
         expect.objectContaining({ redirectTo: expect.stringContaining("/auth/callback?next=/redefinir-senha") }),
       );
-      expect(screen.getByRole("alert")).toHaveTextContent(
+      expect(screen.getByRole("alert").textContent).toContain(
         "Se o endereço estiver cadastrado, você receberá as instruções para recuperar o acesso.",
       );
     });
@@ -105,6 +105,6 @@ describe("AuthForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Atualizar senha" }));
 
     expect(updateUser).not.toHaveBeenCalled();
-    expect(screen.getByRole("alert")).toHaveTextContent("As senhas precisam ser iguais.");
+    expect(screen.getByRole("alert").textContent).toContain("As senhas precisam ser iguais.");
   });
 });
