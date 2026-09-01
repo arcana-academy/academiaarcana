@@ -21,7 +21,24 @@ export type ThemeId =
   | "nordic"
   | "void"
   | "things"
-  | "soft-paper";
+  | "soft-paper"
+  | "minimal-studio"
+  | "apple-notes"
+  | "macos"
+  | "vauxhall"
+  | "rose-pine"
+  | "material-ocean"
+  | "nightfox"
+  | "vesper"
+  | "brutalist"
+  | "retro-windows"
+  | "pixel"
+  | "cyberglow"
+  | "nature"
+  | "bamboo"
+  | "sacred-geometry"
+  | "glass"
+  | "paper-light";
 
 export type SurfaceTokens = {
   canvas: string;
