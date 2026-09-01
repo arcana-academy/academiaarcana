@@ -21,7 +21,7 @@ describe("authorization contracts", () => {
   });
 
   it("requires an explicit decision with a bounded allow scope", () => {
-    const policy: AuthorizationPolicy = () => ({
+    const policy: AuthorizationPolicy = (_request) => ({
       allowed: true,
       scope: "self",
     });
