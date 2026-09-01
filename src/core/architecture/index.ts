@@ -1,4 +1,6 @@
+```ts id="5b9r1k"
 export { CORE_DOMAINS, type CoreDomain } from "./domains";
+
 export {
   ARCHITECTURE_LAYERS,
   DOMAIN_DEPENDENCY_DIRECTION,
@@ -6,3 +8,4 @@ export {
   type ArchitectureLayer,
   type DomainPolicy,
 } from "./domain-policy";
+```
