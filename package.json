@@ -13,10 +13,10 @@
     "test:a11y": "vitest run --dir src"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.7.0",
+    "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.57.0",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^1.35.0",
     "next": "^16.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
