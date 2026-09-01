@@ -1,11 +1,13 @@
-```yaml
 name: Academia Arcana Quality Gate
 
 on:
   push:
-    branches: [main, feat/**]
+    branches:
+      - main
+      - "feat/**"
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -43,4 +45,3 @@ jobs:
 
       - name: Production build
         run: npm run build
-```
