@@ -1,4 +1,4 @@
-import { CORE_DOMAINS, type CoreDomain } from "./domains";
+import type { CoreDomain } from "./domains";
 
 export type ArchitectureLayer = "ui" | "application" | "domain" | "ports" | "infrastructure";
 
