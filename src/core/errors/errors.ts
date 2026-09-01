@@ -13,3 +13,13 @@ export type AppError = {
   readonly message: string;
   readonly cause?: unknown;
 };
+
+export class ConfigurationError extends Error {
+  readonly code = "CONFIG_MISSING" as const;
+  readonly kind = "configuration" as const;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ConfigurationError";
+  }
+}

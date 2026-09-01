@@ -1,4 +1,4 @@
-import type { AppError } from "@/core/errors";
+import { ConfigurationError } from "@/core/errors";
 
 export type PublicEnv = {
   readonly NEXT_PUBLIC_APP_URL?: string;
@@ -22,12 +22,9 @@ export function getSupabaseServerEnv(env: EnvSource): SupabaseServerEnv {
   const anonKey = env.SUPABASE_ANON_KEY?.trim();
 
   if (!url || !anonKey) {
-    const error: AppError & { readonly code: "CONFIG_MISSING" } = {
-      code: "CONFIG_MISSING",
-      kind: "configuration",
-      message: "Required server environment configuration is missing.",
-    };
-    throw error;
+    throw new ConfigurationError(
+      "Required server environment configuration is missing.",
+    );
   }
 
   return { SUPABASE_URL: url, SUPABASE_ANON_KEY: anonKey };
