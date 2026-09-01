@@ -15,27 +15,10 @@ export function getVersionDiff(left: string, right: string): { changed: boolean;
   const b = right.split(/\r?\n/);
   const common = Math.min(a.length, b.length);
   let changed = 0;
-  for (let index = 0; index < common; index += 1) {
-    if (a[index] !== b[index]) changed += 1;
-  }
-  return {
-    changed: true,
-    added: Math.max(0, b.length - common) + changed,
-    removed: Math.max(0, a.length - common) + changed,
-  };
+  for (let index = 0; index < common; index += 1) if (a[index] !== b[index]) changed += 1;
+  return { changed: true, added: Math.max(0, b.length - common) + changed, removed: Math.max(0, a.length - common) + changed };
 }
 
-export function restoreVersion(version: DocumentVersion, restoredAt: string, restoredBy: string, previous: readonly DocumentVersion[]): DocumentVersion {
-  return createVersion(
-    {
-      id: crypto.randomUUID(),
-      documentId: version.documentId,
-      content: version.content,
-      createdAt: restoredAt,
-      createdBy: restoredBy,
-      changeSummary: `Restaurada a versão ${version.version}`,
-      deleted: false,
-    },
-    previous,
-  );
+export function restoreVersion(version: DocumentVersion, restoredAt: string, restoredBy: string, id: string, previous: readonly DocumentVersion[]): DocumentVersion {
+  return createVersion({ id, documentId: version.documentId, content: version.content, createdAt: restoredAt, createdBy: restoredBy, changeSummary: `Restaurada a versão ${version.version}`, deleted: false }, previous);
 }
