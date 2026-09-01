@@ -92,6 +92,7 @@ a { color: inherit; }
 .aa-badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   border: 1px solid currentColor;
   border-radius: 999px;
   padding: 0.2rem 0.55rem;
@@ -103,6 +104,12 @@ a { color: inherit; }
 .aa-badge-warning { color: var(--aa-status-warning); }
 .aa-badge-danger { color: var(--aa-status-danger); }
 .aa-badge-info { color: var(--aa-status-info); }
+
+.aa-task-priority {
+  padding-left: 0.4rem;
+  border-left: 1px solid currentColor;
+  opacity: 0.88;
+}
 
 .aa-field { display: grid; gap: var(--aa-spacing-xs); }
 .aa-field > label { color: var(--aa-text-primary); font-weight: 600; }
@@ -125,6 +132,144 @@ a { color: inherit; }
 .aa-progress-track { height: 0.625rem; overflow: hidden; border-radius: 999px; background: var(--aa-surfaces-inset); border: 1px solid var(--aa-border-default); }
 .aa-progress-value { height: 100%; border-radius: inherit; background: var(--aa-accent-primary); transition: width var(--aa-motion-duration) ease; }
 
+.aa-page-shell {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.aa-page-heading {
+  margin-bottom: 1.5rem;
+}
+
+.aa-page-heading h1,
+.aa-learning-workspace h2,
+.aa-learning-workspace h3 {
+  margin: 0;
+  font-family: var(--aa-typography-heading);
+  letter-spacing: -0.01em;
+}
+
+.aa-page-heading p,
+.aa-learning-workspace p {
+  margin: 0.5rem 0 0;
+  color: var(--aa-text-secondary);
+  line-height: 1.6;
+}
+
+.aa-eyebrow {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  color: var(--aa-accent-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.aa-learning-workspace {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.aa-learning-workspace-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 1.5fr);
+  gap: 1rem;
+  align-items: end;
+}
+
+.aa-learning-workspace-controls {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(150px, 180px) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.aa-learning-view-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.aa-learning-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.aa-learning-view-list { grid-template-columns: 1fr; }
+.aa-learning-view-cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.aa-learning-view-board { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.aa-learning-view-table { grid-template-columns: 1fr; }
+
+.aa-learning-group {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.aa-learning-document-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.aa-learning-document-type {
+  color: var(--aa-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aa-learning-properties {
+  display: grid;
+  gap: 0.35rem;
+  margin: 1rem 0 0;
+}
+
+.aa-learning-properties > div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.75rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--aa-border-default);
+}
+
+.aa-learning-properties dt {
+  color: var(--aa-text-muted);
+  font-size: 0.78rem;
+}
+
+.aa-learning-properties dd {
+  margin: 0;
+  color: var(--aa-text-secondary);
+}
+
+.aa-learning-task-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.aa-learning-task-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--aa-border-default);
+}
+
+.aa-learning-task-list > div > span:first-child {
+  min-width: 0;
+  color: var(--aa-text-primary);
+}
+
+.aa-learning-search {
+  display: block;
+}
+
 .aa-visually-hidden {
   position: absolute;
   width: 1px;
@@ -138,6 +283,18 @@ a { color: inherit; }
 }
 
 @keyframes aa-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+  .aa-learning-workspace-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .aa-learning-workspace-controls {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
