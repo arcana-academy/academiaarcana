@@ -2,30 +2,29 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { TaskStateBadge } from "./TaskStateBadge";
 
-const statuses = [
-  "todo",
-  "in_progress",
-  "done",
-  "cancelled",
-  "scheduled",
-  "blocked",
-  "question",
-  "idea",
-] as const;
+const expectedLabels = {
+  todo: "A fazer",
+  in_progress: "Em andamento",
+  done: "Concluída",
+  cancelled: "Cancelada",
+  scheduled: "Agendada",
+  blocked: "Bloqueada",
+  question: "Pergunta",
+  idea: "Ideia",
+} as const;
 
 describe("TaskStateBadge", () => {
-  it("renders an accessible status label and symbol for every task state", () => {
-    for (const status of statuses) {
-      const { unmount } = render(<TaskStateBadge status={status} />);
-      expect(screen.getByText(status === "in_progress" ? "Em andamento" : expect.any(String))).toBeInTheDocument();
-      expect(screen.getByRole("status")).toHaveAccessibleName();
-      unmount();
-    }
-  });
+  it.each(Object.entries(expectedLabels))(
+    "renders an accessible status label for %s",
+    (status, label) => {
+      render(<TaskStateBadge status={status as keyof typeof expectedLabels} />);
+      expect(screen.getByRole("status")).toHaveAccessibleName(label);
+    },
+  );
 
   it("renders priority without changing the status meaning", () => {
     render(<TaskStateBadge status="todo" priority="urgent" />);
-    expect(screen.getByRole("status")).toHaveTextContent("A fazer");
+    expect(screen.getByRole("status")).toHaveAccessibleName("A fazer. Prioridade: Urgente");
     expect(screen.getByText("Urgente")).toBeInTheDocument();
   });
 
