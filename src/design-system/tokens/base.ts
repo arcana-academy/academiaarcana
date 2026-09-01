@@ -53,4 +53,12 @@ export const baseTokens: ThemeTokens = {
     duration: "180ms",
     reduced: "0ms",
   },
+  density: {
+    compact: "0.875",
+    comfortable: "1",
+  },
+  effects: {
+    glow: "0 0 0 transparent",
+    texture: "none",
+  },
 };

@@ -8,7 +8,37 @@ export type ThemeId =
   | "gamer"
   | "cozy-cafe"
   | "noturno"
-  | "romantico";
+  | "romantico"
+  | "ebullient"
+  | "nebula"
+  | "solarized"
+  | "gruvbox"
+  | "poimandres"
+  | "kanagawa-paper"
+  | "adwaita"
+  | "claude-warm"
+  | "aura"
+  | "nordic"
+  | "void"
+  | "things"
+  | "soft-paper"
+  | "minimal-studio"
+  | "apple-notes"
+  | "macos"
+  | "vauxhall"
+  | "rose-pine"
+  | "material-ocean"
+  | "nightfox"
+  | "vesper"
+  | "brutalist"
+  | "retro-windows"
+  | "pixel"
+  | "cyberglow"
+  | "nature"
+  | "bamboo"
+  | "sacred-geometry"
+  | "glass"
+  | "paper-light";
 
 export type SurfaceTokens = {
   canvas: string;
@@ -73,6 +103,16 @@ export type MotionTokens = {
   reduced: string;
 };
 
+export type DensityTokens = {
+  compact: string;
+  comfortable: string;
+};
+
+export type EffectsTokens = {
+  glow: string;
+  texture: string;
+};
+
 export type ThemeTokens = {
   surfaces: SurfaceTokens;
   text: TextTokens;
@@ -85,6 +125,8 @@ export type ThemeTokens = {
   typography: TypographyTokens;
   shadows: ShadowTokens;
   motion: MotionTokens;
+  density: DensityTokens;
+  effects: EffectsTokens;
 };
 
 export type ThemePreset = ThemeTokens & {

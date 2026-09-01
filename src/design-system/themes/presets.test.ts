@@ -32,6 +32,53 @@ const requiredTokenPaths = [
   "shadows.md",
   "motion.duration",
   "motion.reduced",
+  "density.compact",
+  "density.comfortable",
+  "effects.glow",
+  "effects.texture",
+] as const;
+
+const approvedThemeIds = [
+  "mago-classico",
+  "escuro",
+  "estudioso",
+  "natural",
+  "cinematic",
+  "delicado",
+  "gamer",
+  "cozy-cafe",
+  "noturno",
+  "romantico",
+  "ebullient",
+  "nebula",
+  "solarized",
+  "gruvbox",
+  "poimandres",
+  "kanagawa-paper",
+  "adwaita",
+  "claude-warm",
+  "aura",
+  "nordic",
+  "void",
+  "things",
+  "soft-paper",
+  "minimal-studio",
+  "apple-notes",
+  "macos",
+  "vauxhall",
+  "rose-pine",
+  "material-ocean",
+  "nightfox",
+  "vesper",
+  "brutalist",
+  "retro-windows",
+  "pixel",
+  "cyberglow",
+  "nature",
+  "bamboo",
+  "sacred-geometry",
+  "glass",
+  "paper-light",
 ] as const;
 
 function readPath(value: unknown, path: string): unknown {
@@ -42,20 +89,12 @@ function readPath(value: unknown, path: string): unknown {
 }
 
 describe("Academia Arcana theme presets", () => {
-  test("defines every approved theme with a complete semantic token contract", () => {
-    expect(THEME_IDS).toEqual([
-      "mago-classico",
-      "escuro",
-      "estudioso",
-      "natural",
-      "cinematic",
-      "delicado",
-      "gamer",
-      "cozy-cafe",
-      "noturno",
-      "romantico",
-    ]);
+  test("registers the curated reference-derived theme set", () => {
+    expect(THEME_IDS).toEqual(approvedThemeIds);
+    expect(Object.keys(themePresets)).toHaveLength(approvedThemeIds.length);
+  });
 
+  test("defines every approved theme with a complete semantic token contract", () => {
     for (const themeId of THEME_IDS) {
       const preset = themePresets[themeId];
       expect(preset, `${themeId} preset`).toBeDefined();
@@ -66,15 +105,19 @@ describe("Academia Arcana theme presets", () => {
     }
   });
 
-  test("never uses pure white as the dominant surface or primary body text", () => {
+  test("never uses pure white in UI surface or primary text tokens", () => {
     for (const themeId of THEME_IDS) {
       const preset = themePresets[themeId];
-      expect(preset.surfaces.canvas.toUpperCase(), `${themeId} canvas`).not.toBe(
-        "#FFFFFF",
-      );
-      expect(preset.text.primary.toUpperCase(), `${themeId} primary text`).not.toBe(
-        "#FFFFFF",
-      );
+      expect(preset.surfaces.canvas.toUpperCase(), `${themeId} canvas`).not.toBe("#FFFFFF");
+      expect(preset.text.primary.toUpperCase(), `${themeId} primary text`).not.toBe("#FFFFFF");
+    }
+  });
+
+  test("keeps reference-derived presets independent of vendor-specific token structure", () => {
+    for (const themeId of THEME_IDS.slice(10)) {
+      const preset = themePresets[themeId];
+      expect(preset).not.toHaveProperty("vendor");
+      expect(preset).not.toHaveProperty("obsidian");
     }
   });
 });
