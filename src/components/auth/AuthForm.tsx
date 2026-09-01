@@ -1,4 +1,3 @@
-```tsx
 "use client";
 
 import { FormEvent, useId, useState } from "react";
@@ -206,4 +205,3 @@ export function AuthForm({ mode }: AuthFormProps) {
     </main>
   );
 }
-```
