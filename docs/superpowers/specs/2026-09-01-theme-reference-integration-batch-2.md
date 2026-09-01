@@ -1,12 +1,15 @@
 # Theme Reference Integration — Batch 2
 
 ## Contexto
+
 A Academia Arcana já possui um sistema centralizado de tokens e presets e uma primeira leva de referências já foi incorporada com sucesso em branch dedicada.
 
 ## Decisão
+
 A segunda leva de referências será tratada como pesquisa visual e absorvida pelo mesmo Theme Engine. Não serão adicionadas cópias integrais de CSS, dependências de runtime ou sistemas de temas paralelos.
 
 ## Curadoria
+
 As referências deste lote serão agrupadas por famílias visuais, priorizando diferenças perceptíveis de linguagem visual e utilidade para a Academia:
 
 - Minimalist / Studio / Apple Notes / Silence / Simple / Minimal Paradise
@@ -20,6 +23,7 @@ As referências deste lote serão agrupadas por famílias visuais, priorizando d
 - Glass / Isinglass / Aurora Glass / Vauxhall
 
 ## Regras
+
 - Preservar os temas já aceitos.
 - Não criar um preset por repositório quando os padrões forem redundantes.
 - Não usar branco puro para canvas ou texto primário.
@@ -30,6 +34,7 @@ As referências deste lote serão agrupadas por famílias visuais, priorizando d
 - Toda nova capacidade visual deve ser expressa em tokens semânticos reutilizáveis.
 
 ## Referências específicas adicionadas neste lote
+
 - `david-troyer/obsidian-theme-minimalist-studio`
 - `CyanVoxel/vauxhall-obsidian`
 - `alexxozo/apple-notes-obsidian`
@@ -85,7 +90,9 @@ As referências deste lote serão agrupadas por famílias visuais, priorizando d
 - `prradox/green-nightmare`
 
 ## Resultado esperado
+
 Expandir o vocabulário visual do Theme Engine de forma controlada, com novos presets somente quando uma família representar uma linguagem visual materialmente distinta e reutilizável.
 
 ## Status
+
 accepted
