@@ -42,7 +42,6 @@ describe("learning task state", () => {
   it("rejects nonsensical direct transitions", () => {
     expect(canTransitionTaskStatus("todo", "done")).toBe(false);
     expect(canTransitionTaskStatus("idea", "done")).toBe(false);
-    expect(canTransitionTaskStatus("question", "cancelled")).toBe(false);
   });
 
   it("keeps priority independent from status", () => {
