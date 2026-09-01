@@ -23,5 +23,12 @@ jobs:
           persist-credentials: false
 
       - name: Dependency Review
+        id: dependency-review
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         continue-on-error: true
+
+      - name: Explain unavailable dependency graph
+        if: steps.dependency-review.outcome == 'failure'
+        run: |
+          echo 'Dependency Review could not run because GitHub Dependency Graph is disabled for this repository.'
+          echo 'Enable Dependency graph in Settings > Security > Advanced Security, then remove continue-on-error from this workflow.'
