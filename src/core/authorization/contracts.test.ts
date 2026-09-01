@@ -36,7 +36,7 @@ describe("authorization contracts", () => {
   });
 
   it("allows only when the supplied policy explicitly allows", () => {
-    const policy: AuthorizationPolicy = () => ({
+    const policy: AuthorizationPolicy = (_request) => ({
       allowed: true,
       scope: "self",
     });
@@ -50,7 +50,7 @@ describe("authorization contracts", () => {
   });
 
   it("preserves an explicit denial from the applicable policy", () => {
-    const policy: AuthorizationPolicy = () => ({
+    const policy: AuthorizationPolicy = (_request) => ({
       allowed: false,
       reason: "wrong-context",
     });
