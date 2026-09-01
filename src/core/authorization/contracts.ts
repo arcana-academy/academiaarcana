@@ -1,4 +1,3 @@
-```ts
 export type AccessAction =
   | "read"
   | "create"
@@ -56,4 +55,3 @@ export function evaluateAuthorization(
 
   return policy(request);
 }
-```
