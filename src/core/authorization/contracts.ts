@@ -1,3 +1,4 @@
+```ts
 export type AccessAction =
   | "read"
   | "create"
@@ -38,6 +39,10 @@ export type AuthorizationPolicy = (
   request: AccessRequest,
 ) => AccessDecision;
 
+/**
+ * Evaluates an authorization request against a policy.
+ * Returns a denial with reason "policy-denied" when no policy is provided.
+ */
 export function evaluateAuthorization(
   request: AccessRequest,
   policy: AuthorizationPolicy | undefined,
@@ -51,3 +56,4 @@ export function evaluateAuthorization(
 
   return policy(request);
 }
+```

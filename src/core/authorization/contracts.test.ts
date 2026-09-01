@@ -1,6 +1,11 @@
+```ts
 import { describe, expect, it } from "vitest";
-import type { AccessDecision, AccessRequest, AuthorizationPolicy } from "./contracts";
 import { evaluateAuthorization } from "./contracts";
+import type {
+  AccessDecision,
+  AccessRequest,
+  AuthorizationPolicy,
+} from "./contracts";
 
 describe("authorization contracts", () => {
   const request: AccessRequest = {
@@ -38,7 +43,10 @@ describe("authorization contracts", () => {
 
     const result = evaluateAuthorization(request, policy);
 
-    expect(result).toEqual({ allowed: true, scope: "self" });
+    expect(result).toEqual({
+      allowed: true,
+      scope: "self",
+    });
   });
 
   it("preserves an explicit denial from the applicable policy", () => {
@@ -55,3 +63,4 @@ describe("authorization contracts", () => {
     });
   });
 });
+```
