@@ -37,3 +37,17 @@ export type AccessRequest = {
 export type AuthorizationPolicy = (
   request: AccessRequest,
 ) => AccessDecision;
+
+export function evaluateAuthorization(
+  request: AccessRequest,
+  policy: AuthorizationPolicy | undefined,
+): AccessDecision {
+  if (!policy) {
+    return {
+      allowed: false,
+      reason: "policy-denied",
+    };
+  }
+
+  return policy(request);
+}
