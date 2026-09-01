@@ -23,19 +23,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const errorId = error ? `${id}-error` : undefined;
     const describedBy = [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
-    const elementMap = {
-      label: label ? <label htmlFor={id}>{label}</label> : null,
-      description: description
-        ? <p id={descriptionId} className="aa-field-description">{description}</p>
-        : null,
-      error: error
-        ? <p id={errorId} className="aa-field-error" role="alert">{error}</p>
-        : null,
-    };
-
     return (
       <div className="aa-field">
-        {elementMap.label}
+        {label ? <label htmlFor={id}>{label}</label> : null}
         <input
           {...props}
           ref={ref}
@@ -44,8 +34,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           aria-describedby={describedBy}
           aria-invalid={error ? true : props["aria-invalid"]}
         />
-        {elementMap.description}
-        {elementMap.error}
+        {description ? (
+          <p id={descriptionId} className="aa-field-description">
+            {description}
+          </p>
+        ) : null}
+        {error ? (
+          <p id={errorId} className="aa-field-error" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   },
