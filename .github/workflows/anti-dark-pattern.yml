@@ -2,18 +2,31 @@ name: Anti-Dark Pattern
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - ".github/workflows/anti-dark-pattern.yml"
   push:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - ".github/workflows/anti-dark-pattern.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: anti-dark-pattern-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scan:
     name: Dark pattern scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
