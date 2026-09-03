@@ -7,6 +7,12 @@ on:
     - cron: "30 4 * * 1"
   workflow_dispatch:
 
+permissions: read-all
+
+concurrency:
+  group: scorecard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analysis:
     name: Scorecards analysis
