@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:a11y": "vitest run --dir src"
+    "test:a11y": "vitest run src/components/ui/button.test.tsx src/components/ui/card.test.tsx src/components/ui/icon-button.test.tsx"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
@@ -30,7 +30,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "eslint": "~9.39.5",
+    "eslint": "9.39.5",
     "eslint-config-next": "^16.0.0",
     "jsdom": "^26.0.0",
     "typescript": "^5.7.0",

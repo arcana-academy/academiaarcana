@@ -1,0 +1,75 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { createAuthenticatedAccessibilityPreferencesRepository } from "./AuthenticatedAccessibilityPreferences";
+
+describe("AuthenticatedAccessibilityPreferences", () => {
+  it("retorna null quando não existe preferência autenticada", async () => {
+    const load = vi.fn().mockResolvedValue(null);
+    const save = vi.fn().mockResolvedValue(undefined);
+
+    const repository = createAuthenticatedAccessibilityPreferencesRepository({
+      load,
+      save,
+    });
+
+    await expect(repository.load()).resolves.toBeNull();
+
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it("carrega preferências autenticadas", async () => {
+    const preferences = {
+      version: 1 as const,
+      preferences: {
+        motion: "reduced" as const,
+      },
+    };
+
+    const load = vi.fn().mockResolvedValue(preferences);
+    const save = vi.fn().mockResolvedValue(undefined);
+
+    const repository = createAuthenticatedAccessibilityPreferencesRepository({
+      load,
+      save,
+    });
+
+    await expect(repository.load()).resolves.toEqual(preferences);
+
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it("salva preferências autenticadas", async () => {
+    const load = vi.fn().mockResolvedValue(null);
+    const save = vi.fn().mockResolvedValue(undefined);
+
+    const repository = createAuthenticatedAccessibilityPreferencesRepository({
+      load,
+      save,
+    });
+
+    const preferences = {
+      version: 1 as const,
+      preferences: {
+        motion: "normal" as const,
+      },
+    };
+
+    await expect(repository.save(preferences)).resolves.toBeUndefined();
+
+    expect(save).toHaveBeenCalledWith(preferences);
+  });
+
+  it("propaga o erro estruturado do serviço autenticado", async () => {
+    const error = new Error("authenticated storage unavailable");
+
+    const load = vi.fn().mockRejectedValue(error);
+    const save = vi.fn().mockResolvedValue(undefined);
+
+    const repository = createAuthenticatedAccessibilityPreferencesRepository({
+      load,
+      save,
+    });
+
+    await expect(repository.load()).rejects.toBe(error);
+  });
+});
