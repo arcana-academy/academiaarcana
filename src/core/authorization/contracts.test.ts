@@ -62,3 +62,4 @@ describe("authorization contracts", () => {
     });
   });
 });
+});

@@ -34,9 +34,7 @@ export type AccessRequest = {
  * Authorization is an explicit boundary. Callers must provide the request
  * context and consume an explicit decision; there is no implicit allow.
  */
-export type AuthorizationPolicy = (
-  request: AccessRequest,
-) => AccessDecision;
+export type AuthorizationPolicy = (request: AccessRequest) => AccessDecision;
 
 /**
  * Evaluates an authorization request against a policy.

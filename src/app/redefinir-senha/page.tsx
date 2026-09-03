@@ -5,3 +5,4 @@ export default async function RedefinirSenhaPage() {
   await requireAuthenticatedUser();
   return <AuthForm mode="update-password" />;
 }
+}
