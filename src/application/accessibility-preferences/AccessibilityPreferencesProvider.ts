@@ -1,4 +1,5 @@
 import type {
+  AccessibilityPreferencesError,
   AuthenticatedAccessibilityPreferencesRepository,
   LocalAccessibilityPreferencesRepository,
 } from "../../core/accessibility-preferences/contracts";
@@ -17,9 +18,20 @@ type MotionPreference = "system" | "normal" | "reduced";
 type AccessibilityPreferencesState = {
   configuredMotionPreference: MotionPreference;
   effectiveMotionPreference: "normal" | "reduced";
+  error: AccessibilityPreferencesError | null;
 };
 
 type StateListener = (state: AccessibilityPreferencesState) => void;
+
+function toPersistenceError(error: unknown): AccessibilityPreferencesError {
+  return {
+    code: "PERSISTENCE_FAILED",
+    message:
+      error instanceof Error
+        ? error.message
+        : "Falha ao persistir as preferências de acessibilidade.",
+  };
+}
 
 export function createAccessibilityPreferencesProvider({
   local,
@@ -29,15 +41,35 @@ export function createAccessibilityPreferencesProvider({
   const listeners = new Set<StateListener>();
 
   let currentState: AccessibilityPreferencesState | null = null;
+
   let hasAuthenticatedPreferences = false;
 
+  let unsubscribeFromMotion: (() => void) | null = null;
+
+  const subscribeToMotion = () => {
+    if (unsubscribeFromMotion) {
+      return;
+    }
+
+    unsubscribeFromMotion = motionEnvironment.subscribeToMotionPreference(
+      updateEffectiveMotionPreference,
+    );
+  };
+
+  const unsubscribeFromMotionPreference = () => {
+    unsubscribeFromMotion?.();
+    unsubscribeFromMotion = null;
+  };
+
   const notify = () => {
-    if (!currentState) {
+    const state = currentState;
+
+    if (!state) {
       return;
     }
 
     listeners.forEach((listener) => {
-      listener(currentState as AccessibilityPreferencesState);
+      listener(state);
     });
   };
 
@@ -58,10 +90,6 @@ export function createAccessibilityPreferencesProvider({
 
     notify();
   };
-
-  const unsubscribeFromMotion = motionEnvironment.subscribeToMotionPreference(
-    updateEffectiveMotionPreference,
-  );
 
   return {
     async load(): Promise<AccessibilityPreferencesState> {
@@ -87,6 +115,7 @@ export function createAccessibilityPreferencesProvider({
           configuredPreference: merged.motionPreference,
           systemPreference: motionEnvironment.getSystemMotionPreference(),
         }),
+        error: null,
       };
 
       notify();
@@ -106,26 +135,45 @@ export function createAccessibilityPreferencesProvider({
           configuredPreference: preference,
           systemPreference: motionEnvironment.getSystemMotionPreference(),
         }),
+        error: null,
       };
 
-      const preferences = {
-        version: 1 as const,
-        preferences: {
-          motion: preference,
-        },
-      };
+      try {
+        await local.save({
+          version: 1,
+          preferences: {
+            motion: preference,
+          },
+        });
 
-      await local.save(preferences);
-
-      if (hasAuthenticatedPreferences) {
-        await authenticated.save(preferences);
+        if (hasAuthenticatedPreferences) {
+          await authenticated.save({
+            version: 1,
+            preferences: {
+              motion: preference,
+            },
+          });
+        }
+      } catch (error) {
+        currentState = {
+          ...currentState,
+          error: toPersistenceError(error),
+        };
       }
 
       notify();
     },
 
+    async getState(): Promise<AccessibilityPreferencesState | null> {
+      return currentState;
+    },
+
     subscribe(listener: StateListener) {
       listeners.add(listener);
+
+      if (listeners.size === 1) {
+        subscribeToMotion();
+      }
 
       if (currentState) {
         listener(currentState);
@@ -135,7 +183,7 @@ export function createAccessibilityPreferencesProvider({
         listeners.delete(listener);
 
         if (listeners.size === 0) {
-          unsubscribeFromMotion();
+          unsubscribeFromMotionPreference();
         }
       };
     },

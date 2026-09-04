@@ -9,6 +9,13 @@ export type PersistedAccessibilityPreferences = {
   preferences: AccessibilityPreference;
 };
 
+export type AccessibilityPreferencesErrorCode = "PERSISTENCE_FAILED";
+
+export type AccessibilityPreferencesError = {
+  code: AccessibilityPreferencesErrorCode;
+  message: string;
+};
+
 export type LocalAccessibilityPreferencesRepository = {
   load: () => Promise<PersistedAccessibilityPreferences | null>;
   save: (preferences: PersistedAccessibilityPreferences) => Promise<void>;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type {
   AccessibilityPreference,
+  AccessibilityPreferencesError,
   AuthenticatedAccessibilityPreferencesRepository,
   LocalAccessibilityPreferencesRepository,
   MotionPreference,
@@ -33,6 +34,16 @@ describe("accessibility-preferences contracts", () => {
 
     expect(persisted.version).toBe(1);
     expect(persisted.preferences.motion).toBe("reduced");
+  });
+
+  it("define um erro estruturado de persistência", () => {
+    const error: AccessibilityPreferencesError = {
+      code: "PERSISTENCE_FAILED",
+      message: "falha de persistência local",
+    };
+
+    expect(error.code).toBe("PERSISTENCE_FAILED");
+    expect(error.message).toBe("falha de persistência local");
   });
 
   it("define o contrato de persistência local", () => {
