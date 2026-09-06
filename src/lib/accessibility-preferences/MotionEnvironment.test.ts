@@ -1,109 +1,82 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createMotionEnvironment } from "./MotionEnvironment";
+import { motionEnvironment } from "./MotionEnvironment";
 
-describe("MotionEnvironment", () => {
-  it("retorna normal quando o navegador não está disponível", () => {
-    const environment = createMotionEnvironment();
-
-    expect(environment.getSystemMotionPreference()).toBe("normal");
+describe("motionEnvironment", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it("retorna reduced quando o sistema prefere reduzir movimento", () => {
-    const matchMedia = vi.fn(() => ({
-      matches: true,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }));
+  it("retorna normal quando o ambiente não possui window", () => {
+    const originalWindow = globalThis.window;
 
-    vi.stubGlobal("window", {
-      matchMedia,
-    });
+    vi.stubGlobal("window", undefined);
 
-    const environment = createMotionEnvironment();
+    expect(motionEnvironment.getSystemMotionPreference()).toBe("normal");
 
-    expect(environment.getSystemMotionPreference()).toBe("reduced");
-
-    vi.unstubAllGlobals();
+    vi.stubGlobal("window", originalWindow);
   });
 
-  it("retorna normal quando o sistema não prefere reduzir movimento", () => {
-    const matchMedia = vi.fn(() => ({
-      matches: false,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }));
+  it("retorna uma função de cancelamento quando o ambiente não possui window", () => {
+    const originalWindow = globalThis.window;
 
-    vi.stubGlobal("window", {
-      matchMedia,
-    });
+    vi.stubGlobal("window", undefined);
 
-    const environment = createMotionEnvironment();
+    const unsubscribe = motionEnvironment.subscribeToMotionPreference(vi.fn());
 
-    expect(environment.getSystemMotionPreference()).toBe("normal");
+    expect(unsubscribe).toBeTypeOf("function");
 
-    vi.unstubAllGlobals();
+    vi.stubGlobal("window", originalWindow);
   });
 
-  it("notifica quando a preferência do sistema muda", () => {
-    let changeListener: ((event: MediaQueryListEvent) => void) | undefined;
-
-    const addEventListener = vi.fn(
-      (_event: string, listener: (event: MediaQueryListEvent) => void) => {
-        changeListener = listener;
-      },
-    );
-
-    const removeEventListener = vi.fn();
-
-    const matchMedia = vi.fn(() => ({
-      matches: false,
-      addEventListener,
-      removeEventListener,
-    }));
-
-    vi.stubGlobal("window", {
-      matchMedia,
-    });
-
-    const environment = createMotionEnvironment();
-    const listener = vi.fn();
-
-    environment.subscribeToMotionPreference(listener);
-
-    changeListener?.({
-      matches: true,
-    } as MediaQueryListEvent);
-
-    expect(listener).toHaveBeenCalledWith("reduced");
-
-    changeListener?.({
-      matches: false,
-    } as MediaQueryListEvent);
-
-    expect(listener).toHaveBeenCalledWith("normal");
-
-    vi.unstubAllGlobals();
-  });
-
-  it("remove o listener ao cancelar a inscrição", () => {
+  it("retorna reduced quando o sistema solicita redução de movimento", () => {
     const addEventListener = vi.fn();
     const removeEventListener = vi.fn();
 
-    const matchMedia = vi.fn(() => ({
-      matches: false,
-      addEventListener,
-      removeEventListener,
-    }));
-
     vi.stubGlobal("window", {
-      matchMedia,
+      matchMedia: vi.fn(() => ({
+        matches: true,
+        addEventListener,
+        removeEventListener,
+      })),
     });
 
-    const environment = createMotionEnvironment();
+    expect(motionEnvironment.getSystemMotionPreference()).toBe("reduced");
+  });
+
+  it("retorna normal quando o sistema não solicita redução de movimento", () => {
+    vi.stubGlobal("window", {
+      matchMedia: vi.fn(() => ({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    });
+
+    expect(motionEnvironment.getSystemMotionPreference()).toBe("normal");
+  });
+
+  it("permite assinar e cancelar mudanças da preferência do sistema", () => {
+    const addEventListener = vi.fn();
+    const removeEventListener = vi.fn();
+
+    vi.stubGlobal("window", {
+      matchMedia: vi.fn(() => ({
+        matches: false,
+        addEventListener,
+        removeEventListener,
+      })),
+    });
+
     const listener = vi.fn();
 
-    const unsubscribe = environment.subscribeToMotionPreference(listener);
+    const unsubscribe = motionEnvironment.subscribeToMotionPreference(listener);
+
+    expect(addEventListener).toHaveBeenCalledTimes(1);
+    expect(addEventListener).toHaveBeenCalledWith(
+      "change",
+      expect.any(Function),
+    );
 
     unsubscribe();
 
@@ -112,7 +85,57 @@ describe("MotionEnvironment", () => {
       "change",
       expect.any(Function),
     );
+  });
 
-    vi.unstubAllGlobals();
+  it("converte uma mudança do sistema em uma preferência reduced", () => {
+    let changeListener: ((event: MediaQueryListEvent) => void) | undefined;
+
+    vi.stubGlobal("window", {
+      matchMedia: vi.fn(() => ({
+        matches: false,
+        addEventListener: vi.fn(
+          (_event: string, listener: (event: MediaQueryListEvent) => void) => {
+            changeListener = listener;
+          },
+        ),
+        removeEventListener: vi.fn(),
+      })),
+    });
+
+    const listener = vi.fn();
+
+    motionEnvironment.subscribeToMotionPreference(listener);
+
+    changeListener?.({
+      matches: true,
+    } as MediaQueryListEvent);
+
+    expect(listener).toHaveBeenCalledWith("reduced");
+  });
+
+  it("converte uma mudança do sistema em uma preferência normal", () => {
+    let changeListener: ((event: MediaQueryListEvent) => void) | undefined;
+
+    vi.stubGlobal("window", {
+      matchMedia: vi.fn(() => ({
+        matches: true,
+        addEventListener: vi.fn(
+          (_event: string, listener: (event: MediaQueryListEvent) => void) => {
+            changeListener = listener;
+          },
+        ),
+        removeEventListener: vi.fn(),
+      })),
+    });
+
+    const listener = vi.fn();
+
+    motionEnvironment.subscribeToMotionPreference(listener);
+
+    changeListener?.({
+      matches: false,
+    } as MediaQueryListEvent);
+
+    expect(listener).toHaveBeenCalledWith("normal");
   });
 });

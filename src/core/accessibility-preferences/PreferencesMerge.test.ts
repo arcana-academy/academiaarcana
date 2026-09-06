@@ -1,58 +1,51 @@
 import { describe, expect, it } from "vitest";
-import { mergePreferences } from "./PreferencesMerge";
+
+import { mergeAccessibilityPreferences } from "./PreferencesMerge";
 
 describe("PreferencesMerge", () => {
-  it("usa a preferência autenticada quando ela existe", () => {
+  it("usa o valor do perfil quando ele já existe", () => {
     expect(
-      mergePreferences({
-        local: {
-          motionPreference: "normal",
+      mergeAccessibilityPreferences(
+        {
+          motion: "reduced",
         },
-        authenticated: {
-          motionPreference: "reduced",
+        {
+          motion: "normal",
         },
-      }),
+      ),
     ).toEqual({
-      motionPreference: "reduced",
+      motion: "reduced",
     });
   });
 
-  it("usa a preferência local quando a autenticada está ausente", () => {
+  it("usa o valor local quando o perfil não possui preferência", () => {
     expect(
-      mergePreferences({
-        local: {
-          motionPreference: "reduced",
-        },
-        authenticated: {},
+      mergeAccessibilityPreferences(null, {
+        motion: "reduced",
       }),
     ).toEqual({
-      motionPreference: "reduced",
+      motion: "reduced",
     });
   });
 
-  it("usa system quando nenhuma preferência está disponível", () => {
-    expect(
-      mergePreferences({
-        local: {},
-        authenticated: {},
-      }),
-    ).toEqual({
-      motionPreference: "system",
+  it("usa system quando não existe preferência local nem de perfil", () => {
+    expect(mergeAccessibilityPreferences(null, null)).toEqual({
+      motion: "system",
     });
   });
 
-  it("ignora uma preferência autenticada inválida e preserva a preferência local válida", () => {
+  it("não permite que o valor local sobrescreva o perfil", () => {
     expect(
-      mergePreferences({
-        local: {
-          motionPreference: "reduced",
+      mergeAccessibilityPreferences(
+        {
+          motion: "normal",
         },
-        authenticated: {
-          motionPreference: "invalid" as never,
+        {
+          motion: "reduced",
         },
-      }),
+      ),
     ).toEqual({
-      motionPreference: "reduced",
+      motion: "normal",
     });
   });
 });

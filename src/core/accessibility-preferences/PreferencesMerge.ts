@@ -1,39 +1,18 @@
-import type { MotionPreference } from "./contracts";
+import type { AccessibilityPreference } from "./contracts";
 
-type PreferencesSource = {
-  motionPreference?: unknown;
-};
-
-type MergePreferencesInput = {
-  local: PreferencesSource;
-  authenticated: PreferencesSource;
-};
-
-type MergedPreferences = {
-  motionPreference: MotionPreference;
-};
-
-function isValidMotionPreference(value: unknown): value is MotionPreference {
-  return value === "system" || value === "normal" || value === "reduced";
-}
-
-export function mergePreferences({
-  local,
-  authenticated,
-}: MergePreferencesInput): MergedPreferences {
-  if (isValidMotionPreference(authenticated.motionPreference)) {
-    return {
-      motionPreference: authenticated.motionPreference,
-    };
+export function mergeAccessibilityPreferences(
+  profilePreference: AccessibilityPreference | null,
+  localPreference: AccessibilityPreference | null,
+): AccessibilityPreference {
+  if (profilePreference) {
+    return profilePreference;
   }
 
-  if (isValidMotionPreference(local.motionPreference)) {
-    return {
-      motionPreference: local.motionPreference,
-    };
+  if (localPreference) {
+    return localPreference;
   }
 
   return {
-    motionPreference: "system",
+    motion: "system",
   };
 }

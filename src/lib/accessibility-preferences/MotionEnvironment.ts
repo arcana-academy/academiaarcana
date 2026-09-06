@@ -1,34 +1,45 @@
-import type { MotionEnvironment as MotionEnvironmentContract } from "../../core/accessibility-preferences/MotionEnvironment";
+import type {
+  MotionEnvironment as MotionEnvironmentContract,
+  SystemMotionPreference,
+} from "@/core/accessibility-preferences/MotionEnvironment";
 
-const MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const MEDIA_QUERY = "(prefers-reduced-motion: reduce)";
 
-export function createMotionEnvironment(): MotionEnvironmentContract {
+function getSystemMotionPreference(): SystemMotionPreference {
   if (
     typeof window === "undefined" ||
     typeof window.matchMedia !== "function"
   ) {
-    return {
-      getSystemMotionPreference: () => "normal",
-      subscribeToMotionPreference: () => () => {},
-    };
+    return "normal";
   }
 
-  const mediaQuery = window.matchMedia(MOTION_QUERY);
+  return window.matchMedia(MEDIA_QUERY).matches ? "reduced" : "normal";
+}
 
-  return {
-    getSystemMotionPreference: () =>
-      mediaQuery.matches ? "reduced" : "normal",
+function subscribeToMotionPreference(
+  listener: (preference: SystemMotionPreference) => void,
+): () => void {
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
+    return () => {};
+  }
 
-    subscribeToMotionPreference: (listener) => {
-      const handleChange = (event: MediaQueryListEvent) => {
-        listener(event.matches ? "reduced" : "normal");
-      };
+  const mediaQuery = window.matchMedia(MEDIA_QUERY);
 
-      mediaQuery.addEventListener("change", handleChange);
+  const handleChange = (event: MediaQueryListEvent) => {
+    listener(event.matches ? "reduced" : "normal");
+  };
 
-      return () => {
-        mediaQuery.removeEventListener("change", handleChange);
-      };
-    },
+  mediaQuery.addEventListener("change", handleChange);
+
+  return () => {
+    mediaQuery.removeEventListener("change", handleChange);
   };
 }
+
+export const motionEnvironment: MotionEnvironmentContract = {
+  getSystemMotionPreference,
+  subscribeToMotionPreference,
+};

@@ -1,33 +1,40 @@
 import { describe, expect, it } from "vitest";
 
-import type { MotionEnvironment } from "./MotionEnvironment";
+import type {
+  MotionEnvironment,
+  SystemMotionPreference,
+} from "./MotionEnvironment";
 
-describe("MotionEnvironment contract", () => {
-  it("define a leitura da preferência do sistema", () => {
-    const environment: MotionEnvironment = {
-      getSystemMotionPreference: () => "normal",
-      subscribeToMotionPreference: () => () => {},
-    };
+describe("MotionEnvironment", () => {
+  it("define as preferências de movimento do sistema", () => {
+    const preference: SystemMotionPreference = "reduced";
 
-    expect(environment.getSystemMotionPreference()).toBe("normal");
+    expect(preference).toBe("reduced");
   });
 
-  it("define a assinatura de inscrição e cancelamento", () => {
-    let listenerCalled = false;
+  it("define o contrato do ambiente de movimento", () => {
+    const listeners = new Set<(preference: SystemMotionPreference) => void>();
 
     const environment: MotionEnvironment = {
-      getSystemMotionPreference: () => "reduced",
+      getSystemMotionPreference: () => "normal",
       subscribeToMotionPreference: (listener) => {
-        listener("reduced");
-        listenerCalled = true;
+        listeners.add(listener);
 
-        return () => {};
+        return () => {
+          listeners.delete(listener);
+        };
       },
     };
 
+    expect(environment.getSystemMotionPreference()).toBe("normal");
+    expect(listeners.size).toBe(0);
+
     const unsubscribe = environment.subscribeToMotionPreference(() => {});
 
-    expect(listenerCalled).toBe(true);
-    expect(unsubscribe).toEqual(expect.any(Function));
+    expect(listeners.size).toBe(1);
+
+    unsubscribe();
+
+    expect(listeners.size).toBe(0);
   });
 });

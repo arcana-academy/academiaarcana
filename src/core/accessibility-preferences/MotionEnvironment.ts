@@ -1,6 +1,8 @@
+export type SystemMotionPreference = "normal" | "reduced";
+
 export type MotionEnvironment = {
-  getSystemMotionPreference: () => "normal" | "reduced";
+  getSystemMotionPreference: () => SystemMotionPreference;
   subscribeToMotionPreference: (
-    listener: (preference: "normal" | "reduced") => void,
+    listener: (preference: SystemMotionPreference) => void,
   ) => () => void;
 };
