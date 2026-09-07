@@ -22,6 +22,12 @@ export type LocalAccessibilityPreferencesRepository = {
 };
 
 export type AuthenticatedAccessibilityPreferencesRepository = {
-  load: () => Promise<PersistedAccessibilityPreferences | null>;
-  save: (preferences: PersistedAccessibilityPreferences) => Promise<void>;
+  load: (
+    subjectId: string,
+  ) => Promise<PersistedAccessibilityPreferences | null>;
+
+  save: (
+    subjectId: string,
+    preferences: PersistedAccessibilityPreferences,
+  ) => Promise<void>;
 };

@@ -15,7 +15,11 @@ describe("accessibility-preferences contracts", () => {
     const normal: MotionPreference = "normal";
     const reduced: MotionPreference = "reduced";
 
-    expect([system, normal, reduced]).toEqual(["system", "normal", "reduced"]);
+    expect([system, normal, reduced]).toEqual([
+      "system",
+      "normal",
+      "reduced",
+    ]);
   });
 
   it("define uma preferência de acessibilidade", () => {
@@ -57,10 +61,16 @@ describe("accessibility-preferences contracts", () => {
     expect(repository).toBeDefined();
   });
 
-  it("define o contrato de persistência autenticada", () => {
+  it("define o contrato de persistência autenticada por identidade", () => {
     const repository: AuthenticatedAccessibilityPreferencesRepository = {
-      load: async () => null,
-      save: async () => {},
+      load: async (subjectId) => {
+        expect(subjectId).toBe("user-123");
+        return null;
+      },
+      save: async (subjectId, preferences) => {
+        expect(subjectId).toBe("user-123");
+        expect(preferences.version).toBe(1);
+      },
     };
 
     expect(repository).toBeDefined();

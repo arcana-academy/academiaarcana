@@ -4,20 +4,26 @@ import type {
 } from "../../core/accessibility-preferences/contracts";
 
 type AuthenticatedPreferencesStorage = {
-  load: () => Promise<PersistedAccessibilityPreferences | null>;
-  save: (preferences: PersistedAccessibilityPreferences) => Promise<void>;
+  load: (
+    subjectId: string,
+  ) => Promise<PersistedAccessibilityPreferences | null>;
+
+  save: (
+    subjectId: string,
+    preferences: PersistedAccessibilityPreferences,
+  ) => Promise<void>;
 };
 
 export function createAuthenticatedAccessibilityPreferencesRepository(
   storage: AuthenticatedPreferencesStorage,
 ): AuthenticatedAccessibilityPreferencesRepository {
   return {
-    async load() {
-      return storage.load();
+    async load(subjectId) {
+      return storage.load(subjectId);
     },
 
-    async save(preferences) {
-      await storage.save(preferences);
+    async save(subjectId, preferences) {
+      await storage.save(subjectId, preferences);
     },
   };
 }

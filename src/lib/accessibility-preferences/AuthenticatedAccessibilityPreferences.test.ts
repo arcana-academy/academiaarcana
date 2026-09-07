@@ -7,17 +7,20 @@ describe("AuthenticatedAccessibilityPreferences", () => {
     const load = vi.fn().mockResolvedValue(null);
     const save = vi.fn().mockResolvedValue(undefined);
 
-    const repository = createAuthenticatedAccessibilityPreferencesRepository({
-      load,
-      save,
-    });
+    const repository =
+      createAuthenticatedAccessibilityPreferencesRepository({
+        load,
+        save,
+      });
 
-    await expect(repository.load()).resolves.toBeNull();
+    await expect(
+      repository.load("user-123"),
+    ).resolves.toBeNull();
 
-    expect(load).toHaveBeenCalledTimes(1);
+    expect(load).toHaveBeenCalledWith("user-123");
   });
 
-  it("carrega preferências autenticadas", async () => {
+  it("carrega preferências autenticadas pela identidade", async () => {
     const preferences = {
       version: 1 as const,
       preferences: {
@@ -28,24 +31,28 @@ describe("AuthenticatedAccessibilityPreferences", () => {
     const load = vi.fn().mockResolvedValue(preferences);
     const save = vi.fn().mockResolvedValue(undefined);
 
-    const repository = createAuthenticatedAccessibilityPreferencesRepository({
-      load,
-      save,
-    });
+    const repository =
+      createAuthenticatedAccessibilityPreferencesRepository({
+        load,
+        save,
+      });
 
-    await expect(repository.load()).resolves.toEqual(preferences);
+    await expect(
+      repository.load("user-123"),
+    ).resolves.toEqual(preferences);
 
-    expect(load).toHaveBeenCalledTimes(1);
+    expect(load).toHaveBeenCalledWith("user-123");
   });
 
-  it("salva preferências autenticadas", async () => {
+  it("salva preferências autenticadas pela identidade", async () => {
     const load = vi.fn().mockResolvedValue(null);
     const save = vi.fn().mockResolvedValue(undefined);
 
-    const repository = createAuthenticatedAccessibilityPreferencesRepository({
-      load,
-      save,
-    });
+    const repository =
+      createAuthenticatedAccessibilityPreferencesRepository({
+        load,
+        save,
+      });
 
     const preferences = {
       version: 1 as const,
@@ -54,22 +61,32 @@ describe("AuthenticatedAccessibilityPreferences", () => {
       },
     };
 
-    await expect(repository.save(preferences)).resolves.toBeUndefined();
+    await expect(
+      repository.save("user-123", preferences),
+    ).resolves.toBeUndefined();
 
-    expect(save).toHaveBeenCalledWith(preferences);
+    expect(save).toHaveBeenCalledWith(
+      "user-123",
+      preferences,
+    );
   });
 
   it("propaga o erro estruturado do serviço autenticado", async () => {
-    const error = new Error("authenticated storage unavailable");
+    const error = new Error(
+      "authenticated storage unavailable",
+    );
 
     const load = vi.fn().mockRejectedValue(error);
     const save = vi.fn().mockResolvedValue(undefined);
 
-    const repository = createAuthenticatedAccessibilityPreferencesRepository({
-      load,
-      save,
-    });
+    const repository =
+      createAuthenticatedAccessibilityPreferencesRepository({
+        load,
+        save,
+      });
 
-    await expect(repository.load()).rejects.toBe(error);
+    await expect(
+      repository.load("user-123"),
+    ).rejects.toBe(error);
   });
 });

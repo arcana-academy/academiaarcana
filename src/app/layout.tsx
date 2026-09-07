@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
+
 import "./globals.css";
-import { ThemeProvider } from "@/design-system/themes";
+
+import { ApplicationProviders } from "@/application/providers/ApplicationProviders";
+import type { ApplicationIdentityState } from "@/application/identity/contracts";
 
 export const metadata: Metadata = {
   title: "Academia Arcana",
   description: "Uma academia de aprendizagem adaptativa, acessível e segura.",
+};
+
+const anonymousIdentity: ApplicationIdentityState = {
+  status: "anonymous",
+  identity: null,
+  error: null,
 };
 
 export default function RootLayout({
@@ -13,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <ThemeProvider initialTheme="mago-classico">{children}</ThemeProvider>
+        <ApplicationProviders identity={anonymousIdentity}>
+          {children}
+        </ApplicationProviders>
       </body>
     </html>
   );

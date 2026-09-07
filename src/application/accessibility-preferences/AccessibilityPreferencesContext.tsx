@@ -19,10 +19,13 @@ import type {
 
 import type { MotionEnvironment } from "../../core/accessibility-preferences/MotionEnvironment";
 
+import type { ApplicationIdentityState } from "@/application/identity/contracts";
+
 type AccessibilityPreferencesProviderDependencies = {
   local: LocalAccessibilityPreferencesRepository;
-  authenticated: AuthenticatedAccessibilityPreferencesRepository;
+  authenticated?: AuthenticatedAccessibilityPreferencesRepository;
   motionEnvironment: MotionEnvironment;
+  identity: ApplicationIdentityState;
 };
 
 type AccessibilityPreferencesState = {
@@ -59,6 +62,7 @@ export function AccessibilityPreferencesProvider({
   local,
   authenticated,
   motionEnvironment,
+  identity,
 }: PropsWithChildren<
   AccessibilityPreferencesProviderDependencies
 >) {
@@ -67,6 +71,7 @@ export function AccessibilityPreferencesProvider({
       local,
       authenticated,
       motionEnvironment,
+      identity,
     }),
   );
 

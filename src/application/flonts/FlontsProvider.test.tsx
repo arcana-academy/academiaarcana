@@ -40,6 +40,11 @@ function createWrapper(
             onSystemMotionPreferenceChange ??
             (() => () => {}),
         }}
+        identity={{
+          status: "anonymous",
+          identity: null,
+          error: null,
+        }}
       >
         <FlontsProvider>
           {children}
@@ -162,10 +167,50 @@ describe("FlontsProvider", () => {
   });
 
   it("usa a preferência efetiva de movimento fornecida pela acessibilidade", async () => {
+    const wrapper = function Wrapper({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <AccessibilityPreferencesProvider
+          local={{
+            load: async () => null,
+            save: async () => {},
+          }}
+          authenticated={{
+            load: async () => ({
+              version: 1 as const,
+              preferences: {
+                motion: "reduced" as const,
+              },
+            }),
+            save: async () => {},
+          }}
+          motionEnvironment={{
+            getSystemMotionPreference: () => "normal",
+            subscribeToMotionPreference: () => () => {},
+          }}
+          identity={{
+            status: "authenticated",
+            identity: {
+              subjectId: "user-123",
+              status: "active",
+            },
+            error: null,
+          }}
+        >
+          <FlontsProvider>
+            {children}
+          </FlontsProvider>
+        </AccessibilityPreferencesProvider>
+      );
+    };
+
     const { result } = renderHook(
       () => useFlonts(),
       {
-        wrapper: createWrapper("reduced"),
+        wrapper,
       },
     );
 

@@ -43,6 +43,14 @@ describe("accessibility-preferences hooks", () => {
           getSystemMotionPreference: () => "normal",
           subscribeToMotionPreference: () => () => {},
         }}
+        identity={{
+          status: "authenticated",
+          identity: {
+            subjectId: "user-123",
+            status: "active",
+          },
+          error: null,
+        }}
       >
         {children}
       </AccessibilityPreferencesProvider>
@@ -54,17 +62,19 @@ describe("accessibility-preferences hooks", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.configuredMotionPreference).toBe(
-        "reduced",
-      );
+      expect(
+        result.current.configuredMotionPreference,
+      ).toBe("reduced");
     });
 
-    expect(result.current.effectiveMotionPreference).toBe(
-      "reduced",
-    );
+    expect(
+      result.current.effectiveMotionPreference,
+    ).toBe("reduced");
+
     expect(result.current.error).toBeNull();
   });
-    it("altera a preferência de movimento através do hook", async () => {
+
+  it("altera a preferência de movimento através do hook", async () => {
     const wrapper = ({
       children,
     }: {
@@ -83,6 +93,11 @@ describe("accessibility-preferences hooks", () => {
           getSystemMotionPreference: () => "normal",
           subscribeToMotionPreference: () => () => {},
         }}
+        identity={{
+          status: "anonymous",
+          identity: null,
+          error: null,
+        }}
       >
         {children}
       </AccessibilityPreferencesProvider>
@@ -94,26 +109,29 @@ describe("accessibility-preferences hooks", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.configuredMotionPreference).toBe(
-        "system",
-      );
+      expect(
+        result.current.configuredMotionPreference,
+      ).toBe("system");
     });
 
     await act(async () => {
-  await result.current.setMotionPreference("reduced");
-});
-
-    await waitFor(() => {
-      expect(result.current.configuredMotionPreference).toBe(
+      await result.current.setMotionPreference(
         "reduced",
       );
     });
 
-    expect(result.current.effectiveMotionPreference).toBe(
-      "reduced",
-    );
+    await waitFor(() => {
+      expect(
+        result.current.configuredMotionPreference,
+      ).toBe("reduced");
+    });
+
+    expect(
+      result.current.effectiveMotionPreference,
+    ).toBe("reduced");
   });
-    it("expõe o erro estruturado de persistência através do hook", async () => {
+
+  it("expõe o erro estruturado de persistência através do hook", async () => {
     const wrapper = ({
       children,
     }: {
@@ -123,7 +141,9 @@ describe("accessibility-preferences hooks", () => {
         local={{
           load: async () => null,
           save: async () => {
-            throw new Error("falha de persistência local");
+            throw new Error(
+              "falha de persistência local",
+            );
           },
         }}
         authenticated={{
@@ -134,6 +154,11 @@ describe("accessibility-preferences hooks", () => {
           getSystemMotionPreference: () => "normal",
           subscribeToMotionPreference: () => () => {},
         }}
+        identity={{
+          status: "anonymous",
+          identity: null,
+          error: null,
+        }}
       >
         {children}
       </AccessibilityPreferencesProvider>
@@ -145,13 +170,15 @@ describe("accessibility-preferences hooks", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.configuredMotionPreference).toBe(
-        "system",
-      );
+      expect(
+        result.current.configuredMotionPreference,
+      ).toBe("system");
     });
 
     await act(async () => {
-      await result.current.setMotionPreference("reduced");
+      await result.current.setMotionPreference(
+        "reduced",
+      );
     });
 
     await waitFor(() => {
@@ -161,11 +188,12 @@ describe("accessibility-preferences hooks", () => {
       });
     });
 
-    expect(result.current.configuredMotionPreference).toBe(
-      "reduced",
-    );
-    expect(result.current.effectiveMotionPreference).toBe(
-      "reduced",
-    );
+    expect(
+      result.current.configuredMotionPreference,
+    ).toBe("reduced");
+
+    expect(
+      result.current.effectiveMotionPreference,
+    ).toBe("reduced");
   });
 });

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   mergeAccessibilityPreferences,
   resolveMotionPreference,
@@ -14,10 +12,15 @@ import type {
 
 import type { MotionEnvironment } from "@/core/accessibility-preferences/MotionEnvironment";
 
+import type {
+  ApplicationIdentityState,
+} from "@/application/identity/contracts";
+
 type AccessibilityPreferencesProviderDependencies = {
   local: LocalAccessibilityPreferencesRepository;
-  authenticated: AuthenticatedAccessibilityPreferencesRepository;
+  authenticated?: AuthenticatedAccessibilityPreferencesRepository;
   motionEnvironment: MotionEnvironment;
+  identity: ApplicationIdentityState;
 };
 
 export type AccessibilityPreferencesState = {
@@ -59,6 +62,7 @@ export function createAccessibilityPreferencesProvider({
   local,
   authenticated,
   motionEnvironment,
+  identity,
 }: AccessibilityPreferencesProviderDependencies): AccessibilityPreferencesProvider {
   let state: AccessibilityPreferencesState | null = null;
 
@@ -74,6 +78,17 @@ export function createAccessibilityPreferencesProvider({
     for (const listener of listeners) {
       listener(state);
     }
+  }
+
+  function getAuthenticatedSubjectId(): string | null {
+    if (
+      identity.status !== "authenticated" ||
+      !identity.identity
+    ) {
+      return null;
+    }
+
+    return identity.identity.subjectId;
   }
 
   function updateSystemMotionPreference(
@@ -113,11 +128,15 @@ export function createAccessibilityPreferencesProvider({
 
   return {
     async load() {
-      const [localPreference, authenticatedPreference] =
-        await Promise.all([
-          local.load(),
-          authenticated.load(),
-        ]);
+      const subjectId = getAuthenticatedSubjectId();
+
+      const localPreference =
+        await local.load();
+
+      const authenticatedPreference =
+        subjectId && authenticated
+          ? await authenticated.load(subjectId)
+          : null;
 
       const mergedPreference =
         mergeAccessibilityPreferences(
@@ -196,11 +215,12 @@ export function createAccessibilityPreferencesProvider({
       try {
         await local.save(persistedPreferences);
 
-        const authenticatedPreference =
-          await authenticated.load();
+        const subjectId =
+          getAuthenticatedSubjectId();
 
-        if (authenticatedPreference) {
+        if (subjectId && authenticated) {
           await authenticated.save(
+            subjectId,
             persistedPreferences,
           );
         }

@@ -25,6 +25,11 @@ function createDependencies() {
       getSystemMotionPreference: () => "normal" as const,
       subscribeToMotionPreference: () => () => {},
     },
+    identity: {
+      status: "anonymous" as const,
+      identity: null,
+      error: null,
+    },
   };
 }
 
