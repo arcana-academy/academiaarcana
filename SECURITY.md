@@ -29,7 +29,7 @@ Please provide:
 
 Security reports will be reviewed and investigated before any public disclosure. The maintainers aim to acknowledge reports within 7 days when practical and will coordinate disclosure after the vulnerability has been validated and an appropriate remediation path has been established.
 
-Please do not include passwords, API keys, service-role keys, database credentials, personal data, or other sensitive information in the report unless they are necessary to demonstrate the vulnerability.
+Please do not include passwords, API keys, service-role keys, database credentials, personal data, or other sensitive information in the report. Redact sensitive values, revoke any exposed credentials, and describe or safely reproduce the issue without submitting the sensitive data.
 
 ## Security Response
 
