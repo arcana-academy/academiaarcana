@@ -29,7 +29,7 @@ jobs:
       id-token: write
     steps:
       - name: Claude Code Action Official
-        uses: anthropics/claude-code-action@781d62e9d5fbd78b24dcdfd42858332d485fe462 # v1.0.212
+        uses: anthropics/claude-code-action@d75b94d5ad426cb8546e6628b6f5f19b84e5cce1 # v1.0.216
         with:
           claude_args: |
             --max-turns 10
