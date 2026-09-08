@@ -13,7 +13,9 @@ Security fixes are applied to the current development version of the project.
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Academia Arcana, please report it privately.
+If you discover a security vulnerability in Academia Arcana, please report it privately through the repository's Security area:
+
+https://github.com/arcana-academy/academiaarcana/security
 
 Do not disclose security vulnerabilities through public GitHub Issues, pull requests, or other public channels.
 
@@ -25,9 +27,9 @@ Please provide:
 - the potential security impact;
 - any relevant logs, screenshots, or proof of concept.
 
-Security reports will be reviewed and investigated before any public disclosure.
+Security reports will be reviewed and investigated before any public disclosure. The maintainers aim to acknowledge reports within 7 days when practical and will coordinate disclosure after the vulnerability has been validated and an appropriate remediation path has been established.
 
-Please do not include passwords, API keys, service-role keys, database credentials, personal data, or other sensitive information in the report.
+Please do not include passwords, API keys, service-role keys, database credentials, personal data, or other sensitive information in the report. Redact sensitive values, revoke any exposed credentials, and describe or safely reproduce the issue without submitting the sensitive data.
 
 ## Security Response
 
