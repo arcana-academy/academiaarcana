@@ -1,9 +1,10 @@
+import { fileURLToPath } from "node:url";
 import { existsSync, readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CORE_DOMAINS } from "./domains";
 
-const srcRoot = resolve(process.cwd(), "src");
+const srcRoot = fileURLToPath(new URL("../../", import.meta.url));
 const domainsRoot = join(srcRoot, "domains");
 const coreRoot = join(srcRoot, "core");
 
