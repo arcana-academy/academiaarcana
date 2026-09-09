@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 
-import { useMotionPreference } from "../../application/accessibility-preferences/hooks/hooks";
+import { useMotionPreference } from "@/application/accessibility-preferences/hooks/hooks";
 
 import type {
   FlontsActions,
