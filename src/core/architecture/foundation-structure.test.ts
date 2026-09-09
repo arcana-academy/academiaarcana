@@ -27,7 +27,9 @@ describe("Foundation 1 — modular structure", () => {
 
       expect(existsSync(domainRoot), domainRoot).toBe(true);
       expect(existsSync(join(domainRoot, "index.ts")), `${domainRoot}/index.ts`).toBe(true);
+      expect(statSync(join(domainRoot, "index.ts")).isFile(), `${domainRoot}/index.ts`).toBe(true);
       expect(existsSync(join(domainRoot, "contracts.ts")), `${domainRoot}/contracts.ts`).toBe(true);
+      expect(statSync(join(domainRoot, "contracts.ts")).isFile(), `${domainRoot}/contracts.ts`).toBe(true);
     }
   });
 
