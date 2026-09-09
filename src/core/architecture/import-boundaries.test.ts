@@ -151,11 +151,11 @@ describe("architecture import boundaries", () => {
   });
 
   it("detects cycles regardless of whether they are built from relative or alias imports", () => {
-    const a = resolve(srcRoot, "domains/a/index.ts");
-    const b = resolve(srcRoot, "domains/b/index.ts");
+    const firstBarrel = resolve(srcRoot, "domains/first/index.ts");
+    const secondBarrel = resolve(srcRoot, "domains/second/index.ts");
     const cyclic = new Map<string, string[]>([
-      [a, [b]],
-      [b, [a]],
+      [firstBarrel, [secondBarrel]],
+      [secondBarrel, [firstBarrel]],
     ]);
     expect(findCycles(cyclic)).not.toEqual([]);
   });
