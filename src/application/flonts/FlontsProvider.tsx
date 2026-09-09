@@ -8,13 +8,13 @@ import {
   useState,
 } from "react";
 
-import { useMotionPreference } from "../../application/accessibility-preferences/hooks/hooks";
+import { useMotionPreference } from "@/application/accessibility-preferences/hooks/hooks";
 
 import type {
   FlontsActions,
   FlontsMode,
   FlontsState,
-} from "../../domains/flonts/contracts";
+} from "@/domains/flonts";
 
 type FlontsContextValue = {
   state: FlontsState;
