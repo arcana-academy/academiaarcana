@@ -14,7 +14,7 @@ import type {
   FlontsActions,
   FlontsMode,
   FlontsState,
-} from "../../domains/flonts/contracts";
+} from "@/domains/flonts";
 
 type FlontsContextValue = {
   state: FlontsState;

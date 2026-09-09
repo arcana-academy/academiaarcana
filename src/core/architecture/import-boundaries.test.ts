@@ -1,10 +1,23 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, extname, join, relative, resolve } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
+import { CORE_DOMAINS, type CoreDomain } from "./domains";
+import { DOMAIN_POLICIES } from "./domain-policy";
 
-const sourceRoots = [resolve(process.cwd(), "src/core"), resolve(process.cwd(), "src/domains")];
+const srcRoot = resolve(process.cwd(), "src");
+
+// Modules that must not reach for presentation or database clients directly.
+const domainRoots = [resolve(srcRoot, "core"), resolve(srcRoot, "domains")];
+// Layers included in the dependency graph and the domain-policy checks. The
+// application layer wires domains to presentation, so it may use React and is
+// excluded from the presentation prohibition above, but its imports still form
+// cycles and cross-module edges that must be measured.
+const graphRoots = [...domainRoots, resolve(srcRoot, "application")];
 const sourceExtensions = new Set([".ts", ".tsx"]);
 const ignoredFilePattern = /\.test\.[^.]+$/;
+
+// The `@/*` alias maps to `src/*` in both tsconfig.json and vitest.config.ts.
+const aliasPrefix = "@/";
 
 function collectSourceFiles(root: string): string[] {
   if (!existsSync(root)) return [];
@@ -32,11 +45,19 @@ function importSpecifiers(source: string): string[] {
 }
 
 function resolveLocalImport(from: string, specifier: string): string | null {
-  if (!specifier.startsWith(".")) return null;
+  let base: string;
+  if (specifier.startsWith(".")) {
+    base = resolve(dirname(from), specifier);
+  } else if (specifier.startsWith(aliasPrefix)) {
+    base = resolve(srcRoot, specifier.slice(aliasPrefix.length));
+  } else {
+    return null;
+  }
 
-  const base = resolve(dirname(from), specifier);
+  // A bare directory resolves to its barrel, so drop the directory match and
+  // keep only real files; existsSync alone would return the directory itself.
   const candidates = [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts"), join(base, "index.tsx")];
-  return candidates.find((candidate) => existsSync(candidate)) ?? null;
+  return candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile()) ?? null;
 }
 
 function dependencyGraph(files: string[]): Map<string, string[]> {
@@ -79,8 +100,65 @@ function findCycles(graph: Map<string, string[]>): string[][] {
   return cycles;
 }
 
+// Each domain owns exactly one directory: the three identity/access domains
+// live under src/core, the rest under src/domains.
+const domainDirectories = new Map<CoreDomain, string>(
+  CORE_DOMAINS.map((domain) => {
+    const coreDir = resolve(srcRoot, "core", domain);
+    return [domain, existsSync(coreDir) ? coreDir : resolve(srcRoot, "domains", domain)];
+  }),
+);
+
+function domainOf(path: string): CoreDomain | null {
+  for (const [domain, dir] of domainDirectories) {
+    if (path === dir || path.startsWith(`${dir}${sep}`)) return domain;
+  }
+  return null;
+}
+
+function isDomainBarrel(path: string, domain: CoreDomain): boolean {
+  const dir = domainDirectories.get(domain);
+  return path === join(dir ?? "", "index.ts") || path === join(dir ?? "", "index.tsx");
+}
+
+type CrossDomainImport = { specifier: string; target: string; targetDomain: CoreDomain };
+
+// Every import in `file` that resolves into a domain other than `sourceDomain`.
+function crossDomainImports(file: string, sourceDomain: CoreDomain | null): CrossDomainImport[] {
+  const edges: CrossDomainImport[] = [];
+  for (const specifier of importSpecifiers(readFileSync(file, "utf8"))) {
+    const target = resolveLocalImport(file, specifier);
+    if (target === null) continue;
+
+    const targetDomain = domainOf(target);
+    if (targetDomain === null || targetDomain === sourceDomain) continue;
+
+    edges.push({ specifier, target, targetDomain });
+  }
+  return edges;
+}
+
 describe("architecture import boundaries", () => {
-  const files = sourceRoots.flatMap(collectSourceFiles);
+  const files = domainRoots.flatMap(collectSourceFiles);
+  const graphFiles = graphRoots.flatMap(collectSourceFiles);
+
+  it("resolves the @/* alias so alias imports are visible to the checks", () => {
+    const resolved = resolveLocalImport(
+      resolve(srcRoot, "application/identity/IdentityResolver.ts"),
+      "@/core/identity",
+    );
+    expect(resolved).toBe(resolve(srcRoot, "core/identity/index.ts"));
+  });
+
+  it("detects cycles regardless of whether they are built from relative or alias imports", () => {
+    const a = resolve(srcRoot, "domains/a/index.ts");
+    const b = resolve(srcRoot, "domains/b/index.ts");
+    const cyclic = new Map<string, string[]>([
+      [a, [b]],
+      [b, [a]],
+    ]);
+    expect(findCycles(cyclic)).not.toEqual([]);
+  });
 
   it("does not allow domain/core source to depend on presentation or database clients", () => {
     const violations: string[] = [];
@@ -98,9 +176,42 @@ describe("architecture import boundaries", () => {
     expect(violations).toEqual([]);
   });
 
-  it("does not contain circular local imports in core/domain source", () => {
-    const cycles = findCycles(dependencyGraph(files));
+  it("does not contain circular local imports across core, domain and application source", () => {
+    const cycles = findCycles(dependencyGraph(graphFiles));
     expect(cycles).toEqual([]);
+  });
+
+  it("only imports domains that domain-policy declares as allowed dependencies", () => {
+    const violations: string[] = [];
+
+    for (const file of graphFiles) {
+      const sourceDomain = domainOf(file);
+      if (sourceDomain === null) continue;
+
+      const relativeFile = relative(process.cwd(), file);
+      for (const { specifier, targetDomain } of crossDomainImports(file, sourceDomain)) {
+        if (!DOMAIN_POLICIES[sourceDomain].allowedDependencies.includes(targetDomain)) {
+          violations.push(`${relativeFile} -> ${specifier} (${sourceDomain} may not depend on ${targetDomain})`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it("imports another domain only through its public index barrel", () => {
+    const violations: string[] = [];
+
+    for (const file of graphFiles) {
+      const relativeFile = relative(process.cwd(), file);
+      for (const { specifier, target, targetDomain } of crossDomainImports(file, domainOf(file))) {
+        if (!isDomainBarrel(target, targetDomain)) {
+          violations.push(`${relativeFile} -> ${specifier} (reach into ${targetDomain} internals, use its index)`);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 
   it("does not let barrel exports expose infrastructure or presentation details", () => {
