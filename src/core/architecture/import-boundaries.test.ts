@@ -36,10 +36,20 @@ function collectSourceFiles(root: string): string[] {
 
 function importSpecifiers(source: string): string[] {
   const imports: string[] = [];
-  const pattern = /(?:import\s+(?:type\s+)?[^"']*?from\s+|import\s*\()(["'])([^"']+)\1/g;
+  const patterns = [
+    // `import ... from "x"` and `export ... from "x"`, including type-only forms
+    // and `export * from "x"` re-exports.
+    /(?:import|export)\s+(?:type\s+)?[^"']*?\bfrom\s*(["'])([^"']+)\1/g,
+    // Dynamic `import("x")`.
+    /\bimport\s*\(\s*(["'])([^"']+)\1/g,
+    // Side-effect `import "x"`.
+    /\bimport\s+(["'])([^"']+)\1/g,
+  ];
 
-  for (const match of source.matchAll(pattern)) {
-    imports.push(match[2]);
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      imports.push(match[2]);
+    }
   }
   return imports;
 }
@@ -150,7 +160,28 @@ describe("architecture import boundaries", () => {
     expect(resolved).toBe(resolve(srcRoot, "core/identity/index.ts"));
   });
 
-  it("detects cycles regardless of whether they are built from relative or alias imports", () => {
+  it("reads static, dynamic, side-effect and re-export specifiers", () => {
+    const source = [
+      'import { a } from "@/one";',
+      'import type { b } from "./two";',
+      'import "@/three";',
+      'export { c } from "@/four";',
+      'export * from "./five";',
+      'const six = import("@/six");',
+    ].join("\n");
+    expect([...importSpecifiers(source)].sort()).toEqual(
+      ["./five", "./two", "@/four", "@/one", "@/six", "@/three"].sort(),
+    );
+  });
+
+  it("builds dependency edges from real alias imports", () => {
+    // Fails if alias resolution regresses: IdentityResolver imports @/core/identity.
+    const resolver = resolve(srcRoot, "application/identity/IdentityResolver.ts");
+    const edges = dependencyGraph(graphFiles).get(resolver);
+    expect(edges).toContain(resolve(srcRoot, "core/identity/index.ts"));
+  });
+
+  it("reports a cycle when the dependency graph contains one", () => {
     const firstBarrel = resolve(srcRoot, "domains/first/index.ts");
     const secondBarrel = resolve(srcRoot, "domains/second/index.ts");
     const cyclic = new Map<string, string[]>([

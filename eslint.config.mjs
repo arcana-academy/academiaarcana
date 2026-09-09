@@ -11,8 +11,11 @@ const barrelPatterns = [
       "@/domains/*/*",
       "**/domains/*/*",
       "@/core/identity/*",
+      "**/core/identity/*",
       "@/core/context/*",
+      "**/core/context/*",
       "@/core/authorization/*",
+      "**/core/authorization/*",
     ],
     message:
       'Import a domain only through its public index barrel, e.g. "@/domains/flonts" or "@/core/identity".',
