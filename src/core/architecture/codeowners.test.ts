@@ -1,8 +1,16 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const codeownersPath = resolve(process.cwd(), ".github", "CODEOWNERS");
+const codeownersPath = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+  "..",
+  ".github",
+  "CODEOWNERS",
+);
 const source = readFileSync(codeownersPath, "utf8");
 
 type CodeownersRule = {
