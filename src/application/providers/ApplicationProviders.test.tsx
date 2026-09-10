@@ -26,10 +26,7 @@ const identity: {
 const authenticatedRepository: AuthenticatedAccessibilityPreferencesRepository =
   {
     load: async () => null,
-    save: async (
-      _subjectId: string,
-      _preferences: PersistedAccessibilityPreferences,
-    ) => {},
+    save: async () => {},
   };
 
 describe("ApplicationProviders", () => {
