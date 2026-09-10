@@ -1,14 +1,18 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CORE_DOMAINS } from "./domains";
 
-const srcRoot = resolve(process.cwd(), "src");
+const srcRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const domainsRoot = join(srcRoot, "domains");
 const coreRoot = join(srcRoot, "core");
 const crossCuttingDomains = ["identity", "context", "authorization"] as const;
 const businessDomains = CORE_DOMAINS.filter(
-  (domain) => !crossCuttingDomains.some((crossCuttingDomain) => crossCuttingDomain === domain),
+  (domain) =>
+    !crossCuttingDomains.some(
+      (crossCuttingDomain) => crossCuttingDomain === domain,
+    ),
 );
 
 function expectRegularFile(path: string): void {
