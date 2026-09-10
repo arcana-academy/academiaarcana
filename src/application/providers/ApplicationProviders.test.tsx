@@ -60,4 +60,20 @@ describe("ApplicationProviders", () => {
 
     expect(provider).toBeDefined();
   });
+
+  it("mantém o mock autenticado compatível com todos os argumentos do contrato", async () => {
+    const preferences: PersistedAccessibilityPreferences = {
+      version: 1,
+      preferences: {
+        motion: "reduced",
+      },
+    };
+
+    await expect(
+      authenticatedRepository.save(
+        "user-123",
+        preferences,
+      ),
+    ).resolves.toBeUndefined();
+  });
 });
