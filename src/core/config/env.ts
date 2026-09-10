@@ -3,9 +3,7 @@ export type PublicRuntimeConfig = {
   supabasePublishableKey: string;
 };
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-
+function requireValue(name: string, value: string | undefined): string {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
@@ -15,7 +13,13 @@ function requireEnv(name: string): string {
 
 export function getPublicRuntimeConfig(): PublicRuntimeConfig {
   return {
-    supabaseUrl: requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    supabasePublishableKey: requireEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+    supabaseUrl: requireValue(
+      "NEXT_PUBLIC_SUPABASE_URL",
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    ),
+    supabasePublishableKey: requireValue(
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    ),
   };
 }
