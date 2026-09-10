@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CORE_DOMAINS } from "./domains";
@@ -6,6 +6,24 @@ import { CORE_DOMAINS } from "./domains";
 const srcRoot = resolve(process.cwd(), "src");
 const domainsRoot = join(srcRoot, "domains");
 const coreRoot = join(srcRoot, "core");
+const crossCuttingDomains = ["identity", "context", "authorization"] as const;
+const businessDomains = CORE_DOMAINS.filter(
+  (domain) => !crossCuttingDomains.some((crossCuttingDomain) => crossCuttingDomain === domain),
+);
+
+function expectRegularFile(path: string): void {
+  expect(existsSync(path), path).toBe(true);
+  expect(statSync(path).isFile(), path).toBe(true);
+}
+
+function expectContractsReExport(indexPath: string): void {
+  expectRegularFile(indexPath);
+
+  const source = readFileSync(indexPath, "utf8");
+  expect(source, `${indexPath} must re-export its public contracts`).toMatch(
+    /export\s+(?:type\s+)?(?:\*|\{[\s\S]*?\})\s+from\s+["']\.\/contracts["']/,
+  );
+}
 
 describe("Foundation 1 — modular structure", () => {
   it("contains exactly the approved business-domain modules", () => {
@@ -14,46 +32,76 @@ describe("Foundation 1 — modular structure", () => {
       .map((entry) => entry.name)
       .sort();
 
-    const approvedDomains = CORE_DOMAINS
-      .filter((domain) => !["identity", "context", "authorization"].includes(domain))
-      .sort();
+    const approvedDomains = [...businessDomains].sort();
 
     expect(actualDomains).toEqual(approvedDomains);
   });
 
   it("contains the approved cross-cutting core identity/context/authorization modules", () => {
-    for (const domain of ["identity", "context", "authorization"] as const) {
+    for (const domain of crossCuttingDomains) {
       const domainRoot = join(coreRoot, domain);
 
       expect(existsSync(domainRoot), domainRoot).toBe(true);
-      expect(existsSync(join(domainRoot, "index.ts")), `${domainRoot}/index.ts`).toBe(true);
-      expect(statSync(join(domainRoot, "index.ts")).isFile(), `${domainRoot}/index.ts`).toBe(true);
-      expect(existsSync(join(domainRoot, "contracts.ts")), `${domainRoot}/contracts.ts`).toBe(true);
-      expect(statSync(join(domainRoot, "contracts.ts")).isFile(), `${domainRoot}/contracts.ts`).toBe(true);
+      expect(statSync(domainRoot).isDirectory(), domainRoot).toBe(true);
+      expectRegularFile(join(domainRoot, "index.ts"));
+      expectRegularFile(join(domainRoot, "contracts.ts"));
     }
   });
 
-  it("gives every approved business domain a public index barrel", () => {
-    const businessDomains = CORE_DOMAINS.filter(
-      (domain) => !["identity", "context", "authorization"].includes(domain),
-    );
+  it("gives every approved business domain contracts and a public index barrel", () => {
+    for (const domain of businessDomains) {
+      const domainRoot = join(domainsRoot, domain);
+      expectRegularFile(join(domainRoot, "contracts.ts"));
+      expectRegularFile(join(domainRoot, "index.ts"));
+    }
+  });
+
+  it("exposes each domain contract through its public index barrel", () => {
+    for (const domain of crossCuttingDomains) {
+      expectContractsReExport(join(coreRoot, domain, "index.ts"));
+    }
 
     for (const domain of businessDomains) {
-      const indexPath = join(domainsRoot, domain, "index.ts");
-      expect(existsSync(indexPath), indexPath).toBe(true);
-      expect(statSync(indexPath).isFile(), indexPath).toBe(true);
+      expectContractsReExport(join(domainsRoot, domain, "index.ts"));
     }
   });
 
   it("keeps architecture policy as a single source of truth", async () => {
     const architectureIndex = join(srcRoot, "core", "architecture", "index.ts");
-    expect(existsSync(architectureIndex)).toBe(true);
+    expectRegularFile(architectureIndex);
+
+    const architectureExports = readFileSync(architectureIndex, "utf8");
+    expect(architectureExports).toMatch(
+      /export\s+(?:type\s+)?(?:\*|\{[\s\S]*?\})\s+from\s+["']\.\/domains["']/,
+    );
+    expect(architectureExports).toMatch(
+      /export\s+(?:type\s+)?(?:\*|\{[\s\S]*?\})\s+from\s+["']\.\/domain-policy["']/,
+    );
 
     const { DOMAIN_POLICIES } = await import("./domain-policy");
     expect(Object.keys(DOMAIN_POLICIES).sort()).toEqual([...CORE_DOMAINS].sort());
 
-    for (const domain of CORE_DOMAINS) {
-      expect(DOMAIN_POLICIES[domain].responsibility.trim().length).toBeGreaterThan(0);
+    const requiredPolicyCollections = [
+      "owns",
+      "excludes",
+      "entities",
+      "useCases",
+      "prohibitedDependencies",
+      "events",
+      "infrastructure",
+    ] as const;
+
+    for (const [domain, policy] of Object.entries(DOMAIN_POLICIES)) {
+      expect(policy.responsibility.trim().length, `${domain}.responsibility`).toBeGreaterThan(0);
+
+      for (const field of requiredPolicyCollections) {
+        expect(policy[field].length, `${domain}.${field}`).toBeGreaterThan(0);
+      }
+
+      for (const dependency of policy.allowedDependencies) {
+        expect(CORE_DOMAINS, `${domain}.allowedDependencies includes ${dependency}`).toContain(dependency);
+        expect(dependency, `${domain} must not depend on itself`).not.toBe(domain);
+      }
     }
   });
 });
