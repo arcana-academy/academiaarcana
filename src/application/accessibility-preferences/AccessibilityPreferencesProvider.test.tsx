@@ -43,7 +43,6 @@ describe("AccessibilityPreferencesProvider", () => {
         load: async () => null,
 
         save: async (
-          _subjectId,
           preferences,
         ) => {
           savedAuthenticatedPreferences =
@@ -458,10 +457,7 @@ describe("AccessibilityPreferencesProvider", () => {
             };
           },
 
-          save: async (
-            subjectId,
-            _preferences,
-          ) => {
+          save: async (subjectId) => {
             savedSubjectId = subjectId;
           },
         };
