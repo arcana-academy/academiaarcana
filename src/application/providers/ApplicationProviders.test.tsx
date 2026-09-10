@@ -5,7 +5,6 @@ import type { Identity } from "@/core/identity";
 
 import type {
   AuthenticatedAccessibilityPreferencesRepository,
-  PersistedAccessibilityPreferences,
 } from "@/core/accessibility-preferences/contracts";
 
 import { ApplicationProviders } from "./ApplicationProviders";
@@ -26,7 +25,7 @@ const identity: {
 const authenticatedRepository: AuthenticatedAccessibilityPreferencesRepository =
   {
     load: async () => null,
-    save: async () => {},
+    save: () => Promise.resolve(),
   };
 
 describe("ApplicationProviders", () => {
