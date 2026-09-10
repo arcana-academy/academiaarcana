@@ -459,8 +459,9 @@ describe("AccessibilityPreferencesProvider", () => {
             };
           },
 
-          save: async (subjectId) => {
+          save: (subjectId) => {
             savedSubjectId = subjectId;
+            return Promise.resolve();
           },
         };
 
