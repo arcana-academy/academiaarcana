@@ -455,17 +455,17 @@ describe("AccessibilityPreferencesProvider", () => {
     const authenticated:
       AuthenticatedAccessibilityPreferencesRepository =
         {
-          load: (subjectId) =>
-            Promise.resolve({
+          load: (subjectId) => {
+            loadedSubjectId = subjectId;
+
+            return Promise.resolve({
               version: 1 as const,
 
               preferences: {
                 motion: "normal" as const,
               },
-            }).then((preferences) => {
-              loadedSubjectId = subjectId;
-              return preferences;
-            }),
+            });
+          },
 
           save: (subjectId) => {
             savedSubjectId = subjectId;
