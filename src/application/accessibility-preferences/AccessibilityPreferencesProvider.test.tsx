@@ -318,7 +318,7 @@ describe("AccessibilityPreferencesProvider", () => {
     let authenticatedSaveCalled = false;
 
     dependencies.authenticated.save =
-      async (
+      (
         subjectId,
         preferences,
       ) => {
@@ -334,6 +334,8 @@ describe("AccessibilityPreferencesProvider", () => {
             motion: "reduced",
           },
         });
+
+        return Promise.resolve();
       };
 
     const provider =
