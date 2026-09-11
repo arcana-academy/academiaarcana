@@ -42,16 +42,12 @@ describe("AccessibilityPreferencesProvider", () => {
       {
         load: async () => null,
 
-        save: async (...args) => {
-          const preferences = args[1];
-
-        save: (
+        save: async (
           _subjectId,
           preferences,
         ) => {
           savedAuthenticatedPreferences =
             preferences;
-          return Promise.resolve();
         },
       };
 
