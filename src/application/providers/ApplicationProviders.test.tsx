@@ -70,12 +70,13 @@ describe("ApplicationProviders", () => {
     };
 
     const expectedPreferences = preferences;
-    authenticatedRepository.save = async (
+    authenticatedRepository.save = (
       subjectId,
       preferences,
     ) => {
       expect(subjectId).toBe("user-123");
       expect(preferences).toBe(expectedPreferences);
+      return Promise.resolve();
     };
 
     await expect(
