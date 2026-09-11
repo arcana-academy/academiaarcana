@@ -5,6 +5,7 @@ import type { Identity } from "@/core/identity";
 
 import type {
   AuthenticatedAccessibilityPreferencesRepository,
+  PersistedAccessibilityPreferences,
 } from "@/core/accessibility-preferences/contracts";
 
 import { ApplicationProviders } from "./ApplicationProviders";
