@@ -467,53 +467,41 @@ describe("AccessibilityPreferencesProvider", () => {
             });
           },
 
-          save: (subjectId, preferences) => {
+          save: (subjectId, _preferences) => {
             savedSubjectId = subjectId;
             return Promise.resolve();
           },
         };
 
-    const motionEnvironment:
-      MotionEnvironment = {
-        getSystemMotionPreference:
-          () => "normal",
+    const motionEnvironment: MotionEnvironment = {
+      getSystemMotionPreference: () => "normal",
 
-        subscribeToMotionPreference:
-          () => () => {},
-      };
+      subscribeToMotionPreference: () => () => {},
+    };
 
-    const provider =
-      createAccessibilityPreferencesProvider(
-        {
-          local,
-          authenticated,
-          motionEnvironment,
+    const provider = createAccessibilityPreferencesProvider({
+      local,
+      authenticated,
+      motionEnvironment,
 
-          identity: {
-            status: "authenticated",
+      identity: {
+        status: "authenticated",
 
-            identity: {
-              subjectId: "user-123",
-              status: "active",
-            },
-
-            error: null,
-          },
+        identity: {
+          subjectId: "user-123",
+          status: "active",
         },
-      );
+
+        error: null,
+      },
+    });
 
     await provider.load();
 
-    expect(loadedSubjectId).toBe(
-      "user-123",
-    );
+    expect(loadedSubjectId).toBe("user-123");
 
-    await provider.setMotionPreference(
-      "reduced",
-    );
+    await provider.setMotionPreference("reduced");
 
-    expect(savedSubjectId).toBe(
-      "user-123",
-    );
+    expect(savedSubjectId).toBe("user-123");
   });
 });
