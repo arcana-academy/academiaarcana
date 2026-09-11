@@ -15,7 +15,7 @@ const identity: {
   identity: Identity;
   error: null;
 } = {
-  status: "authenticated";
+  status: "authenticated",
   identity: {
     subjectId: "user-123",
     status: "active",
