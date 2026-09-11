@@ -72,10 +72,10 @@ describe("ApplicationProviders", () => {
     const expectedPreferences = preferences;
     authenticatedRepository.save = (
       subjectId,
-      preferences,
+      receivedPreferences,
     ) => {
       expect(subjectId).toBe("user-123");
-      expect(preferences).toBe(expectedPreferences);
+      expect(receivedPreferences).toBe(expectedPreferences);
       return Promise.resolve();
     };
 
