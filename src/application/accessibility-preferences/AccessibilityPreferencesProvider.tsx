@@ -12,6 +12,10 @@ import type {
 
 import type { MotionEnvironment } from "@/core/accessibility-preferences/MotionEnvironment";
 
+import {
+  SetMotionPreferenceCommand,
+} from "./commands/SetMotionPreferenceCommand";
+
 import type {
   ApplicationIdentityState,
 } from "@/application/identity/contracts";
@@ -193,15 +197,24 @@ export function createAccessibilityPreferencesProvider({
         return;
       }
 
+      const commandResult =
+        SetMotionPreferenceCommand.execute({
+          preference,
+        });
+
+      const configuredPreference =
+        commandResult.configuredMotionPreference;
+
       const systemPreference =
         motionEnvironment.getSystemMotionPreference();
 
       state = {
         ...state,
-        configuredMotionPreference: preference,
+        configuredMotionPreference:
+          configuredPreference,
         effectiveMotionPreference:
           resolveMotionPreference({
-            configuredPreference: preference,
+            configuredPreference,
             systemPreference,
           }),
         error: null,
@@ -210,7 +223,9 @@ export function createAccessibilityPreferencesProvider({
       notify();
 
       const persistedPreferences =
-        createPersistedPreferences(preference);
+        createPersistedPreferences(
+          configuredPreference,
+        );
 
       try {
         await local.save(persistedPreferences);

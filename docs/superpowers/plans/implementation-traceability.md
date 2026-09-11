@@ -75,4 +75,4 @@ de publicação e/ou consumo de evento.
 
 ## Próximo incremento
 
-**M1.5 — selecionar o próximo caso de uso implementável a partir dos requisitos e do estado verificável do repositório.***
+**M1.5 — integrar `SetMotionPreferenceCommand` ao `AccessibilityPreferencesProvider`, mantendo o contrato aprovado e validação TDD.**

@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  SetMotionPreferenceCommand,
+} from "./commands/SetMotionPreferenceCommand";
 
 import type {
   AuthenticatedAccessibilityPreferencesRepository,
@@ -508,4 +512,29 @@ describe("AccessibilityPreferencesProvider", () => {
       "user-123",
     );
   });
+
+  it("executa o SetMotionPreferenceCommand ao alterar a preferência de movimento", async () => {
+    const dependencies = createDependencies();
+
+    const commandSpy = vi.spyOn(
+      SetMotionPreferenceCommand,
+      "execute",
+    );
+
+    const provider =
+      createAccessibilityPreferencesProvider(
+        dependencies,
+      );
+
+    await provider.load();
+
+    await provider.setMotionPreference("reduced");
+
+    expect(commandSpy).toHaveBeenCalledWith({
+      preference: "reduced",
+    });
+
+    commandSpy.mockRestore();
+  });
+
 });
