@@ -29,18 +29,19 @@ describe("AccessibilityPreferencesProvider", () => {
       | "reduced" = "normal";
 
     const local: LocalAccessibilityPreferencesRepository = {
-      load: async () => null,
+      load: () => Promise.resolve(null),
 
-      save: async (
+      save: (
         preferences,
       ) => {
         savedLocalPreferences = preferences;
+        return Promise.resolve();
       },
     };
 
     const authenticated: AuthenticatedAccessibilityPreferencesRepository =
       {
-        load: async () => null,
+        load: () => Promise.resolve(null),
 
         save: (
           _subjectId,
@@ -99,20 +100,22 @@ describe("AccessibilityPreferencesProvider", () => {
   it("compõe a preferência autenticada sobre a preferência local", async () => {
     const dependencies = createDependencies();
 
-    dependencies.local.load = async () => ({
-      version: 1 as const,
-      preferences: {
-        motion: "reduced" as const,
-      },
-    });
-
-    dependencies.authenticated.load =
-      async () => ({
+    dependencies.local.load = () =>
+      Promise.resolve({
         version: 1 as const,
         preferences: {
-          motion: "normal" as const,
+          motion: "reduced" as const,
         },
       });
+
+    dependencies.authenticated.load =
+      () =>
+        Promise.resolve({
+          version: 1 as const,
+          preferences: {
+            motion: "normal" as const,
+          },
+        });
 
     const provider =
       createAccessibilityPreferencesProvider(
@@ -134,12 +137,13 @@ describe("AccessibilityPreferencesProvider", () => {
     const dependencies = createDependencies();
 
     dependencies.authenticated.load =
-      async () => ({
-        version: 1 as const,
-        preferences: {
-          motion: "system" as const,
-        },
-      });
+      () =>
+        Promise.resolve({
+          version: 1 as const,
+          preferences: {
+            motion: "system" as const,
+          },
+        });
 
     dependencies.setSystemMotionPreference(
       "reduced",
@@ -177,12 +181,13 @@ describe("AccessibilityPreferencesProvider", () => {
     const dependencies = createDependencies();
 
     dependencies.authenticated.load =
-      async () => ({
-        version: 1 as const,
-        preferences: {
-          motion: "system" as const,
-        },
-      });
+      () =>
+        Promise.resolve({
+          version: 1 as const,
+          preferences: {
+            motion: "system" as const,
+          },
+        });
 
     dependencies.motionEnvironment.subscribeToMotionPreference =
       (
@@ -284,12 +289,13 @@ describe("AccessibilityPreferencesProvider", () => {
     const dependencies = createDependencies();
 
     dependencies.authenticated.load =
-      async () => ({
-        version: 1 as const,
-        preferences: {
-          motion: "normal" as const,
-        },
-      });
+      () =>
+        Promise.resolve({
+          version: 1 as const,
+          preferences: {
+            motion: "normal" as const,
+          },
+        });
 
     const provider =
       createAccessibilityPreferencesProvider(
@@ -441,25 +447,25 @@ describe("AccessibilityPreferencesProvider", () => {
     const local:
       LocalAccessibilityPreferencesRepository =
         {
-          load: async () => null,
+          load: () => Promise.resolve(null),
 
-          save: async () => {},
+          save: () => Promise.resolve(),
         };
 
     const authenticated:
       AuthenticatedAccessibilityPreferencesRepository =
         {
-          load: async (subjectId) => {
-            loadedSubjectId = subjectId;
-
-            return {
+          load: (subjectId) =>
+            Promise.resolve({
               version: 1 as const,
 
               preferences: {
                 motion: "normal" as const,
               },
-            };
-          },
+            }).then((preferences) => {
+              loadedSubjectId = subjectId;
+              return preferences;
+            }),
 
           save: (subjectId) => {
             savedSubjectId = subjectId;
