@@ -15,7 +15,7 @@ const identity: {
   identity: Identity;
   error: null;
 } = {
-  status: "authenticated",
+  status: "authenticated";
   identity: {
     subjectId: "user-123",
     status: "active",
@@ -70,13 +70,12 @@ describe("ApplicationProviders", () => {
     };
 
     const expectedPreferences = preferences;
-    authenticatedRepository.save = (
+    authenticatedRepository.save = async (
       subjectId,
-      receivedPreferences,
+      preferences,
     ) => {
       expect(subjectId).toBe("user-123");
-      expect(receivedPreferences).toBe(expectedPreferences);
-      return Promise.resolve();
+      expect(preferences).toBe(expectedPreferences);
     };
 
     await expect(
