@@ -1,9 +1,8 @@
 name: Repair package lock
 
 on:
-  push:
-    branches:
-      - 'feat/**'
+  pull_request:
+    types: [synchronize]
 
 permissions:
   contents: write
