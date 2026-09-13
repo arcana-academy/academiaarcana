@@ -13,7 +13,7 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -38,19 +38,8 @@ jobs:
       - name: Clear npm cache
         run: npm cache clean --force
 
-      - name: Regenerate package lockfile
-        run: |
-          rm -f package-lock.json
-          npm install --package-lock-only --ignore-scripts
-
-      - name: Commit regenerated lockfile
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          commit_message: "fix: regenerate package lockfile"
-          file_pattern: package-lock.json
-
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --legacy-peer-deps
 
       - name: Typecheck
         run: npm run typecheck
