@@ -68,6 +68,8 @@ describe("SEC-003 leaked-password protection design", () => {
       "aprovação registrada",
       "aprovador, a data e uma referência rastreável à aprovação",
       "Nenhuma alteração de configuração poderá ocorrer antes dessa aprovação.",
+      "correspondência do projeto é uma pré-condição obrigatória antes de qualquer execução",
+      "Sem essa confirmação, nenhuma alteração de configuração pode ser executada.",
     ]);
 
     expectAll(acceptanceCriteria, [
