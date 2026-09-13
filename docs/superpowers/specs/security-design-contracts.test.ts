@@ -48,11 +48,32 @@ describe("SEC-003 leaked-password protection design", () => {
     const acceptanceCriteria = section(sec003, "5. Critérios de aceitação");
 
     expectAll(acceptanceCriteria, [
-      "projeto Supabase auditado estiver identificado sem ambiguidade",
+      "projeto Supabase auditado estiver identificado sem ambiguidade por um identificador estável",
+      "`supabaseUrl` obtido por `getPublicRuntimeConfig()` estiver demonstradamente associado ao mesmo projeto",
+      "correspondência do projeto estiver registrada na evidência e na matriz de rastreabilidade",
       "estado da proteção tiver sido diretamente verificado",
+      "estado anterior tiver sido determinado e registrado antes de qualquer alteração",
+      "aprovação registrada antes da execução, contendo aprovador, data e referência rastreável da aprovação",
       "estado final estiver habilitado",
-      "evidência registrável do estado final",
+      "evidência registrável do estado final, incluindo a correspondência do projeto, o estado anterior e a aprovação",
       "associada ao identificador SEC-003 e ao ambiente correto",
+    ]);
+  });
+
+  it("requires approval and project matching before changing provider configuration", () => {
+    const design = section(sec003, "3. Decisão de design");
+    const validation = section(sec003, "8. Testes e validação");
+
+    expectAll(design, [
+      "aprovação registrada",
+      "aprovador, a data e uma referência rastreável à aprovação",
+      "Nenhuma alteração de configuração poderá ocorrer antes dessa aprovação.",
+      "identificar projeto/ambiente → validar correspondência do projeto → registrar estado anterior → registrar aprovação → habilitar se necessário",
+    ]);
+    expectAll(validation, [
+      "identificar o projeto por identificador estável",
+      "obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado",
+      "executar a alteração somente se necessária e somente após aprovação",
     ]);
   });
 
@@ -65,11 +86,30 @@ describe("SEC-003 leaked-password protection design", () => {
     );
     expectAll(traceability, [
       "projeto/ambiente Supabase",
+      "identificador estável do projeto Supabase",
+      "`supabaseUrl` obtido por `getPublicRuntimeConfig()`",
+      "`supabaseUrl` usado por `createBrowserClient` em `src/infrastructure/supabase/browser.ts`",
       "data da verificação",
-      "estado anterior, quando conhecido",
+      "estado anterior, obrigatoriamente determinado antes da alteração",
+      "aprovador",
+      "data da aprovação",
+      "referência rastreável da aprovação",
       "ação executada, quando houver",
       "estado final",
       "referência à evidência utilizada",
+    ]);
+  });
+
+  it("fails closed when execution prerequisites cannot be evidenced", () => {
+    const validation = section(sec003, "8. Testes e validação");
+    const closure = section(sec003, "10. Encerramento");
+
+    expect(validation).toContain(
+      "A ausência de estado anterior determinável impede a execução e o encerramento de SEC-003.",
+    );
+    expectAll(closure, [
+      "somente se o estado anterior estiver determinado, a aprovação prévia estiver registrada e a correspondência do projeto estiver comprovada",
+      "Na ausência de qualquer desses elementos, SEC-003 permanece aberto e não pode ser concluído como resolvido.",
     ]);
   });
 });
@@ -156,6 +196,45 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "identificador pseudonimizado do titular",
       "identificador pseudonimizado da solicitação ou correlação",
       "identificadores diretos, payloads e demais dados pessoais deverão ser eliminados ou anonimizados",
+    ]);
+  });
+
+  it("qualifies data-subject rights by applicability and legal limits", () => {
+    const rights = section(sec007, "5. Direitos do titular");
+
+    expectAll(rights, [
+      "confirmação da existência de tratamento e acesso",
+      "correção de dados incompletos, inexatos ou desatualizados",
+      "anonimização, bloqueio ou eliminação nos casos aplicáveis",
+      "portabilidade nos casos e condições aplicáveis",
+      "revogação de consentimento quando o tratamento tiver consentimento como base legal",
+      "não deve prometer direitos de forma mais ampla ou irrestrita do que a legislação aplicável permite",
+    ]);
+  });
+
+  it("minimizes and authorizes any future AI context", () => {
+    const artificialIntelligence = section(sec007, "10. Inteligência artificial");
+
+    expectAll(artificialIntelligence, [
+      "minimização do contexto fornecido à IA",
+      "A IA não recebe implicitamente o banco inteiro, conteúdo de terceiros ou privilégios equivalentes aos do usuário/administrador.",
+      "previamente autorizado e mínimo para a tarefa",
+      "não cria uma implementação de IA agora",
+    ]);
+  });
+
+  it("defines negative authorization cases for future feature tests", () => {
+    const qualityGate = section(sec007, "13. Testes e Quality Gate");
+
+    expectAll(qualityGate, [
+      "Requirement → Contract → Test → Code → Security → Persistence → Observability → Quality Gate",
+      "titular acessa apenas o próprio escopo",
+      "usuário não autenticado é negado",
+      "usuário sem autorização adequada é negado",
+      "exportação não inclui dados de terceiros",
+      "exclusão respeita exceções de conservação",
+      "exclusão não apaga automaticamente dados pertencentes a terceiros",
+      "mudança de contexto não reseta a conta ou trajetória",
     ]);
   });
 
