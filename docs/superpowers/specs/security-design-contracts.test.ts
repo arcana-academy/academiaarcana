@@ -85,6 +85,9 @@ describe("SEC-003 leaked-password protection design", () => {
 
     expectAll(validation, [
       "registrar o estado anterior antes de qualquer alteração",
+      "pré-condição para qualquer alteração",
+      "bloquear toda alteração quando o resultado estiver ausente ou inconclusivo",
+      "executar a alteração se necessária e aprovada",
       "A ausência de estado anterior determinável impede a execução e o encerramento de SEC-003.",
     ]);
 

@@ -29,6 +29,9 @@ Fluxo:
 `identificar projeto/ambiente → confirmar a correspondência do projeto (pré-condição para executar; bloquear qualquer alteração se ausente ou inconclusiva) → registrar estado anterior → registrar aprovação → habilitar somente se necessário e aprovado → verificar estado final → registrar evidência → encerrar SEC-003`
 
 A confirmação da correspondência do projeto é uma pré-condição obrigatória antes de qualquer execução. Sem essa confirmação, nenhuma alteração de configuração pode ser executada.
+`identificar projeto/ambiente → validar correspondência do projeto → pré-condição: correspondência confirmada → registrar estado anterior → registrar aprovação → habilitar somente se necessário e aprovado → verificar estado final → registrar evidência → encerrar SEC-003`
+
+A correspondência confirmada do projeto é pré-condição para a execução. Se a correspondência estiver ausente ou inconclusiva, a execução é bloqueada e nenhuma alteração pode ser feita; a habilitação permanece condicionada à necessidade e à aprovação previamente registrada.
 
 Nenhum código da aplicação será alterado exclusivamente para resolver SEC-003.
 
@@ -91,10 +94,10 @@ Não é necessário criar teste unitário da aplicação para a alteração de c
 A validação obrigatória é operacional:
 
 - identificar o projeto por identificador estável;
-- obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado;
+- obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado; a correspondência confirmada é pré-condição da execução e, se estiver ausente ou inconclusiva, bloqueia qualquer alteração;
 - registrar o estado anterior antes de qualquer alteração;
 - verificar a aprovação registrada antes da execução;
-- executar a alteração somente se necessária, após aprovação e somente quando a correspondência do projeto estiver confirmada; bloquear a execução se a correspondência estiver ausente ou inconclusiva;
+- tratar a correspondência confirmada do projeto como pré-condição para qualquer alteração: bloquear toda alteração quando o resultado estiver ausente ou inconclusivo; somente após essa confirmação, executar a alteração se necessária e aprovada;
 - verificar configuração depois;
 - registrar evidência.
 
