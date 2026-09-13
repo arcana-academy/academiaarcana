@@ -20,7 +20,7 @@ A regra reconhece que os direitos do titular possuem limites e que determinadas 
 
 ## 3. Categorias de dados
 
-O contrato inicial trabalha com categorias de requisito, não com novas tabelas:
+O contrato inicial trabalha com **categorias de dados**, usadas para agrupar requisitos de tratamento, e não com novas tabelas. “Categoria de dados” identifica o tipo de informação e sua finalidade de governança; a estrutura física de armazenamento, quando necessária, será definida somente junto do requisito funcional correspondente.
 
 ### 3.1 Identidade e autenticação
 
@@ -98,7 +98,11 @@ Modelo:
 
 `solicitação → autenticação/autorização do titular → identificação do escopo de dados → verificação de exceções de conservação → execução por proprietário → novas tentativas/ações compensatórias e reconciliação quando necessário → verificação terminal por proprietário → confirmação → registro mínimo de auditoria`
 
-A execução deverá respeitar ownership, autorização e RLS. A mudança de contexto do usuário nunca deve apagar ou resetar automaticamente sua trajetória ou conta.
+Para todos os dados com escopo de titular, a proteção obrigatória deverá existir por meio de **RLS no Supabase, inclusive em fluxos server-side**, salvo exceção explicitamente documentada. A exceção deverá identificar o controle equivalente que valida ownership e/ou contexto do recurso e como essa validação é aplicada no servidor. **`requireAuthenticatedUser` ou equivalente de autenticação não substitui a validação de ownership/contexto nem a política de RLS.**
+
+A execução deverá respeitar ownership, autorização e RLS. A mudança de contexto do usuário nunca deve apagar ou resetar automaticamente sua conta, sua trajetória ou seus dados históricos.
+
+Nesta especificação, **mudança de contexto** significa a troca do contexto ativo no qual o usuário atua, como uma organização, turma, grupo, perfil de atuação ou outro escopo funcional suportado pelo produto. **Trajetória** inclui dados históricos que representam progresso, atividades acadêmicas, gamificação, preferências e demais registros persistentes associados ao titular ao longo do tempo. A invariável é: trocar o contexto não pode apagar nem redefinir a conta ou os dados históricos do usuário.
 
 Dados pertencentes a terceiros ou registros cuja conservação seja obrigatória não serão apagados simplesmente porque o titular excluiu seus próprios dados.
 
@@ -111,6 +115,8 @@ Qualquer mecanismo de exportação deverá:
 - não expor dados de terceiros;
 - evitar inclusão de segredos, credenciais ou material interno não destinado ao titular;
 - produzir uma resposta/formato definido pelo requisito funcional antes da implementação.
+
+Fluxos de exportação e acesso a dados com escopo de titular também ficam sujeitos ao requisito de RLS ou ao controle server-side equivalente documentado na seção 7. Autenticação por si só não é suficiente para autorizar acesso ao recurso.
 
 ## 9. Segurança por arquitetura
 
@@ -134,9 +140,30 @@ Isso permanece como requisito futuro; SEC-007 não cria uma implementação de I
 
 ## 11. Observabilidade e auditoria
 
-Operações sensíveis de acesso, exportação e exclusão deverão possuir evidência mínima suficiente para investigação e conformidade, evitando registrar conteúdo pessoal desnecessário.
+Operações sensíveis de acesso, exportação e exclusão deverão possuir evidência mínima suficiente para investigação e conformidade.
+
+Cada evidência de auditoria deverá conter, no mínimo:
+
+- ator da operação;
+- titular ou escopo de dados afetado;
+- operação executada;
+- resultado;
+- instante da operação.
+
+Quando um evento não possuir um titular direto, deverá registrar o escopo funcional aplicável. Quando o ator for um processo automatizado, isso deverá ser explicitamente identificável como ator do sistema.
+
+É proibido registrar em evidência de auditoria:
+
+- senhas;
+- tokens;
+- secrets;
+- credenciais;
+- payloads sensíveis desnecessários;
+- conteúdo pessoal não necessário para demonstrar a operação.
 
 Registros de auditoria deverão seguir a mesma política de retenção e necessidade, sem se tornarem um mecanismo de retenção indefinida por padrão. Excepcionalmente, após a exclusão dos dados do titular, poderão ser conservados por até 5 anos os registros estritamente necessários para cumprimento de obrigação legal ou regulatória e exercício regular de direitos, desde que pseudonimizados e sem conteúdo pessoal. O conjunto mínimo remanescente será: identificador pseudonimizado do titular, tipo da operação, data e hora, resultado da operação e identificador pseudonimizado da solicitação ou correlação; identificadores diretos, payloads e demais dados pessoais deverão ser eliminados ou anonimizados.
+
+A comprovação desses cinco campos obrigatórios e das exclusões de dados proibidos deverá fazer parte da validação de qualquer implementação de auditoria derivada desta especificação.
 
 ## 12. Persistência
 
@@ -158,7 +185,10 @@ Casos mínimos esperados para fluxos futuros incluem:
 - exportação não inclui dados de terceiros;
 - exclusão respeita exceções de conservação;
 - exclusão não apaga automaticamente dados pertencentes a terceiros;
-- mudança de contexto não reseta a conta ou trajetória.
+- mudança de contexto não reseta a conta ou trajetória;
+- dados com escopo de titular permanecem protegidos por RLS em fluxos client-side e server-side, ou possuem exceção equivalente explicitamente documentada;
+- `requireAuthenticatedUser` isoladamente nunca é tratado como prova suficiente de ownership/contexto;
+- evidências de auditoria contêm ator, titular/escopo, operação, resultado e instante, sem senhas, tokens, secrets ou conteúdo pessoal desnecessário.
 
 Os testes concretos pertencem às features que implementarem esses fluxos e não devem ser inventados nesta etapa documental.
 
@@ -171,8 +201,10 @@ SEC-007 estará pronto para implementação funcional quando:
 3. O requisito correspondente definir retenção e regra de descarte.
 4. O tratamento de acesso, exportação e exclusão estiver especificado para o recurso concreto.
 5. Exceções de conservação forem identificadas quando aplicáveis.
-6. O desenho de segurança estiver compatível com ownership, autorização, contexto e RLS.
-7. Não existirem tabelas/migrations criadas apenas para “resolver” o gap sem requisito funcional.
+6. O desenho de segurança estiver compatível com ownership, autorização, contexto e RLS, incluindo RLS obrigatório para dados com escopo de titular em fluxos server-side, ou controle equivalente explicitamente documentado para cada exceção; autenticação isolada não satisfaz este requisito.
+7. Não existirem tabelas, migrations, views, buckets ou funções de banco criados apenas para resolver o gap sem requisito funcional.
+8. Qualquer implementação de auditoria comprovar os cinco campos mínimos de evidência — ator, titular/escopo, operação, resultado e instante — e comprovar a ausência de senhas, tokens, secrets e conteúdo pessoal desnecessário.
+9. Mudanças de contexto preservarem a conta e os dados históricos do usuário, conforme a invariável definida na seção 7.
 
 ## 15. Fora do escopo desta especificação
 
