@@ -26,7 +26,9 @@ Antes de qualquer execução no Supabase Auth, deve existir **aprovação regist
 
 Fluxo:
 
-`identificar projeto/ambiente → validar correspondência do projeto → registrar estado anterior → registrar aprovação → habilitar se necessário → verificar estado final → registrar evidência → encerrar SEC-003`
+`identificar projeto/ambiente → validar correspondência do projeto → pré-condição: correspondência confirmada → registrar estado anterior → registrar aprovação → habilitar somente se necessário e aprovado → verificar estado final → registrar evidência → encerrar SEC-003`
+
+A correspondência confirmada do projeto é pré-condição para a execução. Se a correspondência estiver ausente ou inconclusiva, a execução é bloqueada e nenhuma alteração pode ser feita; a habilitação permanece condicionada à necessidade e à aprovação previamente registrada.
 
 Nenhum código da aplicação será alterado exclusivamente para resolver SEC-003.
 
@@ -89,7 +91,7 @@ Não é necessário criar teste unitário da aplicação para a alteração de c
 A validação obrigatória é operacional:
 
 - identificar o projeto por identificador estável;
-- obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado;
+- obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado; a correspondência confirmada é pré-condição da execução e, se estiver ausente ou inconclusiva, bloqueia qualquer alteração;
 - registrar o estado anterior antes de qualquer alteração;
 - verificar a aprovação registrada antes da execução;
 - executar a alteração somente se necessária, após aprovação e somente quando a correspondência do projeto estiver confirmada; bloquear a execução se a correspondência estiver ausente ou inconclusiva;
