@@ -33,6 +33,19 @@ function expectAll(text: string, requirements: readonly string[]): void {
   }
 }
 
+function expectInOrder(text: string, requirements: readonly string[]): void {
+  let previousIndex = -1;
+
+  for (const requirement of requirements) {
+    const index = text.indexOf(requirement, previousIndex + 1);
+
+    expect(index, `missing or out-of-order requirement: ${requirement}`).toBeGreaterThan(
+      previousIndex,
+    );
+    previousIndex = index;
+  }
+}
+
 describe("SEC-003 leaked-password protection design", () => {
   it("keeps remediation at the provider boundary", () => {
     expectAll(sec003, [
@@ -89,6 +102,26 @@ describe("SEC-003 leaked-password protection design", () => {
       "referência rastreável da aprovação",
       "estado final",
       "referência à evidência utilizada",
+    ]);
+  });
+
+  it("orders remediation safely and refuses incomplete closure", () => {
+    const decision = section(sec003, "3. Decisão de design");
+    const closure = section(sec003, "10. Encerramento");
+
+    expectInOrder(decision, [
+      "identificar projeto/ambiente",
+      "validar correspondência do projeto",
+      "registrar estado anterior",
+      "registrar aprovação",
+      "habilitar se necessário",
+      "verificar estado final",
+      "registrar evidência",
+      "encerrar SEC-003",
+    ]);
+    expectAll(closure, [
+      "somente se o estado anterior estiver determinado, a aprovação prévia estiver registrada e a correspondência do projeto estiver comprovada",
+      "Na ausência de qualquer desses elementos, SEC-003 permanece aberto e não pode ser concluído como resolvido.",
     ]);
   });
 });
@@ -195,6 +228,44 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "identificador pseudonimizado da solicitação ou correlação",
       "identificadores diretos, payloads e demais dados pessoais deverão ser eliminados ou anonimizados",
       "A comprovação desses cinco campos obrigatórios e das exclusões de dados proibidos deverá fazer parte da validação",
+    ]);
+  });
+
+  it("defines bounded data-subject rights and minimizes future AI context", () => {
+    const rights = section(sec007, "5. Direitos do titular");
+    const artificialIntelligence = section(sec007, "10. Inteligência artificial");
+
+    expectAll(rights, [
+      "confirmação da existência de tratamento e acesso",
+      "correção de dados incompletos, inexatos ou desatualizados",
+      "anonimização, bloqueio ou eliminação nos casos aplicáveis",
+      "portabilidade nos casos e condições aplicáveis",
+      "informação sobre compartilhamento e tratamento",
+      "revogação de consentimento quando o tratamento tiver consentimento como base legal",
+      "não deve prometer direitos de forma mais ampla ou irrestrita do que a legislação aplicável permite",
+    ]);
+    expectAll(artificialIntelligence, [
+      "minimização do contexto fornecido à IA",
+      "A IA não recebe implicitamente o banco inteiro, conteúdo de terceiros ou privilégios equivalentes aos do usuário/administrador",
+      "previamente autorizado e mínimo para a tarefa",
+      "não cria uma implementação de IA agora",
+    ]);
+  });
+
+  it("requires denial, isolation, and authorization regression cases for future flows", () => {
+    const qualityGate = section(sec007, "13. Testes e Quality Gate");
+
+    expectAll(qualityGate, [
+      "titular acessa apenas o próprio escopo",
+      "usuário não autenticado é negado",
+      "usuário sem autorização adequada é negado",
+      "exportação não inclui dados de terceiros",
+      "exclusão respeita exceções de conservação",
+      "exclusão não apaga automaticamente dados pertencentes a terceiros",
+      "mudança de contexto não reseta a conta ou trajetória",
+      "RLS em fluxos client-side e server-side",
+      "`requireAuthenticatedUser` isoladamente nunca é tratado como prova suficiente de ownership/contexto",
+      "sem senhas, tokens, secrets ou conteúdo pessoal desnecessário",
     ]);
   });
 
