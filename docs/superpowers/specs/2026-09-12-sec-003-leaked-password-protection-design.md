@@ -92,7 +92,7 @@ A validação obrigatória é operacional:
 - obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado;
 - registrar o estado anterior antes de qualquer alteração;
 - verificar a aprovação registrada antes da execução;
-- executar a alteração somente se necessária e somente após aprovação;
+- executar a alteração somente se necessária, após aprovação e somente quando a correspondência do projeto estiver confirmada; bloquear a execução se a correspondência estiver ausente ou inconclusiva;
 - verificar configuração depois;
 - registrar evidência.
 
