@@ -23,7 +23,7 @@ jobs:
       - name: Regenerate package-lock.json
         run: |
           rm -f package-lock.json
-          npm install --package-lock-only --ignore-scripts
+          npm install --package-lock-only --ignore-scripts --legacy-peer-deps
 
       - name: Commit regenerated lockfile
         uses: stefanzweifel/git-auto-commit-action@v7
