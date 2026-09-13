@@ -31,3 +31,5 @@ jobs:
         with:
           commit_message: "fix: regenerate package lockfile"
           file_pattern: package-lock.json
+
+# Temporary one-time repair; remove after the generated lockfile is committed.
