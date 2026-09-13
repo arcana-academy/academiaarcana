@@ -26,7 +26,9 @@ Antes de qualquer execução no Supabase Auth, deve existir **aprovação regist
 
 Fluxo:
 
-`identificar projeto/ambiente → validar correspondência do projeto → registrar estado anterior → registrar aprovação → habilitar se necessário → verificar estado final → registrar evidência → encerrar SEC-003`
+`identificar projeto/ambiente → confirmar a correspondência do projeto (pré-condição para executar; bloquear qualquer alteração se ausente ou inconclusiva) → registrar estado anterior → registrar aprovação → habilitar somente se necessário e aprovado → verificar estado final → registrar evidência → encerrar SEC-003`
+
+A confirmação da correspondência do projeto é uma pré-condição obrigatória antes de qualquer execução. Sem essa confirmação, nenhuma alteração de configuração pode ser executada.
 
 Nenhum código da aplicação será alterado exclusivamente para resolver SEC-003.
 
