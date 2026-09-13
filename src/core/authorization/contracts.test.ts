@@ -1,4 +1,3 @@
-```ts
 import { describe, expect, it } from "vitest";
 import { evaluateAuthorization } from "./contracts";
 import type {
@@ -63,4 +62,3 @@ describe("authorization contracts", () => {
     });
   });
 });
-```
