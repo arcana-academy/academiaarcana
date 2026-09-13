@@ -82,6 +82,8 @@ A retenção deverá ser definida por finalidade e categoria, levando em conta n
 
 Quando a finalidade terminar e não houver fundamento para conservação, o dado deverá ser elegível para eliminação, anonimização ou outra destinação compatível com a obrigação aplicável.
 
+Cada contrato de dados futuro deverá enumerar todas as cópias e todos os processadores, incluindo backups, caches, índices de busca e outras cópias derivadas, e definir regras de retenção, eliminação/anonimização e verificação para cada cópia e processador.
+
 ## 7. Fluxo de exclusão
 
 A exclusão futura será um fluxo controlado, não um `delete` indiscriminado.
