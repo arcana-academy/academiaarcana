@@ -8,6 +8,13 @@ type ErrorProps = {
   reset: () => void
 }
 
+/**
+ * Reports an uncaught error from this route segment's child components to Honeybadger
+ * and renders a retry fallback.
+ *
+ * Selecting "Try again" asks Next.js to re-render the failed segment through the
+ * provided reset callback.
+ */
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
     Honeybadger.notify(error)
