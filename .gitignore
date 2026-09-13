@@ -48,3 +48,6 @@ Thumbs.db
 # Local certificates / secrets
 *.pem
 *.key
+
+# Git worktrees locais
+.worktrees/
