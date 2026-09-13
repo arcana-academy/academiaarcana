@@ -86,9 +86,15 @@ Quando a finalidade terminar e não houver fundamento para conservação, o dado
 
 A exclusão futura será um fluxo controlado, não um `delete` indiscriminado.
 
+O pedido de exclusão deverá ser persistido em uma máquina de estados durável, com transições explícitas para `recebida`, `autorizada`, `em execução`, `aguardando nova tentativa`, `em reconciliação`, `confirmada` e `falha terminal`.
+
+Para cada proprietário de dados aplicável, o pedido deverá manter resultado, estado, tentativas e evidência de verificação. Os resultados terminais verificados poderão ser `eliminado`, `anonimizado` ou `conservação restrita`; falhas parciais deverão permanecer identificadas e acionar novas tentativas idempotentes ou ações compensatórias, seguidas de reconciliação.
+
+A confirmação só poderá ocorrer quando todos os proprietários aplicáveis alcançarem um estado terminal verificado. Enquanto houver proprietário pendente, falha não reconciliada ou verificação ausente, o pedido não poderá ser confirmado.
+
 Modelo:
 
-`solicitação → autenticação/autorização do titular → identificação do escopo de dados → verificação de exceções de conservação → execução de exclusão/anonimização/conservação restrita → confirmação → registro mínimo de auditoria`
+`solicitação → autenticação/autorização do titular → identificação do escopo de dados → verificação de exceções de conservação → execução por proprietário → novas tentativas/ações compensatórias e reconciliação quando necessário → verificação terminal por proprietário → confirmação → registro mínimo de auditoria`
 
 A execução deverá respeitar ownership, autorização e RLS. A mudança de contexto do usuário nunca deve apagar ou resetar automaticamente sua trajetória ou conta.
 
