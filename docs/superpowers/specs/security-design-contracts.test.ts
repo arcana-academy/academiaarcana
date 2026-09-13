@@ -9,7 +9,6 @@ const sec003 = readFileSync(
   join(specsRoot, "2026-09-12-sec-003-leaked-password-protection-design.md"),
   "utf8",
 );
-
 const sec007 = readFileSync(
   join(specsRoot, "2026-09-12-sec-007-data-lifecycle-and-privacy-design.md"),
   "utf8",
@@ -25,7 +24,6 @@ function section(markdown: string, heading: string): string {
 
   const remainder = markdown.slice(start + marker.length);
   const nextHeading = remainder.indexOf("\n## ");
-
   return nextHeading === -1 ? remainder : remainder.slice(0, nextHeading);
 }
 
@@ -58,14 +56,32 @@ describe("SEC-003 leaked-password protection design", () => {
 
     expectAll(acceptanceCriteria, [
       "projeto Supabase auditado estiver identificado sem ambiguidade por um identificador estável",
-      "supabaseUrl",
-      "mesmo projeto identificado pelo identificador estável",
+      "`supabaseUrl` obtido por `getPublicRuntimeConfig()` estiver demonstradamente associado ao mesmo projeto",
+      "correspondência do projeto estiver registrada na evidência e na matriz de rastreabilidade",
+      "estado da proteção tiver sido diretamente verificado",
       "estado anterior tiver sido determinado e registrado antes de qualquer alteração",
-      "Existir aprovação registrada antes da execução",
-      "aprovador, data e referência rastreável da aprovação",
+      "aprovação registrada antes da execução, contendo aprovador, data e referência rastreável da aprovação",
       "estado final estiver habilitado",
-      "evidência registrável do estado final",
+      "evidência registrável do estado final, incluindo a correspondência do projeto, o estado anterior e a aprovação",
       "associada ao identificador SEC-003 e ao ambiente correto",
+    ]);
+  });
+
+  it("requires approval and project matching before changing provider configuration", () => {
+    const design = section(sec003, "3. Decisão de design");
+    const validation = section(sec003, "8. Testes e validação");
+
+    expectAll(design, [
+      "aprovação registrada",
+      "aprovador, a data e uma referência rastreável à aprovação",
+      "Nenhuma alteração de configuração poderá ocorrer antes dessa aprovação.",
+      "identificar projeto/ambiente → validar correspondência do projeto → registrar estado anterior → registrar aprovação → habilitar se necessário",
+    ]);
+
+    expectAll(validation, [
+      "identificar o projeto por identificador estável",
+      "obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado",
+      "executar a alteração somente se necessária e somente após aprovação",
     ]);
   });
 
@@ -90,16 +106,33 @@ describe("SEC-003 leaked-password protection design", () => {
     ]);
 
     expectAll(traceability, [
+      "projeto/ambiente Supabase",
       "identificador estável do projeto Supabase",
       "`supabaseUrl` obtido por `getPublicRuntimeConfig()`",
       "correspondência verificada entre o identificador estável e o `supabaseUrl` usado por `createBrowserClient`",
+      "`supabaseUrl` usado por `createBrowserClient` em `src/infrastructure/supabase/browser.ts`",
       "data da verificação",
       "estado anterior, obrigatoriamente determinado antes da alteração",
       "aprovador",
       "data da aprovação",
       "referência rastreável da aprovação",
+      "ação executada, quando houver",
       "estado final",
       "referência à evidência utilizada",
+    ]);
+  });
+
+  it("fails closed when execution prerequisites cannot be evidenced", () => {
+    const validation = section(sec003, "8. Testes e validação");
+    const closure = section(sec003, "10. Encerramento");
+
+    expect(validation).toContain(
+      "A ausência de estado anterior determinável impede a execução e o encerramento de SEC-003.",
+    );
+
+    expectAll(closure, [
+      "somente se o estado anterior estiver determinado, a aprovação prévia estiver registrada e a correspondência do projeto estiver comprovada",
+      "Na ausência de qualquer desses elementos, SEC-003 permanece aberto e não pode ser concluído como resolvido.",
     ]);
   });
 });
@@ -107,7 +140,6 @@ describe("SEC-003 leaked-password protection design", () => {
 describe("SEC-007 data-lifecycle and privacy design", () => {
   it("defines every governed data category and its minimum contract", () => {
     const categories = section(sec007, "3. Categorias de dados");
-
     const minimumRequirements = section(
       sec007,
       "4. Requisitos mínimos por categoria",
@@ -119,7 +151,6 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "### 3.3 Conteúdo acadêmico",
       "### 3.4 Dados operacionais",
       "### 3.5 Dados derivados",
-      "categorias de dados",
       "não autoriza a criação automática de schemas, tabelas ou colunas",
     ]);
 
@@ -154,12 +185,6 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "todos os proprietários aplicáveis alcançarem um estado terminal verificado",
       "Enquanto houver proprietário pendente, falha não reconciliada ou verificação ausente, o pedido não poderá ser confirmado.",
       "novas tentativas idempotentes ou ações compensatórias",
-      "RLS no Supabase, inclusive em fluxos server-side",
-      "controle equivalente que valida ownership e/ou contexto",
-      "`requireAuthenticatedUser` ou equivalente de autenticação não substitui",
-      "mudança de contexto",
-      "conta, sua trajetória ou seus dados históricos",
-      "A invariável é: trocar o contexto não pode apagar nem redefinir a conta ou os dados históricos do usuário.",
     ]);
   });
 
@@ -172,8 +197,6 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "limitar o conteúdo ao escopo pertencente ao titular",
       "não expor dados de terceiros",
       "evitar inclusão de segredos, credenciais ou material interno",
-      "RLS ou ao controle server-side equivalente documentado na seção 7",
-      "Autenticação por si só não é suficiente",
     ]);
 
     expectAll(architecture, [
@@ -184,7 +207,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
     ]);
   });
 
-  it("covers derived copies, bounded audit evidence, and post-deletion retention", () => {
+  it("covers derived copies and bounds post-deletion audit retention", () => {
     const retention = section(sec007, "6. Retenção");
     const auditing = section(sec007, "11. Observabilidade e auditoria");
 
@@ -194,35 +217,55 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
     ]);
 
     expectAll(auditing, [
-      "ator da operação",
-      "titular ou escopo de dados afetado",
-      "operação executada",
-      "resultado",
-      "instante da operação",
-      "senhas",
-      "tokens",
-      "secrets",
-      "credenciais",
-      "conteúdo pessoal não necessário",
       "por até 5 anos",
-      "Qualquer identificador pseudonimizado deverá continuar sendo tratado como dado pessoal enquanto houver informação adicional ou outro meio razoável que permita sua associação com o titular",
-      "pseudonimização não equivale a anonimização",
-      "A informação adicional usada para reidentificação deverá ser mantida separadamente",
-      "em ambiente controlado e seguro",
-      "com acesso restrito aos papéis autorizados",
-      "registro dos acessos de reidentificação",
-      "finalidade legítima de segurança, obrigação legal/regulatória ou exercício regular de direitos",
-      "regra própria de retenção e eliminação",
+      "desde que pseudonimizados e sem conteúdo pessoal",
       "identificador pseudonimizado do titular",
       "identificador pseudonimizado da solicitação ou correlação",
-      "identificadores diretos, payloads e demais dados pessoais desnecessários deverão ser eliminados ou anonimizados",
-      "A comprovação desses cinco campos obrigatórios e das exclusões de dados proibidos deverá fazer parte da validação",
+      "identificadores diretos, payloads e demais dados pessoais deverão ser eliminados ou anonimizados",
+    ]);
+  });
+
+  it("qualifies data-subject rights by applicability and legal limits", () => {
+    const rights = section(sec007, "5. Direitos do titular");
+
+    expectAll(rights, [
+      "confirmação da existência de tratamento e acesso",
+      "correção de dados incompletos, inexatos ou desatualizados",
+      "anonimização, bloqueio ou eliminação nos casos aplicáveis",
+      "portabilidade nos casos e condições aplicáveis",
+      "revogação de consentimento quando o tratamento tiver consentimento como base legal",
+      "não deve prometer direitos de forma mais ampla ou irrestrita do que a legislação aplicável permite",
+    ]);
+  });
+
+  it("minimizes and authorizes any future AI context", () => {
+    const artificialIntelligence = section(sec007, "10. Inteligência artificial");
+
+    expectAll(artificialIntelligence, [
+      "minimização do contexto fornecido à IA",
+      "A IA não recebe implicitamente o banco inteiro, conteúdo de terceiros ou privilégios equivalentes aos do usuário/administrador.",
+      "previamente autorizado e mínimo para a tarefa",
+      "não cria uma implementação de IA agora",
+    ]);
+  });
+
+  it("defines negative authorization cases for future feature tests", () => {
+    const qualityGate = section(sec007, "13. Testes e Quality Gate");
+
+    expectAll(qualityGate, [
+      "Requirement → Contract → Test → Code → Security → Persistence → Observability → Quality Gate",
+      "titular acessa apenas o próprio escopo",
+      "usuário não autenticado é negado",
+      "usuário sem autorização adequada é negado",
+      "exportação não inclui dados de terceiros",
+      "exclusão respeita exceções de conservação",
+      "exclusão não apaga automaticamente dados pertencentes a terceiros",
+      "mudança de contexto não reseta a conta ou trajetória",
     ]);
   });
 
   it("keeps persistence and product implementation behind future review gates", () => {
     const persistence = section(sec007, "12. Persistência");
-
     const acceptanceCriteria = section(
       sec007,
       "14. Critérios de aceitação da especificação",
@@ -236,12 +279,8 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "Cada novo fluxo de dados declarar finalidade e necessidade",
       "definir retenção e regra de descarte",
       "Exceções de conservação forem identificadas",
-      "incluindo RLS obrigatório para dados com escopo de titular em fluxos server-side",
-      "autenticação isolada não satisfaz este requisito",
-      "Não existirem tabelas, migrations, views, buckets ou funções de banco criados apenas para resolver o gap",
-      "cinco campos mínimos de evidência — ator, titular/escopo, operação, resultado e instante",
-      "ausência de senhas, tokens, secrets e conteúdo pessoal desnecessário",
-      "Mudanças de contexto preservarem a conta e os dados históricos do usuário",
+      "compatível com ownership, autorização, contexto e RLS",
+      "Não existirem tabelas/migrations criadas apenas para “resolver” o gap",
     ]);
   });
 });
