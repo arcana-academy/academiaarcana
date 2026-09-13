@@ -34,10 +34,11 @@ function expectAll(text: string, requirements: readonly string[]): void {
 }
 
 function expectInOrder(text: string, requirements: readonly string[]): void {
+  const flow = text.match(/Fluxo:\s*`([^`]+)`/)?.[1] ?? "";
   let previousIndex = -1;
 
   for (const requirement of requirements) {
-    const index = text.indexOf(requirement, previousIndex + 1);
+    const index = flow.indexOf(requirement, previousIndex + 1);
 
     expect(index, `missing or out-of-order requirement: ${requirement}`).toBeGreaterThan(
       previousIndex,
