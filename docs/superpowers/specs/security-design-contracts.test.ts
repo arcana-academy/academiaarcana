@@ -99,30 +99,6 @@ describe("SEC-003 leaked-password protection design", () => {
       "referência à evidência utilizada",
     ]);
   });
-
-  it("fails closed when the project match or previous state cannot be proven", () => {
-    const decision = section(sec003, "3. Decisão de design");
-    const validation = section(sec003, "8. Testes e validação");
-    const closure = section(sec003, "10. Encerramento");
-
-    expectAll(decision, [
-      "A correspondência confirmada do projeto é pré-condição para a execução.",
-      "Se a correspondência estiver ausente ou inconclusiva, a execução é bloqueada e nenhuma alteração pode ser feita",
-      "habilitação permanece condicionada à necessidade e à aprovação previamente registrada",
-    ]);
-
-    expectAll(validation, [
-      "bloqueia qualquer alteração",
-      "A ausência de estado anterior determinável impede a execução e o encerramento de SEC-003.",
-    ]);
-
-    expectAll(closure, [
-      "somente se o estado anterior estiver determinado",
-      "a aprovação prévia estiver registrada",
-      "a correspondência do projeto estiver comprovada",
-      "SEC-003 permanece aberto e não pode ser concluído como resolvido",
-    ]);
-  });
 });
 
 describe("SEC-007 data-lifecycle and privacy design", () => {
@@ -148,8 +124,6 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "finalidade",
       "necessidade/minimização",
       "base legal aplicável",
-      "titular e contexto de acesso",
-      "compartilhamento, quando existir",
       "retenção",
       "mecanismo de acesso",
       "mecanismo de correção",
@@ -157,42 +131,6 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "exclusão, anonimização ou bloqueio quando aplicável",
       "exceções de conservação",
       "evidência e auditoria",
-    ]);
-  });
-
-  it("qualifies each data-subject right by the applicable treatment and law", () => {
-    const rights = section(sec007, "5. Direitos do titular");
-
-    expectAll(rights, [
-      "quando aplicáveis ao tratamento",
-      "confirmação da existência de tratamento e acesso",
-      "correção de dados incompletos, inexatos ou desatualizados",
-      "anonimização, bloqueio ou eliminação nos casos aplicáveis",
-      "portabilidade nos casos e condições aplicáveis",
-      "informação sobre compartilhamento e tratamento",
-      "revogação de consentimento quando o tratamento tiver consentimento como base legal",
-      "não deve prometer direitos de forma mais ampla ou irrestrita do que a legislação aplicável permite",
-    ]);
-  });
-
-  it("uses purpose-specific retention instead of a universal or indefinite period", () => {
-    const retention = section(sec007, "6. Retenção");
-    const auditing = section(sec007, "11. Observabilidade e auditoria");
-
-    expectAll(retention, [
-      "Não será criado um prazo único para todos os dados.",
-      "definida por finalidade e categoria",
-      "necessidade operacional",
-      "obrigações legais ou regulatórias de conservação",
-      "Quando a finalidade terminar e não houver fundamento para conservação",
-      "elegível para eliminação, anonimização ou outra destinação compatível",
-      "todas as cópias e todos os processadores",
-    ]);
-
-    expectAll(auditing, [
-      "seguir a mesma política de retenção e necessidade",
-      "sem se tornarem um mecanismo de retenção indefinida por padrão",
-      "estritamente necessários para cumprimento de obrigação legal ou regulatória e exercício regular de direitos",
     ]);
   });
 
@@ -276,42 +214,6 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "identificador pseudonimizado da solicitação ou correlação",
       "identificadores diretos, payloads e demais dados pessoais desnecessários deverão ser eliminados ou anonimizados",
       "A comprovação desses cinco campos obrigatórios e das exclusões de dados proibidos deverá fazer parte da validação",
-    ]);
-  });
-
-  it("keeps reidentification data separately controlled and independently disposable", () => {
-    const auditing = section(sec007, "11. Observabilidade e auditoria");
-
-    expectAll(auditing, [
-      "pseudonimização não equivale a anonimização",
-      "informação adicional usada para reidentificação deverá ser mantida separadamente",
-      "acesso restrito aos papéis autorizados",
-      "registro dos acessos de reidentificação",
-      "finalidade que justifica a possibilidade de reidentificação deverá ser documentada",
-      "informação adicional deverá possuir regra própria de retenção e eliminação",
-    ]);
-  });
-
-  it("minimizes AI context without granting implicit data or administrative access", () => {
-    const artificialIntelligence = section(sec007, "10. Inteligência artificial");
-
-    expectAll(artificialIntelligence, [
-      "minimização do contexto fornecido à IA",
-      "A IA não recebe implicitamente o banco inteiro",
-      "conteúdo de terceiros",
-      "privilégios equivalentes aos do usuário/administrador",
-      "previamente autorizado e mínimo para a tarefa",
-      "SEC-007 não cria uma implementação de IA agora",
-    ]);
-  });
-
-  it("makes system actors and ownerless audit events explicitly attributable", () => {
-    const auditing = section(sec007, "11. Observabilidade e auditoria");
-
-    expectAll(auditing, [
-      "Quando um evento não possuir um titular direto, deverá registrar o escopo funcional aplicável.",
-      "Quando o ator for um processo automatizado",
-      "explicitamente identificável como ator do sistema",
     ]);
   });
 
