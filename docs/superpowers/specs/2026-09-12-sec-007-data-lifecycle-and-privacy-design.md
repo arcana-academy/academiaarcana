@@ -134,7 +134,7 @@ Isso permanece como requisito futuro; SEC-007 não cria uma implementação de I
 
 Operações sensíveis de acesso, exportação e exclusão deverão possuir evidência mínima suficiente para investigação e conformidade, evitando registrar conteúdo pessoal desnecessário.
 
-Registros de auditoria deverão seguir a mesma política de retenção e necessidade, sem se tornarem um mecanismo de retenção indefinida por padrão.
+Registros de auditoria deverão seguir a mesma política de retenção e necessidade, sem se tornarem um mecanismo de retenção indefinida por padrão. Excepcionalmente, após a exclusão dos dados do titular, poderão ser conservados por até 5 anos os registros estritamente necessários para cumprimento de obrigação legal ou regulatória e exercício regular de direitos, desde que pseudonimizados e sem conteúdo pessoal. O conjunto mínimo remanescente será: identificador pseudonimizado do titular, tipo da operação, data e hora, resultado da operação e identificador pseudonimizado da solicitação ou correlação; identificadores diretos, payloads e demais dados pessoais deverão ser eliminados ou anonimizados.
 
 ## 12. Persistência
 
