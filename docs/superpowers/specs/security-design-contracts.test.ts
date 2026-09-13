@@ -9,6 +9,7 @@ const sec003 = readFileSync(
   join(specsRoot, "2026-09-12-sec-003-leaked-password-protection-design.md"),
   "utf8",
 );
+
 const sec007 = readFileSync(
   join(specsRoot, "2026-09-12-sec-007-data-lifecycle-and-privacy-design.md"),
   "utf8",
@@ -24,6 +25,7 @@ function section(markdown: string, heading: string): string {
 
   const remainder = markdown.slice(start + marker.length);
   const nextHeading = remainder.indexOf("\n## ");
+
   return nextHeading === -1 ? remainder : remainder.slice(0, nextHeading);
 }
 
@@ -53,6 +55,7 @@ describe("SEC-003 leaked-password protection design", () => {
       "aprovador, a data e uma referência rastreável à aprovação",
       "Nenhuma alteração de configuração poderá ocorrer antes dessa aprovação.",
     ]);
+
     expectAll(acceptanceCriteria, [
       "projeto Supabase auditado estiver identificado sem ambiguidade por um identificador estável",
       "supabaseUrl",
@@ -68,16 +71,21 @@ describe("SEC-003 leaked-password protection design", () => {
 
   it("records auditable evidence without leaking credentials", () => {
     const privacy = section(sec003, "6. Segurança e privacidade");
-    const traceability = section(sec003, "9. Observabilidade e rastreabilidade");
+    const traceability = section(
+      sec003,
+      "9. Observabilidade e rastreabilidade",
+    );
     const validation = section(sec003, "8. Testes e validação");
 
     expect(privacy).toContain(
       "Nenhuma senha, token, secret ou dado sensível será incluído na evidência versionada.",
     );
+
     expectAll(validation, [
       "registrar o estado anterior antes de qualquer alteração",
       "A ausência de estado anterior determinável impede a execução e o encerramento de SEC-003.",
     ]);
+
     expectAll(traceability, [
       "identificador estável do projeto Supabase",
       "`supabaseUrl` obtido por `getPublicRuntimeConfig()`",
@@ -96,6 +104,7 @@ describe("SEC-003 leaked-password protection design", () => {
 describe("SEC-007 data-lifecycle and privacy design", () => {
   it("defines every governed data category and its minimum contract", () => {
     const categories = section(sec007, "3. Categorias de dados");
+
     const minimumRequirements = section(
       sec007,
       "4. Requisitos mínimos por categoria",
@@ -110,6 +119,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "categorias de dados",
       "não autoriza a criação automática de schemas, tabelas ou colunas",
     ]);
+
     expectAll(minimumRequirements, [
       "finalidade",
       "necessidade/minimização",
@@ -162,6 +172,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "RLS ou ao controle server-side equivalente documentado na seção 7",
       "Autenticação por si só não é suficiente",
     ]);
+
     expectAll(architecture, [
       "A camada de apresentação não é fronteira de segurança.",
       "deve ser protegido no servidor",
@@ -178,6 +189,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "backups, caches, índices de busca e outras cópias derivadas",
       "retenção, eliminação/anonimização e verificação para cada cópia e processador",
     ]);
+
     expectAll(auditing, [
       "ator da operação",
       "titular ou escopo de dados afetado",
@@ -207,6 +219,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
 
   it("keeps persistence and product implementation behind future review gates", () => {
     const persistence = section(sec007, "12. Persistência");
+
     const acceptanceCriteria = section(
       sec007,
       "14. Critérios de aceitação da especificação",
@@ -215,6 +228,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
     expect(persistence).toContain(
       "Esta especificação **não autoriza** criação de migrations, tabelas, views, buckets ou funções de banco.",
     );
+
     expectAll(acceptanceCriteria, [
       "Cada novo fluxo de dados declarar finalidade e necessidade",
       "definir retenção e regra de descarte",
