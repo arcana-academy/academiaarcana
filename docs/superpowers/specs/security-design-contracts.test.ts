@@ -146,7 +146,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "`requireAuthenticatedUser` ou equivalente de autenticação não substitui",
       "mudança de contexto",
       "conta, sua trajetória ou seus dados históricos",
-      "Trocar contexto não pode apagar nem redefinir a conta ou os dados históricos do usuário.",
+      "A invariável é: trocar o contexto não pode apagar nem redefinir a conta ou os dados históricos do usuário.",
     ]);
   });
 
