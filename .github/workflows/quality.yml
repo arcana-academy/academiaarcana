@@ -23,7 +23,7 @@ jobs:
   quality:
     name: Quality Gate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -39,7 +39,10 @@ jobs:
         run: npm cache clean --force
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright test runner
+        run: npm install --no-save --legacy-peer-deps @playwright/test@1.55.0
 
       - name: Typecheck
         run: npm run typecheck
@@ -55,3 +58,9 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Install Playwright browser
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npx --yes playwright@1.55.0 test

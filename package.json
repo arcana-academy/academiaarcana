@@ -13,6 +13,8 @@
     "test:a11y": "vitest run src/components/ui/button.test.tsx src/components/ui/card.test.tsx src/components/ui/icon-button.test.tsx"
   },
   "dependencies": {
+    "@honeybadger-io/nextjs": "^5.11.4",
+    "@honeybadger-io/react": "^6.1.34",
     "@supabase/ssr": "^0.12.6",
     "@supabase/supabase-js": "^2.57.0",
     "clsx": "^2.1.1",
