@@ -5,4 +5,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
 
-export default setupHoneybadger(nextConfig);
+export default setupHoneybadger(nextConfig, {
+  disableSourceMapUpload: false,
+  webpackPluginOptions: {
+    apiKey: process.env.NEXT_PUBLIC_HONEYBADGER_API_KEY,
+    assetsUrl: process.env.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL,
+    revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
+  },
+});
