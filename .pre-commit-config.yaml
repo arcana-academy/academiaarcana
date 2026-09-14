@@ -1,8 +1,8 @@
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+  - repo: local
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-json
+      - id: git-diff-check
+        name: git diff check
+        entry: python -c "import subprocess; raise SystemExit(subprocess.call(['git', 'diff', '--check']))"
+        language: python
+        pass_filenames: false
