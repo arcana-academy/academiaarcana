@@ -109,7 +109,7 @@ describe('Honeybadger runtime configuration', () => {
       backtrace: [{ file: `${process.cwd()}/.next/server/app/page.js` }],
     }
 
-    expect(() => transformNotice(undefined)).not.toThrow()
+    expect(() => transformNotice()).not.toThrow()
     transformNotice(notice)
 
     expect(notice.backtrace[0].file).toBe(
