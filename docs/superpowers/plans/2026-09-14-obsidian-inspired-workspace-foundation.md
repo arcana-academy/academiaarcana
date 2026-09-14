@@ -130,7 +130,7 @@ Before changing any file, inspect the current analogous domain/application/repos
 - [ ] **Step 2: Implement `WorkspaceContent` and `PageEditor`** without coupling the content model to HTML/Markdown/editor internals.
 - [ ] **Step 3: Implement contextual metadata/progress/actions** in `WorkspaceContextPanel` without introducing future out-of-scope features.
 - [ ] **Step 4: Implement CRUD/reorder flows** through the application service only.
-- [ ] **Step 5: Add tests proving invalid parent IDs are rejected before persistence.
+- [ ] **Step 5: Add tests proving invalid parent IDs are rejected before persistence.**
 - [ ] **Step 6: Run focused tests, typecheck, and lint**.
 - [ ] **Step 7: Commit** with `feat(workspace): add content and organization flows`.
 
