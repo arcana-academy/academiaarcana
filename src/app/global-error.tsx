@@ -9,11 +9,10 @@ type GlobalErrorProps = {
 }
 
 /**
- * Reports an uncaught error from the root layout or template to Honeybadger and
- * renders a retry fallback.
+ * Displays the document-level fallback for a root layout error.
  *
- * Selecting "Try again" asks Next.js to re-render the failed application boundary
- * through the provided reset callback.
+ * Reports the captured error to Honeybadger whenever it changes. The retry
+ * button asks Next.js to attempt to render the application again.
  */
 export default function Error({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
