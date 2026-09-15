@@ -3,6 +3,7 @@ name: autofix.ci
 on:
   push:
     branches: ["main"]
+  pull_request:
 
 permissions:
   contents: read
@@ -21,7 +22,7 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
 
-      - run: npm install
+      - run: npm ci
 
       - run: npm run lint -- --fix
 
