@@ -75,13 +75,13 @@ describe("SEC-003 leaked-password protection design", () => {
       "aprovação registrada",
       "aprovador, a data e uma referência rastreável à aprovação",
       "Nenhuma alteração de configuração poderá ocorrer antes dessa aprovação.",
-      "identificar projeto/ambiente → validar correspondência do projeto → registrar estado anterior → registrar aprovação → habilitar se necessário",
+      "identificar projeto/ambiente → validar correspondência do projeto → pré-condição: correspondência confirmada → registrar estado anterior → registrar aprovação → habilitar somente se necessário e aprovado → verificar estado final → registrar evidência → encerrar SEC-003",
     ]);
 
     expectAll(validation, [
       "identificar o projeto por identificador estável",
       "obter o `supabaseUrl` por `getPublicRuntimeConfig()` e comparar sua correspondência com o projeto identificado",
-      "executar a alteração somente se necessária e somente após aprovação",
+      "somente após essa confirmação, executar a alteração se necessária e aprovada",
     ]);
   });
 
@@ -218,10 +218,10 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
 
     expectAll(auditing, [
       "por até 5 anos",
-      "desde que pseudonimizados e sem conteúdo pessoal",
+      "Qualquer identificador pseudonimizado deverá continuar sendo tratado como dado pessoal enquanto houver informação adicional ou outro meio razoável que permita sua associação com o titular",
       "identificador pseudonimizado do titular",
       "identificador pseudonimizado da solicitação ou correlação",
-      "identificadores diretos, payloads e demais dados pessoais deverão ser eliminados ou anonimizados",
+      "identificadores diretos, payloads e demais dados pessoais desnecessários deverão ser eliminados ou anonimizados",
     ]);
   });
 
@@ -280,7 +280,7 @@ describe("SEC-007 data-lifecycle and privacy design", () => {
       "definir retenção e regra de descarte",
       "Exceções de conservação forem identificadas",
       "compatível com ownership, autorização, contexto e RLS",
-      "Não existirem tabelas/migrations criadas apenas para “resolver” o gap",
+      "Não existirem tabelas, migrations, views, buckets ou funções de banco criados apenas para resolver o gap sem requisito funcional.",
     ]);
   });
 });
