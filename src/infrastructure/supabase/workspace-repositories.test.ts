@@ -5,7 +5,7 @@ import type {
   Grimoire,
   Notebook,
   Page,
-} from "@/domains/learning/workspace";
+} from "@/domains/learning";
 
 import { createGrimoireRepository } from "./workspace/grimoire-repository";
 import { createNotebookRepository } from "./workspace/notebook-repository";
