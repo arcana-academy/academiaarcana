@@ -1,0 +1,42 @@
+name: Regenerate lockfile once
+
+on:
+  push:
+    branches:
+      - fix/typescript-6-eslint-9
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+
+      - name: Setup Node 26
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+
+      - name: Pin npm
+        run: npm install --global npm@11.19.1
+
+      - name: Regenerate package-lock.json
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Commit regenerated lockfile and remove helper workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git rm .github/workflows/regenerate-lock-once.yml
+          if git diff --cached --quiet; then
+            echo "No lockfile changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: regenerate lockfile for TypeScript 6"
+          git push
