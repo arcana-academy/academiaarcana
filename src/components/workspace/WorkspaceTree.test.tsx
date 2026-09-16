@@ -1,10 +1,11 @@
 ﻿﻿// @vitest-environment jsdom
 
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { describe, expect, test, vi } from "vitest";
 import { WorkspaceTree } from "./WorkspaceTree";
 
-const tree = {
+const tree: ComponentProps<typeof WorkspaceTree>["data"] = {
   grimoires: [
     {
       id: "g1",
