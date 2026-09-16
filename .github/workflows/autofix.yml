@@ -22,6 +22,8 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
 
+      - run: npm install --package-lock-only --ignore-scripts
+
       - run: npm ci
 
       - run: npm run lint -- --fix
