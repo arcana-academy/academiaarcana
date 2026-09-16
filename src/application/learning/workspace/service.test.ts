@@ -7,9 +7,8 @@ import type {
   GrimoireRepository,
   Notebook,
   NotebookRepository,
-  Page,
   PageRepository,
-} from "@/domains/learning/workspace";
+} from "@/domains/learning";
 
 import { WorkspaceService } from "./service";
 

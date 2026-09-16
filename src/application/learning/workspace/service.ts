@@ -8,7 +8,7 @@ import type {
   Page,
   PageContent,
   PageRepository,
-} from "@/domains/learning/workspace";
+} from "@/domains/learning";
 
 type WorkspaceServiceDependencies = {
   grimoireRepository: GrimoireRepository;

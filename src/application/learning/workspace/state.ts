@@ -1,4 +1,4 @@
-import type { WorkspaceState } from "@/domains/learning/workspace";
+import type { WorkspaceState } from "@/domains/learning";
 
 export function openGrimoire(
   state: WorkspaceState,

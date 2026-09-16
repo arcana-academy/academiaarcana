@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { WorkspaceState } from "@/domains/learning/workspace";
+import type { WorkspaceState } from "@/domains/learning";
 import { openChapter, openGrimoire, openNotebook, openPage } from "./state";
 
 describe("workspace navigation state", () => {
