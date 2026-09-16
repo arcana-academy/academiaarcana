@@ -2,6 +2,7 @@
   "name": "academiaarcana",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.19.1",
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
@@ -44,4 +45,12 @@
     "vitest": "^4.1.11"
   },
   "overrides": {}
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "9.39.5",
+    "eslint-config-next": "^16.0.0",
+    "jsdom": "^30.0.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
+  }
 }
