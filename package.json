@@ -34,17 +34,6 @@
     "@types/node": "^26.4.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.2.7",
-    "@typescript/native": "npm:typescript@^7.0.2",
-    "@vitejs/plugin-react": "^5.0.0",
-    "eslint": "9.39.5",
-    "eslint-config-next": "^16.0.0",
-    "jsdom": "^26.0.0",
-    "supabase": "^2.117.0",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vite": "^7.0.0",
-    "vitest": "^4.1.11"
-  },
-  "overrides": {}
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "9.39.5",
     "eslint-config-next": "^16.0.0",
