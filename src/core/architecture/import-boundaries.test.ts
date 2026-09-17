@@ -79,7 +79,7 @@ const resolveLocalImport = (from: string, specifier: string): string | null => {
   return candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile()) ?? null;
 };
 
-export function dependencyGraph(files: string[]): Map<string, string[]> {
+export const dependencyGraph = (files: string[]): Map<string, string[]> => {
   const knownFiles = new Set(files);
   const graph = new Map<string, string[]>();
 
@@ -91,7 +91,7 @@ export function dependencyGraph(files: string[]): Map<string, string[]> {
   }
 
   return graph;
-}
+};
 
 (function() {
   // empty because this IIFE is used only to test import boundaries without side effects

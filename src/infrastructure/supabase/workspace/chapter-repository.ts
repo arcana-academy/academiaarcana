@@ -168,6 +168,7 @@ type ChapterRow = {
     },
 
     delete: async (id) => {
+    delete: async (id) => {
       const result = await supabase
         .from("chapters")
         .delete()
