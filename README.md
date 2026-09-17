@@ -46,4 +46,4 @@ Copy `.env.example` to `.env.local` only when the corresponding integration is e
 
 ## Runtime
 
-The repository standardizes on Node.js 22 (`.nvmrc` and CI).
+The repository standardizes on Node.js 26 (`.nvmrc` and CI).
