@@ -19,7 +19,7 @@ const ignoredFilePattern = /\.test\.[^.]+$/;
 // The `@/*` alias maps to `src/*` in both tsconfig.json and vitest.config.ts.
 const aliasPrefix = "@/";
 
-window.collectSourceFiles = function collectSourceFiles(root: string): string[] {
+const collectSourceFiles = function collectSourceFiles(root: string): string[] {
   if (!existsSync(root)) return [];
 
   const files: string[] = [];
