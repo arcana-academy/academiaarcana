@@ -108,7 +108,7 @@ type SanctuarySnapshot = {
 
 type SanctuaryUser = {
   id: string;
-  displayName: string;
+  displayName?: string; // A UI deve usar "Visitante" quando o nome não estiver disponível.
   avatarUrl?: string;
 };
 
