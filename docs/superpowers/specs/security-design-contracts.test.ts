@@ -14,20 +14,18 @@ const sec007 = readFileSync(
   "utf8",
 );
 
-(function() {
-  function _section(markdown: string, heading: string): string {
-    const marker = `## ${heading}`;
-    const start = markdown.indexOf(marker);
+function section(markdown: string, heading: string): string {
+  const marker = `## ${heading}`;
+  const start = markdown.indexOf(marker);
 
-    if (start === -1) {
-      throw new Error(`Missing specification section: ${heading}`);
-    }
-
-    const remainder = markdown.slice(start + marker.length);
-    const nextHeading = remainder.indexOf("\n## ");
-    return nextHeading === -1 ? remainder : remainder.slice(0, nextHeading);
+  if (start === -1) {
+    throw new Error(`Missing specification section: ${heading}`);
   }
-})();
+
+  const remainder = markdown.slice(start + marker.length);
+  const nextHeading = remainder.indexOf("\n## ");
+  return nextHeading === -1 ? remainder : remainder.slice(0, nextHeading);
+}
 
 export function expectAll(text: string, requirements: readonly string[]): void {
   for (const requirement of requirements) {
