@@ -130,4 +130,31 @@ describe("AuthForm", () => {
       "As senhas precisam ser iguais.",
     );
   });
+
+  it("updates the password when confirmation matches", async () => {
+    render(<AuthForm mode="update-password" />);
+
+    fireEvent.change(screen.getByLabelText("Senha"), {
+      target: { value: "new-password" },
+    });
+
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), {
+      target: { value: "new-password" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Atualizar senha" }),
+    );
+
+    await waitFor(() => {
+      expect(updateUser).toHaveBeenCalledTimes(1);
+      expect(updateUser).toHaveBeenCalledWith({ password: "new-password" });
+      expect(screen.getByRole("alert").textContent).toContain(
+        "Senha atualizada com sucesso.",
+      );
+    });
+
+    expect(signInWithPassword).not.toHaveBeenCalled();
+    expect(resetPasswordForEmail).not.toHaveBeenCalled();
+  });
 });

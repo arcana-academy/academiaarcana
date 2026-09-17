@@ -2,18 +2,24 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 
-function safeNextPath(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+function safeNextPath(value: string | null, origin: string): string {
+  if (!value || !value.startsWith("/")) {
     return "/";
   }
 
-  return value;
+  const destination = new URL(value, origin);
+
+  if (destination.origin !== origin) {
+    return "/";
+  }
+
+  return `${destination.pathname}${destination.search}${destination.hash}`;
 }
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = safeNextPath(requestUrl.searchParams.get("next"));
+  const next = safeNextPath(requestUrl.searchParams.get("next"), requestUrl.origin);
 
   if (!code) {
     return NextResponse.redirect(
