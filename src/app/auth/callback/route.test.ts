@@ -50,4 +50,19 @@ describe("GET /auth/callback", () => {
       "https://app.example/login?error=auth",
     );
   });
+
+  it("redirects to the login page when the code exchange fails", async () => {
+    exchangeCodeForSession.mockResolvedValueOnce({
+      error: new Error("Invalid authorization code"),
+    });
+
+    const response = await GET(
+      new Request("https://app.example/auth/callback?code=invalid-code"),
+    );
+
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("invalid-code");
+    expect(response.headers.get("location")).toBe(
+      "https://app.example/login?error=auth",
+    );
+  });
 });
