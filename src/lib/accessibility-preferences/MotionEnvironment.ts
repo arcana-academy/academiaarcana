@@ -1,7 +1,4 @@
-import type {
-  MotionEnvironment as MotionEnvironmentContract,
-  SystemMotionPreference,
-} from "@/core/accessibility-preferences/MotionEnvironment";
+import type { SystemMotionPreference } from "@/core/accessibility-preferences/MotionEnvironment";
 
 const MEDIA_QUERY = "(prefers-reduced-motion: reduce)";
 

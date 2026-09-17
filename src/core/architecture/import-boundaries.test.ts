@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync, type Dirent } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CORE_DOMAINS, type CoreDomain } from "./domains";
@@ -23,7 +23,7 @@ const collectSourceFiles = function collectSourceFiles(root: string): string[] {
   if (!existsSync(root)) return [];
 
   const files: string[] = [];
-  const handlers: Record<string, (entry: any, path: string) => void> = {
+  const handlers: Record<string, (entry: Dirent, path: string) => void> = {
     directory: (entry, path) => files.push(...collectSourceFiles(path)),
     file: (entry, path) => {
       const name = entry.name;
@@ -94,6 +94,7 @@ export function dependencyGraph(files: string[]): Map<string, string[]> {
 }
 
 (function() {
+  // empty because this IIFE is used only to test import boundaries without side effects
 })();
 
 // Each domain owns exactly one directory: the three identity/access domains

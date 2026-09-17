@@ -65,7 +65,7 @@ const toDomain = (row: GrimoireRow): Grimoire => {
   const optional = optionalFields.reduce((acc, [src, dest]) => {
     const value = row[src];
     if (value != null) {
-      (acc as any)[dest] = value;
+      acc[dest] = value as Grimoire[typeof dest];
     }
     return acc;
   }, {} as Partial<Grimoire>);
