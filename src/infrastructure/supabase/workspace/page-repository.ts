@@ -37,6 +37,11 @@ type PageRow = {
   updated_at: string;
 };
 
+/**
+ * Converts a PageRow from the database to a Page domain object.
+ * @param row - The database row to convert.
+ * @returns The corresponding Page domain object.
+ */
 const toDomain = (row: PageRow): Page => ({
   id: row.id,
   chapterId: row.chapter_id,
@@ -47,6 +52,11 @@ const toDomain = (row: PageRow): Page => ({
   updatedAt: row.updated_at,
 });
 
+/**
+ * Converts a Page domain object to a PageRow for database operations.
+ * @param page - The Page domain object to convert.
+ * @returns The corresponding PageRow for database storage.
+ */
 const toRow = (page: Page): PageRow => ({
   id: page.id,
   chapter_id: page.chapterId,
@@ -57,6 +67,12 @@ const toRow = (page: Page): PageRow => ({
   updated_at: page.updatedAt,
 });
 
+/**
+ * Throws an error if the Supabase query result contains an error.
+ * @param result - The result from a Supabase query.
+ * @returns The data from the result if no error is present.
+ * @throws Error when the result contains an error.
+ */
 const throwIfError = <T>(result: SupabaseQueryResult<T>): T => {
   if (result.error) {
     throw new Error(result.error.message);

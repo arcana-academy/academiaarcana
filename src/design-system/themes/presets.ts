@@ -44,6 +44,14 @@ export const THEME_IDS: readonly ThemeId[] = [
   "paper-light",
 ];
 
+/**
+ * Creates a theme preset by merging base tokens with overrides.
+ *
+ * @param id - The identifier for the theme preset.
+ * @param name - The display name of the theme preset.
+ * @param overrides - Partial theme tokens to override base tokens.
+ * @returns A ThemePreset object with merged tokens and associated metadata.
+ */
 export function createPreset(
   id: ThemeId,
   name: string,

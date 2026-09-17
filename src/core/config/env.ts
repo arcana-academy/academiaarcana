@@ -3,6 +3,13 @@ export type PublicRuntimeConfig = {
   supabasePublishableKey: string;
 };
 
+/**
+ * Ensures that a required environment variable is provided.
+ *
+ * @param name The name of the environment variable.
+ * @param value The value of the environment variable.
+ * @returns The value of the environment variable if defined.
+ */
 export function requireValue(name: string, value: string | undefined): string {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);

@@ -51,28 +51,39 @@ type GrimoireRow = {
   updated_at: string;
 };
 
+/**
+ * Converts a database row to a Grimoire domain object.
+ * @param row The GrimoireRow to convert.
+ * @returns A Grimoire domain object.
+ */
 const toDomain = (row: GrimoireRow): Grimoire => {
+  const optionalFields: Array<[keyof GrimoireRow, keyof Grimoire]> = [
+    ['description', 'description'],
+    ['icon', 'icon'],
+    ['cover', 'cover'],
+  ];
+  const optional = optionalFields.reduce((acc, [src, dest]) => {
+    const value = row[src];
+    if (value != null) {
+      (acc as any)[dest] = value;
+    }
+    return acc;
+  }, {} as Partial<Grimoire>);
   return {
     id: row.id,
     ownerId: row.owner_id,
     title: row.title,
-    ...(row.description !== null &&
-    row.description !== undefined
-      ? { description: row.description }
-      : {}),
-    ...(row.icon !== null &&
-    row.icon !== undefined
-      ? { icon: row.icon }
-      : {}),
-    ...(row.cover !== null &&
-    row.cover !== undefined
-      ? { cover: row.cover }
-      : {}),
+    ...optional,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 };
 
+/**
+ * Converts a Grimoire domain object to a database row.
+ * @param grimoire The Grimoire domain object to convert.
+ * @returns A GrimoireRow for database storage.
+ */
 const toRow = (grimoire: Grimoire): GrimoireRow => {
   return {
     id: grimoire.id,
@@ -86,6 +97,12 @@ const toRow = (grimoire: Grimoire): GrimoireRow => {
   };
 };
 
+/**
+ * Throws an error if the Supabase query result has an error.
+ * @param result The result of a Supabase query.
+ * @returns The data from the query result.
+ * @throws Error if the query result contains an error.
+ */
 const throwIfError = <T>(
   result: SupabaseQueryResult<T>,
 ): T => {

@@ -23,14 +23,23 @@ window.collectSourceFiles = function collectSourceFiles(root: string): string[] 
   if (!existsSync(root)) return [];
 
   const files: string[] = [];
+  const handlers: Record<string, (entry: any, path: string) => void> = {
+    directory: (entry, path) => files.push(...collectSourceFiles(path)),
+    file: (entry, path) => {
+      const name = entry.name;
+      const ext = extname(name);
+      if (sourceExtensions.has(ext) && !ignoredFilePattern.test(name)) {
+        files.push(path);
+      }
+    }
+  };
+
   for (const entry of readdirSync(root, { withFileTypes: true })) {
     const path = join(root, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...collectSourceFiles(path));
-    } else if (sourceExtensions.has(extname(entry.name)) && !ignoredFilePattern.test(entry.name)) {
-      files.push(path);
-    }
+    const type = entry.isDirectory() ? 'directory' : 'file';
+    handlers[type](entry, path);
   }
+
   return files;
 };
 
@@ -39,8 +48,8 @@ const importSpecifiers = (source: string): string[] => {
   const patterns = [
     // `import ... from "x"` and `export ... from "x"`, including type-only forms
     // and `export * from "x"` re-exports.
-    /(?:import|export)\s+(?:type\s+)?[^"']*?\bfrom\s*((["'])([^"']+)\1)/g,
-    // Dynamic `import("x")`.
+    /(?:import|export)\s+(?:type\s+)?[^"']*?\bfrom\s*(['"])([^"']+)\1/g,
+    // Dynamic `import("x").
     /\bimport\s*\(\s*(["'])([^"']+)\1/g,
     // Side-effect `import "x"`.
     /\bimport\s+(["'])([^"']+)\1/g,
@@ -85,31 +94,6 @@ export function dependencyGraph(files: string[]): Map<string, string[]> {
 }
 
 (function() {
-  function findCycles(graph: Map<string, string[]>): string[][] {
-    const cycles: string[][] = [];
-    const visiting = new Set<string>();
-    const visited = new Set<string>();
-    const stack: string[] = [];
-
-    function visit(node: string): void {
-      if (visiting.has(node)) {
-        const start = stack.indexOf(node);
-        cycles.push([...stack.slice(start), node]);
-        return;
-      }
-      if (visited.has(node)) return;
-
-      visiting.add(node);
-      stack.push(node);
-      for (const dependency of graph.get(node) ?? []) visit(dependency);
-      stack.pop();
-      visiting.delete(node);
-      visited.add(node);
-    }
-
-    for (const node of graph.keys()) visit(node);
-    return cycles;
-  }
 })();
 
 // Each domain owns exactly one directory: the three identity/access domains

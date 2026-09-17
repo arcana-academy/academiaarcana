@@ -40,6 +40,12 @@ type NotebookRow = {
   updated_at: string;
 };
 
+/**
+ * Converts a NotebookRow to a Notebook domain object.
+ *
+ * @param row - The notebook row from the database.
+ * @returns The Notebook domain object.
+ */
 const toDomain = (row: NotebookRow): Notebook => {
   return {
     id: row.id,
@@ -54,6 +60,12 @@ const toDomain = (row: NotebookRow): Notebook => {
   };
 };
 
+/**
+ * Converts a Notebook domain object to a NotebookRow for persistence.
+ *
+ * @param notebook - The Notebook domain object.
+ * @returns The NotebookRow for database insertion.
+ */
 const toRow = (notebook: Notebook): NotebookRow => {
   return {
     id: notebook.id,
@@ -66,6 +78,12 @@ const toRow = (notebook: Notebook): NotebookRow => {
   };
 };
 
+/**
+ * Throws an Error if the Supabase query result contains an error.
+ *
+ * @param result - The Supabase query result to check.
+ * @returns The data from the result.
+ */
 export const throwIfError = <T>(result: SupabaseQueryResult<T>): T => {
   if (result.error) {
     throw new Error(result.error.message);

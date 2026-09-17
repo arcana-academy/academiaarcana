@@ -15,7 +15,7 @@ const sec007 = readFileSync(
 );
 
 (function() {
-  function section(markdown: string, heading: string): string {
+  function _section(markdown: string, heading: string): string {
     const marker = `## ${heading}`;
     const start = markdown.indexOf(marker);
 

@@ -5,6 +5,11 @@ import type {
 
 const MEDIA_QUERY = "(prefers-reduced-motion: reduce)";
 
+/**
+ * Retrieves the user's system motion preference based on the CSS media query.
+ *
+ * @returns {SystemMotionPreference} The user's motion preference: "reduced" if the user prefers reduced motion, otherwise "normal".
+ */
 export function getSystemMotionPreference(): SystemMotionPreference {
   if (
     typeof window === "undefined" ||
@@ -16,6 +21,12 @@ export function getSystemMotionPreference(): SystemMotionPreference {
   return window.matchMedia(MEDIA_QUERY).matches ? "reduced" : "normal";
 }
 
+/**
+ * Subscribes to changes in the user's system motion preference.
+ *
+ * @param listener - Callback function invoked with the current preference ('reduced' or 'normal') when it changes.
+ * @returns A function that can be called to unsubscribe the listener.
+ */
 export function subscribeToMotionPreference(
   listener: (preference: SystemMotionPreference) => void,
 ): () => void {
@@ -38,8 +49,3 @@ export function subscribeToMotionPreference(
     mediaQuery.removeEventListener("change", handleChange);
   };
 }
-
-export const motionEnvironment: MotionEnvironmentContract = {
-  getSystemMotionPreference,
-  subscribeToMotionPreference,
-};

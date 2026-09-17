@@ -180,7 +180,7 @@ type ChapterRow = {
       );
     },
 
-    async reorder(id, position) {
+    reorder: async (id, position) => {
       const result = await supabase
         .from("chapters")
         .update({ position })
