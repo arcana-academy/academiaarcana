@@ -1,11 +1,11 @@
 import { themePresets } from "./presets";
 import type { ThemeId, ThemePreset } from "../tokens/types";
 
-function toCssVariableName(path: string): string {
+export function toCssVariableName(path: string): string {
   return `--aa-${path.replace(/\./g, "-")}`;
 }
 
-function flattenTokenChild(
+export function flattenTokenChild(
   child: unknown,
   path: string,
   result: Record<string, string>,
@@ -20,7 +20,7 @@ function flattenTokenChild(
   }
 }
 
-function flattenTokens(
+export function flattenTokens(
   value: unknown,
   prefix = "",
   result: Record<string, string> = {},

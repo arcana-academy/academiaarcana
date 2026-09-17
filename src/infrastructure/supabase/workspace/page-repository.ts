@@ -37,37 +37,33 @@ type PageRow = {
   updated_at: string;
 };
 
-function toDomain(row: PageRow): Page {
-  return {
-    id: row.id,
-    chapterId: row.chapter_id,
-    title: row.title,
-    content: row.content,
-    position: row.position,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
+const toDomain = (row: PageRow): Page => ({
+  id: row.id,
+  chapterId: row.chapter_id,
+  title: row.title,
+  content: row.content,
+  position: row.position,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
 
-function toRow(page: Page): PageRow {
-  return {
-    id: page.id,
-    chapter_id: page.chapterId,
-    title: page.title,
-    content: page.content,
-    position: page.position,
-    created_at: page.createdAt,
-    updated_at: page.updatedAt,
-  };
-}
+const toRow = (page: Page): PageRow => ({
+  id: page.id,
+  chapter_id: page.chapterId,
+  title: page.title,
+  content: page.content,
+  position: page.position,
+  created_at: page.createdAt,
+  updated_at: page.updatedAt,
+});
 
-function throwIfError<T>(result: SupabaseQueryResult<T>): T {
+const throwIfError = <T>(result: SupabaseQueryResult<T>): T => {
   if (result.error) {
     throw new Error(result.error.message);
   }
 
   return result.data;
-}
+};
 
 export function createPageRepository(
   supabase: SupabaseClientLike,

@@ -10,7 +10,7 @@ import {
   useFlonts,
 } from "./FlontsProvider";
 
-function createWrapper(
+export function createWrapper(
   systemMotionPreference: "normal" | "reduced" = "normal",
   onSystemMotionPreferenceChange?: (
     listener: (

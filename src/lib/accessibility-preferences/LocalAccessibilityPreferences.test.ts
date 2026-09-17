@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createLocalAccessibilityPreferencesRepository } from "./LocalAccessibilityPreferences";
 
-function createStorageMock(): Storage {
+const createStorageMock = (): Storage => {
   const storage = new Map<string, string>();
 
   return {
@@ -30,7 +30,7 @@ function createStorageMock(): Storage {
       storage.set(key, value);
     },
   };
-}
+};
 
 describe("LocalAccessibilityPreferences", () => {
   it("retorna null quando não existe preferência salva", async () => {

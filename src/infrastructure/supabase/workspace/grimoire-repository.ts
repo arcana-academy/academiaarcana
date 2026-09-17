@@ -51,7 +51,7 @@ type GrimoireRow = {
   updated_at: string;
 };
 
-function toDomain(row: GrimoireRow): Grimoire {
+const toDomain = (row: GrimoireRow): Grimoire => {
   return {
     id: row.id,
     ownerId: row.owner_id,
@@ -71,9 +71,9 @@ function toDomain(row: GrimoireRow): Grimoire {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
-}
+};
 
-function toRow(grimoire: Grimoire): GrimoireRow {
+const toRow = (grimoire: Grimoire): GrimoireRow => {
   return {
     id: grimoire.id,
     owner_id: grimoire.ownerId,
@@ -84,17 +84,17 @@ function toRow(grimoire: Grimoire): GrimoireRow {
     created_at: grimoire.createdAt,
     updated_at: grimoire.updatedAt,
   };
-}
+};
 
-function throwIfError<T>(
+const throwIfError = <T>(
   result: SupabaseQueryResult<T>,
-): T {
+): T => {
   if (result.error) {
     throw new Error(result.error.message);
   }
 
   return result.data;
-}
+};
 
 export function createGrimoireRepository(
   supabase: SupabaseClientLike,

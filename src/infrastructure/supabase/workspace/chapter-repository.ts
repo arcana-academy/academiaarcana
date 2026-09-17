@@ -49,64 +49,64 @@ type ChapterRow = {
   updated_at: string;
 };
 
-function toDomain(row: ChapterRow): Chapter {
-  return {
-    id: row.id,
-    notebookId: row.notebook_id,
-    title: row.title,
-    position: row.position,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function toRow(chapter: Chapter): ChapterRow {
-  return {
-    id: chapter.id,
-    notebook_id: chapter.notebookId,
-    title: chapter.title,
-    position: chapter.position,
-    created_at: chapter.createdAt,
-    updated_at: chapter.updatedAt,
-  };
-}
-
-function throwIfError<T>(
-  result: SupabaseQueryResult<T>,
-): T {
-  if (result.error) {
-    throw new Error(result.error.message);
+(function() {
+  function toDomain(row: ChapterRow): Chapter {
+    return {
+      id: row.id,
+      notebookId: row.notebook_id,
+      title: row.title,
+      position: row.position,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 
-  return result.data;
-}
+  function toRow(chapter: Chapter): ChapterRow {
+    return {
+      id: chapter.id,
+      notebook_id: chapter.notebookId,
+      title: chapter.title,
+      position: chapter.position,
+      created_at: chapter.createdAt,
+      updated_at: chapter.updatedAt,
+    };
+  }
+  function throwIfError<T>(
+    result: SupabaseQueryResult<T>,
+  ): T {
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
 
-export function createChapterRepository(
-  supabase: SupabaseClientLike,
-): ChapterRepository {
-  return {
-    async create(chapter) {
-      const result = await supabase
-        .from("chapters")
-        .insert(toRow(chapter))
-        .select("*")
-        .single();
+    return result.data;
+  }
+  window.createChapterRepository = function(
+    supabase: SupabaseClientLike,
+  ): ChapterRepository {
+    return {
+      async create(chapter) {
+        const result = await supabase
+          .from("chapters")
+          .insert(toRow(chapter))
+          .select("*")
+          .single();
 
-      return toDomain(
-        throwIfError(result) as ChapterRow,
-      );
-    },
+        return toDomain(
+          throwIfError(result) as ChapterRow,
+        );
+      },
 
-    async listByNotebook(notebookId) {
-      const result = await supabase
-        .from("chapters")
-        .select("*")
-        .eq("notebook_id", notebookId)
-        .order("position", { ascending: true });
+      async listByNotebook(notebookId) {
+        const result = await supabase
+          .from("chapters")
+          .select("*")
+          .eq("notebook_id", notebookId)
+          .order("position", { ascending: true });
 
-      const rows = throwIfError(
-        result as SupabaseQueryResult<
-          Record<string, unknown> |
+        const rows = throwIfError(
+          result as SupabaseQueryResult<
+            Record<string, unknown> |
+          
           Record<string, unknown>[]
         >,
       );

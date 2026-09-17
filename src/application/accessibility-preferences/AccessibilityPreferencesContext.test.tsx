@@ -11,7 +11,7 @@ import {
   useAccessibilityPreferencesContext,
 } from "./AccessibilityPreferencesContext";
 
-function createDependencies() {
+const createDependencies = () => {
   return {
     local: {
       load: async () => null,
@@ -31,7 +31,7 @@ function createDependencies() {
       error: null,
     },
   };
-}
+};
 
 describe("AccessibilityPreferencesContext", () => {
   it("expõe o contexto de preferências de acessibilidade", () => {

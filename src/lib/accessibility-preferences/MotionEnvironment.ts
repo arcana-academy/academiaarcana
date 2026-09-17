@@ -5,7 +5,7 @@ import type {
 
 const MEDIA_QUERY = "(prefers-reduced-motion: reduce)";
 
-function getSystemMotionPreference(): SystemMotionPreference {
+export function getSystemMotionPreference(): SystemMotionPreference {
   if (
     typeof window === "undefined" ||
     typeof window.matchMedia !== "function"
@@ -16,7 +16,7 @@ function getSystemMotionPreference(): SystemMotionPreference {
   return window.matchMedia(MEDIA_QUERY).matches ? "reduced" : "normal";
 }
 
-function subscribeToMotionPreference(
+export function subscribeToMotionPreference(
   listener: (preference: SystemMotionPreference) => void,
 ): () => void {
   if (

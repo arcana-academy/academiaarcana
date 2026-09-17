@@ -19,7 +19,7 @@ const ignoredFilePattern = /\.test\.[^.]+$/;
 // The `@/*` alias maps to `src/*` in both tsconfig.json and vitest.config.ts.
 const aliasPrefix = "@/";
 
-function collectSourceFiles(root: string): string[] {
+window.collectSourceFiles = function collectSourceFiles(root: string): string[] {
   if (!existsSync(root)) return [];
 
   const files: string[] = [];
@@ -32,14 +32,14 @@ function collectSourceFiles(root: string): string[] {
     }
   }
   return files;
-}
+};
 
-function importSpecifiers(source: string): string[] {
+const importSpecifiers = (source: string): string[] => {
   const imports: string[] = [];
   const patterns = [
     // `import ... from "x"` and `export ... from "x"`, including type-only forms
     // and `export * from "x"` re-exports.
-    /(?:import|export)\s+(?:type\s+)?[^"']*?\bfrom\s*(["'])([^"']+)\1/g,
+    /(?:import|export)\s+(?:type\s+)?[^"']*?\bfrom\s*((["'])([^"']+)\1)/g,
     // Dynamic `import("x")`.
     /\bimport\s*\(\s*(["'])([^"']+)\1/g,
     // Side-effect `import "x"`.
@@ -52,9 +52,9 @@ function importSpecifiers(source: string): string[] {
     }
   }
   return imports;
-}
+};
 
-function resolveLocalImport(from: string, specifier: string): string | null {
+const resolveLocalImport = (from: string, specifier: string): string | null => {
   let base: string;
   if (specifier.startsWith(".")) {
     base = resolve(dirname(from), specifier);
@@ -68,9 +68,9 @@ function resolveLocalImport(from: string, specifier: string): string | null {
   // keep only real files; existsSync alone would return the directory itself.
   const candidates = [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts"), join(base, "index.tsx")];
   return candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile()) ?? null;
-}
+};
 
-function dependencyGraph(files: string[]): Map<string, string[]> {
+export function dependencyGraph(files: string[]): Map<string, string[]> {
   const knownFiles = new Set(files);
   const graph = new Map<string, string[]>();
 
@@ -84,31 +84,33 @@ function dependencyGraph(files: string[]): Map<string, string[]> {
   return graph;
 }
 
-function findCycles(graph: Map<string, string[]>): string[][] {
-  const cycles: string[][] = [];
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
-  const stack: string[] = [];
+(function() {
+  function findCycles(graph: Map<string, string[]>): string[][] {
+    const cycles: string[][] = [];
+    const visiting = new Set<string>();
+    const visited = new Set<string>();
+    const stack: string[] = [];
 
-  function visit(node: string): void {
-    if (visiting.has(node)) {
-      const start = stack.indexOf(node);
-      cycles.push([...stack.slice(start), node]);
-      return;
+    function visit(node: string): void {
+      if (visiting.has(node)) {
+        const start = stack.indexOf(node);
+        cycles.push([...stack.slice(start), node]);
+        return;
+      }
+      if (visited.has(node)) return;
+
+      visiting.add(node);
+      stack.push(node);
+      for (const dependency of graph.get(node) ?? []) visit(dependency);
+      stack.pop();
+      visiting.delete(node);
+      visited.add(node);
     }
-    if (visited.has(node)) return;
 
-    visiting.add(node);
-    stack.push(node);
-    for (const dependency of graph.get(node) ?? []) visit(dependency);
-    stack.pop();
-    visiting.delete(node);
-    visited.add(node);
+    for (const node of graph.keys()) visit(node);
+    return cycles;
   }
-
-  for (const node of graph.keys()) visit(node);
-  return cycles;
-}
+})();
 
 // Each domain owns exactly one directory: the three identity/access domains
 // live under src/core, the rest under src/domains.
@@ -119,17 +121,17 @@ const domainDirectories = new Map<CoreDomain, string>(
   }),
 );
 
-function domainOf(path: string): CoreDomain | null {
+const domainOf = (path: string): CoreDomain | null => {
   for (const [domain, dir] of domainDirectories) {
     if (path === dir || path.startsWith(`${dir}${sep}`)) return domain;
   }
   return null;
-}
+};
 
-function isDomainBarrel(path: string, domain: CoreDomain): boolean {
+const isDomainBarrel = (path: string, domain: CoreDomain): boolean => {
   const dir = domainDirectories.get(domain);
   return path === join(dir ?? "", "index.ts") || path === join(dir ?? "", "index.tsx");
-}
+};
 
 type CrossDomainImport = { specifier: string; target: string; targetDomain: CoreDomain };
 

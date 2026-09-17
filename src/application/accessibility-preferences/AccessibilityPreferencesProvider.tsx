@@ -47,16 +47,14 @@ export type AccessibilityPreferencesProvider = {
   ) => Promise<void>;
 };
 
-function createPersistedPreferences(
-  motion: MotionPreference,
-): PersistedAccessibilityPreferences {
+const createPersistedPreferences = (motion: MotionPreference): PersistedAccessibilityPreferences => {
   return {
     version: 1,
     preferences: {
       motion,
     },
   };
-}
+};
 
 export function createAccessibilityPreferencesProvider({
   local,

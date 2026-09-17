@@ -3,7 +3,7 @@ export type PublicRuntimeConfig = {
   supabasePublishableKey: string;
 };
 
-function requireValue(name: string, value: string | undefined): string {
+export function requireValue(name: string, value: string | undefined): string {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }

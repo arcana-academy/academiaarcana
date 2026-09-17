@@ -40,7 +40,7 @@ type NotebookRow = {
   updated_at: string;
 };
 
-function toDomain(row: NotebookRow): Notebook {
+const toDomain = (row: NotebookRow): Notebook => {
   return {
     id: row.id,
     grimoireId: row.grimoire_id,
@@ -52,9 +52,9 @@ function toDomain(row: NotebookRow): Notebook {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
-}
+};
 
-function toRow(notebook: Notebook): NotebookRow {
+const toRow = (notebook: Notebook): NotebookRow => {
   return {
     id: notebook.id,
     grimoire_id: notebook.grimoireId,
@@ -64,15 +64,15 @@ function toRow(notebook: Notebook): NotebookRow {
     created_at: notebook.createdAt,
     updated_at: notebook.updatedAt,
   };
-}
+};
 
-function throwIfError<T>(result: SupabaseQueryResult<T>): T {
+export const throwIfError = <T>(result: SupabaseQueryResult<T>): T => {
   if (result.error) {
     throw new Error(result.error.message);
   }
 
   return result.data;
-}
+};
 
 export function createNotebookRepository(
   supabase: SupabaseClientLike,
