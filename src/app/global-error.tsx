@@ -14,7 +14,7 @@ type GlobalErrorProps = {
  * Reports the captured error to Honeybadger whenever it changes. The retry
  * button asks Next.js to attempt to render the application again.
  */
-export default function Error({ error, reset }: GlobalErrorProps) {
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     Honeybadger.notify(error)
   }, [error])

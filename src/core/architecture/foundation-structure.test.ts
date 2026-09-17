@@ -15,19 +15,19 @@ const businessDomains = CORE_DOMAINS.filter(
     ),
 );
 
-function expectRegularFile(path: string): void {
+const expectRegularFile = (path: string): void => {
   expect(existsSync(path), path).toBe(true);
   expect(statSync(path).isFile(), path).toBe(true);
-}
+};
 
-function expectContractsReExport(indexPath: string): void {
+const expectContractsReExport = (indexPath: string): void => {
   expectRegularFile(indexPath);
 
   const source = readFileSync(indexPath, "utf8");
   expect(source, `${indexPath} must re-export its public contracts`).toMatch(
     /export\s+(?:type\s+)?(?:\*|\{[\s\S]*?\})\s+from\s+["']\.\/contracts["']/,
   );
-}
+};
 
 describe("Foundation 1 — modular structure", () => {
   it("contains exactly the approved business-domain modules", () => {

@@ -39,11 +39,11 @@ type SupabaseClientLike = {
   from: (table: string) => QueryBuilder;
 };
 
-function createQueryBuilder(
+const createQueryBuilder = (
   result: QueryResult<
     Record<string, unknown> | Record<string, unknown>[] | null
   >,
-): QueryBuilder {
+): QueryBuilder => {
   const singleResult: QueryResult<Record<string, unknown>> =
     result.data !== null && !Array.isArray(result.data)
       ? {
@@ -80,11 +80,11 @@ function createQueryBuilder(
   return builder;
 }
 
-function createSupabaseMock(
+const createSupabaseMock = (
   result: QueryResult<
     Record<string, unknown> | Record<string, unknown>[] | null
   >,
-) {
+) => {
   const query = createQueryBuilder(result);
 
   const supabase: SupabaseClientLike = {
@@ -95,7 +95,7 @@ function createSupabaseMock(
     supabase,
     query,
   };
-}
+};
 
 describe("GrimoireRepository", () => {
   const grimoire: Grimoire = {

@@ -2,7 +2,6 @@
 
 import { FormEvent, useId, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup" | "recover" | "update-password";
