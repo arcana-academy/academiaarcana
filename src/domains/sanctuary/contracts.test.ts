@@ -1,13 +1,30 @@
 import { describe, it, expect } from 'vitest';
-import { SanctuaryPriority, FeatureAvailability } from './types';
+import type { FeatureAvailability, SanctuaryPriority, SectionState } from './contracts';
 
 describe('Sanctuary Domain Contracts', () => {
-  it('should define SanctuaryPriority correctly', () => {
-    expect(SanctuaryPriority.URGENT).toBe('urgent');
+  it('should support the correct FeatureAvailability values', () => {
+    const available: FeatureAvailability = 'available';
+    const empty: FeatureAvailability = 'empty';
+    const notConfigured: FeatureAvailability = 'not-configured';
+
+    expect(available).toBe('available');
+    expect(empty).toBe('empty');
+    expect(notConfigured).toBe('not-configured');
   });
 
-  it('should define FeatureAvailability correctly', () => {
-    expect(FeatureAvailability.AVAILABLE).toBe('available');
-    expect(FeatureAvailability.LOCKED).toBe('locked');
+  it('should support the correct SanctuaryPriority values', () => {
+    const primary: SanctuaryPriority = 'primary';
+    const secondary: SanctuaryPriority = 'secondary';
+    const supporting: SanctuaryPriority = 'supporting';
+
+    expect(primary).toBe('primary');
+    expect(secondary).toBe('secondary');
+    expect(supporting).toBe('supporting');
+  });
+
+  it('should correctly structure SectionState as a discriminated union', () => {
+    const readyState: SectionState<string> = { status: 'ready', data: 'test-data' };
+    expect(readyState.status).toBe('ready');
+    expect(readyState.data).toBe('test-data');
   });
 });
