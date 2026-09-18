@@ -17,6 +17,7 @@ describe("Academia Arcana architecture", () => {
       "flonts",
       "trust",
       "data",
+      "sanctuary",
     ];
 
     expect(CORE_DOMAINS).toEqual(expected);
