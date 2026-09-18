@@ -12,6 +12,7 @@ export const CORE_DOMAINS = [
   "flonts",
   "trust",
   "data",
+  "sanctuary",
 ] as const;
 
 export type CoreDomain = (typeof CORE_DOMAINS)[number];
