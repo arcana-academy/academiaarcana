@@ -2,6 +2,21 @@
  * Sanctuary Domain Contracts
  * Following the canonical hierarchy and domain-driven design principles.
  */
+import type { Grimoire, Notebook, Chapter, Page } from "@/domains/learning";
+
+export type SanctuaryPage = Pick<Page, "id" | "chapterId" | "title" | "position">;
+
+export type SanctuaryChapter = Pick<Chapter, "id" | "notebookId" | "title" | "position"> & {
+  pages: SanctuaryPage[];
+};
+
+export type SanctuaryNotebook = Pick<Notebook, "id" | "grimoireId" | "title" | "position"> & {
+  chapters: SanctuaryChapter[];
+};
+
+export type SanctuaryGrimoire = Pick<Grimoire, "id" | "ownerId" | "title" | "icon" | "cover"> & {
+  notebooks: SanctuaryNotebook[];
+};
 
 export type FeatureAvailability = "available" | "empty" | "not-configured";
 
@@ -30,6 +45,8 @@ export type ContinueLearning = {
   pageTitle?: string;
   href: string;
 };
+
+export type ContinueLearningContext = Omit<ContinueLearning, "href">;
 
 export type ProgressSummary = {
   percentage: number;
