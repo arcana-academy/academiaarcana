@@ -22,6 +22,19 @@ export type FeatureAvailability = "available" | "empty" | "not-configured";
 
 export type SanctuaryPriority = "primary" | "secondary" | "supporting";
 
+export type SanctuarySection =
+  | "continueLearning"
+  | "progress"
+  | "missions"
+  | "schedule"
+  | "quickActions";
+
+export type PriorityDecision = {
+  section: SanctuarySection;
+  priority: SanctuaryPriority;
+  reason: string;
+};
+
 export type SectionState<T> =
   | { status: "ready"; data: T }
   | { status: "empty"; data: null }
