@@ -1,10 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { 
-  SanctuaryRepository, 
-  SanctuaryGrimoire, 
-  SanctuaryNotebook, 
-  SanctuaryChapter, 
-  SanctuaryPage 
+import {
+  SanctuaryRepository,
+  SanctuaryGrimoire,
+  SanctuaryNotebook,
+  SanctuaryChapter,
+  SanctuaryPage
 } from './sanctuary-repository';
 
 type PageRow = {
@@ -39,9 +39,11 @@ type GrimoireRow = {
   notebooks: NotebookRow[];
 };
 
+/** Supabase-backed repository that reads the authenticated learning hierarchy. */
 export class SupabaseSanctuaryRepository implements SanctuaryRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
+  /** Load grimoires and their nested notebooks, chapters, and pages. */
   async getLearningHierarchy(): Promise<SanctuaryGrimoire[]> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser();
 
@@ -113,11 +115,11 @@ export class SupabaseSanctuaryRepository implements SanctuaryRepository {
     title: row.title,
     position: row.position,
     pages: (row.pages || [])
-      .map(this.toPage)
+      .map(SupabaseSanctuaryRepository.toPage)
       .sort((a, b) => a.position - b.position),
   });
 
-  private toPage = (row: PageRow): SanctuaryPage => ({
+  private static toPage = (row: PageRow): SanctuaryPage => ({
     id: row.id,
     chapterId: row.chapter_id,
     title: row.title,
