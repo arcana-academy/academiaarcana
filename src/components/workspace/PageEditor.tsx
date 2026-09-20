@@ -3,6 +3,70 @@
 import { useState } from "react";
 import type { Page, PageContent } from "@/domains/learning";
 
+type PageDeleteControlProps = {
+  pageId: string;
+  pageTitle: string;
+  onDelete: (id: string) => Promise<void>;
+};
+
+/** Confirm and execute deletion of the selected Workspace page. */
+function PageDeleteControl({
+  pageId,
+  pageTitle,
+  onDelete,
+}: PageDeleteControlProps) {
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Execute the confirmed deletion and report recoverable failures. */
+  const remove = async () => {
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await onDelete(pageId);
+    } catch {
+      setError("Não foi possível excluir a página.");
+      setIsDeleting(false);
+    }
+  };
+
+  if (!isConfirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsConfirming(true)}
+      >
+        Excluir página
+      </button>
+    );
+  }
+
+  return (
+    <div role="alertdialog" aria-label="Confirmar exclusão da página">
+      <p>
+        Excluir a página "{pageTitle}"? Essa ação não pode ser desfeita.
+      </p>
+      {error ? <p role="alert">{error}</p> : null}
+      <button
+        type="button"
+        disabled={isDeleting}
+        onClick={() => setIsConfirming(false)}
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        disabled={isDeleting}
+        onClick={remove}
+      >
+        {isDeleting ? "Excluindo…" : "Confirmar exclusão"}
+      </button>
+    </div>
+  );
+}
+
 type PageEditorProps = {
   page: Page;
   onDelete: (id: string) => Promise<void>;
@@ -23,8 +87,6 @@ export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
@@ -45,24 +107,6 @@ export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
     }
   };
 
-  /** Confirm and delete the current page through the authenticated action. */
-  const remove = async () => {
-    if (!globalThis.confirm(`Excluir a página "${page.title}"? Essa ação não pode ser desfeita.`)) {
-      return;
-    }
-
-    setIsDeleting(true);
-    setDeleteError(null);
-
-    try {
-      await onDelete(page.id);
-    } catch {
-      setDeleteError("Não foi possível excluir a página.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   return (
     <article aria-label="Editor da página">
       <label htmlFor="workspace-page-title">Título</label>
@@ -70,7 +114,6 @@ export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
         id="workspace-page-title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
-        disabled={isDeleting}
       />
 
       <div aria-label="Blocos da página">
@@ -80,25 +123,24 @@ export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
           content.blocks
             .map((block, index) => ({ block, key: blockKeys[index] }))
             .map(({ block, key }, index) => (
-            <div key={key}>
-              <label htmlFor={`workspace-page-block-${index}`}>
-                Bloco {index + 1}
-              </label>
-              <textarea
-                id={`workspace-page-block-${index}`}
-                value={block.content}
-                onChange={(event) => {
-                  const nextBlocks = [...content.blocks];
-                  nextBlocks[index] = {
-                    ...block,
-                    content: event.target.value,
-                  };
-                  setContent({ ...content, blocks: nextBlocks });
-                }}
-                disabled={isDeleting}
-              />
-            </div>
-          ))
+              <div key={key}>
+                <label htmlFor={`workspace-page-block-${index}`}>
+                  Bloco {index + 1}
+                </label>
+                <textarea
+                  id={`workspace-page-block-${index}`}
+                  value={block.content}
+                  onChange={(event) => {
+                    const nextBlocks = [...content.blocks];
+                    nextBlocks[index] = {
+                      ...block,
+                      content: event.target.value,
+                    };
+                    setContent({ ...content, blocks: nextBlocks });
+                  }}
+                />
+              </div>
+            ))
         )}
       </div>
 
@@ -114,28 +156,19 @@ export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
             `${page.id}:block:${current.length}`,
           ]);
         }}
-        disabled={isDeleting}
       >
         Adicionar bloco
       </button>
 
-      <button
-        type="button"
-        disabled={status === "saving" || isDeleting}
-        onClick={save}
-      >
+      <button type="button" disabled={status === "saving"} onClick={save}>
         {status === "saving" ? "Salvando…" : "Salvar página"}
       </button>
 
-      <button
-        type="button"
-        disabled={status === "saving" || isDeleting}
-        onClick={remove}
-      >
-        {isDeleting ? "Excluindo…" : "Excluir página"}
-      </button>
-
-      {deleteError ? <p role="alert">{deleteError}</p> : null}
+      <PageDeleteControl
+        pageId={page.id}
+        pageTitle={page.title}
+        onDelete={onDelete}
+      />
 
       <p role="status" aria-live="polite">
         {status === "saved"
