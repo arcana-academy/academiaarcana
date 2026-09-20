@@ -101,6 +101,18 @@ describe("Sanctuary", () => {
         expect(screen.queryByRole("list")).toBeNull();
     });
 
+    it("delegates the schedule section to SanctuarySchedule", () => {
+        render(<Sanctuary viewModel={viewModel} />);
+
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Agenda" }),
+        ).toBeTruthy();
+        expect(
+            screen.getByText(/recurso de agenda ainda n.o est. configurado/i),
+        ).toBeTruthy();
+        expect(screen.queryByRole("list")).toBeNull();
+    });
+
     it("renders an explicit empty state when there is no learning continuation", () => {
         render(
             <Sanctuary

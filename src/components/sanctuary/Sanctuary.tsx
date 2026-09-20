@@ -3,6 +3,7 @@ import { SanctuaryContinueLearning } from "./SanctuaryContinueLearning";
 import { SanctuaryHeader } from "./SanctuaryHeader";
 import { SanctuaryMissions } from "./SanctuaryMissions";
 import { SanctuaryProgress } from "./SanctuaryProgress";
+import { SanctuarySchedule } from "./SanctuarySchedule";
 
 type SanctuaryProps = {
     viewModel: SanctuaryViewModel;
@@ -23,6 +24,8 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
             <SanctuaryProgress progress={viewModel.progress} />
 
             <SanctuaryMissions missions={viewModel.missions} />
+
+            <SanctuarySchedule schedule={viewModel.schedule} />
         </main>
     );
 }
