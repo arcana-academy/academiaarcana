@@ -1,6 +1,7 @@
 import {
   decideSanctuaryPriority,
   resolveContinueLearning,
+  resolveProgressAvailability,
 } from "@/domains/sanctuary";
 
 import type {
@@ -95,6 +96,17 @@ export async function getSanctuary(
         }
       : quickActions[0];
 
+  const progressAvailability = resolveProgressAvailability();
+
+  if (progressAvailability !== "not-configured") {
+      throw new Error("Progress is not configured.");
+  }
+
+  const progress: SanctuaryViewModel["progress"] = {
+      status: "not-configured",
+      data: null,
+  };
+
   return {
     header: {
       greeting: "Seu Santuário de aprendizagem",
@@ -102,7 +114,7 @@ export async function getSanctuary(
     },
     primaryAction,
     continueLearning,
-    progress: null,
+    progress,
     missions: [],
     schedule: [],
     quickActions,

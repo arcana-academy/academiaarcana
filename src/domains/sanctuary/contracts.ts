@@ -91,7 +91,7 @@ export type QuickAction = {
 export type SanctuarySnapshot = {
   user: SanctuaryUser;
   continueLearning: ContinueLearning | null;
-  progress: ProgressSummary | null;
+  progress: SectionState<ProgressSummary>;
   missions: SanctuaryMission[];
   schedule: ScheduleItem[];
   quickActions: QuickAction[];
@@ -104,7 +104,7 @@ export type SanctuaryViewModel = {
   };
   primaryAction: QuickAction;
   continueLearning: ContinueLearning | null;
-  progress: ProgressSummary | null;
+  progress: SectionState<ProgressSummary>;
   missions: SanctuaryMission[];
   schedule: ScheduleItem[];
   quickActions: QuickAction[];

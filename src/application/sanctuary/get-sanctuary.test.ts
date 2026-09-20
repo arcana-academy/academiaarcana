@@ -85,7 +85,10 @@ describe("getSanctuary", () => {
       href: expect.any(String),
     });
 
-    expect(result.progress).toBeNull();
+    expect(result.progress).toEqual({
+      status: "not-configured",
+      data: null,
+    });
     expect(result.missions).toEqual([]);
     expect(result.schedule).toEqual([]);
     expect(result.quickActions).toEqual(
@@ -113,7 +116,10 @@ describe("getSanctuary", () => {
 
     expect(result.header.user).toEqual(user);
     expect(result.continueLearning).toBeNull();
-    expect(result.progress).toBeNull();
+    expect(result.progress).toEqual({
+      status: "not-configured",
+      data: null,
+    });
     expect(result.missions).toEqual([]);
     expect(result.schedule).toEqual([]);
     expect(result.quickActions).toEqual(expect.any(Array));
@@ -136,7 +142,10 @@ describe("getSanctuary", () => {
 
     expect(result.header.user).toEqual(user);
     expect(result.continueLearning).toBeNull();
-    expect(result.progress).toBeNull();
+    expect(result.progress).toEqual({
+      status: "not-configured",
+      data: null,
+    });
     expect(result.missions).toEqual([]);
     expect(result.schedule).toEqual([]);
     expect(result.quickActions).toEqual(expect.any(Array));

@@ -80,7 +80,10 @@ describe("SanctuaryPage", () => {
                 priority: "supporting",
             },
             continueLearning: null,
-            progress: null,
+            progress: {
+                status: "not-configured",
+                data: null,
+            },
             missions: [],
             schedule: [],
             quickActions: [],
@@ -116,7 +119,10 @@ describe("SanctuaryPage", () => {
                 priority: "supporting",
             },
             continueLearning: null,
-            progress: null,
+            progress: {
+                status: "not-configured",
+                data: null,
+            },
             missions: [],
             schedule: [],
             quickActions: [],

@@ -30,7 +30,10 @@ const viewModel: SanctuaryViewModel = {
         pageTitle: "Página inicial",
         href: "/workspace?view=tree#current",
     },
-    progress: null,
+    progress: {
+        status: "not-configured",
+        data: null,
+    },
     missions: [],
     schedule: [],
     quickActions: [
