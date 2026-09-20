@@ -100,9 +100,7 @@ describe("WorkspaceShell", () => {
         }}
         onCreateGrimoire={onCreateGrimoire}
         onCreateGrimoire={onCreateGrimoire}
-        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={onCreateNotebook}
-        onCreateGrimoire={onCreateGrimoire}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
         onDeletePage={onDeletePage}
