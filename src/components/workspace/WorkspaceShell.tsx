@@ -92,9 +92,11 @@ export function WorkspaceShell({
   onCreateNotebook,
   onCreateChapter,
   onCreatePage,
+  onMovePage,
   onDeletePage,
   onSavePage,
 }: WorkspaceShellProps) {
+
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [pages, setPages] = useState<Record<string, Page>>({});
   const [renamedGrimoires, setRenamedGrimoires] = useState<Record<string, string>>({});
@@ -305,12 +307,14 @@ export function WorkspaceShell({
     return created;
   };
 
-  /** Move a page one position and update both affected local positions. */
-  const movePage = async (input: {
-    id: string;
-    direction: "up" | "down";
-  }) => {
-    const result = await onMovePage(input);
+  /** Move the selected page one position and update both affected local positions. */
+  const movePage = async (direction: "up" | "down") => {
+    if (!selectedPage) return;
+
+    const result = await onMovePage({
+      id: selectedPage.id,
+      direction,
+    });
 
     setReorderedPages((current) => ({
       ...current,
