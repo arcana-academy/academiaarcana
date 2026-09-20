@@ -13,6 +13,7 @@ type UpdatePageInput = {
 
 type RepositoryClient = Parameters<typeof createPageRepository>[0];
 
+/** Persist an authenticated Workspace page update through the learning repository. */
 export async function updateWorkspacePage(input: UpdatePageInput): Promise<Page> {
   await requireAuthenticatedUser();
 
