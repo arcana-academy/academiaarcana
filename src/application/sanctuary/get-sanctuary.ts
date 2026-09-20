@@ -101,34 +101,34 @@ export async function getSanctuary(
   const progressAvailability = resolveProgressAvailability();
 
   if (progressAvailability !== "not-configured") {
-      throw new Error("Progress is not configured.");
+    throw new Error("Progress is not configured.");
   }
 
   const progress: SanctuaryViewModel["progress"] = {
-      status: "not-configured",
-      data: null,
+    status: "not-configured",
+    data: null,
   };
 
   const gamificationAvailability = resolveGamificationAvailability();
 
   if (gamificationAvailability !== "not-configured") {
-      throw new Error("Gamification is not configured.");
+    throw new Error("Gamification is not configured.");
   }
 
   const missions: SanctuaryViewModel["missions"] = {
-      status: "not-configured",
-      data: null,
+    status: "not-configured",
+    data: null,
   };
 
   const planningAvailability = resolvePlanningAvailability();
 
   if (planningAvailability !== "not-configured") {
-      throw new Error("Planning is not configured.");
+    throw new Error("Planning is not configured.");
   }
 
   const schedule: SanctuaryViewModel["schedule"] = {
-      status: "not-configured",
-      data: null,
+    status: "not-configured",
+    data: null,
   };
 
   return {
