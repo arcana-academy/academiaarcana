@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Page } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 
@@ -25,6 +25,8 @@ type SaveInput = {
 };
 
 describe("PageEditor", () => {
+  afterEach(() => vi.restoreAllMocks());
+
   test("renders the selected page and saves title and content", async () => {
     const onSave = vi.fn((input: SaveInput) => Promise.resolve({
       ...page,
