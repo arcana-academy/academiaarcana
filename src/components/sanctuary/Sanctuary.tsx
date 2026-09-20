@@ -1,5 +1,5 @@
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
-import { SanctuaryEmptyState } from "./SanctuaryEmptyState";
+import { SanctuaryContinueLearning } from "./SanctuaryContinueLearning";
 import { SanctuaryHeader } from "./SanctuaryHeader";
 
 type SanctuaryProps = {
@@ -14,29 +14,9 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
                 primaryAction={viewModel.primaryAction}
             />
 
-            <section aria-labelledby="sanctuary-continue-learning">
-                <h2 id="sanctuary-continue-learning">Continuar aprendendo</h2>
-
-                {viewModel.continueLearning ? (
-                    <div>
-                        <p>{viewModel.continueLearning.grimoireTitle}</p>
-
-                        {viewModel.continueLearning.notebookTitle ? (
-                            <p>{viewModel.continueLearning.notebookTitle}</p>
-                        ) : null}
-
-                        {viewModel.continueLearning.chapterTitle ? (
-                            <p>{viewModel.continueLearning.chapterTitle}</p>
-                        ) : null}
-
-                        {viewModel.continueLearning.pageTitle ? (
-                            <p>{viewModel.continueLearning.pageTitle}</p>
-                        ) : null}
-                    </div>
-                ) : (
-                    <SanctuaryEmptyState />
-                )}
-            </section>
+            <SanctuaryContinueLearning
+                continueLearning={viewModel.continueLearning}
+            />
         </main>
     );
 }
