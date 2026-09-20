@@ -1,6 +1,7 @@
 import {
   decideSanctuaryPriority,
   resolveContinueLearning,
+  resolveGamificationAvailability,
   resolveProgressAvailability,
 } from "@/domains/sanctuary";
 
@@ -107,6 +108,17 @@ export async function getSanctuary(
       data: null,
   };
 
+  const gamificationAvailability = resolveGamificationAvailability();
+
+  if (gamificationAvailability !== "not-configured") {
+      throw new Error("Gamification is not configured.");
+  }
+
+  const missions: SanctuaryViewModel["missions"] = {
+      status: "not-configured",
+      data: null,
+  };
+
   return {
     header: {
       greeting: "Seu Santuário de aprendizagem",
@@ -115,7 +127,7 @@ export async function getSanctuary(
     primaryAction,
     continueLearning,
     progress,
-    missions: [],
+    missions,
     schedule: [],
     quickActions,
   };

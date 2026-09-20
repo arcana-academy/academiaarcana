@@ -89,7 +89,10 @@ describe("getSanctuary", () => {
       status: "not-configured",
       data: null,
     });
-    expect(result.missions).toEqual([]);
+    expect(result.missions).toEqual({
+      status: "not-configured",
+      data: null,
+    });
     expect(result.schedule).toEqual([]);
     expect(result.quickActions).toEqual(
       expect.arrayContaining([
@@ -120,7 +123,10 @@ describe("getSanctuary", () => {
       status: "not-configured",
       data: null,
     });
-    expect(result.missions).toEqual([]);
+    expect(result.missions).toEqual({
+      status: "not-configured",
+      data: null,
+    });
     expect(result.schedule).toEqual([]);
     expect(result.quickActions).toEqual(expect.any(Array));
     expect(result.primaryAction).toEqual(
@@ -146,7 +152,10 @@ describe("getSanctuary", () => {
       status: "not-configured",
       data: null,
     });
-    expect(result.missions).toEqual([]);
+    expect(result.missions).toEqual({
+      status: "not-configured",
+      data: null,
+    });
     expect(result.schedule).toEqual([]);
     expect(result.quickActions).toEqual(expect.any(Array));
   });
@@ -159,5 +168,17 @@ describe("getSanctuary", () => {
     await getSanctuary(repository, sessionContext);
 
     expect(sessionContext).toEqual(originalSessionContext);
+  });
+
+  it("represents missions as not-configured without treating an empty list as configured", async () => {
+    const repository = createRepository([grimoire]);
+
+    const result = await getSanctuary(repository, sessionContext);
+
+    expect(result.missions).toEqual({
+      status: "not-configured",
+      data: null,
+    });
+    expect(result.missions).not.toEqual([]);
   });
 });

@@ -34,7 +34,10 @@ const viewModel: SanctuaryViewModel = {
         status: "not-configured",
         data: null,
     },
-    missions: [],
+    missions: {
+        status: "not-configured",
+        data: null,
+    },
     schedule: [],
     quickActions: [
         {
