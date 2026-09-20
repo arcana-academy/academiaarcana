@@ -83,7 +83,6 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreateChapter={onCreateChapter}
-        onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreatePage={onCreatePage}
         onDeletePage={onDeletePage}
         onSavePage={onSavePage}
