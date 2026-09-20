@@ -285,9 +285,7 @@ export function Workspace({
           onOpenPage={onOpenPage}
         />
         <main aria-label="Área de trabalho">
-          {!state.grimoireId ? (
-            <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
-          ) : null}
+          <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
 
           {state.grimoireId && !state.notebookId ? (
             <NotebookCreationForm
