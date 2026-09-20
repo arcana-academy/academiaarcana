@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Page, WorkspaceState } from "@/domains/learning";
+import type { Chapter, Page, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
@@ -15,6 +15,7 @@ type WorkspaceProps = {
   onOpenNotebook: (id: string) => void;
   onOpenChapter: (id: string) => void;
   onOpenPage: (id: string) => void;
+  onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
   onDeletePage: (id: string) => Promise<void>;
   onSavePage: (input: {
@@ -23,6 +24,59 @@ type WorkspaceProps = {
     content: Page["content"];
   }) => Promise<Page>;
 };
+
+type ChapterCreationFormProps = {
+  notebookId: string;
+  onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
+};
+
+/** Provide the controls and feedback for creating a chapter in a notebook. */
+function ChapterCreationForm({
+  notebookId,
+  onCreateChapter,
+}: ChapterCreationFormProps) {
+  const [title, setTitle] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Submit a chapter creation request and reset the form after success. */
+  const handleCreate = async () => {
+    if (!title.trim()) return;
+
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      await onCreateChapter({ notebookId, title });
+      setTitle("");
+    } catch {
+      setError("Não foi possível criar o capítulo.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <form aria-label="Criar capítulo" onSubmit={(event) => event.preventDefault()}>
+      <label htmlFor="workspace-new-chapter-title">Novo capítulo</label>
+      <input
+        id="workspace-new-chapter-title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+        disabled={isCreating}
+        placeholder="Título do capítulo"
+      />
+      <button
+        type="button"
+        disabled={isCreating || !title.trim()}
+        onClick={handleCreate}
+      >
+        {isCreating ? "Criando…" : "Criar capítulo"}
+      </button>
+      {error ? <p role="alert">{error}</p> : null}
+    </form>
+  );
+}
 
 type PageCreationFormProps = {
   chapterId: string;
@@ -97,6 +151,7 @@ export function Workspace({
   onOpenNotebook,
   onOpenChapter,
   onOpenPage,
+  onCreateChapter,
   onCreatePage,
   onDeletePage,
   onSavePage,
@@ -114,6 +169,13 @@ export function Workspace({
           onOpenPage={onOpenPage}
         />
         <main aria-label="Área de trabalho">
+          {state.notebookId && !state.chapterId ? (
+            <ChapterCreationForm
+              notebookId={state.notebookId}
+              onCreateChapter={onCreateChapter}
+            />
+          ) : null}
+
           {state.chapterId ? (
             <PageCreationForm
               chapterId={state.chapterId}
