@@ -33,6 +33,12 @@ type CreatePageInput = {
   title: string;
 };
 
+
+type RenameWorkspaceItemInput = {
+  id: string;
+  title: string;
+};
+
 type RepositoryClient = Parameters<typeof createPageRepository>[0];
 
 /** Persist an authenticated Workspace page update through the learning repository. */
@@ -197,5 +203,72 @@ export async function createWorkspaceGrimoire(
     title,
     createdAt: now,
     updatedAt: now,
+  });
+}
+
+
+/** Rename an authenticated Workspace grimoire. */
+export async function renameWorkspaceGrimoire(
+  input: RenameWorkspaceItemInput,
+): Promise<Grimoire> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createGrimoireRepository(
+    supabase as unknown as Parameters<typeof createGrimoireRepository>[0],
+  );
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título do grimório é obrigatório.");
+  }
+
+  return repository.update(input.id, {
+    title,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/** Rename an authenticated Workspace notebook. */
+export async function renameWorkspaceNotebook(
+  input: RenameWorkspaceItemInput,
+): Promise<Notebook> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createNotebookRepository(
+    supabase as unknown as Parameters<typeof createNotebookRepository>[0],
+  );
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título do caderno é obrigatório.");
+  }
+
+  return repository.update(input.id, {
+    title,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/** Rename an authenticated Workspace chapter. */
+export async function renameWorkspaceChapter(
+  input: RenameWorkspaceItemInput,
+): Promise<Chapter> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createChapterRepository(
+    supabase as unknown as Parameters<typeof createChapterRepository>[0],
+  );
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título do capítulo é obrigatório.");
+  }
+
+  return repository.update(input.id, {
+    title,
+    updatedAt: new Date().toISOString(),
   });
 }
