@@ -19,53 +19,49 @@ type WorkspaceShellProps = {
   initialState: WorkspaceState;
 };
 
+/** Resolve the visible Workspace title from the selected hierarchy state. */
+function findWorkspaceTitle(
+  tree: WorkspaceTree,
+  state: WorkspaceState,
+): string {
+  const pages = tree.grimoires.flatMap((grimoire) =>
+    (grimoire.notebooks ?? []).flatMap((notebook) =>
+      (notebook.chapters ?? []).flatMap((chapter) => chapter.pages ?? []),
+    ),
+  );
+  const page = pages.find((item) => item.id === state.pageId);
+  if (page) return page.title;
+
+  const chapters = tree.grimoires.flatMap((grimoire) =>
+    (grimoire.notebooks ?? []).flatMap((notebook) => notebook.chapters ?? []),
+  );
+  const chapter = chapters.find((item) => item.id === state.chapterId);
+  if (chapter) return chapter.title;
+
+  const notebooks = tree.grimoires.flatMap(
+    (grimoire) => grimoire.notebooks ?? [],
+  );
+  const notebook = notebooks.find((item) => item.id === state.notebookId);
+  if (notebook) return notebook.title;
+
+  const grimoire = tree.grimoires.find(
+    (item) => item.id === state.grimoireId,
+  );
+  if (grimoire) return grimoire.title;
+
+  return "Workspace";
+}
+
+/** Manage client-side Workspace selection while preserving the server tree. */
 export function WorkspaceShell({
   tree,
   initialState,
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
-
-  const title = useMemo(() => {
-    if (state.pageId) {
-      for (const grimoire of tree.grimoires) {
-        for (const notebook of grimoire.notebooks ?? []) {
-          for (const chapter of notebook.chapters ?? []) {
-            const page = chapter.pages?.find((item) => item.id === state.pageId);
-            if (page) return page.title;
-          }
-        }
-      }
-    }
-
-    if (state.chapterId) {
-      for (const grimoire of tree.grimoires) {
-        for (const notebook of grimoire.notebooks ?? []) {
-          const chapter = notebook.chapters?.find(
-            (item) => item.id === state.chapterId,
-          );
-          if (chapter) return chapter.title;
-        }
-      }
-    }
-
-    if (state.notebookId) {
-      for (const grimoire of tree.grimoires) {
-        const notebook = grimoire.notebooks?.find(
-          (item) => item.id === state.notebookId,
-        );
-        if (notebook) return notebook.title;
-      }
-    }
-
-    if (state.grimoireId) {
-      const grimoire = tree.grimoires.find(
-        (item) => item.id === state.grimoireId,
-      );
-      if (grimoire) return grimoire.title;
-    }
-
-    return "Workspace";
-  }, [state, tree]);
+  const title = useMemo(
+    () => findWorkspaceTitle(tree, state),
+    [state, tree],
+  );
 
   return (
     <Workspace
