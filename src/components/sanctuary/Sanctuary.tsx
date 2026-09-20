@@ -1,6 +1,7 @@
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
 import { SanctuaryContinueLearning } from "./SanctuaryContinueLearning";
 import { SanctuaryHeader } from "./SanctuaryHeader";
+import { SanctuaryProgress } from "./SanctuaryProgress";
 
 type SanctuaryProps = {
     viewModel: SanctuaryViewModel;
@@ -17,6 +18,8 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
             <SanctuaryContinueLearning
                 continueLearning={viewModel.continueLearning}
             />
+
+            <SanctuaryProgress progress={viewModel.progress} />
         </main>
     );
 }
