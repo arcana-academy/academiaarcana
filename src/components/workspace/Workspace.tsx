@@ -46,7 +46,11 @@ export function Workspace({
         />
         <main aria-label="Área de trabalho">
           {selectedPage ? (
-            <PageEditor page={selectedPage} onSave={onSavePage} />
+            <PageEditor
+              key={selectedPage.id}
+              page={selectedPage}
+              onSave={onSavePage}
+            />
           ) : (
             <p>Selecione uma página para começar.</p>
           )}
