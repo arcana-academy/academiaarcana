@@ -1,28 +1,18 @@
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
 import { SanctuaryEmptyState } from "./SanctuaryEmptyState";
+import { SanctuaryHeader } from "./SanctuaryHeader";
 
 type SanctuaryProps = {
     viewModel: SanctuaryViewModel;
 };
 
 export function Sanctuary({ viewModel }: SanctuaryProps) {
-    const userName = viewModel.header.user.displayName?.trim();
-
     return (
         <main aria-labelledby="sanctuary-title">
-            <header>
-                <h1 id="sanctuary-title">{viewModel.header.greeting}</h1>
-
-                {userName ? <p>{userName}</p> : null}
-            </header>
-
-            <section aria-labelledby="sanctuary-primary-action">
-                <h2 id="sanctuary-primary-action">Ação principal</h2>
-
-                <a href={viewModel.primaryAction.href}>
-                    {viewModel.primaryAction.label}
-                </a>
-            </section>
+            <SanctuaryHeader
+                header={viewModel.header}
+                primaryAction={viewModel.primaryAction}
+            />
 
             <section aria-labelledby="sanctuary-continue-learning">
                 <h2 id="sanctuary-continue-learning">Continuar aprendendo</h2>

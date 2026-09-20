@@ -60,6 +60,20 @@ describe("Sanctuary", () => {
         ).toBeTruthy();
     });
 
+    it("delegates the identity header to SanctuaryHeader", () => {
+        render(<Sanctuary viewModel={viewModel} />);
+
+        const heading = screen.getByRole("heading", {
+            level: 1,
+            name: "Seu Santuário de aprendizagem",
+        });
+
+        expect(heading).toHaveAttribute("id", "sanctuary-title");
+        expect(screen.getByTestId("sanctuary-user-name")).toHaveTextContent(
+            "Taynara",
+        );
+    });
+
     it("does not require Supabase or repository access", () => {
         render(<Sanctuary viewModel={viewModel} />);
 
