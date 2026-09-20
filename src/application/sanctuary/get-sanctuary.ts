@@ -22,6 +22,7 @@ export type SanctuaryRepository = {
 
 const WORKSPACE_HREF = "/workspace?view=tree#current";
 
+/** Build the deterministic workspace URL for the selected learning context. */
 function buildContinueLearningHref(
   context: NonNullable<ReturnType<typeof resolveContinueLearning>>,
 ): string {
@@ -46,6 +47,7 @@ function buildContinueLearningHref(
   )}`;
 }
 
+/** Build the currently supported quick actions for the Sanctuary. */
 function createQuickActions() {
   return [
     {
@@ -57,6 +59,13 @@ function createQuickActions() {
   ];
 }
 
+/**
+ * Assemble the authenticated Sanctuary application view model.
+ *
+ * Repository failures degrade to an empty learning hierarchy so the UI can
+ * render an explicit empty state instead of exposing infrastructure errors.
+ * Planning, Gamification and Progress remain explicitly not configured.
+ */
 export async function getSanctuary(
   repository: SanctuaryRepository,
   sessionContext: SanctuarySessionContext,
