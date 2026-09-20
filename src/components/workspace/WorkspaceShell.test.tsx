@@ -211,6 +211,12 @@ describe("WorkspaceShell", () => {
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: createdPage,
+            swappedPage: null,
+          }),
+        )}
         onDeletePage={vi.fn(() => Promise.resolve())}
         onSavePage={vi.fn(() => Promise.resolve(createdPage))}
       />,
