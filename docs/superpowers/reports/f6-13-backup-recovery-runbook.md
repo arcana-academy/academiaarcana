@@ -56,6 +56,22 @@ Os arquivos gerados devem permanecer fora do repositório Git e fora de qualquer
 A documentação oficial do Supabase descreve esse fluxo para backup lógico:
 https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore
 
+## 3.1 Rota Free-first (sem contratar PITR)
+
+Quando a infraestrutura principal não disponibilizar uma cópia restaurável diretamente no plano atual, a primeira alternativa deve ser uma rota sem custo adicional de plataforma:
+
+1. executar o export lógico com a Supabase CLI (db dump) a partir de um ambiente autorizado;
+2. gerar checksum dos arquivos e, antes de qualquer armazenamento externo, empacotar e criptografar o dump com uma chave mantida fora do repositório;
+3. manter a cópia final em armazenamento externo privado. O Dropbox Basic é uma opção disponível para esse propósito, com 2 GB gratuitos; a pasta deve permanecer privada e não deve ser usada como destino de dados em texto aberto;
+4. registrar a data, origem, versão do PostgreSQL, tamanho e checksum sem registrar a connection string ou a chave de criptografia;
+5. realizar o restore de teste em ambiente isolado.
+
+Para repositórios públicos, não usar artefatos do GitHub Actions como armazenamento de dump em texto aberto. Quando Actions for usado somente como executor, o arquivo precisa estar criptografado antes de qualquer upload intermediário, e a cópia operacional final deve permanecer em armazenamento privado.
+
+A documentação atual do Supabase recomenda o uso do db dump para projetos Free, e o fluxo continua independente de PITR. A capacidade de backup/restore somente pode mudar para VERIFICADA depois da execução real e do teste de restauração.
+
+Fallback adicional: caso seja necessário um banco PostgreSQL temporário para validar schema, dados, índices e policies sem contratar infraestrutura Supabase, uma instância Free de outro provedor PostgreSQL pode servir como laboratório técnico. Isso não substitui um restore completo do ecossistema Supabase, porque Auth, Storage, configurações gerenciadas e chaves de criptografia exigem validação separada.
+
 ## 4. Storage
 
 Backups do banco não são suficientes para recuperar objetos armazenados via Supabase Storage: o banco mantém os metadados dos objetos, não os arquivos em si.
