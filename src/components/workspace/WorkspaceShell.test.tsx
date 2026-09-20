@@ -2,8 +2,16 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
-import type { Chapter, Notebook, Page } from "@/domains/learning";
+import type { Chapter, Grimoire, Notebook, Page } from "@/domains/learning";
 import { WorkspaceShell } from "./WorkspaceShell";
+
+const createdGrimoire: Grimoire = {
+  id: "g2",
+  ownerId: "u1",
+  title: "Novo grimório",
+  createdAt: "2026-09-20T00:00:00.000Z",
+  updatedAt: "2026-09-20T00:00:00.000Z",
+};
 
 const createdNotebook: Notebook = {
   id: "n2",
@@ -73,7 +81,48 @@ function createTree() {
 }
 
 describe("WorkspaceShell", () => {
+  test("creates a grimoire and selects it", async () => {
+    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
+    const onCreateNotebook = vi.fn(() => Promise.resolve(createdNotebook));
+    const onCreateChapter = vi.fn(() => Promise.resolve(createdChapter));
+    const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
+    const onDeletePage = vi.fn(() => Promise.resolve());
+    const onSavePage = vi.fn(() => Promise.resolve(createdPage));
+
+    render(
+      <WorkspaceShell
+        tree={{ grimoires: [] }}
+        initialState={{
+          grimoireId: null,
+          notebookId: null,
+          chapterId: null,
+          pageId: null,
+        }}
+        onCreateGrimoire={onCreateGrimoire}
+        onCreateNotebook={onCreateNotebook}
+        onCreateChapter={onCreateChapter}
+        onCreatePage={onCreatePage}
+        onDeletePage={onDeletePage}
+        onSavePage={onSavePage}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Novo grimório"), {
+      target: { value: "Novo grimório" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar grimório" }));
+
+    expect(await screen.findByLabelText("Novo caderno")).toBeTruthy();
+    expect(onCreateGrimoire).toHaveBeenCalledWith({
+      title: "Novo grimório",
+    });
+    expect(
+      screen.getByRole("button", { name: "Novo grimório" }),
+    ).toHaveAttribute("aria-current", "true");
+  });
+
   test("creates a notebook and selects it", async () => {
+    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreateNotebook = vi.fn(() => Promise.resolve(createdNotebook));
     const onCreateChapter = vi.fn(() => Promise.resolve(createdChapter));
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
@@ -92,6 +141,7 @@ describe("WorkspaceShell", () => {
           chapterId: null,
           pageId: null,
         }}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={onCreateNotebook}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
@@ -116,6 +166,7 @@ describe("WorkspaceShell", () => {
   });
 
   test("creates a chapter and selects it", async () => {
+    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreateChapter = vi.fn(() => Promise.resolve(createdChapter));
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
     const onDeletePage = vi.fn(() => Promise.resolve());
@@ -133,6 +184,7 @@ describe("WorkspaceShell", () => {
           chapterId: null,
           pageId: null,
         }}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
@@ -158,6 +210,7 @@ describe("WorkspaceShell", () => {
   });
 
   test("creates a page and opens it in the editor", async () => {
+    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
     const onDeletePage = vi.fn(() => Promise.resolve());
     const onSavePage = vi.fn(() => Promise.resolve(createdPage));
@@ -171,6 +224,7 @@ describe("WorkspaceShell", () => {
           chapterId: "c1",
           pageId: null,
         }}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreatePage={onCreatePage}

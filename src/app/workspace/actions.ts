@@ -1,7 +1,8 @@
 "use server";
 
-import type { Chapter, Notebook, Page, PageContent } from "@/domains/learning";
+import type { Chapter, Grimoire, Notebook, Page, PageContent } from "@/domains/learning";
 import { createChapterRepository } from "@/infrastructure/supabase/workspace/chapter-repository";
+import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/grimoire-repository";
 import { createNotebookRepository } from "@/infrastructure/supabase/workspace/notebook-repository";
 import { createPageRepository } from "@/infrastructure/supabase/workspace/page-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
@@ -11,6 +12,10 @@ type UpdatePageInput = {
   id: string;
   title: string;
   content: PageContent;
+};
+
+type CreateGrimoireInput = {
+  title: string;
 };
 
 type CreateNotebookInput = {
@@ -162,6 +167,34 @@ export async function createWorkspaceNotebook(
     grimoireId: input.grimoireId,
     title,
     position,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+
+/** Create an authenticated Workspace grimoire for the current user. */
+export async function createWorkspaceGrimoire(
+  input: CreateGrimoireInput,
+): Promise<Grimoire> {
+  const claims = await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createGrimoireRepository(
+    supabase as unknown as Parameters<typeof createGrimoireRepository>[0],
+  );
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título do grimório é obrigatório.");
+  }
+
+  const now = new Date().toISOString();
+
+  return repository.create({
+    id: globalThis.crypto.randomUUID(),
+    ownerId: claims.sub,
+    title,
     createdAt: now,
     updatedAt: now,
   });
