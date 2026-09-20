@@ -211,7 +211,7 @@ export function PageEditor({
           {isMoving ? "Movendo…" : "Mover página para baixo"}
         </button>
       </div>
-      {moveError ? <p role="alert">{moveError}</p>}
+      {moveError ? <p role="alert">{moveError}</p> : null}
 
 
       <PageDeleteControl
