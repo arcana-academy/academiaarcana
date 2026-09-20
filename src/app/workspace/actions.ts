@@ -1,7 +1,8 @@
 "use server";
 
-import type { Chapter, Page, PageContent } from "@/domains/learning";
+import type { Chapter, Notebook, Page, PageContent } from "@/domains/learning";
 import { createChapterRepository } from "@/infrastructure/supabase/workspace/chapter-repository";
+import { createNotebookRepository } from "@/infrastructure/supabase/workspace/notebook-repository";
 import { createPageRepository } from "@/infrastructure/supabase/workspace/page-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
@@ -10,6 +11,11 @@ type UpdatePageInput = {
   id: string;
   title: string;
   content: PageContent;
+};
+
+type CreateNotebookInput = {
+  grimoireId: string;
+  title: string;
 };
 
 type CreateChapterInput = {
@@ -120,6 +126,40 @@ export async function createWorkspaceChapter(
   return repository.create({
     id: globalThis.crypto.randomUUID(),
     notebookId: input.notebookId,
+    title,
+    position,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+
+/** Create an authenticated Workspace notebook at the end of its grimoire. */
+export async function createWorkspaceNotebook(
+  input: CreateNotebookInput,
+): Promise<Notebook> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createNotebookRepository(
+    supabase as unknown as Parameters<typeof createNotebookRepository>[0],
+  );
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título do caderno é obrigatório.");
+  }
+
+  const existingNotebooks = await repository.listByGrimoire(input.grimoireId);
+  const position =
+    existingNotebooks.length === 0
+      ? 0
+      : Math.max(...existingNotebooks.map((notebook) => notebook.position)) + 1;
+  const now = new Date().toISOString();
+
+  return repository.create({
+    id: globalThis.crypto.randomUUID(),
+    grimoireId: input.grimoireId,
     title,
     position,
     createdAt: now,
