@@ -11,6 +11,11 @@ type UpdatePageInput = {
   content: PageContent;
 };
 
+type CreatePageInput = {
+  chapterId: string;
+  title: string;
+};
+
 type RepositoryClient = Parameters<typeof createPageRepository>[0];
 
 /** Persist an authenticated Workspace page update through the learning repository. */
@@ -31,5 +36,42 @@ export async function updateWorkspacePage(input: UpdatePageInput): Promise<Page>
     title,
     content: input.content,
     updatedAt: new Date().toISOString(),
+  });
+}
+
+/** Create an authenticated Workspace page at the end of its chapter. */
+export async function createWorkspacePage(
+  input: CreatePageInput,
+): Promise<Page> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createPageRepository(
+    supabase as unknown as RepositoryClient,
+  );
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título da página é obrigatório.");
+  }
+
+  const existingPages = await repository.listByChapter(input.chapterId);
+  const position =
+    existingPages.length === 0
+      ? 0
+      : Math.max(...existingPages.map((page) => page.position)) + 1;
+  const now = new Date().toISOString();
+
+  return repository.create({
+    id: globalThis.crypto.randomUUID(),
+    chapterId: input.chapterId,
+    title,
+    content: {
+      type: "document",
+      blocks: [],
+    },
+    position,
+    createdAt: now,
+    updatedAt: now,
   });
 }

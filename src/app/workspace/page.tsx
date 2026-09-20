@@ -11,7 +11,7 @@ import { createNotebookRepository } from "@/infrastructure/supabase/workspace/no
 import { createPageRepository } from "@/infrastructure/supabase/workspace/page-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
-import { updateWorkspacePage } from "./actions";
+import { createWorkspacePage, updateWorkspacePage } from "./actions";
 import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 
 type WorkspacePageProps = {
@@ -120,6 +120,7 @@ export default async function WorkspacePage({
     <WorkspaceShell
       tree={{ grimoires: tree }}
       initialState={initialState}
+      onCreatePage={createWorkspacePage}
       onSavePage={updateWorkspacePage}
     />
   );

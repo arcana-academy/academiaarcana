@@ -17,6 +17,7 @@ type WorkspaceTree = Parameters<typeof Workspace>[0]["tree"];
 type WorkspaceShellProps = {
   tree: WorkspaceTree;
   initialState: WorkspaceState;
+  onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
   onSavePage: (input: {
     id: string;
     title: string;
@@ -70,22 +71,54 @@ function findWorkspaceTitle(
 export function WorkspaceShell({
   tree,
   initialState,
+  onCreatePage,
   onSavePage,
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [pages, setPages] = useState<Record<string, Page>>({});
+  const [createdPages, setCreatedPages] = useState<Record<string, Page[]>>({});
+
+  const workspaceTree = useMemo<WorkspaceTree>(() => ({
+    grimoires: tree.grimoires.map((grimoire) => ({
+      ...grimoire,
+      notebooks: (grimoire.notebooks ?? []).map((notebook) => ({
+        ...notebook,
+        chapters: (notebook.chapters ?? []).map((chapter) => ({
+          ...chapter,
+          pages: [
+            ...(chapter.pages ?? []),
+            ...(createdPages[chapter.id] ?? []),
+          ].sort((left, right) => left.position - right.position),
+        })),
+      })),
+    })),
+  }), [createdPages, tree]);
 
   const selectedPage = useMemo(() => {
-    const persistedPage = findSelectedPage(tree, state);
+    const persistedPage = findSelectedPage(workspaceTree, state);
     if (!persistedPage) return null;
 
     return pages[persistedPage.id] ?? persistedPage;
-  }, [pages, state, tree]);
+  }, [pages, state, workspaceTree]);
 
   const title = useMemo(
-    () => (selectedPage ? selectedPage.title : findWorkspaceTitle(tree, state)),
-    [selectedPage, state, tree],
+    () => (selectedPage ? selectedPage.title : findWorkspaceTitle(workspaceTree, state)),
+    [selectedPage, state, workspaceTree],
   );
+
+  /** Create a page, add it to the local tree, and select it for editing. */
+  const createPage = async (input: { chapterId: string; title: string }) => {
+    const created = await onCreatePage(input);
+    setCreatedPages((current) => ({
+      ...current,
+      [created.chapterId]: [...(current[created.chapterId] ?? []), created],
+    }));
+    setPages((current) => ({ ...current, [created.id]: created }));
+    setState((current) =>
+      openPage({ ...current, chapterId: created.chapterId }, created.id),
+    );
+    return created;
+  };
 
   /** Persist a page and immediately reflect the returned version in the shell. */
   const savePage = async (input: {
@@ -100,7 +133,7 @@ export function WorkspaceShell({
 
   return (
     <Workspace
-      tree={tree}
+      tree={workspaceTree}
       state={state}
       title={title}
       selectedPage={selectedPage}
@@ -108,6 +141,7 @@ export function WorkspaceShell({
       onOpenNotebook={(id) => setState((current) => openNotebook(current, id))}
       onOpenChapter={(id) => setState((current) => openChapter(current, id))}
       onOpenPage={(id) => setState((current) => openPage(current, id))}
+      onCreatePage={createPage}
       onSavePage={savePage}
     />
   );
