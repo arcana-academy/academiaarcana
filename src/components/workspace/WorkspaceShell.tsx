@@ -18,6 +18,9 @@ type WorkspaceShellProps = {
   tree: WorkspaceTree;
   initialState: WorkspaceState;
   onCreateGrimoire: (input: { title: string }) => Promise<Grimoire>;
+  onRenameGrimoire: (input: { id: string; title: string }) => Promise<Grimoire>;
+  onRenameNotebook: (input: { id: string; title: string }) => Promise<Notebook>;
+  onRenameChapter: (input: { id: string; title: string }) => Promise<Chapter>;
   onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
   onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
@@ -76,6 +79,9 @@ export function WorkspaceShell({
   tree,
   initialState,
   onCreateGrimoire,
+  onRenameGrimoire,
+  onRenameNotebook,
+  onRenameChapter,
   onCreateNotebook,
   onCreateChapter,
   onCreatePage,
@@ -84,6 +90,9 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [pages, setPages] = useState<Record<string, Page>>({});
+  const [renamedGrimoires, setRenamedGrimoires] = useState<Record<string, string>>({});
+  const [renamedNotebooks, setRenamedNotebooks] = useState<Record<string, string>>({});
+  const [renamedChapters, setRenamedChapters] = useState<Record<string, string>>({});
   const [createdGrimoires, setCreatedGrimoires] = useState<
     Array<Grimoire & {
       notebooks: Array<
@@ -106,6 +115,7 @@ export function WorkspaceShell({
       ...createdGrimoires,
     ].map((grimoire) => ({
       ...grimoire,
+      title: renamedGrimoires[grimoire.id] ?? grimoire.title,
       notebooks: [
         ...(grimoire.notebooks ?? []),
         ...(createdNotebooks[grimoire.id] ?? []),
@@ -113,6 +123,7 @@ export function WorkspaceShell({
         .sort((left, right) => left.position - right.position)
         .map((notebook) => ({
         ...notebook,
+        title: renamedNotebooks[notebook.id] ?? notebook.title,
         chapters: [
           ...(notebook.chapters ?? []),
           ...(createdChapters[notebook.id] ?? []),
@@ -120,6 +131,7 @@ export function WorkspaceShell({
           .sort((left, right) => left.position - right.position)
           .map((chapter) => ({
           ...chapter,
+          title: renamedChapters[chapter.id] ?? chapter.title,
           pages: [
             ...(chapter.pages ?? []),
             ...(createdPages[chapter.id] ?? []),
@@ -132,6 +144,9 @@ export function WorkspaceShell({
   }), [
     createdChapters,
     createdGrimoires,
+    renamedChapters,
+    renamedGrimoires,
+    renamedNotebooks,
     createdNotebooks,
     createdPages,
     deletedPageIds,
@@ -149,6 +164,36 @@ export function WorkspaceShell({
     () => (selectedPage ? selectedPage.title : findWorkspaceTitle(workspaceTree, state)),
     [selectedPage, state, workspaceTree],
   );
+
+  /** Rename a grimoire and reflect the persisted title locally. */
+  const renameGrimoire = async (input: { id: string; title: string }) => {
+    const updated = await onRenameGrimoire(input);
+    setRenamedGrimoires((current) => ({
+      ...current,
+      [updated.id]: updated.title,
+    }));
+    return updated;
+  };
+
+  /** Rename a notebook and reflect the persisted title locally. */
+  const renameNotebook = async (input: { id: string; title: string }) => {
+    const updated = await onRenameNotebook(input);
+    setRenamedNotebooks((current) => ({
+      ...current,
+      [updated.id]: updated.title,
+    }));
+    return updated;
+  };
+
+  /** Rename a chapter and reflect the persisted title locally. */
+  const renameChapter = async (input: { id: string; title: string }) => {
+    const updated = await onRenameChapter(input);
+    setRenamedChapters((current) => ({
+      ...current,
+      [updated.id]: updated.title,
+    }));
+    return updated;
+  };
 
   /** Create a grimoire, add it to the local tree, and select it. */
   const createGrimoire = async (input: { title: string }) => {
@@ -265,6 +310,9 @@ export function WorkspaceShell({
       selectedPage={selectedPage}
       onOpenGrimoire={(id) => setState((current) => openGrimoire(current, id))}
       onCreateGrimoire={createGrimoire}
+      onRenameGrimoire={renameGrimoire}
+      onRenameNotebook={renameNotebook}
+      onRenameChapter={renameChapter}
       onOpenNotebook={(id) => setState((current) => openNotebook(current, id))}
       onOpenChapter={(id) => setState((current) => openChapter(current, id))}
       onOpenPage={(id) => setState((current) => openPage(current, id))}

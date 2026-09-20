@@ -5,6 +5,7 @@ import type { Chapter, Grimoire, Notebook, Page, WorkspaceState } from "@/domain
 import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
+import { WorkspaceTitleEditor } from "./WorkspaceTitleEditor";
 
 type WorkspaceProps = {
   tree: Parameters<typeof WorkspaceTree>[0]["data"];
@@ -16,6 +17,9 @@ type WorkspaceProps = {
   onOpenChapter: (id: string) => void;
   onOpenPage: (id: string) => void;
   onCreateGrimoire: (input: { title: string }) => Promise<Grimoire>;
+  onRenameGrimoire: (input: { id: string; title: string }) => Promise<Grimoire>;
+  onRenameNotebook: (input: { id: string; title: string }) => Promise<Notebook>;
+  onRenameChapter: (input: { id: string; title: string }) => Promise<Chapter>;
   onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
   onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
@@ -266,6 +270,9 @@ export function Workspace({
   onOpenChapter,
   onOpenPage,
   onCreateGrimoire,
+  onRenameGrimoire,
+  onRenameNotebook,
+  onRenameChapter,
   onCreateNotebook,
   onCreateChapter,
   onCreatePage,
@@ -286,6 +293,48 @@ export function Workspace({
         />
         <main aria-label="Área de trabalho">
           <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
+
+          {state.grimoireId && !state.notebookId && !state.chapterId ? (
+            <WorkspaceTitleEditor
+              key={`grimoire-${state.grimoireId}`}
+              title={title}
+              itemLabel="grimório"
+              onSave={async (nextTitle) => {
+                await onRenameGrimoire({
+                  id: state.grimoireId!,
+                  title: nextTitle,
+                });
+              }}
+            />
+          ) : null}
+
+          {state.notebookId && !state.chapterId ? (
+            <WorkspaceTitleEditor
+              key={`notebook-${state.notebookId}`}
+              title={title}
+              itemLabel="caderno"
+              onSave={async (nextTitle) => {
+                await onRenameNotebook({
+                  id: state.notebookId!,
+                  title: nextTitle,
+                });
+              }}
+            />
+          ) : null}
+
+          {state.chapterId && !state.pageId ? (
+            <WorkspaceTitleEditor
+              key={`chapter-${state.chapterId}`}
+              title={title}
+              itemLabel="capítulo"
+              onSave={async (nextTitle) => {
+                await onRenameChapter({
+                  id: state.chapterId!,
+                  title: nextTitle,
+                });
+              }}
+            />
+          ) : null}
 
           {state.grimoireId && !state.notebookId ? (
             <NotebookCreationForm

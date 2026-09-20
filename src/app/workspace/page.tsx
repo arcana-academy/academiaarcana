@@ -15,6 +15,9 @@ import {
   createWorkspaceChapter,
   createWorkspaceGrimoire,
   createWorkspaceNotebook,
+  renameWorkspaceChapter,
+  renameWorkspaceGrimoire,
+  renameWorkspaceNotebook,
   createWorkspacePage,
   deleteWorkspacePage,
   updateWorkspacePage,
@@ -129,6 +132,9 @@ export default async function WorkspacePage({
       initialState={initialState}
       onCreateGrimoire={createWorkspaceGrimoire}
       onCreateNotebook={createWorkspaceNotebook}
+      onRenameGrimoire={renameWorkspaceGrimoire}
+      onRenameNotebook={renameWorkspaceNotebook}
+      onRenameChapter={renameWorkspaceChapter}
       onCreateChapter={createWorkspaceChapter}
       onCreatePage={createWorkspacePage}
       onDeletePage={deleteWorkspacePage}
