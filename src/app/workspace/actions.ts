@@ -39,6 +39,17 @@ type RenameWorkspaceItemInput = {
   title: string;
 };
 
+type MoveWorkspacePageInput = {
+  id: string;
+  direction: "up" | "down";
+};
+
+type MoveWorkspacePageResult = {
+  movedPage: Page;
+  swappedPage: Page | null;
+};
+
+
 type RepositoryClient = Parameters<typeof createPageRepository>[0];
 
 /** Persist an authenticated Workspace page update through the learning repository. */
@@ -204,6 +215,56 @@ export async function createWorkspaceGrimoire(
     createdAt: now,
     updatedAt: now,
   });
+}
+
+/** Move an authenticated Workspace page one position within its chapter. */
+export async function moveWorkspacePage(
+  input: MoveWorkspacePageInput,
+): Promise<MoveWorkspacePageResult> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createPageRepository(
+    supabase as unknown as RepositoryClient,
+  );
+
+  const page = await repository.getById(input.id);
+  if (!page) {
+    throw new Error("Página não encontrada.");
+  }
+
+  const pages = (await repository.listByChapter(page.chapterId)).sort(
+    (left, right) => left.position - right.position,
+  );
+  const index = pages.findIndex((item) => item.id === page.id);
+
+  if (index < 0) {
+    throw new Error("Página não encontrada.");
+  }
+
+  const targetIndex = input.direction === "up" ? index - 1 : index + 1;
+  const target = pages[targetIndex];
+
+  if (!target) {
+    return {
+      movedPage: page,
+      swappedPage: null,
+    };
+  }
+
+  await repository.reorder(page.id, target.position);
+  await repository.reorder(target.id, page.position);
+
+  return {
+    movedPage: {
+      ...page,
+      position: target.position,
+    },
+    swappedPage: {
+      ...target,
+      position: page.position,
+    },
+  };
 }
 
 
