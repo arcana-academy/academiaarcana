@@ -22,6 +22,9 @@ describe("Workspace", () => {
         onOpenChapter={vi.fn()}
         onOpenPage={vi.fn()}
         onCreateGrimoire={vi.fn(() => Promise.reject(new Error("not used in this test")))}
+        onRenameGrimoire={vi.fn(() => Promise.reject(new Error("not used in this test")))}
+        onRenameNotebook={vi.fn(() => Promise.reject(new Error("not used in this test")))}
+        onRenameChapter={vi.fn(() => Promise.reject(new Error("not used in this test")))}
         onCreateNotebook={vi.fn(() => Promise.reject(new Error("not used in this test")))}
         onCreateChapter={vi.fn(() => Promise.reject(new Error("not used in this test")))}
         onCreatePage={vi.fn(() =>
