@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type WorkspaceTitleEditorProps = {
   title: string;
@@ -17,10 +17,6 @@ export function WorkspaceTitleEditor({
   const [value, setValue] = useState(title);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setValue(title);
-  }, [title]);
 
   const handleSave = async () => {
     if (!value.trim()) return;
