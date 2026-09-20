@@ -65,4 +65,7 @@ jobs:
         run: npx --yes playwright@1.55.0 install --with-deps chromium
 
       - name: End-to-end tests
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://fichnalpbcfjywwhixid.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_0yFN7N7ikHBDY6m6P3FICw_u1lL6ppI
         run: npx --yes playwright@1.55.0 test

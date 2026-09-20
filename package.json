@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:a11y": "vitest run src/components/ui/button.test.tsx src/components/ui/card.test.tsx src/components/ui/icon-button.test.tsx"
+    "test:a11y": "vitest run src/components/ui/button.test.tsx src/components/ui/card.test.tsx src/components/ui/icon-button.test.tsx",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@honeybadger-io/nextjs": "^5.11.4",

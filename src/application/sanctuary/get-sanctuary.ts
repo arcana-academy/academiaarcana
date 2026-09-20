@@ -20,31 +20,34 @@ export type SanctuaryRepository = {
   getLearningHierarchy: () => Promise<SanctuaryGrimoire[]>;
 };
 
-const WORKSPACE_HREF = "/workspace?view=tree#current";
+const WORKSPACE_TREE_HREF = "/workspace?view=tree";
+const WORKSPACE_HREF = `${WORKSPACE_TREE_HREF}#current`;
 
 /** Build the deterministic workspace URL for the selected learning context. */
 function buildContinueLearningHref(
   context: NonNullable<ReturnType<typeof resolveContinueLearning>>,
 ): string {
   if (context.pageId) {
-    return `${WORKSPACE_HREF}&page=${encodeURIComponent(context.pageId)}`;
+    return `${WORKSPACE_TREE_HREF}&page=${encodeURIComponent(
+      context.pageId,
+    )}#current`;
   }
 
   if (context.chapterId) {
-    return `${WORKSPACE_HREF}&chapter=${encodeURIComponent(
+    return `${WORKSPACE_TREE_HREF}&chapter=${encodeURIComponent(
       context.chapterId,
-    )}`;
+    )}#current`;
   }
 
   if (context.notebookId) {
-    return `${WORKSPACE_HREF}&notebook=${encodeURIComponent(
+    return `${WORKSPACE_TREE_HREF}&notebook=${encodeURIComponent(
       context.notebookId,
-    )}`;
+    )}#current`;
   }
 
-  return `${WORKSPACE_HREF}&grimoire=${encodeURIComponent(
+  return `${WORKSPACE_TREE_HREF}&grimoire=${encodeURIComponent(
     context.grimoireId,
-  )}`;
+  )}#current`;
 }
 
 /** Build the currently supported quick actions for the Sanctuary. */
