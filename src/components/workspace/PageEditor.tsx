@@ -67,8 +67,13 @@ function PageDeleteControl({
   );
 }
 
+type MovePageDirection = "up" | "down";
+
 type PageEditorProps = {
   page: Page;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMove: (direction: MovePageDirection) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onSave: (input: {
     id: string;
@@ -78,7 +83,14 @@ type PageEditorProps = {
 };
 
 /** Edit and persist the currently selected learning page. */
-export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
+export function PageEditor({
+  page,
+  canMoveUp,
+  canMoveDown,
+  onMove,
+  onDelete,
+  onSave,
+}: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
@@ -87,6 +99,26 @@ export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
+  const [isMoving, setIsMoving] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
+
+  /** Move the selected page and surface recoverable failures. */
+  const move = async (direction: MovePageDirection) => {
+    setIsMoving(true);
+    setMoveError(null);
+
+    try {
+      await onMove(direction);
+    } catch {
+      setMoveError(
+        direction === "up"
+          ? "Não foi possível mover a página para cima."
+          : "Não foi possível mover a página para baixo.",
+      );
+    } finally {
+      setIsMoving(false);
+    }
+  };
 
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
@@ -163,6 +195,24 @@ export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
       <button type="button" disabled={status === "saving"} onClick={save}>
         {status === "saving" ? "Salvando…" : "Salvar página"}
       </button>
+      <div aria-label="Ordenação da página">
+        <button
+          type="button"
+          disabled={isMoving || !canMoveUp}
+          onClick={() => void move("up")}
+        >
+          {isMoving ? "Movendo…" : "Mover página para cima"}
+        </button>
+        <button
+          type="button"
+          disabled={isMoving || !canMoveDown}
+          onClick={() => void move("down")}
+        >
+          {isMoving ? "Movendo…" : "Mover página para baixo"}
+        </button>
+      </div>
+      {moveError ? <p role="alert">{moveError}</p>}
+
 
       <PageDeleteControl
         pageId={page.id}
