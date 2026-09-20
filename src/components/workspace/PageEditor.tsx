@@ -46,7 +46,7 @@ function PageDeleteControl({
   return (
     <div role="alertdialog" aria-label="Confirmar exclusão da página">
       <p>
-        Excluir a página "{pageTitle}"? Essa ação não pode ser desfeita.
+        Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <button
