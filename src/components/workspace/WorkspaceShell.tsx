@@ -82,7 +82,9 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [pages, setPages] = useState<Record<string, Page>>({});
-  const [createdNotebooks, setCreatedNotebooks] = useState<Record<string, Notebook[]>>({});
+  const [createdNotebooks, setCreatedNotebooks] = useState<
+    Record<string, Array<Notebook & { chapters: Array<Chapter & { pages: Page[] }> }>>
+  >({});
   const [createdChapters, setCreatedChapters] = useState<
     Record<string, Array<Chapter & { pages: Page[] }>>
   >({});
@@ -132,11 +134,15 @@ export function WorkspaceShell({
   /** Create a notebook, add it to the local tree, and select it. */
   const createNotebook = async (input: { grimoireId: string; title: string }) => {
     const created = await onCreateNotebook(input);
+    const notebook = {
+      ...created,
+      chapters: [] as Array<Chapter & { pages: Page[] }>,
+    };
     setCreatedNotebooks((current) => ({
       ...current,
       [created.grimoireId]: [
         ...(current[created.grimoireId] ?? []),
-        created,
+        notebook,
       ],
     }));
     setState((current) =>
