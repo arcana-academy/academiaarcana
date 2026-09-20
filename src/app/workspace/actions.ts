@@ -75,3 +75,15 @@ export async function createWorkspacePage(
     updatedAt: now,
   });
 }
+
+/** Delete an authenticated Workspace page through the learning repository. */
+export async function deleteWorkspacePage(id: string): Promise<void> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createPageRepository(
+    supabase as unknown as RepositoryClient,
+  );
+
+  await repository.delete(id);
+}
