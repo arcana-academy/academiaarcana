@@ -81,7 +81,7 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
 
       <button
         type="button"
-        onClick={() =>
+        onClick={() => {
           setContent({
             ...content,
             blocks: [...content.blocks, { type: "paragraph", content: "" }],
@@ -89,8 +89,8 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
           setBlockKeys((current) => [
             ...current,
             `${page.id}:block:${current.length}`,
-          ])
-        }
+          ]);
+        }}
       >
         Adicionar bloco
       </button>
