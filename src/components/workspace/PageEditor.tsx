@@ -5,6 +5,7 @@ import type { Page, PageContent } from "@/domains/learning";
 
 type PageEditorProps = {
   page: Page;
+  onDelete: (id: string) => Promise<void>;
   onSave: (input: {
     id: string;
     title: string;
@@ -13,7 +14,7 @@ type PageEditorProps = {
 };
 
 /** Edit and persist the currently selected learning page. */
-export function PageEditor({ page, onSave }: PageEditorProps) {
+export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
@@ -22,6 +23,8 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
@@ -42,6 +45,24 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
     }
   };
 
+  /** Confirm and delete the current page through the authenticated action. */
+  const remove = async () => {
+    if (!globalThis.confirm(`Excluir a página "${page.title}"? Essa ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await onDelete(page.id);
+    } catch {
+      setDeleteError("Não foi possível excluir a página.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <article aria-label="Editor da página">
       <label htmlFor="workspace-page-title">Título</label>
@@ -49,6 +70,7 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
         id="workspace-page-title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
+        disabled={isDeleting}
       />
 
       <div aria-label="Blocos da página">
@@ -73,6 +95,7 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
                   };
                   setContent({ ...content, blocks: nextBlocks });
                 }}
+                disabled={isDeleting}
               />
             </div>
           ))
@@ -91,13 +114,28 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
             `${page.id}:block:${current.length}`,
           ]);
         }}
+        disabled={isDeleting}
       >
         Adicionar bloco
       </button>
 
-      <button type="button" disabled={status === "saving"} onClick={save}>
+      <button
+        type="button"
+        disabled={status === "saving" || isDeleting}
+        onClick={save}
+      >
         {status === "saving" ? "Salvando…" : "Salvar página"}
       </button>
+
+      <button
+        type="button"
+        disabled={status === "saving" || isDeleting}
+        onClick={remove}
+      >
+        {isDeleting ? "Excluindo…" : "Excluir página"}
+      </button>
+
+      {deleteError ? <p role="alert">{deleteError}</p> : null}
 
       <p role="status" aria-live="polite">
         {status === "saved"
