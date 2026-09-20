@@ -324,13 +324,10 @@ export function WorkspaceShell({
         : {}),
     }));
 
-    return result;
   };
 
-  /** Adapt the page movement result to the Workspace editor callback contract. */
-  const handleMovePage = async (direction: "up" | "down") => {
-    await movePage(direction);
-  };
+  /** Adapt page movement to the Workspace editor callback contract. */
+  const handleMovePage = movePage;
 
   /** Delete a page, clear its local state, and keep the chapter selected. */
   const deletePage = async (id: string) => {

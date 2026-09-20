@@ -69,6 +69,113 @@ function PageDeleteControl({
 
 type MovePageDirection = "up" | "down";
 
+type PageBlocksProps = {
+  blocks: PageContent["blocks"];
+  blockKeys: string[];
+  onChange: (index: number, content: string) => void;
+};
+
+/** Render page blocks while keeping block editing separate from PageEditor orchestration. */
+function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
+  return (
+    <div aria-label="Blocos da página">
+      {blocks.length === 0 ? (
+        <p>Esta página ainda não possui conteúdo.</p>
+      ) : (
+        blocks.map((block, index) => (
+          <div key={blockKeys[index]}>
+            <label htmlFor={`workspace-page-block-${index}`}>
+              Bloco {index + 1}
+            </label>
+            <textarea
+              id={`workspace-page-block-${index}`}
+              value={block.content}
+              onChange={(event) => onChange(index, event.target.value)}
+            />
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+type PageMoveControlsProps = {
+  isMoving: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMove: (direction: MovePageDirection) => void;
+};
+
+/** Return the accessible label for a page movement action. */
+function getMoveLabel(
+  isMoving: boolean,
+  direction: MovePageDirection,
+): string {
+  const labels: Record<MovePageDirection, string> = {
+    up: "Mover página para cima",
+    down: "Mover página para baixo",
+  };
+
+  return isMoving ? "Movendo…" : labels[direction];
+}
+
+/** Render page ordering controls with boundary and loading states. */
+function PageMoveControls({
+  isMoving,
+  canMoveUp,
+  canMoveDown,
+  onMove,
+}: PageMoveControlsProps) {
+  const moveUpDisabled = isMoving || !canMoveUp;
+  const moveDownDisabled = isMoving || !canMoveDown;
+
+  return (
+    <div aria-label="Ordenação da página">
+      <button
+        type="button"
+        disabled={moveUpDisabled}
+        onClick={() => onMove("up")}
+      >
+        {getMoveLabel(isMoving, "up")}
+      </button>
+      <button
+        type="button"
+        disabled={moveDownDisabled}
+        onClick={() => onMove("down")}
+      >
+        {getMoveLabel(isMoving, "down")}
+      </button>
+    </div>
+  );
+}
+
+type PageSaveState = "idle" | "saving" | "saved" | "error";
+
+type PageSaveStatusProps = {
+  status: PageSaveState;
+};
+
+/** Render the current page-save result as a live status message. */
+function PageSaveStatus({ status }: PageSaveStatusProps) {
+  const messages: Record<PageSaveState, string> = {
+    idle: "",
+    saving: "",
+    saved: "Página salva.",
+    error: "Não foi possível salvar a página.",
+  };
+
+  return (
+    <p role="status" aria-live="polite">
+      {messages[status]}
+    </p>
+  );
+}
+
+/** Return the save button label for the current save state. */
+function getSaveLabel(status: PageSaveState): string {
+  return status === "saving" ? "Salvando…" : "Salvar página";
+}
+
 type PageEditorProps = {
   page: Page;
   canMoveUp: boolean;
@@ -93,9 +200,7 @@ export function PageEditor({
 }: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<PageSaveState>("idle");
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -120,6 +225,16 @@ export function PageEditor({
     }
   };
 
+  /** Update one page block while keeping the editor state local. */
+  const updateBlock = (index: number, blockContent: string) => {
+    const nextBlocks = [...content.blocks];
+    nextBlocks[index] = {
+      ...nextBlocks[index],
+      content: blockContent,
+    };
+    setContent({ ...content, blocks: nextBlocks });
+  };
+
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
     setStatus("saving");
@@ -139,6 +254,18 @@ export function PageEditor({
     }
   };
 
+  /** Add a new paragraph block and generate its stable local key. */
+  const addBlock = () => {
+    setContent({
+      ...content,
+      blocks: [...content.blocks, { type: "paragraph", content: "" }],
+    });
+    setBlockKeys((current) => [
+      ...current,
+      `${page.id}:block:${current.length}`,
+    ]);
+  };
+
   return (
     <article aria-label="Editor da página">
       <label htmlFor="workspace-page-title">Título</label>
@@ -148,71 +275,27 @@ export function PageEditor({
         onChange={(event) => setTitle(event.target.value)}
       />
 
-      <div aria-label="Blocos da página">
-        {content.blocks.length === 0 ? (
-          <p>Esta página ainda não possui conteúdo.</p>
-        ) : (
-          content.blocks
-            .map((block, index) => ({ block, key: blockKeys[index] }))
-            .map(({ block, key }, index) => (
-              <div key={key}>
-                <label htmlFor={`workspace-page-block-${index}`}>
-                  Bloco {index + 1}
-                </label>
-                <textarea
-                  id={`workspace-page-block-${index}`}
-                  value={block.content}
-                  onChange={(event) => {
-                    const nextBlocks = [...content.blocks];
-                    nextBlocks[index] = {
-                      ...block,
-                      content: event.target.value,
-                    };
-                    setContent({ ...content, blocks: nextBlocks });
-                  }}
-                />
-              </div>
-            ))
-        )}
-      </div>
+      <PageBlocks
+        blocks={content.blocks}
+        blockKeys={blockKeys}
+        onChange={updateBlock}
+      />
 
-      <button
-        type="button"
-        onClick={() => {
-          setContent({
-            ...content,
-            blocks: [...content.blocks, { type: "paragraph", content: "" }],
-          });
-          setBlockKeys((current) => [
-            ...current,
-            `${page.id}:block:${current.length}`,
-          ]);
-        }}
-      >
+      <button type="button" onClick={addBlock}>
         Adicionar bloco
       </button>
 
       <button type="button" disabled={status === "saving"} onClick={save}>
-        {status === "saving" ? "Salvando…" : "Salvar página"}
+        {getSaveLabel(status)}
       </button>
-      <div aria-label="Ordenação da página">
-        <button
-          type="button"
-          disabled={isMoving || !canMoveUp}
-          onClick={() => void move("up")}
-        >
-          {isMoving ? "Movendo…" : "Mover página para cima"}
-        </button>
-        <button
-          type="button"
-          disabled={isMoving || !canMoveDown}
-          onClick={() => void move("down")}
-        >
-          {isMoving ? "Movendo…" : "Mover página para baixo"}
-        </button>
-      </div>
-      {moveError ? <p role="alert">{moveError}</p> : null}
 
+      <PageMoveControls
+        isMoving={isMoving}
+        canMoveUp={canMoveUp}
+        canMoveDown={canMoveDown}
+        onMove={move}
+      />
+      {moveError ? <p role="alert">{moveError}</p> : null}
 
       <PageDeleteControl
         pageId={page.id}
@@ -220,13 +303,7 @@ export function PageEditor({
         onDelete={onDelete}
       />
 
-      <p role="status" aria-live="polite">
-        {status === "saved"
-          ? "Página salva."
-          : status === "error"
-            ? "Não foi possível salvar a página."
-            : null}
-      </p>
+      <PageSaveStatus status={status} />
     </article>
   );
 }
