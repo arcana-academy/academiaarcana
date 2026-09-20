@@ -83,7 +83,6 @@ function createTree() {
 describe("WorkspaceShell", () => {
   test("creates a grimoire and selects it", async () => {
     const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
-    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreateNotebook = vi.fn(() => Promise.resolve(createdNotebook));
     const onCreateChapter = vi.fn(() => Promise.resolve(createdChapter));
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
@@ -101,7 +100,9 @@ describe("WorkspaceShell", () => {
         }}
         onCreateGrimoire={onCreateGrimoire}
         onCreateGrimoire={onCreateGrimoire}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={onCreateNotebook}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
         onDeletePage={onDeletePage}
@@ -124,6 +125,7 @@ describe("WorkspaceShell", () => {
   });
 
   test("creates a notebook and selects it", async () => {
+    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreateNotebook = vi.fn(() => Promise.resolve(createdNotebook));
     const onCreateChapter = vi.fn(() => Promise.resolve(createdChapter));
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
@@ -166,6 +168,7 @@ describe("WorkspaceShell", () => {
   });
 
   test("creates a chapter and selects it", async () => {
+    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreateChapter = vi.fn(() => Promise.resolve(createdChapter));
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
     const onDeletePage = vi.fn(() => Promise.resolve());
@@ -183,6 +186,7 @@ describe("WorkspaceShell", () => {
           chapterId: null,
           pageId: null,
         }}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
@@ -208,6 +212,7 @@ describe("WorkspaceShell", () => {
   });
 
   test("creates a page and opens it in the editor", async () => {
+    const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
     const onDeletePage = vi.fn(() => Promise.resolve());
     const onSavePage = vi.fn(() => Promise.resolve(createdPage));
@@ -221,6 +226,7 @@ describe("WorkspaceShell", () => {
           chapterId: "c1",
           pageId: null,
         }}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreatePage={onCreatePage}
