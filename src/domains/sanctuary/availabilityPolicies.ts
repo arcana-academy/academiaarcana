@@ -13,10 +13,12 @@ export function resolvePlanningAvailability(): FeatureAvailability {
   return "not-configured";
 }
 
+/** Resolve the current availability of the Gamification domain. */
 export function resolveGamificationAvailability(): FeatureAvailability {
   return "not-configured";
 }
 
+/** Resolve the current availability of the Progress domain. */
 export function resolveProgressAvailability(): FeatureAvailability {
   return "not-configured";
 }
