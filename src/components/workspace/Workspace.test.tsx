@@ -30,6 +30,11 @@ describe("Workspace", () => {
         onCreatePage={vi.fn(() =>
           Promise.reject(new Error("not used in this test")),
         )}
+        canMovePageUp={false}
+        canMovePageDown={false}
+        onMovePage={vi.fn(() =>
+          Promise.reject(new Error("not used in this test")),
+        )}
         onDeletePage={vi.fn(() =>
           Promise.reject(new Error("not used in this test")),
         )}
