@@ -327,6 +327,11 @@ export function WorkspaceShell({
     return result;
   };
 
+  /** Adapt the page movement result to the Workspace editor callback contract. */
+  const handleMovePage = async (direction: "up" | "down") => {
+    await movePage(direction);
+  };
+
   /** Delete a page, clear its local state, and keep the chapter selected. */
   const deletePage = async (id: string) => {
     await onDeletePage(id);
@@ -383,7 +388,7 @@ export function WorkspaceShell({
       onCreateNotebook={createNotebook}
       onCreateChapter={createChapter}
       onCreatePage={createPage}
-      onMovePage={movePage}
+      onMovePage={handleMovePage}
       onDeletePage={deletePage}
       onSavePage={savePage}
     />
