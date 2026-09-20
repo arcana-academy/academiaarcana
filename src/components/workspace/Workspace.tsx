@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Chapter, Notebook, Page, WorkspaceState } from "@/domains/learning";
+import type { Chapter, Grimoire, Notebook, Page, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
@@ -15,6 +15,7 @@ type WorkspaceProps = {
   onOpenNotebook: (id: string) => void;
   onOpenChapter: (id: string) => void;
   onOpenPage: (id: string) => void;
+  onCreateGrimoire: (input: { title: string }) => Promise<Grimoire>;
   onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
   onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
@@ -25,6 +26,60 @@ type WorkspaceProps = {
     content: Page["content"];
   }) => Promise<Page>;
 };
+
+type GrimoireCreationFormProps = {
+  onCreateGrimoire: (input: { title: string }) => Promise<Grimoire>;
+};
+
+/** Provide the controls and feedback for creating a grimoire. */
+function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
+  const [title, setTitle] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Submit a grimoire creation request and reset the form after success. */
+  const handleCreate = async () => {
+    if (!title.trim()) return;
+
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      await onCreateGrimoire({ title });
+      setTitle("");
+    } catch {
+      setError("Não foi possível criar o grimório.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <form
+      aria-label="Criar grimório"
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <label htmlFor="workspace-new-grimoire-title">Novo grimório</label>
+      <input
+        id="workspace-new-grimoire-title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+        disabled={isCreating}
+        placeholder="Título do grimório"
+      />
+      <button
+        type="button"
+        disabled={isCreating || !title.trim()}
+        onClick={handleCreate}
+      >
+        {isCreating ? "Criando…" : "Criar grimório"}
+      </button>
+      {error ? <p role="alert">{error}</p> : null}
+    </form>
+  );
+}
 
 type NotebookCreationFormProps = {
   grimoireId: string;
@@ -210,6 +265,7 @@ export function Workspace({
   onOpenNotebook,
   onOpenChapter,
   onOpenPage,
+  onCreateGrimoire,
   onCreateNotebook,
   onCreateChapter,
   onCreatePage,
@@ -229,6 +285,10 @@ export function Workspace({
           onOpenPage={onOpenPage}
         />
         <main aria-label="Área de trabalho">
+          {!state.grimoireId ? (
+            <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
+          ) : null}
+
           {state.grimoireId && !state.notebookId ? (
             <NotebookCreationForm
               grimoireId={state.grimoireId}
