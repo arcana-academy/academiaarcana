@@ -1,6 +1,7 @@
 "use server";
 
-import type { Page, PageContent } from "@/domains/learning";
+import type { Chapter, Page, PageContent } from "@/domains/learning";
+import { createChapterRepository } from "@/infrastructure/supabase/workspace/chapter-repository";
 import { createPageRepository } from "@/infrastructure/supabase/workspace/page-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,11 @@ type UpdatePageInput = {
   id: string;
   title: string;
   content: PageContent;
+};
+
+type CreateChapterInput = {
+  notebookId: string;
+  title: string;
 };
 
 type CreatePageInput = {
@@ -86,4 +92,37 @@ export async function deleteWorkspacePage(id: string): Promise<void> {
   );
 
   await repository.delete(id);
+}
+
+/** Create an authenticated Workspace chapter at the end of its notebook. */
+export async function createWorkspaceChapter(
+  input: CreateChapterInput,
+): Promise<Chapter> {
+  await requireAuthenticatedUser();
+
+  const supabase = await createClient();
+  const repository = createChapterRepository(
+    supabase as unknown as Parameters<typeof createChapterRepository>[0],
+  );
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título do capítulo é obrigatório.");
+  }
+
+  const existingChapters = await repository.listByNotebook(input.notebookId);
+  const position =
+    existingChapters.length === 0
+      ? 0
+      : Math.max(...existingChapters.map((chapter) => chapter.position)) + 1;
+  const now = new Date().toISOString();
+
+  return repository.create({
+    id: globalThis.crypto.randomUUID(),
+    notebookId: input.notebookId,
+    title,
+    position,
+    createdAt: now,
+    updatedAt: now,
+  });
 }
