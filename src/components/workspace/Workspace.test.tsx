@@ -21,9 +21,9 @@ describe("Workspace", () => {
         onOpenNotebook={vi.fn()}
         onOpenChapter={vi.fn()}
         onOpenPage={vi.fn()}
-        onSavePage={vi.fn(async () => {
-          throw new Error("not used in this test");
-        })}
+        onSavePage={vi.fn(() =>
+          Promise.reject(new Error("not used in this test")),
+        )}
       />,
     );
 
