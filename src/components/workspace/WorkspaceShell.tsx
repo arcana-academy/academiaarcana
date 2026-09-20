@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import type { WorkspaceState } from "@/domains/learning";
+import type { Page, WorkspaceState } from "@/domains/learning";
 import {
   openChapter,
   openGrimoire,
@@ -17,19 +17,34 @@ type WorkspaceTree = Parameters<typeof Workspace>[0]["tree"];
 type WorkspaceShellProps = {
   tree: WorkspaceTree;
   initialState: WorkspaceState;
+  onSavePage: (input: {
+    id: string;
+    title: string;
+    content: Page["content"];
+  }) => Promise<Page>;
 };
 
-/** Resolve the visible Workspace title from the selected hierarchy state. */
+function findSelectedPage(
+  tree: WorkspaceTree,
+  state: WorkspaceState,
+): Page | null {
+  for (const grimoire of tree.grimoires) {
+    for (const notebook of grimoire.notebooks ?? []) {
+      for (const chapter of notebook.chapters ?? []) {
+        const page = chapter.pages?.find((item) => item.id === state.pageId);
+        if (page) return page;
+      }
+    }
+  }
+
+  return null;
+}
+
 function findWorkspaceTitle(
   tree: WorkspaceTree,
   state: WorkspaceState,
 ): string {
-  const pages = tree.grimoires.flatMap((grimoire) =>
-    (grimoire.notebooks ?? []).flatMap((notebook) =>
-      (notebook.chapters ?? []).flatMap((chapter) => chapter.pages ?? []),
-    ),
-  );
-  const page = pages.find((item) => item.id === state.pageId);
+  const page = findSelectedPage(tree, state);
   if (page) return page.title;
 
   const chapters = tree.grimoires.flatMap((grimoire) =>
@@ -52,26 +67,47 @@ function findWorkspaceTitle(
   return "Workspace";
 }
 
-/** Manage client-side Workspace selection while preserving the server tree. */
 export function WorkspaceShell({
   tree,
   initialState,
+  onSavePage,
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
+  const [pages, setPages] = useState<Record<string, Page>>({});
+
+  const selectedPage = useMemo(() => {
+    const persistedPage = findSelectedPage(tree, state);
+    if (!persistedPage) return null;
+
+    return pages[persistedPage.id] ?? persistedPage;
+  }, [pages, state, tree]);
+
   const title = useMemo(
-    () => findWorkspaceTitle(tree, state),
-    [state, tree],
+    () => (selectedPage ? selectedPage.title : findWorkspaceTitle(tree, state)),
+    [selectedPage, state, tree],
   );
+
+  const savePage = async (input: {
+    id: string;
+    title: string;
+    content: Page["content"];
+  }) => {
+    const saved = await onSavePage(input);
+    setPages((current) => ({ ...current, [saved.id]: saved }));
+    return saved;
+  };
 
   return (
     <Workspace
       tree={tree}
       state={state}
       title={title}
+      selectedPage={selectedPage}
       onOpenGrimoire={(id) => setState((current) => openGrimoire(current, id))}
       onOpenNotebook={(id) => setState((current) => openNotebook(current, id))}
       onOpenChapter={(id) => setState((current) => openChapter(current, id))}
       onOpenPage={(id) => setState((current) => openPage(current, id))}
+      onSavePage={savePage}
     />
   );
 }
