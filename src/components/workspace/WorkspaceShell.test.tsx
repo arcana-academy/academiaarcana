@@ -13,6 +13,15 @@ const createdGrimoire: Grimoire = {
   updatedAt: "2026-09-20T00:00:00.000Z",
 };
 
+const renamedNotebook: Notebook = {
+  id: "n1",
+  grimoireId: "g1",
+  title: "Caderno renomeado",
+  position: 0,
+  createdAt: "2026-09-20T00:00:00.000Z",
+  updatedAt: "2026-09-20T01:00:00.000Z",
+};
+
 const createdNotebook: Notebook = {
   id: "n2",
   grimoireId: "g1",
@@ -99,6 +108,9 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreateGrimoire={onCreateGrimoire}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreateNotebook={onCreateNotebook}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
@@ -142,6 +154,9 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreateGrimoire={onCreateGrimoire}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreateNotebook={onCreateNotebook}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
@@ -165,6 +180,46 @@ describe("WorkspaceShell", () => {
     ).toHaveAttribute("aria-current", "true");
   });
 
+  test("renames the selected notebook and updates its title", async () => {
+    const onRenameNotebook = vi.fn(() => Promise.resolve(renamedNotebook));
+
+    render(
+      <WorkspaceShell
+        tree={createTree()}
+        initialState={{
+          grimoireId: "g1",
+          notebookId: "n1",
+          chapterId: null,
+          pageId: null,
+        }}
+        onCreateGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={onRenameNotebook}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
+        onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onDeletePage={vi.fn(() => Promise.resolve())}
+        onSavePage={vi.fn(() => Promise.resolve(createdPage))}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Caderno renomeado" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar título" }));
+
+    expect(onRenameNotebook).toHaveBeenCalledWith({
+      id: "n1",
+      title: "Caderno renomeado",
+    });
+    expect(await screen.findByRole("heading", { name: "Caderno renomeado" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Caderno renomeado" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+  });
+
   test("creates a chapter and selects it", async () => {
     const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreateChapter = vi.fn(() => Promise.resolve(createdChapter));
@@ -185,6 +240,9 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreateGrimoire={onCreateGrimoire}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
@@ -225,6 +283,9 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreateGrimoire={onCreateGrimoire}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreatePage={onCreatePage}
