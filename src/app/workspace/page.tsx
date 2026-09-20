@@ -37,10 +37,14 @@ export default async function WorkspacePage({
   const params = await searchParams;
   const supabase = await createClient();
 
-  const grimoireRepository = createGrimoireRepository(supabase);
-  const notebookRepository = createNotebookRepository(supabase);
-  const chapterRepository = createChapterRepository(supabase);
-  const pageRepository = createPageRepository(supabase);
+  const repositoryClient = supabase as unknown as Parameters<
+    typeof createGrimoireRepository
+  >[0];
+
+  const grimoireRepository = createGrimoireRepository(repositoryClient);
+  const notebookRepository = createNotebookRepository(repositoryClient);
+  const chapterRepository = createChapterRepository(repositoryClient);
+  const pageRepository = createPageRepository(repositoryClient);
 
   const grimoires = await grimoireRepository.listByOwner(claims.sub);
 
