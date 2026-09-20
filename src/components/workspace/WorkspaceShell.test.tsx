@@ -69,6 +69,7 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreatePage={onCreatePage}
+        onDeletePage={onDeletePage}
         onSavePage={onSavePage}
       />,
     );
