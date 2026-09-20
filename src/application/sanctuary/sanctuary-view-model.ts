@@ -7,6 +7,7 @@ import type {
 
 const WORKSPACE_HREF = "/workspace?view=tree#current";
 
+/** Build the stable quick-action list exposed by the Sanctuary view model. */
 function createQuickActions() {
   return [
     {
@@ -18,6 +19,12 @@ function createQuickActions() {
   ];
 }
 
+/**
+ * Build the presentation-ready Sanctuary view model from a domain snapshot.
+ *
+ * Priority is consumed from the domain policy; this layer does not invent
+ * learning, progress, mission, or planning data.
+ */
 export function buildSanctuaryViewModel(
   snapshot: SanctuarySnapshot,
 ): SanctuaryViewModel {
