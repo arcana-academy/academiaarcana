@@ -4,8 +4,6 @@ import type {
   SanctuarySection,
 } from "./contracts";
 
-export type { PriorityDecision, SanctuarySection };
-
 export const SECTION_ORDER: readonly SanctuarySection[] = [
   "continueLearning",
   "progress",
@@ -32,52 +30,43 @@ export type PriorityPolicyContext = {
  * - Sections are always returned in SECTION_ORDER.
  */
 export function decideSanctuaryPriority(
-  context?: PriorityPolicyContext | null
+  context?: PriorityPolicyContext | null,
 ): PriorityDecision[] {
   const hasValidLearning = Boolean(context?.continueLearning);
 
-  return SECTION_ORDER.map((section): PriorityDecision => {
-    switch (section) {
-      case "continueLearning":
-        return hasValidLearning
-          ? {
-              section,
-              priority: "primary",
-              reason: "valid-learning-context",
-            }
-          : {
-              section,
-              priority: "supporting",
-              reason: "no-learning-context",
-            };
-
-      case "progress":
-        return {
-          section,
+  const decisions: Record<SanctuarySection, PriorityDecision> = {
+    continueLearning: hasValidLearning
+      ? {
+          section: "continueLearning",
+          priority: "primary",
+          reason: "valid-learning-context",
+        }
+      : {
+          section: "continueLearning",
           priority: "supporting",
-          reason: "progress-supporting",
-        };
+          reason: "no-learning-context",
+        },
+    progress: {
+      section: "progress",
+      priority: "supporting",
+      reason: "progress-supporting",
+    },
+    missions: {
+      section: "missions",
+      priority: "supporting",
+      reason: "gamification-not-configured",
+    },
+    schedule: {
+      section: "schedule",
+      priority: "supporting",
+      reason: "planning-not-configured",
+    },
+    quickActions: {
+      section: "quickActions",
+      priority: "supporting",
+      reason: "quick-actions-supporting",
+    },
+  };
 
-      case "missions":
-        return {
-          section,
-          priority: "supporting",
-          reason: "gamification-not-configured",
-        };
-
-      case "schedule":
-        return {
-          section,
-          priority: "supporting",
-          reason: "planning-not-configured",
-        };
-
-      case "quickActions":
-        return {
-          section,
-          priority: "supporting",
-          reason: "quick-actions-supporting",
-        };
-    }
-  });
+  return SECTION_ORDER.map((section) => decisions[section]);
 }
