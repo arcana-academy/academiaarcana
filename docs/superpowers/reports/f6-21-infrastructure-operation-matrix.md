@@ -2,7 +2,7 @@
 
 **Base documental:** `main` — matriz originalmente consolidada antes das verificações operacionais de setembro de 2026.
 
-**Atualização operacional:** esta matriz foi reconciliada com as evidências posteriores registradas no Issue #268, incluindo o deployment de produção `dpl_8EEhVtKQgAdga2GdsCVxdgy3Kdka` em estado `READY` e o smoke test autenticado/anonimamente redirecionado do Santuário.  
+**Atualização operacional:** esta matriz foi reconciliada com as evidências posteriores registradas no Issue #268, incluindo o deployment de produção `dpl_8EEhVtKQgAdga2GdsCVxdgy3Kdka` em estado `READY` e a verificação anônima de `/santuario`, que respondeu com redirecionamento para `/login`.  
 **Escopo:** consolidar a visão operacional da Academia Arcana a partir de evidências presentes no repositório e de estados externos explicitamente verificados.
 
 > Esta matriz distingue fatos comprovados no código/configuração versionada de controles que existem fora do repositório e ainda precisam de verificação operacional independente.
