@@ -1,6 +1,8 @@
 # F6.21 — Matriz final de infraestrutura e operação
 
-**Base verificada:** `main` no commit `6f2a51016b8337dbeb36ac686a6cf458384566f3`  
+**Base documental:** `main` — matriz originalmente consolidada antes das verificações operacionais de setembro de 2026.
+
+**Atualização operacional:** esta matriz foi reconciliada com as evidências posteriores registradas no Issue #268, incluindo o deployment de produção `dpl_8EEhVtKQgAdga2GdsCVxdgy3Kdka` em estado `READY` e o smoke test autenticado/anonimamente redirecionado do Santuário.  
 **Escopo:** consolidar a visão operacional da Academia Arcana a partir de evidências presentes no repositório e de estados externos explicitamente verificados.
 
 > Esta matriz distingue fatos comprovados no código/configuração versionada de controles que existem fora do repositório e ainda precisam de verificação operacional independente.
@@ -33,7 +35,7 @@
 | JavaScript/TypeScript analysis | Qualidade de código | DeepSource JavaScript + qlty | DeepSource / qlty | Sem exposição de segredos | Checks por commit/PR | PR #258 eliminou os findings observados | **VERIFICADO** |
 | Error monitoring | `trust` / infraestrutura transversal | Honeybadger browser/server/edge | Honeybadger | API key somente por ambiente | Erros de runtime e contexto | Recovery é operacional, conforme provedor | **EXTERNO** |
 | Produção | Delivery | Vercel | Vercel project `academiaarcana` | Configuração de ambiente externa | Deployment status + runtime logs disponíveis | Rollback/promotion suportados pela plataforma | **EXTERNO** |
-| Deployment do merge `6f2a510` | Delivery | GitHub → Vercel | Vercel | Configuração externa | Check Vercel reportado como `build-rate-limit` | Deployment novo ainda não foi observado | **PENDENTE** |
+| Produção atual verificada | Delivery | GitHub → Vercel | Vercel | Configuração externa | Deployment state + smoke test + runtime logs | `dpl_8EEhVtKQgAdga2GdsCVxdgy3Kdka` READY; smoke test `/santuario` HTTP 200; sem runtime errors no período verificado | **VERIFICADO / EXTERNO** |
 | Web Analytics | Observabilidade de produto | PR #245 mantém a implementação proposta | Vercel Analytics | Configuração depende do projeto Vercel | Page views / insights após ativação | Ativação deve ocorrer no dashboard | **EXTERNO / PENDENTE** |
 | Backups e recuperação | `data` / operação | Estratégia definida em F6, execução fora do app | Supabase / provedores operacionais | Retenção, acesso e restauração dependem da configuração externa | Restore deve ser validado por teste operacional | RTO/RPO exigem evidência externa | **PENDENTE** |
 | Resiliência e disponibilidade | Infraestrutura | Aplicação desenhada para estados parciais em algumas superfícies | Vercel + Supabase | Failures não devem ampliar autorização | Monitoring/alerts dependem dos provedores | Não declarar disponibilidade sem evidência de teste | **PENDENTE** |
@@ -87,7 +89,7 @@ O merge do PR #258 criou o commit:
 6f2a51016b8337dbeb36ac686a6cf458384566f3
 ```
 
-Até a última verificação, o Vercel reportava `build-rate-limit` para novos deployments e não havia um deployment de produção correspondente ao commit `6f2a510…`.
+A matriz original registrava o bloqueio `build-rate-limit` para uma versão anterior. Esse estado não deve ser usado como descrição da produção atual: posteriormente foi confirmado um deployment de produção `READY`, com smoke test do Santuário e ausência de runtime errors no período observado. O bloqueio de quota do Vercel continua sendo uma limitação operacional possível para novos deployments e não deve ser confundido com falha do código.
 
 ### Regra operacional
 
@@ -135,7 +137,7 @@ Estas lacunas não devem ser mascaradas pela existência de código:
 - evidência de alertas operacionais com responsáveis;
 - evidência de tracing/correlação ponta a ponta;
 - confirmação de ativação e coleta do Web Analytics no projeto de produção;
-- publicação do merge `6f2a510…` em produção após o bloqueio `build-rate-limit`;
+- confirmação operacional de cada novo deployment após releases; o deployment atualmente evidenciado já possui estado `READY` e smoke test registrado;
 - procedimento operacional documentado para renovar/rotacionar credenciais externas;
 - verificação de disponibilidade/resiliência em ambiente de produção.
 
@@ -155,4 +157,4 @@ A F6.21 pode ser considerada documentalmente consolidada quando cada capacidade 
 - Quality Gate correspondente;
 - estado claramente classificado como verificado, externo ou pendente.
 
-**Conclusão:** a matriz fecha a visão de implementação e operação conhecida pelo repositório, mas não transforma capacidades externas não verificadas — especialmente backup/restore e publicação do deployment `6f2a510…` — em requisitos falsamente concluídos.
+**Conclusão:** a matriz fecha a visão conhecida de implementação e operação, mas mantém como pendentes as capacidades externas ainda não exercitadas — especialmente backup/restore, RTO/RPO, DR, incident response, rollback real, alertas/métricas, Storage reconciliation e credential recovery. O deployment de produção atualmente evidenciado está separado dessas lacunas e não é usado como prova indevida de recovery.
