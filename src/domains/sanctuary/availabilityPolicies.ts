@@ -18,6 +18,5 @@ export function resolveGamificationAvailability(): FeatureAvailability {
 }
 
 export function resolveProgressAvailability(): FeatureAvailability {
-    return "not-configured";
+  return "not-configured";
 }
-
