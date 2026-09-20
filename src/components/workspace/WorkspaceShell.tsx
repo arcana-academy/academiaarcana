@@ -24,22 +24,21 @@ type WorkspaceShellProps = {
   }) => Promise<Page>;
 };
 
+/** Find the selected page in the already-loaded Workspace hierarchy. */
 function findSelectedPage(
   tree: WorkspaceTree,
   state: WorkspaceState,
 ): Page | null {
-  for (const grimoire of tree.grimoires) {
-    for (const notebook of grimoire.notebooks ?? []) {
-      for (const chapter of notebook.chapters ?? []) {
-        const page = chapter.pages?.find((item) => item.id === state.pageId);
-        if (page) return page;
-      }
-    }
-  }
+  const pages = tree.grimoires.flatMap((grimoire) =>
+    (grimoire.notebooks ?? []).flatMap((notebook) =>
+      (notebook.chapters ?? []).flatMap((chapter) => chapter.pages ?? []),
+    ),
+  );
 
-  return null;
+  return pages.find((page) => page.id === state.pageId) ?? null;
 }
 
+/** Resolve the visible title for the current Workspace selection. */
 function findWorkspaceTitle(
   tree: WorkspaceTree,
   state: WorkspaceState,
@@ -67,6 +66,7 @@ function findWorkspaceTitle(
   return "Workspace";
 }
 
+/** Manage Workspace selection and saved page state on the client. */
 export function WorkspaceShell({
   tree,
   initialState,
@@ -87,6 +87,7 @@ export function WorkspaceShell({
     [selectedPage, state, tree],
   );
 
+  /** Persist a page and immediately reflect the returned version in the shell. */
   const savePage = async (input: {
     id: string;
     title: string;
