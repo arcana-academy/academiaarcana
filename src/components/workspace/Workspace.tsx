@@ -23,6 +23,9 @@ type WorkspaceProps = {
   onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
   onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
+  canMovePageUp: boolean;
+  canMovePageDown: boolean;
+  onMovePage: (direction: "up" | "down") => Promise<void>;
   onDeletePage: (id: string) => Promise<void>;
   onSavePage: (input: {
     id: string;
@@ -276,6 +279,9 @@ export function Workspace({
   onCreateNotebook,
   onCreateChapter,
   onCreatePage,
+  canMovePageUp,
+  canMovePageDown,
+  onMovePage,
   onDeletePage,
   onSavePage,
 }: WorkspaceProps) {
@@ -361,6 +367,9 @@ export function Workspace({
             <PageEditor
               key={selectedPage.id}
               page={selectedPage}
+              canMoveUp={canMovePageUp}
+              canMoveDown={canMovePageDown}
+              onMove={onMovePage}
               onDelete={onDeletePage}
               onSave={onSavePage}
             />
