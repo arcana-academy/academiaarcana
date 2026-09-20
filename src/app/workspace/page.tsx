@@ -20,6 +20,7 @@ import {
   renameWorkspaceNotebook,
   createWorkspacePage,
   deleteWorkspacePage,
+  moveWorkspacePage,
   updateWorkspacePage,
 } from "./actions";
 import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
@@ -137,6 +138,7 @@ export default async function WorkspacePage({
       onRenameChapter={renameWorkspaceChapter}
       onCreateChapter={createWorkspaceChapter}
       onCreatePage={createWorkspacePage}
+      onMovePage={moveWorkspacePage}
       onDeletePage={deleteWorkspacePage}
       onSavePage={updateWorkspacePage}
     />

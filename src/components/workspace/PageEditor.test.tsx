@@ -18,6 +18,12 @@ const page: Page = {
   updatedAt: "2026-01-01",
 };
 
+const movementProps = {
+  canMoveUp: false,
+  canMoveDown: false,
+  onMove: vi.fn(() => Promise.resolve()),
+};
+
 type SaveInput = {
   id: string;
   title: string;
@@ -39,6 +45,7 @@ describe("PageEditor", () => {
 
     render(
       <PageEditor
+        {...movementProps}
         page={page}
         onDelete={vi.fn(() => Promise.resolve())}
         onSave={onSave}
@@ -68,6 +75,7 @@ describe("PageEditor", () => {
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
+        {...movementProps}
         page={page}
         onDelete={vi.fn(() => Promise.resolve())}
         onSave={vi.fn()}
@@ -86,6 +94,7 @@ describe("PageEditor", () => {
 
     render(
       <PageEditor
+        {...movementProps}
         page={page}
         onDelete={vi.fn(() => Promise.resolve())}
         onSave={onSave}
@@ -104,6 +113,7 @@ describe("PageEditor", () => {
 
     render(
       <PageEditor
+        {...movementProps}
         page={page}
         onDelete={onDelete}
         onSave={vi.fn()}
@@ -132,6 +142,7 @@ describe("PageEditor", () => {
 
     render(
       <PageEditor
+        {...movementProps}
         page={page}
         onDelete={onDelete}
         onSave={vi.fn()}
@@ -153,6 +164,7 @@ describe("PageEditor", () => {
 
     render(
       <PageEditor
+        {...movementProps}
         page={page}
         onDelete={onDelete}
         onSave={vi.fn()}
@@ -174,6 +186,54 @@ describe("PageEditor", () => {
     expect(onDelete).not.toHaveBeenCalled();
   });
 
+  test("moves the selected page upward", async () => {
+    const onMove = vi.fn(() => Promise.resolve());
+
+    render(
+      <PageEditor
+        canMoveUp
+        canMoveDown={false}
+        onMove={onMove}
+        page={{ ...page, position: 1 }}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mover página para cima" }),
+    );
+
+    await waitFor(() => expect(onMove).toHaveBeenCalledWith("up"));
+  });
+
+  test("shows a recovery message when moving a page fails", async () => {
+    const onMove = vi.fn(() =>
+      Promise.reject(new Error("move failed")),
+    );
+
+    render(
+      <PageEditor
+        canMoveUp
+        canMoveDown
+        onMove={onMove}
+        page={{ ...page, position: 1 }}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Mover página para cima" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Não foi possível mover a página para cima.",
+      ),
+    ).toBeTruthy();
+  });
+
   test("shows a recovery message when deletion fails", async () => {
     const onDelete = vi.fn(() =>
       Promise.reject(new Error("delete failed")),
@@ -181,6 +241,7 @@ describe("PageEditor", () => {
 
     render(
       <PageEditor
+        {...movementProps}
         page={page}
         onDelete={onDelete}
         onSave={vi.fn()}

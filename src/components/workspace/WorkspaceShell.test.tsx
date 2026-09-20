@@ -114,6 +114,12 @@ describe("WorkspaceShell", () => {
         onCreateNotebook={onCreateNotebook}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: createdPage,
+            swappedPage: null,
+          }),
+        )}
         onDeletePage={onDeletePage}
         onSavePage={onSavePage}
       />,
@@ -160,6 +166,12 @@ describe("WorkspaceShell", () => {
         onCreateNotebook={onCreateNotebook}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: createdPage,
+            swappedPage: null,
+          }),
+        )}
         onDeletePage={onDeletePage}
         onSavePage={onSavePage}
       />,
@@ -199,6 +211,12 @@ describe("WorkspaceShell", () => {
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: createdPage,
+            swappedPage: null,
+          }),
+        )}
         onDeletePage={vi.fn(() => Promise.resolve())}
         onSavePage={vi.fn(() => Promise.resolve(createdPage))}
       />,
@@ -246,6 +264,12 @@ describe("WorkspaceShell", () => {
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: createdPage,
+            swappedPage: null,
+          }),
+        )}
         onDeletePage={onDeletePage}
         onSavePage={onSavePage}
       />,
@@ -289,6 +313,12 @@ describe("WorkspaceShell", () => {
         onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
         onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
         onCreatePage={onCreatePage}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: createdPage,
+            swappedPage: null,
+          }),
+        )}
         onDeletePage={onDeletePage}
         onSavePage={onSavePage}
       />,
