@@ -120,6 +120,7 @@ export default async function WorkspacePage({
     <WorkspaceShell
       tree={{ grimoires: tree }}
       initialState={initialState}
+      onCreatePage={createWorkspacePage}
       onSavePage={updateWorkspacePage}
     />
   );
