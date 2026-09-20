@@ -71,6 +71,7 @@ function findWorkspaceTitle(
 export function WorkspaceShell({
   tree,
   initialState,
+  onCreatePage,
   onSavePage,
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
@@ -105,7 +106,6 @@ export function WorkspaceShell({
     [selectedPage, state, workspaceTree],
   );
 
-  /** Persist a page and immediately reflect the returned version in the shell. */
   /** Create a page, add it to the local tree, and select it for editing. */
   const createPage = async (input: { chapterId: string; title: string }) => {
     const created = await onCreatePage(input);
@@ -114,7 +114,9 @@ export function WorkspaceShell({
       [created.chapterId]: [...(current[created.chapterId] ?? []), created],
     }));
     setPages((current) => ({ ...current, [created.id]: created }));
-    setState((current) => openPage({ ...current, chapterId: created.chapterId }, created.id));
+    setState((current) =>
+      openPage({ ...current, chapterId: created.chapterId }, created.id),
+    );
     return created;
   };
 
