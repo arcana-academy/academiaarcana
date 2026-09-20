@@ -99,7 +99,6 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreateGrimoire={onCreateGrimoire}
-        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={onCreateNotebook}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
@@ -142,6 +141,7 @@ describe("WorkspaceShell", () => {
           chapterId: null,
           pageId: null,
         }}
+        onCreateGrimoire={onCreateGrimoire}
         onCreateNotebook={onCreateNotebook}
         onCreateChapter={onCreateChapter}
         onCreatePage={onCreatePage}
