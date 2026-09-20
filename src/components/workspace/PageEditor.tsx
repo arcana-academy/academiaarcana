@@ -12,13 +12,18 @@ type PageEditorProps = {
   }) => Promise<Page>;
 };
 
+/** Edit and persist the currently selected learning page. */
 export function PageEditor({ page, onSave }: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle",
   );
+  const [blockKeys, setBlockKeys] = useState(() =>
+    page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
+  );
 
+  /** Save the current editor state through the authenticated server action. */
   const save = async () => {
     setStatus("saving");
 
@@ -50,8 +55,10 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
         {content.blocks.length === 0 ? (
           <p>Esta página ainda não possui conteúdo.</p>
         ) : (
-          content.blocks.map((block, index) => (
-            <div key={index}>
+          content.blocks
+            .map((block, index) => ({ block, key: blockKeys[index] }))
+            .map(({ block, key }, index) => (
+            <div key={key}>
               <label htmlFor={`workspace-page-block-${index}`}>
                 Bloco {index + 1}
               </label>
@@ -78,7 +85,11 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
           setContent({
             ...content,
             blocks: [...content.blocks, { type: "paragraph", content: "" }],
-          })
+          });
+          setBlockKeys((current) => [
+            ...current,
+            `${page.id}:block:${current.length}`,
+          ])
         }
       >
         Adicionar bloco
