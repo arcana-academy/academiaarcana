@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Page } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 
@@ -25,15 +25,25 @@ type SaveInput = {
 };
 
 describe("PageEditor", () => {
-  test("renders the selected page and saves title and content", async () => {
-    const onSave = vi.fn((input: SaveInput) => Promise.resolve({
-      ...page,
-      title: input.title,
-      content: input.content,
-      updatedAt: "2026-01-02",
-    }));
+  afterEach(() => vi.restoreAllMocks());
 
-    render(<PageEditor page={page} onSave={onSave} />);
+  test("renders the selected page and saves title and content", async () => {
+    const onSave = vi.fn((input: SaveInput) =>
+      Promise.resolve({
+        ...page,
+        title: input.title,
+        content: input.content,
+        updatedAt: "2026-01-02",
+      }),
+    );
+
+    render(
+      <PageEditor
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={onSave}
+      />,
+    );
 
     fireEvent.change(screen.getByLabelText("Título"), {
       target: { value: "Dor lombar - revisão" },
@@ -56,7 +66,13 @@ describe("PageEditor", () => {
   });
 
   test("allows adding a paragraph block", () => {
-    render(<PageEditor page={page} onSave={vi.fn()} />);
+    render(
+      <PageEditor
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={vi.fn()}
+      />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Adicionar bloco" }));
 
@@ -68,12 +84,118 @@ describe("PageEditor", () => {
       Promise.reject(new Error("save failed")),
     );
 
-    render(<PageEditor page={page} onSave={onSave} />);
+    render(
+      <PageEditor
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={onSave}
+      />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
 
     expect(
       await screen.findByText("Não foi possível salvar a página."),
+    ).toBeTruthy();
+  });
+
+  test("opens a confirmation before deleting the selected page", () => {
+    const onDelete = vi.fn(() => Promise.resolve());
+
+    render(
+      <PageEditor
+        page={page}
+        onDelete={onDelete}
+        onSave={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Excluir página" }),
+    );
+
+    expect(
+      screen.getByRole("alertdialog", {
+        name: "Confirmar exclusão da página",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Excluir a página "Dor lombar"? Essa ação não pode ser desfeita.',
+      ),
+    ).toBeTruthy();
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  test("confirms and deletes the selected page", async () => {
+    const onDelete = vi.fn(() => Promise.resolve());
+
+    render(
+      <PageEditor
+        page={page}
+        onDelete={onDelete}
+        onSave={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Excluir página" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar exclusão" }),
+    );
+
+    await waitFor(() => expect(onDelete).toHaveBeenCalledWith("p1"));
+  });
+
+  test("cancels deletion when confirmation is declined", async () => {
+    const onDelete = vi.fn(() => Promise.resolve());
+
+    render(
+      <PageEditor
+        page={page}
+        onDelete={onDelete}
+        onSave={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Excluir página" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("alertdialog", {
+          name: "Confirmar exclusão da página",
+        }),
+      ).toBeNull(),
+    );
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  test("shows a recovery message when deletion fails", async () => {
+    const onDelete = vi.fn(() =>
+      Promise.reject(new Error("delete failed")),
+    );
+
+    render(
+      <PageEditor
+        page={page}
+        onDelete={onDelete}
+        onSave={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Excluir página" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar exclusão" }),
+    );
+
+    expect(
+      await screen.findByText("Não foi possível excluir a página."),
     ).toBeTruthy();
   });
 });

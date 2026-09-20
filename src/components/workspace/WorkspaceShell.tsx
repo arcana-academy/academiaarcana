@@ -18,6 +18,7 @@ type WorkspaceShellProps = {
   tree: WorkspaceTree;
   initialState: WorkspaceState;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
+  onDeletePage: (id: string) => Promise<void>;
   onSavePage: (input: {
     id: string;
     title: string;
@@ -72,11 +73,13 @@ export function WorkspaceShell({
   tree,
   initialState,
   onCreatePage,
+  onDeletePage,
   onSavePage,
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [pages, setPages] = useState<Record<string, Page>>({});
   const [createdPages, setCreatedPages] = useState<Record<string, Page[]>>({});
+  const [deletedPageIds, setDeletedPageIds] = useState<string[]>([]);
 
   const workspaceTree = useMemo<WorkspaceTree>(() => ({
     grimoires: tree.grimoires.map((grimoire) => ({
@@ -88,11 +91,13 @@ export function WorkspaceShell({
           pages: [
             ...(chapter.pages ?? []),
             ...(createdPages[chapter.id] ?? []),
-          ].sort((left, right) => left.position - right.position),
+          ]
+            .filter((page) => !deletedPageIds.includes(page.id))
+            .sort((left, right) => left.position - right.position),
         })),
       })),
     })),
-  }), [createdPages, tree]);
+  }), [createdPages, deletedPageIds, tree]);
 
   const selectedPage = useMemo(() => {
     const persistedPage = findSelectedPage(workspaceTree, state);
@@ -120,6 +125,32 @@ export function WorkspaceShell({
     return created;
   };
 
+  /** Delete a page, clear its local state, and keep the chapter selected. */
+  const deletePage = async (id: string) => {
+    await onDeletePage(id);
+    setDeletedPageIds((current) =>
+      current.includes(id) ? current : [...current, id],
+    );
+    setPages((current) =>
+      Object.fromEntries(
+        Object.entries(current).filter(([pageId]) => pageId !== id),
+      ),
+    );
+    setCreatedPages((current) =>
+      Object.fromEntries(
+        Object.entries(current).map(([chapterId, chapterPages]) => [
+          chapterId,
+          chapterPages.filter((page) => page.id !== id),
+        ]),
+      ),
+    );
+    setState((current) =>
+      current.pageId === id
+        ? { ...current, pageId: null }
+        : current,
+    );
+  };
+
   /** Persist a page and immediately reflect the returned version in the shell. */
   const savePage = async (input: {
     id: string;
@@ -142,6 +173,7 @@ export function WorkspaceShell({
       onOpenChapter={(id) => setState((current) => openChapter(current, id))}
       onOpenPage={(id) => setState((current) => openPage(current, id))}
       onCreatePage={createPage}
+      onDeletePage={deletePage}
       onSavePage={savePage}
     />
   );

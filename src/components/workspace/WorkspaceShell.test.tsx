@@ -57,6 +57,7 @@ function createTree() {
 describe("WorkspaceShell", () => {
   test("creates a page and opens it in the editor", async () => {
     const onCreatePage = vi.fn(() => Promise.resolve(createdPage));
+    const onDeletePage = vi.fn(() => Promise.resolve());
     const onSavePage = vi.fn(() => Promise.resolve(createdPage));
 
     render(
@@ -69,6 +70,7 @@ describe("WorkspaceShell", () => {
           pageId: null,
         }}
         onCreatePage={onCreatePage}
+        onDeletePage={onDeletePage}
         onSavePage={onSavePage}
       />,
     );

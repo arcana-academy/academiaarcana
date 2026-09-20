@@ -3,8 +3,73 @@
 import { useState } from "react";
 import type { Page, PageContent } from "@/domains/learning";
 
+type PageDeleteControlProps = {
+  pageId: string;
+  pageTitle: string;
+  onDelete: (id: string) => Promise<void>;
+};
+
+/** Confirm and execute deletion of the selected Workspace page. */
+function PageDeleteControl({
+  pageId,
+  pageTitle,
+  onDelete,
+}: PageDeleteControlProps) {
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Execute the confirmed deletion and report recoverable failures. */
+  const remove = async () => {
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await onDelete(pageId);
+    } catch {
+      setError("Não foi possível excluir a página.");
+      setIsDeleting(false);
+    }
+  };
+
+  if (!isConfirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsConfirming(true)}
+      >
+        Excluir página
+      </button>
+    );
+  }
+
+  return (
+    <div role="alertdialog" aria-label="Confirmar exclusão da página">
+      <p>
+        Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
+      </p>
+      {error ? <p role="alert">{error}</p> : null}
+      <button
+        type="button"
+        disabled={isDeleting}
+        onClick={() => setIsConfirming(false)}
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        disabled={isDeleting}
+        onClick={remove}
+      >
+        {isDeleting ? "Excluindo…" : "Confirmar exclusão"}
+      </button>
+    </div>
+  );
+}
+
 type PageEditorProps = {
   page: Page;
+  onDelete: (id: string) => Promise<void>;
   onSave: (input: {
     id: string;
     title: string;
@@ -13,7 +78,7 @@ type PageEditorProps = {
 };
 
 /** Edit and persist the currently selected learning page. */
-export function PageEditor({ page, onSave }: PageEditorProps) {
+export function PageEditor({ page, onDelete, onSave }: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
@@ -58,24 +123,24 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
           content.blocks
             .map((block, index) => ({ block, key: blockKeys[index] }))
             .map(({ block, key }, index) => (
-            <div key={key}>
-              <label htmlFor={`workspace-page-block-${index}`}>
-                Bloco {index + 1}
-              </label>
-              <textarea
-                id={`workspace-page-block-${index}`}
-                value={block.content}
-                onChange={(event) => {
-                  const nextBlocks = [...content.blocks];
-                  nextBlocks[index] = {
-                    ...block,
-                    content: event.target.value,
-                  };
-                  setContent({ ...content, blocks: nextBlocks });
-                }}
-              />
-            </div>
-          ))
+              <div key={key}>
+                <label htmlFor={`workspace-page-block-${index}`}>
+                  Bloco {index + 1}
+                </label>
+                <textarea
+                  id={`workspace-page-block-${index}`}
+                  value={block.content}
+                  onChange={(event) => {
+                    const nextBlocks = [...content.blocks];
+                    nextBlocks[index] = {
+                      ...block,
+                      content: event.target.value,
+                    };
+                    setContent({ ...content, blocks: nextBlocks });
+                  }}
+                />
+              </div>
+            ))
         )}
       </div>
 
@@ -98,6 +163,12 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
       <button type="button" disabled={status === "saving"} onClick={save}>
         {status === "saving" ? "Salvando…" : "Salvar página"}
       </button>
+
+      <PageDeleteControl
+        pageId={page.id}
+        pageTitle={page.title}
+        onDelete={onDelete}
+      />
 
       <p role="status" aria-live="polite">
         {status === "saved"
