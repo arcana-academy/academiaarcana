@@ -1,4 +1,4 @@
-﻿﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
@@ -16,15 +16,21 @@ describe("Workspace", () => {
           pageId: null,
         }}
         title="Academia Arcana"
+        selectedPage={null}
         onOpenGrimoire={vi.fn()}
         onOpenNotebook={vi.fn()}
         onOpenChapter={vi.fn()}
         onOpenPage={vi.fn()}
+        onSavePage={vi.fn(async () => {
+          throw new Error("not used in this test");
+        })}
       />,
     );
 
     expect(screen.getByRole("banner")).toBeTruthy();
-    expect(screen.getByRole("navigation", { name: "Navegação do workspace" })).toBeTruthy();
+    expect(
+      screen.getByRole("navigation", { name: "Navegação do workspace" }),
+    ).toBeTruthy();
     expect(screen.getByRole("main")).toBeTruthy();
   });
 });
