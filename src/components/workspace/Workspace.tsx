@@ -16,6 +16,7 @@ type WorkspaceProps = {
   onOpenChapter: (id: string) => void;
   onOpenPage: (id: string) => void;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
+  onDeletePage: (id: string) => Promise<void>;
   onSavePage: (input: {
     id: string;
     title: string;
@@ -97,6 +98,7 @@ export function Workspace({
   onOpenChapter,
   onOpenPage,
   onCreatePage,
+  onDeletePage,
   onSavePage,
 }: WorkspaceProps) {
   return (
@@ -123,6 +125,7 @@ export function Workspace({
             <PageEditor
               key={selectedPage.id}
               page={selectedPage}
+              onDelete={onDeletePage}
               onSave={onSavePage}
             />
           ) : (
