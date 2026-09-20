@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Page, PageContent } from "@/domains/learning";
 
 type PageEditorProps = {
@@ -18,12 +18,6 @@ export function PageEditor({ page, onSave }: PageEditorProps) {
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle",
   );
-
-  useEffect(() => {
-    setTitle(page.title);
-    setContent(page.content);
-    setStatus("idle");
-  }, [page.id, page.title, page.content]);
 
   const save = async () => {
     setStatus("saving");
