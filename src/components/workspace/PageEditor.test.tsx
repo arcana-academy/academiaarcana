@@ -18,9 +18,15 @@ const page: Page = {
   updatedAt: "2026-01-01",
 };
 
+type SaveInput = {
+  id: string;
+  title: string;
+  content: Page["content"];
+};
+
 describe("PageEditor", () => {
   test("renders the selected page and saves title and content", async () => {
-    const onSave = vi.fn(async (input) => ({
+    const onSave = vi.fn(async (input: SaveInput) => ({
       ...page,
       title: input.title,
       content: input.content,
