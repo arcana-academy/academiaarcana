@@ -293,7 +293,7 @@ export function PageEditor({
         isMoving={isMoving}
         canMoveUp={canMoveUp}
         canMoveDown={canMoveDown}
-        onMove={(direction) => void move(direction)}
+        onMove={move}
       />
       {moveError ? <p role="alert">{moveError}</p> : null}
 
