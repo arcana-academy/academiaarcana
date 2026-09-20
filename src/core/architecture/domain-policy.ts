@@ -160,6 +160,17 @@ export const DOMAIN_POLICIES: Record<CoreDomain, DomainPolicy> = {
     events: ["persistence operation completed", "portability operation completed"],
     infrastructure: ["Supabase adapter", "database client", "migration adapter", "backup/recovery adapter"],
   },
+  sanctuary: {
+    responsibility: "Learner sanctuary experience and personalized entry point into the learning hierarchy.",
+    owns: ["sanctuary snapshot", "continue learning state", "sanctuary view model", "sanctuary priorities"],
+    excludes: ["learning progress ownership", "educational content ownership", "planning policy", "authorization policy", "UI rendering"],
+    entities: ["SanctuarySnapshot", "ContinueLearning", "SanctuaryViewModel"],
+    useCases: ["resolve sanctuary snapshot", "resolve continue learning", "assemble sanctuary view model"],
+    allowedDependencies: ["identity", "context", "authorization", "learning", "education", "planning", "gamification"],
+    prohibitedDependencies: ["React", "Next.js UI", "Supabase client", "direct database access", "duplicated domain invariants"],
+    events: ["continue learning resolved", "sanctuary snapshot refreshed"],
+    infrastructure: sharedInfrastructure,
+  },
 };
 
 export const ARCHITECTURE_LAYERS: readonly ArchitectureLayer[] = [
