@@ -13,6 +13,7 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 import { createClient } from "@/lib/supabase/server";
 import {
   createWorkspaceChapter,
+  createWorkspaceNotebook,
   createWorkspacePage,
   deleteWorkspacePage,
   updateWorkspacePage,
@@ -125,6 +126,7 @@ export default async function WorkspacePage({
     <WorkspaceShell
       tree={{ grimoires: tree }}
       initialState={initialState}
+      onCreateNotebook={createWorkspaceNotebook}
       onCreateChapter={createWorkspaceChapter}
       onCreatePage={createWorkspacePage}
       onDeletePage={deleteWorkspacePage}
