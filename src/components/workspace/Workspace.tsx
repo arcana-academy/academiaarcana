@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Chapter, Page, WorkspaceState } from "@/domains/learning";
+import type { Chapter, Notebook, Page, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
@@ -15,6 +15,7 @@ type WorkspaceProps = {
   onOpenNotebook: (id: string) => void;
   onOpenChapter: (id: string) => void;
   onOpenPage: (id: string) => void;
+  onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
   onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
   onDeletePage: (id: string) => Promise<void>;
@@ -24,6 +25,64 @@ type WorkspaceProps = {
     content: Page["content"];
   }) => Promise<Page>;
 };
+
+type NotebookCreationFormProps = {
+  grimoireId: string;
+  onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
+};
+
+/** Provide the controls and feedback for creating a notebook in a grimoire. */
+function NotebookCreationForm({
+  grimoireId,
+  onCreateNotebook,
+}: NotebookCreationFormProps) {
+  const [title, setTitle] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Submit a notebook creation request and reset the form after success. */
+  const handleCreate = async () => {
+    if (!title.trim()) return;
+
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      await onCreateNotebook({ grimoireId, title });
+      setTitle("");
+    } catch {
+      setError("Não foi possível criar o caderno.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <form
+      aria-label="Criar caderno"
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <label htmlFor="workspace-new-notebook-title">Novo caderno</label>
+      <input
+        id="workspace-new-notebook-title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+        disabled={isCreating}
+        placeholder="Título do caderno"
+      />
+      <button
+        type="button"
+        disabled={isCreating || !title.trim()}
+        onClick={handleCreate}
+      >
+        {isCreating ? "Criando…" : "Criar caderno"}
+      </button>
+      {error ? <p role="alert">{error}</p> : null}
+    </form>
+  );
+}
 
 type ChapterCreationFormProps = {
   notebookId: string;
@@ -151,6 +210,7 @@ export function Workspace({
   onOpenNotebook,
   onOpenChapter,
   onOpenPage,
+  onCreateNotebook,
   onCreateChapter,
   onCreatePage,
   onDeletePage,
@@ -169,6 +229,13 @@ export function Workspace({
           onOpenPage={onOpenPage}
         />
         <main aria-label="Área de trabalho">
+          {state.grimoireId && !state.notebookId ? (
+            <NotebookCreationForm
+              grimoireId={state.grimoireId}
+              onCreateNotebook={onCreateNotebook}
+            />
+          ) : null}
+
           {state.notebookId && !state.chapterId ? (
             <ChapterCreationForm
               notebookId={state.notebookId}
