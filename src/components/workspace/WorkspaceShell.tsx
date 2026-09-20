@@ -24,6 +24,13 @@ type WorkspaceShellProps = {
   onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
   onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
+  onMovePage: (input: {
+    id: string;
+    direction: "up" | "down";
+  }) => Promise<{
+    movedPage: Page;
+    swappedPage: Page | null;
+  }>;
   onDeletePage: (id: string) => Promise<void>;
   onSavePage: (input: {
     id: string;
@@ -107,6 +114,7 @@ export function WorkspaceShell({
     Record<string, Array<Chapter & { pages: Page[] }>>
   >({});
   const [createdPages, setCreatedPages] = useState<Record<string, Page[]>>({});
+  const [reorderedPages, setReorderedPages] = useState<Record<string, number>>({});
   const [deletedPageIds, setDeletedPageIds] = useState<string[]>([]);
 
   const workspaceTree = useMemo<WorkspaceTree>(() => ({
@@ -137,7 +145,12 @@ export function WorkspaceShell({
             ...(createdPages[chapter.id] ?? []),
           ]
             .filter((page) => !deletedPageIds.includes(page.id))
-            .sort((left, right) => left.position - right.position),
+            .sort(
+              (left, right) =>
+                (reorderedPages[left.id] ?? left.position) -
+                  (reorderedPages[right.id] ?? right.position) ||
+                left.id.localeCompare(right.id),
+            ),
         })),
     })),
   })),
@@ -150,6 +163,7 @@ export function WorkspaceShell({
     createdNotebooks,
     createdPages,
     deletedPageIds,
+    reorderedPages,
     tree,
   ]);
 
@@ -164,6 +178,32 @@ export function WorkspaceShell({
     () => (selectedPage ? selectedPage.title : findWorkspaceTitle(workspaceTree, state)),
     [selectedPage, state, workspaceTree],
   );
+
+  const pageMovement = useMemo(() => {
+    if (!selectedPage || !state.chapterId) {
+      return { canMoveUp: false, canMoveDown: false };
+    }
+
+    const chapter = workspaceTree.grimoires
+      .flatMap((grimoire) => grimoire.notebooks ?? [])
+      .flatMap((notebook) => notebook.chapters ?? [])
+      .find((item) => item.id === state.chapterId);
+
+    const pagesInChapter = [...(chapter?.pages ?? [])].sort(
+      (left, right) =>
+        (reorderedPages[left.id] ?? left.position) -
+          (reorderedPages[right.id] ?? right.position) ||
+        left.id.localeCompare(right.id),
+    );
+    const index = pagesInChapter.findIndex(
+      (page) => page.id === selectedPage.id,
+    );
+
+    return {
+      canMoveUp: index > 0,
+      canMoveDown: index >= 0 && index < pagesInChapter.length - 1,
+    };
+  }, [reorderedPages, selectedPage, state.chapterId, workspaceTree]);
 
   /** Rename a grimoire and reflect the persisted title locally. */
   const renameGrimoire = async (input: { id: string; title: string }) => {
@@ -265,6 +305,24 @@ export function WorkspaceShell({
     return created;
   };
 
+  /** Move a page one position and update both affected local positions. */
+  const movePage = async (input: {
+    id: string;
+    direction: "up" | "down";
+  }) => {
+    const result = await onMovePage(input);
+
+    setReorderedPages((current) => ({
+      ...current,
+      [result.movedPage.id]: result.movedPage.position,
+      ...(result.swappedPage
+        ? { [result.swappedPage.id]: result.swappedPage.position }
+        : {}),
+    }));
+
+    return result;
+  };
+
   /** Delete a page, clear its local state, and keep the chapter selected. */
   const deletePage = async (id: string) => {
     await onDeletePage(id);
@@ -308,6 +366,8 @@ export function WorkspaceShell({
       state={state}
       title={title}
       selectedPage={selectedPage}
+      canMovePageUp={pageMovement.canMoveUp}
+      canMovePageDown={pageMovement.canMoveDown}
       onOpenGrimoire={(id) => setState((current) => openGrimoire(current, id))}
       onCreateGrimoire={createGrimoire}
       onRenameGrimoire={renameGrimoire}
@@ -319,6 +379,7 @@ export function WorkspaceShell({
       onCreateNotebook={createNotebook}
       onCreateChapter={createChapter}
       onCreatePage={createPage}
+      onMovePage={movePage}
       onDeletePage={deletePage}
       onSavePage={savePage}
     />
