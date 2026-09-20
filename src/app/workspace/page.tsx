@@ -11,7 +11,6 @@ import { createNotebookRepository } from "@/infrastructure/supabase/workspace/no
 import { createPageRepository } from "@/infrastructure/supabase/workspace/page-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
-import { updateWorkspacePage } from "./actions";
 import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 
 type WorkspacePageProps = {
@@ -37,7 +36,7 @@ type WorkspaceTreeItem = Grimoire & {
 
 type WorkspaceTree = WorkspaceTreeItem[];
 
-/** Load the pages belonging to one chapter for the Workspace tree. */
+/** Load all pages belonging to a chapter in deterministic position order. */
 async function loadChapterTree(
   pageRepository: ReturnType<typeof createPageRepository>,
   chapter: Chapter,
@@ -46,7 +45,7 @@ async function loadChapterTree(
   return { ...chapter, pages };
 }
 
-/** Load one notebook with its chapters and pages. */
+/** Load chapters and pages belonging to a notebook. */
 async function loadNotebookTree(
   chapterRepository: ReturnType<typeof createChapterRepository>,
   pageRepository: ReturnType<typeof createPageRepository>,
@@ -60,7 +59,7 @@ async function loadNotebookTree(
   return { ...notebook, chapters: chapterTree };
 }
 
-/** Load the authenticated user's complete Workspace hierarchy. */
+/** Load the complete authenticated hierarchy for the Workspace. */
 async function loadWorkspaceTree(
   grimoireRepository: ReturnType<typeof createGrimoireRepository>,
   notebookRepository: ReturnType<typeof createNotebookRepository>,
@@ -84,7 +83,7 @@ async function loadWorkspaceTree(
   );
 }
 
-/** Render the authenticated Workspace route with its persisted hierarchy. */
+/** Render the authenticated Workspace from the user's persisted hierarchy. */
 export default async function WorkspacePage({
   searchParams,
 }: WorkspacePageProps) {
@@ -120,7 +119,6 @@ export default async function WorkspacePage({
     <WorkspaceShell
       tree={{ grimoires: tree }}
       initialState={initialState}
-      onSavePage={updateWorkspacePage}
     />
   );
 }
