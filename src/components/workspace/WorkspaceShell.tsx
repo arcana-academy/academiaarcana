@@ -131,11 +131,11 @@ export function WorkspaceShell({
     setDeletedPageIds((current) =>
       current.includes(id) ? current : [...current, id],
     );
-    setPages((current) => {
-      const next = { ...current };
-      delete next[id];
-      return next;
-    });
+    setPages((current) =>
+      Object.fromEntries(
+        Object.entries(current).filter(([pageId]) => pageId !== id),
+      ),
+    );
     setCreatedPages((current) =>
       Object.fromEntries(
         Object.entries(current).map(([chapterId, chapterPages]) => [
