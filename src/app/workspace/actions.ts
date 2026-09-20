@@ -14,7 +14,8 @@ type UpdatePageInput = {
 type RepositoryClient = Parameters<typeof createPageRepository>[0];
 
 export async function updateWorkspacePage(input: UpdatePageInput): Promise<Page> {
-  const claims = await requireAuthenticatedUser();
+  await requireAuthenticatedUser();
+
   const supabase = await createClient();
   const repository = createPageRepository(
     supabase as unknown as RepositoryClient,
