@@ -93,7 +93,7 @@ export type SanctuarySnapshot = {
   continueLearning: ContinueLearning | null;
   progress: SectionState<ProgressSummary>;
   missions: SectionState<SanctuaryMission[]>;
-  schedule: ScheduleItem[];
+  schedule: SectionState<ScheduleItem[]>;
   quickActions: QuickAction[];
 };
 
@@ -106,6 +106,6 @@ export type SanctuaryViewModel = {
   continueLearning: ContinueLearning | null;
   progress: SectionState<ProgressSummary>;
   missions: SectionState<SanctuaryMission[]>;
-  schedule: ScheduleItem[];
+  schedule: SectionState<ScheduleItem[]>;
   quickActions: QuickAction[];
 };

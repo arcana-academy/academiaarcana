@@ -38,7 +38,10 @@ const viewModel: SanctuaryViewModel = {
         status: "not-configured",
         data: null,
     },
-    schedule: [],
+    schedule: {
+        status: "not-configured",
+        data: null,
+    },
     quickActions: [
         {
             id: "open-workspace",

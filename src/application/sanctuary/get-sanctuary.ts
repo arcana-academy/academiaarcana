@@ -2,6 +2,7 @@ import {
   decideSanctuaryPriority,
   resolveContinueLearning,
   resolveGamificationAvailability,
+  resolvePlanningAvailability,
   resolveProgressAvailability,
 } from "@/domains/sanctuary";
 
@@ -119,6 +120,17 @@ export async function getSanctuary(
       data: null,
   };
 
+  const planningAvailability = resolvePlanningAvailability();
+
+  if (planningAvailability !== "not-configured") {
+      throw new Error("Planning is not configured.");
+  }
+
+  const schedule: SanctuaryViewModel["schedule"] = {
+      status: "not-configured",
+      data: null,
+  };
+
   return {
     header: {
       greeting: "Seu Santuário de aprendizagem",
@@ -128,7 +140,7 @@ export async function getSanctuary(
     continueLearning,
     progress,
     missions,
-    schedule: [],
+    schedule,
     quickActions,
   };
 }

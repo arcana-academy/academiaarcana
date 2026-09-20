@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { FeatureAvailability, ProgressSummary, SanctuaryMission, SanctuaryPriority, SanctuarySnapshot, SanctuaryViewModel, SectionState } from './contracts';
+import type { FeatureAvailability, ProgressSummary, SanctuaryMission, SanctuaryPriority, SanctuarySnapshot, SanctuaryViewModel, ScheduleItem, SectionState } from './contracts';
 
 describe('Sanctuary Domain Contracts', () => {
   it('should support the correct FeatureAvailability values', () => {
@@ -70,6 +70,32 @@ describe('Sanctuary Domain Contracts', () => {
       expect(snapshot.missions.data).toEqual(expect.any(Array));
     } else {
       expect(snapshot.missions.data).toBeNull();
+    }
+  });
+
+  it('should represent schedule as an explicit section state without fabricating data', () => {
+    const notConfigured: SectionState<ScheduleItem[]> = {
+      status: 'not-configured',
+      data: null,
+    };
+
+    const snapshot: Pick<SanctuarySnapshot, 'schedule'> = {
+      schedule: notConfigured,
+    };
+    const viewModel: Pick<SanctuaryViewModel, 'schedule'> = {
+      schedule: notConfigured,
+    };
+
+    expect(snapshot.schedule.status).toBe('not-configured');
+    expect(snapshot.schedule.data).toBeNull();
+    expect(viewModel.schedule.status).toBe('not-configured');
+    expect(viewModel.schedule.data).toBeNull();
+
+    // An empty array is a payload shape, never equivalent to not-configured.
+    if (snapshot.schedule.status === 'ready') {
+      expect(snapshot.schedule.data).toEqual(expect.any(Array));
+    } else {
+      expect(snapshot.schedule.data).toBeNull();
     }
   });
 });

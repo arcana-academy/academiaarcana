@@ -88,7 +88,10 @@ describe("SanctuaryPage", () => {
                 status: "not-configured",
                 data: null,
             },
-            schedule: [],
+            schedule: {
+                status: "not-configured",
+                data: null,
+            },
             quickActions: [],
         });
 
@@ -130,7 +133,10 @@ describe("SanctuaryPage", () => {
                 status: "not-configured",
                 data: null,
             },
-            schedule: [],
+            schedule: {
+                status: "not-configured",
+                data: null,
+            },
             quickActions: [],
         });
 
