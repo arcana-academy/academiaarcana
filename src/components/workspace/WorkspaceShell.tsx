@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import type { Page, WorkspaceState } from "@/domains/learning";
+import type { Chapter, Page, WorkspaceState } from "@/domains/learning";
 import {
   openChapter,
   openGrimoire,
@@ -17,6 +17,7 @@ type WorkspaceTree = Parameters<typeof Workspace>[0]["tree"];
 type WorkspaceShellProps = {
   tree: WorkspaceTree;
   initialState: WorkspaceState;
+  onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
   onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
   onDeletePage: (id: string) => Promise<void>;
   onSavePage: (input: {
@@ -72,12 +73,14 @@ function findWorkspaceTitle(
 export function WorkspaceShell({
   tree,
   initialState,
+  onCreateChapter,
   onCreatePage,
   onDeletePage,
   onSavePage,
 }: WorkspaceShellProps) {
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [pages, setPages] = useState<Record<string, Page>>({});
+  const [createdChapters, setCreatedChapters] = useState<Record<string, Chapter[]>>({});
   const [createdPages, setCreatedPages] = useState<Record<string, Page[]>>({});
   const [deletedPageIds, setDeletedPageIds] = useState<string[]>([]);
 
@@ -86,7 +89,12 @@ export function WorkspaceShell({
       ...grimoire,
       notebooks: (grimoire.notebooks ?? []).map((notebook) => ({
         ...notebook,
-        chapters: (notebook.chapters ?? []).map((chapter) => ({
+        chapters: [
+          ...(notebook.chapters ?? []),
+          ...(createdChapters[notebook.id] ?? []),
+        ]
+          .sort((left, right) => left.position - right.position)
+          .map((chapter) => ({
           ...chapter,
           pages: [
             ...(chapter.pages ?? []),
@@ -95,9 +103,9 @@ export function WorkspaceShell({
             .filter((page) => !deletedPageIds.includes(page.id))
             .sort((left, right) => left.position - right.position),
         })),
-      })),
     })),
-  }), [createdPages, deletedPageIds, tree]);
+  })),
+  }), [createdChapters, createdPages, deletedPageIds, tree]);
 
   const selectedPage = useMemo(() => {
     const persistedPage = findSelectedPage(workspaceTree, state);
@@ -110,6 +118,24 @@ export function WorkspaceShell({
     () => (selectedPage ? selectedPage.title : findWorkspaceTitle(workspaceTree, state)),
     [selectedPage, state, workspaceTree],
   );
+
+  /** Create a chapter, add it to the local tree, and select it. */
+  const createChapter = async (input: { notebookId: string; title: string }) => {
+    const created = await onCreateChapter(input);
+    setCreatedChapters((current) => ({
+      ...current,
+      [created.notebookId]: [...(current[created.notebookId] ?? []), created],
+    }));
+    setState((current) =>
+      openChapter({
+        ...current,
+        notebookId: created.notebookId,
+        chapterId: created.id,
+        pageId: null,
+      }, created.id),
+    );
+    return created;
+  };
 
   /** Create a page, add it to the local tree, and select it for editing. */
   const createPage = async (input: { chapterId: string; title: string }) => {
@@ -172,6 +198,7 @@ export function WorkspaceShell({
       onOpenNotebook={(id) => setState((current) => openNotebook(current, id))}
       onOpenChapter={(id) => setState((current) => openChapter(current, id))}
       onOpenPage={(id) => setState((current) => openPage(current, id))}
+      onCreateChapter={createChapter}
       onCreatePage={createPage}
       onDeletePage={deletePage}
       onSavePage={savePage}
