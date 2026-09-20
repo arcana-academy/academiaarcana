@@ -26,7 +26,7 @@ type SaveInput = {
 
 describe("PageEditor", () => {
   test("renders the selected page and saves title and content", async () => {
-    const onSave = vi.fn(async (input: SaveInput) => ({
+    const onSave = vi.fn((input: SaveInput) => Promise.resolve({
       ...page,
       title: input.title,
       content: input.content,
@@ -64,9 +64,9 @@ describe("PageEditor", () => {
   });
 
   test("shows a recovery message when saving fails", async () => {
-    const onSave = vi.fn(async () => {
-      throw new Error("save failed");
-    });
+    const onSave = vi.fn(() =>
+      Promise.reject(new Error("save failed")),
+    );
 
     render(<PageEditor page={page} onSave={onSave} />);
 
