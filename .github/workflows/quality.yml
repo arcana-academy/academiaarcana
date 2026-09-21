@@ -7,6 +7,7 @@ on:
     branches:
       - main
       - 'feat/**'
+      - 'chore/**'
 
   pull_request:
     branches:
@@ -37,14 +38,16 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Clear npm cache
-        run: npm cache clean --force
+      - name: Pin npm
+        run: npm install --global npm@11.19.1
+
+      - name: Verify runtime
+        run: |
+          node --version
+          npm --version
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Install Playwright test runner
-        run: npm install --no-save --legacy-peer-deps @playwright/test@1.55.0
+        run: npm ci
 
       - name: Typecheck
         run: npm run typecheck
@@ -62,10 +65,10 @@ jobs:
         run: npm run build
 
       - name: Install Playwright browser
-        run: npx --yes playwright@1.55.0 install --with-deps chromium
+        run: npm exec -- playwright install --with-deps chromium
 
       - name: End-to-end tests
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://fichnalpbcfjywwhixid.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_0yFN7N7ikHBDY6m6P3FICw_u1lL6ppI
-        run: npx --yes playwright@1.55.0 test
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: npm run test:e2e
