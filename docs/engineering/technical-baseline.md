@@ -21,7 +21,7 @@ Vercel guarantees the Node 22 major line rather than a fixed patch, so the repos
 - Required npm version: `11.19.1`
 - `package.json#packageManager`: `npm@11.19.1`
 - `package.json#engines`: Node `22.x`, npm `11.19.1`
-- `package.json#devEngines`: Node `22.x` and npm `11.19.1`, failing on mismatch.
+- `package.json#devEngines`: Node `22.x` is an error; npm `11.19.1` is a warning during bootstrap so the CI can install the pinned npm before dependency installation. CI then verifies and uses npm `11.19.1`.
 
 Do not use pnpm as the repository package manager.
 
