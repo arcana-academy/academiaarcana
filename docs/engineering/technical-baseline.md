@@ -94,7 +94,7 @@ No separate Vercel dependency-resolution strategy is permitted.
 
 The current `main` branch has a failing scheduled Gitleaks run because the historical Quality Gate contains a hard-coded Supabase publishable key. The Phase 0 branch removes the literal value from the workflow and references a GitHub Actions secret instead.
 
-The repository secret must exist before the E2E step can pass in CI. This is an infrastructure/security configuration item, not a product feature.
+The E2E Quality Gate uses an isolated, non-production Supabase URL and dummy publishable key. Production credentials are not required for this test environment.
 
 ## Local environment note
 
