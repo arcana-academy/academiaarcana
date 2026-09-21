@@ -1,4 +1,5 @@
 import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
+import { AuthenticatedNavigation } from "@/components/navigation/AuthenticatedNavigation";
 import { Sanctuary } from "@/components/sanctuary/Sanctuary";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { SupabaseSanctuaryRepository } from "@/infrastructure/sanctuary/supabase-sanctuary-repository";
@@ -17,5 +18,10 @@ export default async function SanctuaryPage() {
     },
   });
 
-  return <Sanctuary viewModel={viewModel} />;
+  return (
+    <>
+      <AuthenticatedNavigation currentPath="/santuario" />
+      <Sanctuary viewModel={viewModel} />
+    </>
+  );
 }
