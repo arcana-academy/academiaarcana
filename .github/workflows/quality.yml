@@ -68,6 +68,6 @@ jobs:
 
       - name: End-to-end tests
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://fichnalpbcfjywwhixid.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: test-publishable-key
         run: npm run test:e2e
