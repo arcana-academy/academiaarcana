@@ -10,11 +10,14 @@ vi.mock("@honeybadger-io/nextjs", () => ({
 }));
 
 describe("Next.js configuration", () => {
-  it("wraps strict-mode configuration with Honeybadger", async () => {
+  it("wraps strict-mode configuration with Honeybadger and security headers", async () => {
     const { default: nextConfig } = await import("./next.config");
 
     expect(setupHoneybadger).toHaveBeenCalledOnce();
-    expect(setupHoneybadger).toHaveBeenCalledWith({ reactStrictMode: true });
+    expect(setupHoneybadger).toHaveBeenCalledWith({
+      reactStrictMode: true,
+      headers: expect.any(Function),
+    });
     expect(nextConfig).toBe(wrappedConfig);
   });
 });
