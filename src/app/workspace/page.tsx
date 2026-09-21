@@ -9,6 +9,7 @@ import { createChapterRepository } from "@/infrastructure/supabase/workspace/cha
 import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/grimoire-repository";
 import { createNotebookRepository } from "@/infrastructure/supabase/workspace/notebook-repository";
 import { createPageRepository } from "@/infrastructure/supabase/workspace/page-repository";
+import { AuthenticatedNavigation } from "@/components/navigation/AuthenticatedNavigation";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -128,19 +129,22 @@ export default async function WorkspacePage({
   };
 
   return (
-    <WorkspaceShell
-      tree={{ grimoires: tree }}
-      initialState={initialState}
-      onCreateGrimoire={createWorkspaceGrimoire}
-      onCreateNotebook={createWorkspaceNotebook}
-      onRenameGrimoire={renameWorkspaceGrimoire}
-      onRenameNotebook={renameWorkspaceNotebook}
-      onRenameChapter={renameWorkspaceChapter}
-      onCreateChapter={createWorkspaceChapter}
-      onCreatePage={createWorkspacePage}
-      onMovePage={moveWorkspacePage}
-      onDeletePage={deleteWorkspacePage}
-      onSavePage={updateWorkspacePage}
-    />
+    <>
+      <AuthenticatedNavigation currentPath="/workspace" />
+      <WorkspaceShell
+        tree={{ grimoires: tree }}
+        initialState={initialState}
+        onCreateGrimoire={createWorkspaceGrimoire}
+        onCreateNotebook={createWorkspaceNotebook}
+        onRenameGrimoire={renameWorkspaceGrimoire}
+        onRenameNotebook={renameWorkspaceNotebook}
+        onRenameChapter={renameWorkspaceChapter}
+        onCreateChapter={createWorkspaceChapter}
+        onCreatePage={createWorkspacePage}
+        onMovePage={moveWorkspacePage}
+        onDeletePage={deleteWorkspacePage}
+        onSavePage={updateWorkspacePage}
+      />
+    </>
   );
 }
