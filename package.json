@@ -46,13 +46,13 @@
   },
   "overrides": {},
   "engines": {
-    "node": "24.x",
+    "node": "22.x",
     "npm": "11.19.1"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "24.x",
+      "version": "22.x",
       "onFail": "error"
     },
     "packageManager": {
