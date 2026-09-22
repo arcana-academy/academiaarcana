@@ -19,9 +19,8 @@ export default async function SanctuaryPage() {
   });
 
   return (
-    <>
-      <AuthenticatedNavigation currentPath="/santuario" />
+    <AuthenticatedShell currentPath="/santuario">
       <Sanctuary viewModel={viewModel} />
-    </>
+    </AuthenticatedShell>
   );
 }
