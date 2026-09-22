@@ -143,6 +143,16 @@ a { color: inherit; }
 .aa-progress-track { height: 0.625rem; overflow: hidden; border-radius: 999px; background: var(--aa-surfaces-inset); border: 1px solid var(--aa-border-default); }
 .aa-progress-value { height: 100%; border-radius: inherit; background: var(--aa-accent-primary); transition: width var(--aa-motion-duration) ease; }
 
+/* Authenticated navigation. The active section is never indicated by color
+   alone: this rule only adds non-color reinforcement (weight plus a thicker,
+   offset underline) on top of the button colors and geometry it inherits. */
+.aa-nav-link-active {
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-thickness: 0.125rem;
+  text-underline-offset: 0.375rem;
+}
+
 .aa-visually-hidden {
   position: absolute;
   width: 1px;
