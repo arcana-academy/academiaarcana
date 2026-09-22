@@ -130,7 +130,7 @@ export default async function WorkspacePage({
 
   return (
     <>
-      <AuthenticatedNavigation currentPath="/workspace" />
+
       <WorkspaceShell
         tree={{ grimoires: tree }}
         initialState={initialState}
