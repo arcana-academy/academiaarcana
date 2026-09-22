@@ -144,9 +144,11 @@ describe("Honeybadger runtime configuration", () => {
     expect(mocks.setupHoneybadger).toHaveBeenCalledOnce();
     expect(mocks.setupHoneybadger).toHaveBeenCalledWith({
       reactStrictMode: true,
+      headers: expect.any(Function),
     });
     expect(nextConfig).toEqual({
       reactStrictMode: true,
+      headers: expect.any(Function),
       honeybadger: true,
     });
   });
