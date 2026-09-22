@@ -128,7 +128,9 @@ export default async function WorkspacePage({
     pageId: params.page ?? null,
   };
 
-  return (\n    <AuthenticatedShell currentPath="/workspace">\n      <WorkspaceShell
+  return (
+    <AuthenticatedShell currentPath="/workspace">
+      <WorkspaceShell
         tree={{ grimoires: tree }}
         initialState={initialState}
         onCreateGrimoire={createWorkspaceGrimoire}
@@ -141,4 +143,7 @@ export default async function WorkspacePage({
         onMovePage={moveWorkspacePage}
         onDeletePage={deleteWorkspacePage}
         onSavePage={updateWorkspacePage}
-      />\n    </AuthenticatedShell>\n  );\n}\n
+      />
+    </AuthenticatedShell>
+  );
+}
