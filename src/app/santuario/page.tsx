@@ -1,5 +1,5 @@
 import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
-import { AuthenticatedNavigation } from "@/components/navigation/AuthenticatedNavigation";
+import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { Sanctuary } from "@/components/sanctuary/Sanctuary";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { SupabaseSanctuaryRepository } from "@/infrastructure/sanctuary/supabase-sanctuary-repository";
