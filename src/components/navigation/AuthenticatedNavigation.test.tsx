@@ -49,9 +49,24 @@ describe("AuthenticatedNavigation", () => {
   it("keeps links keyboard-focusable through native link semantics", () => {
     render(<AuthenticatedNavigation currentPath="/santuario" />);
 
+    const sanctuaryLink = screen.getByRole("link", { name: "Santuário" });
     const workspaceLink = screen.getByRole("link", { name: "Workspace" });
-    workspaceLink.focus();
 
+    sanctuaryLink.focus();
+    expect(document.activeElement).toBe(sanctuaryLink);
+
+    workspaceLink.focus();
     expect(document.activeElement).toBe(workspaceLink);
+  });
+
+  it("reinforces the current route with a non-color indicator", () => {
+    render(<AuthenticatedNavigation currentPath="/santuario" />);
+
+    expect(screen.getByRole("link", { name: "Santuário" })).toHaveClass(
+      "aa-nav-link-active",
+    );
+    expect(screen.getByRole("link", { name: "Workspace" })).not.toHaveClass(
+      "aa-nav-link-active",
+    );
   });
 });

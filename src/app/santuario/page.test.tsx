@@ -151,4 +151,55 @@ describe("SanctuaryPage", () => {
       }),
     );
   });
+
+  it("renders the shared navigation with the sanctuary as the active section", async () => {
+    requireAuthenticatedUserMock.mockResolvedValue(
+      createAuthenticatedClaims("user-1"),
+    );
+
+    createClientMock.mockResolvedValue(
+      {} as Awaited<ReturnType<typeof createClient>>,
+    );
+
+    getSanctuaryMock.mockResolvedValue({
+      header: {
+        greeting: "Seu Santuário de aprendizagem",
+        user: {
+          id: "user-1",
+        },
+      },
+      primaryAction: {
+        id: "open-workspace",
+        label: "Abrir Workspace",
+        href: "/workspace?view=tree#current",
+        priority: "supporting",
+      },
+      continueLearning: null,
+      progress: {
+        status: "not-configured",
+        data: null,
+      },
+      missions: {
+        status: "not-configured",
+        data: null,
+      },
+      schedule: {
+        status: "not-configured",
+        data: null,
+      },
+      quickActions: [],
+    });
+
+    render(await SanctuaryPage());
+
+    expect(screen.getByRole("navigation")).toBeTruthy();
+
+    expect(
+      screen.getByRole("link", { name: /santu/i }),
+    ).toHaveAttribute("aria-current", "page");
+
+    expect(
+      screen.getByRole("link", { name: "Workspace" }),
+    ).not.toHaveAttribute("aria-current");
+  });
 });
