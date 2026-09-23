@@ -8,46 +8,20 @@ type AuthenticatedNavigationItem = {
 };
 
 type AuthenticatedNavigationProps = {
-  /**
-   * Route that identifies the section currently being viewed. Pages pass it as
-   * a property so this component stays a Server Component without any
-   * client-side route state.
-   */
   currentPath: AuthenticatedRouteHref;
 };
 
-// Only sections with a real implementation are listed here. Future areas
-// (Academia, Grimórios, Missões, …) join this list when their routes exist.
 const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
   { href: "/santuario", label: "Santuário" },
   { href: "/workspace", label: "Workspace" },
 ];
 
-/**
- * Shared navigation for authenticated pages.
- *
- * Pure composition: it owns no authentication, no data access and no business
- * rules. It reuses the `aa-card`/`aa-button` primitives instead of redefining
- * their geometry. The active section is conveyed semantically through
- * `aria-current="page"` and reinforced with weight and underline
- * (`aa-nav-link-active`), never by color alone. Focus visibility comes from the
- * global `:focus-visible` outline.
- */
 export function AuthenticatedNavigation({
   currentPath,
 }: AuthenticatedNavigationProps) {
   return (
     <nav className="aa-card aa-card-default" aria-label="Navegação principal">
-      <ul
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "var(--aa-spacing-sm)",
-          listStyle: "none",
-          margin: 0,
-          padding: 0,
-        }}
-      >
+      <ul className="aa-navigation-list">
         {navigationItems.map((item) => {
           const isCurrent = item.href === currentPath;
           const variant = isCurrent
