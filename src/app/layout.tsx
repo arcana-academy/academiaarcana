@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { ApplicationProviders } from "@/application/providers/ApplicationProviders";
 import type { ApplicationIdentityState } from "@/application/identity/contracts";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Academia Arcana",
@@ -25,6 +26,7 @@ export default function RootLayout({
         <ApplicationProviders identity={anonymousIdentity}>
           {children}
         </ApplicationProviders>
+        <Analytics />
       </body>
     </html>
   );

@@ -17,6 +17,10 @@ vi.mock(
   }),
 );
 
+vi.mock("@vercel/analytics/next", () => ({
+  Analytics: () => null,
+}));
+
 import RootLayout from "./layout";
 
 describe("RootLayout", () => {
@@ -29,11 +33,10 @@ describe("RootLayout", () => {
     expect(element.type).toBe("html");
 
     const body = element.props.children;
-    const applicationProviders =
-      body.props.children;
+    const bodyChildren = body.props.children;
 
-    expect(applicationProviders.type).toBe(
-      applicationProvidersMock,
-    );
+    // Body now has two children: ApplicationProviders and Analytics
+    expect(Array.isArray(bodyChildren)).toBe(true);
+    expect(bodyChildren[0].type).toBe(applicationProvidersMock);
   });
 });
