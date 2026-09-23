@@ -10,7 +10,7 @@ describe("motionEnvironment", () => {
   it("retorna normal quando o ambiente não possui window", () => {
     const originalWindow = globalThis.window;
 
-    vi.stubGlobal("window", undefined);
+    vi.stubGlobal("window");
 
     expect(motionEnvironment.getSystemMotionPreference()).toBe("normal");
 
@@ -20,7 +20,7 @@ describe("motionEnvironment", () => {
   it("retorna uma função de cancelamento quando o ambiente não possui window", () => {
     const originalWindow = globalThis.window;
 
-    vi.stubGlobal("window", undefined);
+    vi.stubGlobal("window");
 
     const unsubscribe = motionEnvironment.subscribeToMotionPreference(vi.fn());
 

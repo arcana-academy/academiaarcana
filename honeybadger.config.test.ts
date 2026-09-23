@@ -131,7 +131,7 @@ describe("Honeybadger runtime configuration", () => {
     };
 
     transform(notice);
-    transform(undefined);
+    transform();
 
     expect(notice.backtrace[0].file).toBe(
       `${process.cwd()}/.next/server/app/page.js`,

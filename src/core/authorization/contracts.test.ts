@@ -26,7 +26,7 @@ describe("authorization contracts", () => {
   });
 
   it("denies when no authorization policy is applicable", () => {
-    const result = evaluateAuthorization(request, undefined);
+    const result = evaluateAuthorization(request);
 
     expect(result).toEqual({
       allowed: false,
