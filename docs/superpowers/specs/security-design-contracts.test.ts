@@ -27,7 +27,7 @@ function section(markdown: string, heading: string): string {
   return nextHeading === -1 ? remainder : remainder.slice(0, nextHeading);
 }
 
-function expectAll(text: string, requirements: readonly string[]): void {
+export function expectAll(text: string, requirements: readonly string[]): void {
   for (const requirement of requirements) {
     expect(text, `missing requirement: ${requirement}`).toContain(requirement);
   }

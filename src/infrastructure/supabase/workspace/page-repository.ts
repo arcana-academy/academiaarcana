@@ -37,37 +37,49 @@ type PageRow = {
   updated_at: string;
 };
 
-function toDomain(row: PageRow): Page {
-  return {
-    id: row.id,
-    chapterId: row.chapter_id,
-    title: row.title,
-    content: row.content,
-    position: row.position,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
+/**
+ * Converts a PageRow from the database to a Page domain object.
+ * @param row - The database row to convert.
+ * @returns The corresponding Page domain object.
+ */
+const toDomain = (row: PageRow): Page => ({
+  id: row.id,
+  chapterId: row.chapter_id,
+  title: row.title,
+  content: row.content,
+  position: row.position,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
 
-function toRow(page: Page): PageRow {
-  return {
-    id: page.id,
-    chapter_id: page.chapterId,
-    title: page.title,
-    content: page.content,
-    position: page.position,
-    created_at: page.createdAt,
-    updated_at: page.updatedAt,
-  };
-}
+/**
+ * Converts a Page domain object to a PageRow for database operations.
+ * @param page - The Page domain object to convert.
+ * @returns The corresponding PageRow for database storage.
+ */
+const toRow = (page: Page): PageRow => ({
+  id: page.id,
+  chapter_id: page.chapterId,
+  title: page.title,
+  content: page.content,
+  position: page.position,
+  created_at: page.createdAt,
+  updated_at: page.updatedAt,
+});
 
-function throwIfError<T>(result: SupabaseQueryResult<T>): T {
+/**
+ * Throws an error if the Supabase query result contains an error.
+ * @param result - The result from a Supabase query.
+ * @returns The data from the result if no error is present.
+ * @throws Error when the result contains an error.
+ */
+const throwIfError = <T>(result: SupabaseQueryResult<T>): T => {
   if (result.error) {
     throw new Error(result.error.message);
   }
 
   return result.data;
-}
+};
 
 export function createPageRepository(
   supabase: SupabaseClientLike,

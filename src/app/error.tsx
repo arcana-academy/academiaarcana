@@ -14,7 +14,7 @@ type ErrorProps = {
  * Reports the captured error to Honeybadger whenever it changes. The retry
  * button asks Next.js to attempt to render the segment again.
  */
-export default function Error({ error, reset }: ErrorProps) {
+export default function ErrorFallback({ error, reset }: ErrorProps) {
   useEffect(() => {
     Honeybadger.notify(error)
   }, [error])

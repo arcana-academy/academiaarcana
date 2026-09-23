@@ -40,7 +40,13 @@ type NotebookRow = {
   updated_at: string;
 };
 
-function toDomain(row: NotebookRow): Notebook {
+/**
+ * Converts a NotebookRow to a Notebook domain object.
+ *
+ * @param row - The notebook row from the database.
+ * @returns The Notebook domain object.
+ */
+const toDomain = (row: NotebookRow): Notebook => {
   return {
     id: row.id,
     grimoireId: row.grimoire_id,
@@ -52,9 +58,15 @@ function toDomain(row: NotebookRow): Notebook {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
-}
+};
 
-function toRow(notebook: Notebook): NotebookRow {
+/**
+ * Converts a Notebook domain object to a NotebookRow for persistence.
+ *
+ * @param notebook - The Notebook domain object.
+ * @returns The NotebookRow for database insertion.
+ */
+const toRow = (notebook: Notebook): NotebookRow => {
   return {
     id: notebook.id,
     grimoire_id: notebook.grimoireId,
@@ -64,15 +76,21 @@ function toRow(notebook: Notebook): NotebookRow {
     created_at: notebook.createdAt,
     updated_at: notebook.updatedAt,
   };
-}
+};
 
-function throwIfError<T>(result: SupabaseQueryResult<T>): T {
+/**
+ * Throws an Error if the Supabase query result contains an error.
+ *
+ * @param result - The Supabase query result to check.
+ * @returns The data from the result.
+ */
+export const throwIfError = <T>(result: SupabaseQueryResult<T>): T => {
   if (result.error) {
     throw new Error(result.error.message);
   }
 
   return result.data;
-}
+};
 
 export function createNotebookRepository(
   supabase: SupabaseClientLike,

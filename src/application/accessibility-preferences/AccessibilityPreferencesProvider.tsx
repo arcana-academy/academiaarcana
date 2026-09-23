@@ -22,7 +22,6 @@ type AccessibilityPreferencesProviderDependencies = {
   motionEnvironment: MotionEnvironment;
   identity: ApplicationIdentityState;
 };
-
 export type AccessibilityPreferencesState = {
   configuredMotionPreference: MotionPreference;
   effectiveMotionPreference: "normal" | "reduced";
@@ -47,17 +46,31 @@ export type AccessibilityPreferencesProvider = {
   ) => Promise<void>;
 };
 
-function createPersistedPreferences(
-  motion: MotionPreference,
-): PersistedAccessibilityPreferences {
+/**
+ * Creates a persisted accessibility preferences object.
+ *
+ * @param motion - The motion preference to persist.
+ * @returns The persisted accessibility preferences object.
+ */
+const createPersistedPreferences = (motion: MotionPreference): PersistedAccessibilityPreferences => {
   return {
     version: 1,
     preferences: {
       motion,
     },
   };
-}
+};
 
+/**
+ * Creates an accessibility preferences provider.
+ *
+ * @param dependencies - The dependencies for the provider.
+ * @param dependencies.local - The local storage interface.
+ * @param dependencies.authenticated - The authenticated storage interface.
+ * @param dependencies.motionEnvironment - The motion environment observer.
+ * @param dependencies.identity - The identity of the user.
+ * @returns An accessibility preferences provider.
+ */
 export function createAccessibilityPreferencesProvider({
   local,
   authenticated,
@@ -70,6 +83,9 @@ export function createAccessibilityPreferencesProvider({
 
   let unsubscribeMotion: (() => void) | null = null;
 
+  /**
+   * Notifies all subscribed listeners of the current state.
+   */
   function notify() {
     if (!state) {
       return;
