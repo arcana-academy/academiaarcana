@@ -116,7 +116,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
 
       setStatus("success");
-      router.push("/");
+      router.push("/santuario");
       router.refresh();
     } catch {
       setStatus("error");

@@ -1,8 +1,10 @@
-export default function Page() {
-  return (
-    <main>
-      <h1>Academia Arcana</h1>
-      <p>A fundação da sua jornada de aprendizagem está sendo preparada.</p>
-    </main>
-  );
+import { redirect } from "next/navigation";
+
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+
+export default async function Page() {
+  await requireAuthenticatedUser();
+  redirect("/santuario");
+
+  return null;
 }

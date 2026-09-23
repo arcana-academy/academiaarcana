@@ -35,7 +35,7 @@ describe("AuthForm", () => {
     updateUser.mockResolvedValue({ error: null });
   });
 
-  it("submits login credentials and redirects after success", async () => {
+  it("submits login credentials and redirects to the sanctuary after success", async () => {
     render(<AuthForm mode="login" />);
 
     fireEvent.change(screen.getByLabelText("Email"), {
@@ -53,7 +53,7 @@ describe("AuthForm", () => {
         email: "student@example.com",
         password: "correct-password",
       });
-      expect(push).toHaveBeenCalledWith("/");
+      expect(push).toHaveBeenCalledWith("/santuario");
       expect(refresh).toHaveBeenCalled();
     });
   });
