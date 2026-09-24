@@ -96,7 +96,7 @@ create policy "page_progress_update_own"
       from public.pages p
       join public.chapters c on c.id = p.chapter_id
       join public.notebooks n on n.id = c.notebook_id
-      join public.grimoire_id = n.grimoire_id
+      join public.grimoires g on g.id = n.grimoire_id
       where p.id = page_progress.page_id
         and g.owner_id = (select auth.uid())
     )
