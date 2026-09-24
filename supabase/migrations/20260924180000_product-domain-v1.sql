@@ -58,16 +58,60 @@ alter table public.missions enable row level security;
 
 create policy "page_progress_select_own"
   on public.page_progress for select to authenticated
-  using (owner_id = auth.uid());
+  using (
+    owner_id = auth.uid()
+    and exists (
+      select 1
+      from public.pages p
+      join public.chapters c on c.id = p.chapter_id
+      join public.notebooks n on n.id = c.notebook_id
+      join public.grimoires g on g.id = n.grimoire_id
+      where p.id = page_progress.page_id
+        and g.owner_id = auth.uid()
+    )
+  );
 
 create policy "page_progress_insert_own"
   on public.page_progress for insert to authenticated
-  with check (owner_id = auth.uid());
+  with check (
+    owner_id = auth.uid()
+    and exists (
+      select 1
+      from public.pages p
+      join public.chapters c on c.id = p.chapter_id
+      join public.notebooks n on n.id = c.notebook_id
+      join public.grimoires g on g.id = n.grimoire_id
+      where p.id = page_progress.page_id
+        and g.owner_id = auth.uid()
+    )
+  );
 
 create policy "page_progress_update_own"
   on public.page_progress for update to authenticated
-  using (owner_id = auth.uid())
-  with check (owner_id = auth.uid());
+  using (
+    owner_id = auth.uid()
+    and exists (
+      select 1
+      from public.pages p
+      join public.chapters c on c.id = p.chapter_id
+      join public.notebooks n on n.id = c.notebook_id
+      join public.grimoires g on g.id = n.grimoire_id
+      where p.id = page_progress.page_id
+        and g.owner_id = auth.uid()
+    )
+  )
+  with check (
+    owner_id = auth.uid()
+    and exists (
+      select 1
+      from public.pages p
+      join public.chapters c on c.id = p.chapter_id
+      join public.notebooks n on n.id = c.notebook_id
+      join public.grimoires g on g.id = n.grimoire_id
+      where p.id = page_progress.page_id
+        and g.owner_id = auth.uid()
+    )
+  );
 
 create policy "page_progress_delete_own"
   on public.page_progress for delete to authenticated
