@@ -11,7 +11,9 @@ Ruling: Curate reference-derived themes instead of creating one preset per suppl
 Ruling: Preserve the existing ten ThemeIds and add only materially distinct Arcana-owned presets.
 
 ## Task 1
-- Status: pending implementation on feature branch
+- Status: implemented in `main` and present in the current design-system theme registry.
+- Current registry: 40 ThemeIds, including the original ten plus reference-derived Arcana-owned presets.
+- Verification note: preserve the ruling against copying third-party theme CSS or adding third-party theme repositories as runtime dependencies.
 - Shared-file scan: Tasks 1–3 share `types.ts` and `presets.test.ts`; Task 1 establishes invariants, Task 2 extends the contract, Task 3 consumes it. No contradictory interface found.
 - Task 4 consumes the completed preset shape and only changes `apply-theme.ts` if integration tests expose a gap.
 - Task 5 consumes all prior tasks and is verification/documentation only.
