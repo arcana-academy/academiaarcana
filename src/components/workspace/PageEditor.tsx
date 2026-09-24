@@ -187,8 +187,8 @@ type PageEditorProps = {
     title: string;
     content: PageContent;
   }) => Promise<Page>;
-  progressStatus: PageProgressStatus;
-  onSetProgress: (status: PageProgressStatus) => Promise<void>;
+  progressStatus?: PageProgressStatus;
+  onSetProgress?: (status: PageProgressStatus) => Promise<void>;
 };
 
 /** Edit and persist the currently selected learning page. */
@@ -199,8 +199,8 @@ export function PageEditor({
   onMove,
   onDelete,
   onSave,
-  progressStatus,
-  onSetProgress,
+  progressStatus = "not-started",
+  onSetProgress = async () => undefined,
 }: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
