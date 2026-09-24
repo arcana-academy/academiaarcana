@@ -77,21 +77,4 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     if (error) throw new Error(error.message);
     return data ? toDomain(data as StudyTaskRow) : null;
   }
-
-  async complete(id: string, completedAt: string): Promise<StudyTask | null> {
-    const { data, error } = await this.supabase
-      .from("study_tasks")
-      .update({
-        status: "completed",
-        completed_at: completedAt,
-        updated_at: completedAt,
-      })
-      .eq("id", id)
-      .eq("status", "pending")
-      .select("*")
-      .maybeSingle();
-
-    if (error) throw new Error(error.message);
-    return data ? toDomain(data as StudyTaskRow) : null;
-  }
 }
