@@ -115,9 +115,9 @@ No domain promotion is implied by this document.
 
 ## Supabase
 
-The repository contains versioned migrations and the Supabase CLI package, but the repository currently does **not** contain `supabase/config.toml` or `supabase/seed.sql`.
+The repository contains versioned migrations, the Supabase CLI package, and `supabase/config.toml`, but `supabase/seed.sql` remains absent.
 
-Current Supabase documentation recommends a version-controlled `supabase/` directory containing at least `config.toml` and migrations for a reproducible local workflow. The absence of those local-development files means the repository does not yet provide a fully reproducible local Supabase stack from versioned configuration alone.
+The presence of `supabase/config.toml` and the versioned migrations provides the local configuration and schema, but the absence of `supabase/seed.sql` means a fully populated local database state is not reproducible from the repository alone.
 
 Do not hand-author a speculative `config.toml`. Generate the configuration with the project-pinned Supabase CLI in an isolated checkout, review the generated content, and then commit only the configuration that is actually required.
 
