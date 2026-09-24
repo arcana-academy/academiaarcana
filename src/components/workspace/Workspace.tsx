@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Chapter, Grimoire, Notebook, Page, WorkspaceState } from "@/domains/learning";
+import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
@@ -32,6 +32,8 @@ type WorkspaceProps = {
     title: string;
     content: Page["content"];
   }) => Promise<Page>;
+  pageProgressStatus: PageProgressStatus;
+  onSetPageProgress: (status: PageProgressStatus) => Promise<void>;
 };
 
 type GrimoireCreationFormProps = {
@@ -284,6 +286,8 @@ export function Workspace({
   onMovePage,
   onDeletePage,
   onSavePage,
+  pageProgressStatus,
+  onSetPageProgress,
 }: WorkspaceProps) {
   return (
     <section aria-label="Workspace" className="workspace-shell">
@@ -372,6 +376,8 @@ export function Workspace({
               onMove={onMovePage}
               onDelete={onDeletePage}
               onSave={onSavePage}
+              progressStatus={pageProgressStatus}
+              onSetProgress={onSetPageProgress}
             />
           ) : (
             <p>Selecione uma página para começar.</p>
