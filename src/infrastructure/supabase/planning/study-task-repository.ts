@@ -59,8 +59,8 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
       .select("*")
       .eq("owner_id", ownerId)
       .eq("status", "pending")
-      .gte("due_at", now)
-      .order("due_at", { ascending: true })
+      .or(`due_at.gte.${now},due_at.is.null`)
+      .order("due_at", { ascending: true, nullsFirst: false })
       .limit(limit);
 
     if (error) throw new Error(error.message);
