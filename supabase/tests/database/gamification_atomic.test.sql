@@ -509,7 +509,6 @@ values (
   'Falha transacional'
 );
 
-set local role authenticated;
 set local request.jwt.claim.sub = (
   select owner_id::text from aa_gamification_test_ids
 );
@@ -523,8 +522,6 @@ select extensions.throws_ok(
   null,
   'reward overflow fails as a database error'
 );
-
-set local role postgres;
 
 select extensions.is(
   (
