@@ -10,7 +10,6 @@ describe("StudyTaskService", () => {
       create: vi.fn(),
       listUpcoming: vi.fn(),
       getById: vi.fn(),
-      complete: vi.fn(),
     };
 
     const service = new StudyTaskService(repository);
@@ -37,7 +36,6 @@ describe("StudyTaskService", () => {
       create: vi.fn().mockResolvedValue(created),
       listUpcoming: vi.fn(),
       getById: vi.fn(),
-      complete: vi.fn(),
     };
 
     const service = new StudyTaskService(repository);
