@@ -24,6 +24,10 @@ describe("AuthenticatedNavigation", () => {
       "href",
       "/cronograma",
     );
+    expect(screen.getByRole("link", { name: "Personalizar" })).toHaveAttribute(
+      "href",
+      "/personalizar",
+    );
   });
 
   it("marks only the current route with aria-current", () => {
@@ -37,6 +41,9 @@ describe("AuthenticatedNavigation", () => {
       "aria-current",
     );
     expect(screen.getByRole("link", { name: "Cronograma" })).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(screen.getByRole("link", { name: "Personalizar" })).not.toHaveAttribute(
       "aria-current",
     );
   });
@@ -74,6 +81,7 @@ describe("AuthenticatedNavigation", () => {
     const sanctuaryLink = screen.getByRole("link", { name: "Santuário" });
     const workspaceLink = screen.getByRole("link", { name: "Workspace" });
     const cronogramaLink = screen.getByRole("link", { name: "Cronograma" });
+    const personalizarLink = screen.getByRole("link", { name: "Personalizar" });
 
     sanctuaryLink.focus();
     expect(document.activeElement).toBe(sanctuaryLink);
@@ -83,6 +91,9 @@ describe("AuthenticatedNavigation", () => {
 
     cronogramaLink.focus();
     expect(document.activeElement).toBe(cronogramaLink);
+
+    personalizarLink.focus();
+    expect(document.activeElement).toBe(personalizarLink);
   });
 
   it("reinforces the current route with a non-color indicator", () => {
