@@ -4,7 +4,7 @@ import type { StudyTask } from "@/domains/planning";
 import { StudyTaskService } from "@/application/planning/study-tasks";
 import { completeStudyTask } from "@/application/gamification/complete-study-task";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
-import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
+import { SupabaseStudyTaskRewardRepository } from "@/infrastructure/supabase/gamification/study-task-reward-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,15 +30,8 @@ export async function completeStudyTaskAction(id: string): Promise<StudyTask> {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
 
-  const taskRepository = new SupabaseStudyTaskRepository(supabase);
-  const gamificationRepository = new SupabaseGamificationRepository(supabase);
-
-  const result = await completeStudyTask(
-    taskRepository,
-    gamificationRepository,
-    claims.sub,
-    id,
-  );
+  const rewardRepository = new SupabaseStudyTaskRewardRepository(supabase);
+  const result = await completeStudyTask(rewardRepository, claims.sub, id);
 
   return result.task;
 }
