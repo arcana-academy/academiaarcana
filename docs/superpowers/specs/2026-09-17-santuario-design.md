@@ -106,7 +106,9 @@ src/application/sanctuary/
 src/domains/sanctuary/
 ├── contracts.ts
 ├── policies.ts
-├── types.ts
+├── availabilityPolicies.ts
+├── continue-learning-policy.ts
+├── priorityPolicy.ts
 └── index.ts
 
 src/infrastructure/sanctuary/
@@ -124,6 +126,8 @@ src/components/sanctuary/
 ```
 
 O conceito de `QuickActions` permanece representado no view model e na ação primária atual; não existe um componente separado `QuickActions.tsx` no `main`. Isso é uma diferença de organização, não uma ausência comprovada de responsabilidade funcional.
+
+Os tipos específicos do Santuário permanecem em `contracts.ts`; não existe um arquivo `types.ts` separado no `main`, e não há evidência de que essa separação seja necessária.
 
 A validação E2E local atualmente cobre acesso anônimo ao Santuário e à raiz. O cenário autenticado depende de credenciais E2E dedicadas e permanece não executado quando essas variáveis não estão configuradas.
 
