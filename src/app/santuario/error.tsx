@@ -1,5 +1,7 @@
 "use client";
 
+import { unstable_rethrow } from "next/navigation";
+
 import { Button } from "@/components/ui";
 
 /**
@@ -22,7 +24,9 @@ type SanctuaryErrorProps = {
  * observability integration, and communicates the failure in text so it does
  * not rely on color alone.
  */
-export default function SanctuaryError({ reset }: SanctuaryErrorProps) {
+export default function SanctuaryError({ error, reset }: SanctuaryErrorProps) {
+    unstable_rethrow(error);
+
     return (
         <main aria-labelledby="sanctuary-error-title">
             <h1 id="sanctuary-error-title">
