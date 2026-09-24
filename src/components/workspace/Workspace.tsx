@@ -32,8 +32,8 @@ type WorkspaceProps = {
     title: string;
     content: Page["content"];
   }) => Promise<Page>;
-  pageProgressStatus: PageProgressStatus;
-  onSetPageProgress: (status: PageProgressStatus) => Promise<void>;
+  pageProgressStatus?: PageProgressStatus;
+  onSetPageProgress?: (status: PageProgressStatus) => Promise<void>;
 };
 
 type GrimoireCreationFormProps = {
@@ -286,8 +286,8 @@ export function Workspace({
   onMovePage,
   onDeletePage,
   onSavePage,
-  pageProgressStatus,
-  onSetPageProgress,
+  pageProgressStatus = "not-started",
+  onSetPageProgress = async () => undefined,
 }: WorkspaceProps) {
   return (
     <section aria-label="Workspace" className="workspace-shell">
