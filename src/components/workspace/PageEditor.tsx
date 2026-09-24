@@ -323,7 +323,11 @@ export function PageEditor({
             : "Concluir página"}
       </button>
       <p role="status" aria-live="polite">
-        {progressStatus === "completed" ? "Página concluída." : "Página em andamento."}
+        {progressStatus === "completed"
+          ? "Página concluída."
+          : progressStatus === "in-progress"
+            ? "Página em andamento."
+            : "Página ainda não iniciada."}
       </p>
       {progressError ? <p role="alert">{progressError}</p> : null}
 
