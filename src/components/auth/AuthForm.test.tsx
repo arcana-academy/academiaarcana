@@ -35,7 +35,7 @@ describe("AuthForm", () => {
     updateUser.mockResolvedValue({ error: null });
   });
 
-  it("submits login credentials and redirects after success", async () => {
+  it("submits login credentials and redirects to the sanctuary after success", async () => {
     render(<AuthForm mode="login" />);
 
     fireEvent.change(screen.getByLabelText("Email"), {
@@ -53,7 +53,7 @@ describe("AuthForm", () => {
         email: "student@example.com",
         password: "correct-password",
       });
-      expect(push).toHaveBeenCalledWith("/");
+      expect(push).toHaveBeenCalledWith("/santuario");
       expect(refresh).toHaveBeenCalled();
     });
   });
@@ -129,5 +129,32 @@ describe("AuthForm", () => {
     expect(screen.getByRole("alert").textContent).toContain(
       "As senhas precisam ser iguais.",
     );
+  });
+
+  it("updates the password when confirmation matches", async () => {
+    render(<AuthForm mode="update-password" />);
+
+    fireEvent.change(screen.getByLabelText("Senha"), {
+      target: { value: "new-password" },
+    });
+
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), {
+      target: { value: "new-password" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Atualizar senha" }),
+    );
+
+    await waitFor(() => {
+      expect(updateUser).toHaveBeenCalledTimes(1);
+      expect(updateUser).toHaveBeenCalledWith({ password: "new-password" });
+      expect(screen.getByRole("alert").textContent).toContain(
+        "Senha atualizada com sucesso.",
+      );
+    });
+
+    expect(signInWithPassword).not.toHaveBeenCalled();
+    expect(resetPasswordForEmail).not.toHaveBeenCalled();
   });
 });

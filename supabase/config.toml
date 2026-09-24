@@ -1,0 +1,4 @@
+# Supabase local-development configuration.
+# This file contains local CLI configuration only; production credentials
+# must remain in secure environment configuration.
+project_id = "academiaarcana"

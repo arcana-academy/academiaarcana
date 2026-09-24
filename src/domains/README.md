@@ -31,5 +31,6 @@ Cross-domain collaboration should use explicit contracts, application services, 
 - flonts — scoped Flonts runtime/product layer
 - trust — trust, safety and governance mechanisms
 - data — persistence and portability infrastructure
+- sanctuary — learner sanctuary experience and personalized entry point into the learning hierarchy
 
 Do not create a new domain solely to organize files. A new domain requires an independently owned business responsibility and an explicit architectural decision.

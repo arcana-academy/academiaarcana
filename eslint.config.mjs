@@ -23,14 +23,27 @@ const barrelPatterns = [
 ];
 
 const presentationPaths = [
-  { name: "react", message: "Domain and core code must stay free of presentation dependencies." },
-  { name: "react-dom", message: "Domain and core code must stay free of presentation dependencies." },
+  {
+    name: "react",
+    message: "Domain and core code must stay free of presentation dependencies.",
+  },
+  {
+    name: "react-dom",
+    message: "Domain and core code must stay free of presentation dependencies.",
+  },
 ];
 
 const presentationPatterns = [
   {
-    group: ["next", "next/*", "@supabase/*", "**/components/ui/*", "@/components/ui/*"],
-    message: "Domain and core code must stay free of presentation and database clients.",
+    group: [
+      "next",
+      "next/*",
+      "@supabase/*",
+      "**/components/ui/*",
+      "@/components/ui/*",
+    ],
+    message:
+      "Domain and core code must stay free of presentation and database clients.",
   },
 ];
 
@@ -41,6 +54,16 @@ export default defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", { patterns: barrelPatterns }],
+      // TypeScript/React modules are ES modules; top-level declarations are
+      // module-scoped and are not implicit browser globals.
+      "no-implicit-globals": "off",
+    },
+  },
+  {
+    files: ["src/**/*.{test,spec}.{ts,tsx}"],
+    rules: {
+      "no-empty": "off",
+      "no-empty-function": "off",
     },
   },
   {
@@ -48,7 +71,10 @@ export default defineConfig([
     rules: {
       "no-restricted-imports": [
         "error",
-        { paths: presentationPaths, patterns: [...barrelPatterns, ...presentationPatterns] },
+        {
+          paths: presentationPaths,
+          patterns: [...barrelPatterns, ...presentationPatterns],
+        },
       ],
     },
   },

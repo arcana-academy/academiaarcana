@@ -143,6 +143,16 @@ a { color: inherit; }
 .aa-progress-track { height: 0.625rem; overflow: hidden; border-radius: 999px; background: var(--aa-surfaces-inset); border: 1px solid var(--aa-border-default); }
 .aa-progress-value { height: 100%; border-radius: inherit; background: var(--aa-accent-primary); transition: width var(--aa-motion-duration) ease; }
 
+/* Authenticated navigation. The active section is never indicated by color
+   alone: this rule only adds non-color reinforcement (weight plus a thicker,
+   offset underline) on top of the button colors and geometry it inherits. */
+.aa-nav-link-active {
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-thickness: 0.125rem;
+  text-underline-offset: 0.375rem;
+}
+
 .aa-visually-hidden {
   position: absolute;
   width: 1px;
@@ -163,5 +173,57 @@ a { color: inherit; }
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+
+.aa-app-shell {
+  width: min(100% - 2rem, 96rem);
+  margin-inline: auto;
+  padding-block: var(--aa-spacing-lg);
+  display: grid;
+  gap: var(--aa-spacing-md);
+}
+
+.aa-app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aa-spacing-md);
+}
+
+.aa-app-brand,
+.aa-app-context {
+  margin: 0;
+}
+
+.aa-app-brand {
+  font-family: var(--aa-typography-heading);
+  font-size: 1.25rem;
+  font-weight: 750;
+}
+
+.aa-app-context {
+  color: var(--aa-text-secondary);
+  font-size: 0.875rem;
+}
+
+.aa-navigation-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--aa-spacing-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 42rem) {
+  .aa-app-shell {
+    width: min(100% - 1rem, 96rem);
+    padding-block: var(--aa-spacing-md);
+  }
+
+  .aa-app-header {
+    align-items: flex-start;
   }
 }

@@ -1,0 +1,393 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import type { Chapter, Grimoire, Notebook, Page, WorkspaceState } from "@/domains/learning";
+import {
+  openChapter,
+  openGrimoire,
+  openNotebook,
+  openPage,
+} from "@/application/learning/workspace/state";
+
+import { Workspace } from "./Workspace";
+
+type WorkspaceTree = Parameters<typeof Workspace>[0]["tree"];
+
+type WorkspaceShellProps = {
+  tree: WorkspaceTree;
+  initialState: WorkspaceState;
+  onCreateGrimoire: (input: { title: string }) => Promise<Grimoire>;
+  onRenameGrimoire: (input: { id: string; title: string }) => Promise<Grimoire>;
+  onRenameNotebook: (input: { id: string; title: string }) => Promise<Notebook>;
+  onRenameChapter: (input: { id: string; title: string }) => Promise<Chapter>;
+  onCreateNotebook: (input: { grimoireId: string; title: string }) => Promise<Notebook>;
+  onCreateChapter: (input: { notebookId: string; title: string }) => Promise<Chapter>;
+  onCreatePage: (input: { chapterId: string; title: string }) => Promise<Page>;
+  onMovePage: (input: {
+    id: string;
+    direction: "up" | "down";
+  }) => Promise<{
+    movedPage: Page;
+    swappedPage: Page | null;
+  }>;
+  onDeletePage: (id: string) => Promise<void>;
+  onSavePage: (input: {
+    id: string;
+    title: string;
+    content: Page["content"];
+  }) => Promise<Page>;
+};
+
+/** Find the selected page in the already-loaded Workspace hierarchy. */
+function findSelectedPage(
+  tree: WorkspaceTree,
+  state: WorkspaceState,
+): Page | null {
+  const pages = tree.grimoires.flatMap((grimoire) =>
+    (grimoire.notebooks ?? []).flatMap((notebook) =>
+      (notebook.chapters ?? []).flatMap((chapter) => chapter.pages ?? []),
+    ),
+  );
+
+  return pages.find((page) => page.id === state.pageId) ?? null;
+}
+
+/** Resolve the visible title for the current Workspace selection. */
+function findWorkspaceTitle(
+  tree: WorkspaceTree,
+  state: WorkspaceState,
+): string {
+  const page = findSelectedPage(tree, state);
+  if (page) return page.title;
+
+  const chapters = tree.grimoires.flatMap((grimoire) =>
+    (grimoire.notebooks ?? []).flatMap((notebook) => notebook.chapters ?? []),
+  );
+  const chapter = chapters.find((item) => item.id === state.chapterId);
+  if (chapter) return chapter.title;
+
+  const notebooks = tree.grimoires.flatMap(
+    (grimoire) => grimoire.notebooks ?? [],
+  );
+  const notebook = notebooks.find((item) => item.id === state.notebookId);
+  if (notebook) return notebook.title;
+
+  const grimoire = tree.grimoires.find(
+    (item) => item.id === state.grimoireId,
+  );
+  if (grimoire) return grimoire.title;
+
+  return "Workspace";
+}
+
+/** Manage Workspace selection and saved page state on the client. */
+export function WorkspaceShell({
+  tree,
+  initialState,
+  onCreateGrimoire,
+  onRenameGrimoire,
+  onRenameNotebook,
+  onRenameChapter,
+  onCreateNotebook,
+  onCreateChapter,
+  onCreatePage,
+  onMovePage,
+  onDeletePage,
+  onSavePage,
+}: WorkspaceShellProps) {
+
+  const [state, setState] = useState<WorkspaceState>(initialState);
+  const [pages, setPages] = useState<Record<string, Page>>({});
+  const [renamedGrimoires, setRenamedGrimoires] = useState<Record<string, string>>({});
+  const [renamedNotebooks, setRenamedNotebooks] = useState<Record<string, string>>({});
+  const [renamedChapters, setRenamedChapters] = useState<Record<string, string>>({});
+  const [createdGrimoires, setCreatedGrimoires] = useState<
+    Array<Grimoire & {
+      notebooks: Array<
+        Notebook & { chapters: Array<Chapter & { pages: Page[] }> }
+      >;
+    }>
+  >([]);
+  const [createdNotebooks, setCreatedNotebooks] = useState<
+    Record<string, Array<Notebook & { chapters: Array<Chapter & { pages: Page[] }> }>>
+  >({});
+  const [createdChapters, setCreatedChapters] = useState<
+    Record<string, Array<Chapter & { pages: Page[] }>>
+  >({});
+  const [createdPages, setCreatedPages] = useState<Record<string, Page[]>>({});
+  const [reorderedPages, setReorderedPages] = useState<Record<string, number>>({});
+  const [deletedPageIds, setDeletedPageIds] = useState<string[]>([]);
+
+  const workspaceTree = useMemo<WorkspaceTree>(() => ({
+    grimoires: [
+      ...tree.grimoires,
+      ...createdGrimoires,
+    ].map((grimoire) => ({
+      ...grimoire,
+      title: renamedGrimoires[grimoire.id] ?? grimoire.title,
+      notebooks: [
+        ...(grimoire.notebooks ?? []),
+        ...(createdNotebooks[grimoire.id] ?? []),
+      ]
+        .sort((left, right) => left.position - right.position)
+        .map((notebook) => ({
+        ...notebook,
+        title: renamedNotebooks[notebook.id] ?? notebook.title,
+        chapters: [
+          ...(notebook.chapters ?? []),
+          ...(createdChapters[notebook.id] ?? []),
+        ]
+          .sort((left, right) => left.position - right.position)
+          .map((chapter) => ({
+          ...chapter,
+          title: renamedChapters[chapter.id] ?? chapter.title,
+          pages: [
+            ...(chapter.pages ?? []),
+            ...(createdPages[chapter.id] ?? []),
+          ]
+            .filter((page) => !deletedPageIds.includes(page.id))
+            .sort(
+              (left, right) =>
+                (reorderedPages[left.id] ?? left.position) -
+                  (reorderedPages[right.id] ?? right.position) ||
+                left.id.localeCompare(right.id),
+            ),
+        })),
+    })),
+  })),
+  }), [
+    createdChapters,
+    createdGrimoires,
+    renamedChapters,
+    renamedGrimoires,
+    renamedNotebooks,
+    createdNotebooks,
+    createdPages,
+    deletedPageIds,
+    reorderedPages,
+    tree,
+  ]);
+
+  const selectedPage = useMemo(() => {
+    const persistedPage = findSelectedPage(workspaceTree, state);
+    if (!persistedPage) return null;
+
+    return pages[persistedPage.id] ?? persistedPage;
+  }, [pages, state, workspaceTree]);
+
+  const title = useMemo(
+    () => (selectedPage ? selectedPage.title : findWorkspaceTitle(workspaceTree, state)),
+    [selectedPage, state, workspaceTree],
+  );
+
+  const pageMovement = useMemo(() => {
+    if (!selectedPage || !state.chapterId) {
+      return { canMoveUp: false, canMoveDown: false };
+    }
+
+    const chapter = workspaceTree.grimoires
+      .flatMap((grimoire) => grimoire.notebooks ?? [])
+      .flatMap((notebook) => notebook.chapters ?? [])
+      .find((item) => item.id === state.chapterId);
+
+    const pagesInChapter = [...(chapter?.pages ?? [])].sort(
+      (left, right) =>
+        (reorderedPages[left.id] ?? left.position) -
+          (reorderedPages[right.id] ?? right.position) ||
+        left.id.localeCompare(right.id),
+    );
+    const index = pagesInChapter.findIndex(
+      (page) => page.id === selectedPage.id,
+    );
+
+    return {
+      canMoveUp: index > 0,
+      canMoveDown: index >= 0 && index < pagesInChapter.length - 1,
+    };
+  }, [reorderedPages, selectedPage, state.chapterId, workspaceTree]);
+
+  /** Rename a grimoire and reflect the persisted title locally. */
+  const renameGrimoire = async (input: { id: string; title: string }) => {
+    const updated = await onRenameGrimoire(input);
+    setRenamedGrimoires((current) => ({
+      ...current,
+      [updated.id]: updated.title,
+    }));
+    return updated;
+  };
+
+  /** Rename a notebook and reflect the persisted title locally. */
+  const renameNotebook = async (input: { id: string; title: string }) => {
+    const updated = await onRenameNotebook(input);
+    setRenamedNotebooks((current) => ({
+      ...current,
+      [updated.id]: updated.title,
+    }));
+    return updated;
+  };
+
+  /** Rename a chapter and reflect the persisted title locally. */
+  const renameChapter = async (input: { id: string; title: string }) => {
+    const updated = await onRenameChapter(input);
+    setRenamedChapters((current) => ({
+      ...current,
+      [updated.id]: updated.title,
+    }));
+    return updated;
+  };
+
+  /** Create a grimoire, add it to the local tree, and select it. */
+  const createGrimoire = async (input: { title: string }) => {
+    const created = await onCreateGrimoire(input);
+    const grimoire = {
+      ...created,
+      notebooks: [] as Array<
+        Notebook & { chapters: Array<Chapter & { pages: Page[] }> }
+      >,
+    };
+    setCreatedGrimoires((current) => [...current, grimoire]);
+    setState((current) => openGrimoire(current, created.id));
+    return created;
+  };
+
+  /** Create a notebook, add it to the local tree, and select it. */
+  const createNotebook = async (input: { grimoireId: string; title: string }) => {
+    const created = await onCreateNotebook(input);
+    const notebook = {
+      ...created,
+      chapters: [] as Array<Chapter & { pages: Page[] }>,
+    };
+    setCreatedNotebooks((current) => ({
+      ...current,
+      [created.grimoireId]: [
+        ...(current[created.grimoireId] ?? []),
+        notebook,
+      ],
+    }));
+    setState((current) =>
+      openNotebook(
+        { ...current, grimoireId: created.grimoireId },
+        created.id,
+      ),
+    );
+    return created;
+  };
+
+  /** Create a chapter, add it to the local tree, and select it. */
+  const createChapter = async (input: { notebookId: string; title: string }) => {
+    const created = await onCreateChapter(input);
+    const chapter = { ...created, pages: [] as Page[] };
+    setCreatedChapters((current) => ({
+      ...current,
+      [created.notebookId]: [...(current[created.notebookId] ?? []), chapter],
+    }));
+    setState((current) =>
+      openChapter({
+        ...current,
+        notebookId: created.notebookId,
+        chapterId: created.id,
+        pageId: null,
+      }, created.id),
+    );
+    return created;
+  };
+
+  /** Create a page, add it to the local tree, and select it for editing. */
+  const createPage = async (input: { chapterId: string; title: string }) => {
+    const created = await onCreatePage(input);
+    setCreatedPages((current) => ({
+      ...current,
+      [created.chapterId]: [...(current[created.chapterId] ?? []), created],
+    }));
+    setPages((current) => ({ ...current, [created.id]: created }));
+    setState((current) =>
+      openPage({ ...current, chapterId: created.chapterId }, created.id),
+    );
+    return created;
+  };
+
+  /** Move the selected page one position and update both affected local positions. */
+  const movePage = async (direction: "up" | "down") => {
+    if (!selectedPage) return;
+
+    const result = await onMovePage({
+      id: selectedPage.id,
+      direction,
+    });
+
+    setReorderedPages((current) => ({
+      ...current,
+      [result.movedPage.id]: result.movedPage.position,
+      ...(result.swappedPage
+        ? { [result.swappedPage.id]: result.swappedPage.position }
+        : {}),
+    }));
+
+  };
+
+  /** Adapt page movement to the Workspace editor callback contract. */
+  const handleMovePage = movePage;
+
+  /** Delete a page, clear its local state, and keep the chapter selected. */
+  const deletePage = async (id: string) => {
+    await onDeletePage(id);
+    setDeletedPageIds((current) =>
+      current.includes(id) ? current : [...current, id],
+    );
+    setPages((current) =>
+      Object.fromEntries(
+        Object.entries(current).filter(([pageId]) => pageId !== id),
+      ),
+    );
+    setCreatedPages((current) =>
+      Object.fromEntries(
+        Object.entries(current).map(([chapterId, chapterPages]) => [
+          chapterId,
+          chapterPages.filter((page) => page.id !== id),
+        ]),
+      ),
+    );
+    setState((current) =>
+      current.pageId === id
+        ? { ...current, pageId: null }
+        : current,
+    );
+  };
+
+  /** Persist a page and immediately reflect the returned version in the shell. */
+  const savePage = async (input: {
+    id: string;
+    title: string;
+    content: Page["content"];
+  }) => {
+    const saved = await onSavePage(input);
+    setPages((current) => ({ ...current, [saved.id]: saved }));
+    return saved;
+  };
+
+  return (
+    <Workspace
+      tree={workspaceTree}
+      state={state}
+      title={title}
+      selectedPage={selectedPage}
+      canMovePageUp={pageMovement.canMoveUp}
+      canMovePageDown={pageMovement.canMoveDown}
+      onOpenGrimoire={(id) => setState((current) => openGrimoire(current, id))}
+      onCreateGrimoire={createGrimoire}
+      onRenameGrimoire={renameGrimoire}
+      onRenameNotebook={renameNotebook}
+      onRenameChapter={renameChapter}
+      onOpenNotebook={(id) => setState((current) => openNotebook(current, id))}
+      onOpenChapter={(id) => setState((current) => openChapter(current, id))}
+      onOpenPage={(id) => setState((current) => openPage(current, id))}
+      onCreateNotebook={createNotebook}
+      onCreateChapter={createChapter}
+      onCreatePage={createPage}
+      onMovePage={handleMovePage}
+      onDeletePage={deletePage}
+      onSavePage={savePage}
+    />
+  );
+}
