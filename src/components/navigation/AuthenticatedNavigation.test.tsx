@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { AuthenticatedNavigation } from "./AuthenticatedNavigation";
 
 describe("AuthenticatedNavigation", () => {
-  it("renders the navigation landmark with the two implemented routes", () => {
+  it("renders all implemented authenticated routes", () => {
     render(<AuthenticatedNavigation currentPath="/santuario" />);
 
     const navigation = screen.getByRole("navigation", {
@@ -20,6 +20,10 @@ describe("AuthenticatedNavigation", () => {
       "href",
       "/workspace",
     );
+    expect(screen.getByRole("link", { name: "Cronograma" })).toHaveAttribute(
+      "href",
+      "/cronograma",
+    );
   });
 
   it("marks only the current route with aria-current", () => {
@@ -30,6 +34,9 @@ describe("AuthenticatedNavigation", () => {
       "page",
     );
     expect(screen.getByRole("link", { name: "Workspace" })).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(screen.getByRole("link", { name: "Cronograma" })).not.toHaveAttribute(
       "aria-current",
     );
   });
@@ -46,17 +53,36 @@ describe("AuthenticatedNavigation", () => {
     );
   });
 
+  it("updates the current route when cronograma is active", () => {
+    render(<AuthenticatedNavigation currentPath="/cronograma" />);
+
+    expect(screen.getByRole("link", { name: "Cronograma" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("link", { name: "Santuário" })).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(screen.getByRole("link", { name: "Workspace" })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
   it("keeps links keyboard-focusable through native link semantics", () => {
     render(<AuthenticatedNavigation currentPath="/santuario" />);
 
     const sanctuaryLink = screen.getByRole("link", { name: "Santuário" });
     const workspaceLink = screen.getByRole("link", { name: "Workspace" });
+    const cronogramaLink = screen.getByRole("link", { name: "Cronograma" });
 
     sanctuaryLink.focus();
     expect(document.activeElement).toBe(sanctuaryLink);
 
     workspaceLink.focus();
     expect(document.activeElement).toBe(workspaceLink);
+
+    cronogramaLink.focus();
+    expect(document.activeElement).toBe(cronogramaLink);
   });
 
   it("reinforces the current route with a non-color indicator", () => {
