@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Page, PageContent } from "@/domains/learning";
+import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
   pageId: string;
@@ -187,6 +187,8 @@ type PageEditorProps = {
     title: string;
     content: PageContent;
   }) => Promise<Page>;
+  progressStatus: PageProgressStatus;
+  onSetProgress: (status: PageProgressStatus) => Promise<void>;
 };
 
 /** Edit and persist the currently selected learning page. */
@@ -197,6 +199,8 @@ export function PageEditor({
   onMove,
   onDelete,
   onSave,
+  progressStatus,
+  onSetProgress,
 }: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
@@ -206,6 +210,8 @@ export function PageEditor({
   );
   const [isMoving, setIsMoving] = useState(false);
   const [moveError, setMoveError] = useState<string | null>(null);
+  const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
+  const [progressError, setProgressError] = useState<string | null>(null);
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -233,6 +239,22 @@ export function PageEditor({
       content: blockContent,
     };
     setContent({ ...content, blocks: nextBlocks });
+  };
+
+  /** Persist the learning progress state for the selected page. */
+  const updateProgress = async () => {
+    setIsUpdatingProgress(true);
+    setProgressError(null);
+
+    try {
+      await onSetProgress(
+        progressStatus === "completed" ? "in-progress" : "completed",
+      );
+    } catch {
+      setProgressError("Não foi possível atualizar o progresso.");
+    } finally {
+      setIsUpdatingProgress(false);
+    }
   };
 
   /** Save the current editor state through the authenticated server action. */
@@ -288,6 +310,22 @@ export function PageEditor({
       <button type="button" disabled={status === "saving"} onClick={save}>
         {getSaveLabel(status)}
       </button>
+
+      <button
+        type="button"
+        disabled={isUpdatingProgress}
+        onClick={updateProgress}
+      >
+        {isUpdatingProgress
+          ? "Atualizando…"
+          : progressStatus === "completed"
+            ? "Marcar como em andamento"
+            : "Concluir página"}
+      </button>
+      <p role="status" aria-live="polite">
+        {progressStatus === "completed" ? "Página concluída." : "Página em andamento."}
+      </p>
+      {progressError ? <p role="alert">{progressError}</p> : null}
 
       <PageMoveControls
         isMoving={isMoving}
