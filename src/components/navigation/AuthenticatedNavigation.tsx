@@ -1,6 +1,9 @@
 import Link from "next/link";
 
-export type AuthenticatedRouteHref = "/santuario" | "/workspace";
+export type AuthenticatedRouteHref =
+  | "/santuario"
+  | "/workspace"
+  | "/cronograma";
 
 type AuthenticatedNavigationItem = {
   href: AuthenticatedRouteHref;
@@ -14,6 +17,7 @@ type AuthenticatedNavigationProps = {
 const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
   { href: "/santuario", label: "Santuário" },
   { href: "/workspace", label: "Workspace" },
+  { href: "/cronograma", label: "Cronograma" },
 ];
 
 export function AuthenticatedNavigation({
@@ -27,12 +31,14 @@ export function AuthenticatedNavigation({
           const variant = isCurrent
             ? "aa-button-primary"
             : "aa-button-secondary";
-          const reinforcement = isCurrent ? " aa-nav-link-active" : "";
+          const reinforcement = isCurrent ? "aa-nav-link-active" : "";
 
           return (
             <li key={item.href}>
               <Link
-                className={`aa-button ${variant} aa-button-sm${reinforcement}`}
+                className={["aa-button", variant, "aa-button-sm", reinforcement]
+                  .filter(Boolean)
+                  .join(" ")}
                 href={item.href}
                 aria-current={isCurrent ? "page" : undefined}
               >
