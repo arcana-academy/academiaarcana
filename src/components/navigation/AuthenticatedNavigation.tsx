@@ -3,7 +3,8 @@ import Link from "next/link";
 export type AuthenticatedRouteHref =
   | "/santuario"
   | "/workspace"
-  | "/cronograma";
+  | "/cronograma"
+  | "/personalizar";
 
 type AuthenticatedNavigationItem = {
   href: AuthenticatedRouteHref;
@@ -18,6 +19,7 @@ const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
   { href: "/santuario", label: "Santuário" },
   { href: "/workspace", label: "Workspace" },
   { href: "/cronograma", label: "Cronograma" },
+  { href: "/personalizar", label: "Personalizar" },
 ];
 
 export function AuthenticatedNavigation({
