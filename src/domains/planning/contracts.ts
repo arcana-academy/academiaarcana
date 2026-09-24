@@ -2,6 +2,7 @@
  * Planning domain contracts.
  *
  * Planning owns executable study tasks and their lifecycle.
+ * Completion is delegated to the atomic cross-domain reward boundary.
  */
 
 export type StudyTaskStatus = "pending" | "completed" | "cancelled";
@@ -21,5 +22,4 @@ export interface StudyTaskRepository {
   create(task: StudyTask): Promise<StudyTask>;
   listUpcoming(ownerId: string, now: string, limit?: number): Promise<StudyTask[]>;
   getById(id: string): Promise<StudyTask | null>;
-  complete(id: string, completedAt: string): Promise<StudyTask | null>;
 }
