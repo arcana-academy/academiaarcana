@@ -19,12 +19,12 @@ This validation is limited to technical stabilization. No product functionality,
 | Node | 22.23.2 (CI runner) |
 | Package manager | npm 11.19.1 |
 | Lockfile | package-lock.json, npm lockfile v3 |
-| Next.js | 16.3.5 |
+| Next.js | 16.3.6 |
 | React | 19.3.0 |
 | TypeScript | 6.0.3 |
 | ESLint | 9.39.5 |
 | typescript-eslint | 8.70.0 (transitive) |
-| eslint-config-next | 16.3.5 |
+| eslint-config-next | 16.3.6 |
 | Vitest | 4.1.11 |
 | Testing Library React | 16.3.3 |
 | Playwright | 1.63.0 |
