@@ -28,7 +28,7 @@ select
   gen_random_uuid(),
   'aa_gamification_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 12);
 
-select extensions.plan(10);
+select extensions.plan(17);
 
 select extensions.ok(
   has_function_privilege(
@@ -289,14 +289,49 @@ select extensions.is(
 select extensions.dblink_disconnect('aa_same_a');
 select extensions.dblink_disconnect('aa_same_b');
 
-delete from public.missions
-where owner_id = (select owner_id from aa_gamification_test_ids);
+select extensions.dblink_connect('aa_reset_1', 'dbname=postgres');
 
-delete from public.study_tasks
-where owner_id = (select owner_id from aa_gamification_test_ids);
+select extensions.dblink_exec(
+  'aa_reset_1',
+  format(
+    'delete from public.missions where owner_id = %L::uuid',
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
 
-delete from public.gamification_profiles
-where owner_id = (select owner_id from aa_gamification_test_ids);
+select extensions.dblink_exec(
+  'aa_reset_1',
+  format(
+    'delete from public.study_tasks where owner_id = %L::uuid',
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
+
+select extensions.dblink_exec(
+  'aa_reset_1',
+  format(
+    'delete from public.gamification_profiles where owner_id = %L::uuid',
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
+
+select extensions.dblink_exec(
+  'aa_reset_1',
+  format(
+    $sql$
+      insert into public.study_tasks (id, owner_id, title)
+      values
+        (%L::uuid, %L::uuid, 'Concorrência - criação do perfil A'),
+        (%L::uuid, %L::uuid, 'Concorrência - criação do perfil B');
+    $sql$,
+    (select task_profile_a from aa_gamification_test_ids),
+    (select owner_id from aa_gamification_test_ids),
+    (select task_profile_b from aa_gamification_test_ids),
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
+
+select extensions.dblink_disconnect('aa_reset_1');
 
 select extensions.dblink_connect('aa_profile_a', 'dbname=postgres');
 select extensions.dblink_connect('aa_profile_b', 'dbname=postgres');
@@ -405,16 +440,56 @@ select extensions.is(
 select extensions.dblink_disconnect('aa_profile_a');
 select extensions.dblink_disconnect('aa_profile_b');
 
-delete from public.missions
-where owner_id = (select owner_id from aa_gamification_test_ids);
+select extensions.dblink_connect('aa_reset_2', 'dbname=postgres');
 
-delete from public.study_tasks
-where owner_id = (select owner_id from aa_gamification_test_ids);
+select extensions.dblink_exec(
+  'aa_reset_2',
+  format(
+    'delete from public.missions where owner_id = %L::uuid',
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
 
-delete from public.gamification_profiles
-where owner_id = (select owner_id from aa_gamification_test_ids);
+select extensions.dblink_exec(
+  'aa_reset_2',
+  format(
+    'delete from public.study_tasks where owner_id = %L::uuid',
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
 
-insert into public.gamification_profiles (
+select extensions.dblink_exec(
+  'aa_reset_2',
+  format(
+    'delete from public.gamification_profiles where owner_id = %L::uuid',
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
+
+select extensions.dblink_exec(
+  'aa_reset_2',
+  format(
+    $sql$
+      insert into public.gamification_profiles (
+        owner_id,
+        xp,
+        streak_days,
+        last_active_on
+      )
+      values (%L::uuid, 2147483640, 7, current_date);
+
+      insert into public.study_tasks (id, owner_id, title)
+      values (%L::uuid, %L::uuid, 'Falha transacional');
+    $sql$,
+    (select owner_id from aa_gamification_test_ids),
+    (select task_failure from aa_gamification_test_ids),
+    (select owner_id from aa_gamification_test_ids)
+  )
+);
+
+select extensions.dblink_disconnect('aa_reset_2');
+
+set local role authenticated;
   owner_id,
   xp,
   streak_days,
