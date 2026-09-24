@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import type { Chapter, Grimoire, Notebook, Page, WorkspaceState } from "@/domains/learning";
+import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import {
   openChapter,
   openGrimoire,
@@ -37,6 +37,11 @@ type WorkspaceShellProps = {
     title: string;
     content: Page["content"];
   }) => Promise<Page>;
+  initialPageProgress: Record<string, PageProgressStatus>;
+  onSetPageProgress: (input: {
+    pageId: string;
+    status: PageProgressStatus;
+  }) => Promise<void>;
 };
 
 /** Find the selected page in the already-loaded Workspace hierarchy. */
@@ -95,10 +100,13 @@ export function WorkspaceShell({
   onMovePage,
   onDeletePage,
   onSavePage,
+  initialPageProgress,
+  onSetPageProgress,
 }: WorkspaceShellProps) {
 
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [pages, setPages] = useState<Record<string, Page>>({});
+  const [pageProgress, setPageProgress] = useState<Record<string, PageProgressStatus>>(initialPageProgress);
   const [renamedGrimoires, setRenamedGrimoires] = useState<Record<string, string>>({});
   const [renamedNotebooks, setRenamedNotebooks] = useState<Record<string, string>>({});
   const [renamedChapters, setRenamedChapters] = useState<Record<string, string>>({});
@@ -355,6 +363,14 @@ export function WorkspaceShell({
     );
   };
 
+  /** Persist the selected page progress and reflect it locally. */
+  const setSelectedPageProgress = async (status: PageProgressStatus) => {
+    if (!selectedPage) return;
+
+    await onSetPageProgress({ pageId: selectedPage.id, status });
+    setPageProgress((current) => ({ ...current, [selectedPage.id]: status }));
+  };
+
   /** Persist a page and immediately reflect the returned version in the shell. */
   const savePage = async (input: {
     id: string;
@@ -388,6 +404,8 @@ export function WorkspaceShell({
       onMovePage={handleMovePage}
       onDeletePage={deletePage}
       onSavePage={savePage}
+      pageProgressStatus={selectedPage ? pageProgress[selectedPage.id] ?? "not-started" : "not-started"}
+      onSetPageProgress={setSelectedPageProgress}
     />
   );
 }
