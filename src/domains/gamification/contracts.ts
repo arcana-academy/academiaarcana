@@ -1,8 +1,9 @@
 /**
  * Gamification domain contracts.
  *
- * Gamification owns recognition state and missions. Mutation is idempotent
- * at the mission level so retries do not award the same mission twice.
+ * Gamification owns read-side recognition state. Mutations that can award
+ * XP or complete rewards are intentionally exposed through one atomic
+ * application/infrastructure boundary.
  */
 
 export type GamificationProfile = {
@@ -27,15 +28,5 @@ export type Mission = {
 };
 
 export interface GamificationRepository {
-  getProfile(ownerId: string): Promise<GamificationProfile>;
-  ensureDailyMission(
-    ownerId: string,
-    code: string,
-    targetDate: string,
-    title: string,
-    rewardXp: number,
-  ): Promise<Mission>;
   listDailyMissions(ownerId: string, targetDate: string): Promise<Mission[]>;
-  completeMission(id: string, completedAt: string): Promise<Mission | null>;
-  addXp(ownerId: string, amount: number, activeOn: string): Promise<GamificationProfile>;
 }
