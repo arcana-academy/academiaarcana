@@ -166,7 +166,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = ''
 as $$
 declare
   v_owner_id uuid := (select auth.uid());
