@@ -1,7 +1,7 @@
 # Santuário — Design Técnico
 
 **Data:** 2026-09-17  
-**Status:** Design aprovado em conversa; especificação aguardando revisão final antes do plano de implementação.
+**Status:** Implementação presente em `main` (commit `b01c7b2`); esta especificação permanece como contrato de design e deve ser usada para reconciliação da implementação. Os itens ainda não comprovados permanecem explicitamente pendentes.
 
 ## 1. Objetivo
 
@@ -88,6 +88,48 @@ src/
 ```
 
 A estrutura é uma proposta de organização; nomes finais podem ser ajustados durante o plano de implementação sem alterar as decisões arquiteturais.
+
+## 3.1 Reconciliação com a implementação atual
+
+A implementação em `main` convergiu para nomes equivalentes aos desta especificação sem alterar as responsabilidades arquiteturais:
+
+```text
+src/app/santuario/
+├── page.tsx
+├── loading.tsx
+└── error.tsx
+
+src/application/sanctuary/
+├── get-sanctuary.ts
+└── sanctuary-view-model.ts
+
+src/domains/sanctuary/
+├── contracts.ts
+├── policies.ts
+├── availabilityPolicies.ts
+├── continue-learning-policy.ts
+├── priorityPolicy.ts
+└── index.ts
+
+src/infrastructure/sanctuary/
+├── sanctuary-repository.ts
+└── supabase-sanctuary-repository.ts
+
+src/components/sanctuary/
+├── Sanctuary.tsx
+├── SanctuaryHeader.tsx
+├── SanctuaryContinueLearning.tsx
+├── SanctuaryEmptyState.tsx
+├── SanctuaryMissions.tsx
+├── SanctuaryProgress.tsx
+└── SanctuarySchedule.tsx
+```
+
+O conceito de `QuickActions` permanece representado no view model e na ação primária atual; não existe um componente separado `QuickActions.tsx` no `main`. Isso é uma diferença de organização, não uma ausência comprovada de responsabilidade funcional.
+
+Os tipos específicos do Santuário permanecem em `contracts.ts`; não existe um arquivo `types.ts` separado no `main`, e não há evidência de que essa separação seja necessária.
+
+A validação E2E local atualmente cobre acesso anônimo ao Santuário e à raiz. O cenário autenticado depende de credenciais E2E dedicadas e permanece não executado quando essas variáveis não estão configuradas.
 
 ## 4. Contratos centrais
 
@@ -344,10 +386,10 @@ Esses sistemas podem posteriormente fornecer adapters ao Santuário através dos
 
 ## 16. Dependências e riscos conhecidos
 
-O projeto possui um problema de build/deploy independente do Santuário nas páginas de autenticação e em `src/core/authorization/contracts.ts`. Esse problema deve ser tratado como pré-condição de integração/deploy e não mascarado por mudanças no Santuário.
+Os problemas históricos de build/deploy mencionados durante o desenho não devem ser tratados como estado atual sem nova evidência. O commit atual possui build local verde e deployment Vercel `READY` para o mesmo SHA.
 
-O ambiente Vercel também deve ser alinhado ao runtime Node usado pelo projeto antes da publicação final.
+A publicação final ainda requer reconciliação do deployment com o domínio público e validação operacional das integrações externas.
 
 ## 17. Próximo passo
 
-Após aprovação desta especificação formal, criar o plano de implementação detalhado com ordem de execução, testes, checkpoints, estratégia de branch/PR e verificação de integração.
+Usar esta especificação como contrato de revisão da implementação atual, registrando desvios intencionais, critérios ainda não comprovados e evidências de integração antes de considerar o Santuário operacionalmente encerrado.

@@ -2,28 +2,26 @@
 
 ## Status
 
-Phase 0 — technical baseline stabilization.
+Current repository baseline — reconciled 2026-09-23.
 
-This document defines the supported development/build baseline for the repository. It does not authorize product-feature work.
+This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
 ## Runtime
 
-- Node.js: `22.x`
-- Local pin file: `.nvmrc` = `22`
-- CI: Node.js `22`
-- Vercel: Node.js `22.x` is the intended major version.
-
-Vercel guarantees the Node 22 major line rather than a fixed patch, so the repository standardizes on `22.x` instead of a patch-level Vercel runtime.
+- Node.js: `24.x`
+- Local pin file: `.nvmrc` = `24`
+- CI: Node.js `24`
+- The repository standardizes on Node 24 because `package.json#engines`, `package.json#devEngines`, `.nvmrc`, CI, and the current local validation all agree on that major version.
+- The current local workstation validation reported Node `v24.21.0`.
 
 ## Package Manager
 
 - Official package manager: **npm**
 - Required npm version: `11.19.1`
 - `package.json#packageManager`: `npm@11.19.1`
-- `package.json#engines`: Node `22.x`, npm `11.19.1`
-- `package.json#devEngines`: Node `22.x` is an error; npm `11.19.1` is a warning during bootstrap so the CI can install the pinned npm before dependency installation. CI then verifies and uses npm `11.19.1`.
-
-Do not use pnpm as the repository package manager.
+- `package.json#engines`: Node `24.x`, npm `11.19.1`
+- `package.json#devEngines`: Node `24.x` with failure on mismatch; npm `11.19.1` with warning during bootstrap.
+- Do not use pnpm as the repository package manager.
 
 ## Lockfile
 
@@ -48,59 +46,105 @@ Do not use pnpm as the repository package manager.
 | Testing Library DOM | 10.4.2 |
 | Playwright | 1.63.0 |
 | Vite | 7.3.6 |
+| @vitejs/plugin-react | 5.x on current main |
 
 ## TypeScript policy
 
 TypeScript 7 is **not** part of this baseline.
 
-The repository previously contained the TypeScript 7 side-by-side alias:
+The repository uses the ordinary `typescript@6.0.3` package directly. The current dependency chain is kept below the `typescript-eslint` support ceiling rather than introducing a parallel TypeScript 7 installation.
 
-`@typescript/native = npm:typescript@^7.0.2`
-
-That alias was removed from the baseline because the resolved `typescript-eslint` 8.70.0 stack declares TypeScript support as `>=4.8.4 <6.1.0`. TypeScript 6.0.3 remains inside that supported range.
-
-The baseline therefore uses the ordinary `typescript@6.0.3` package directly. No TypeScript 6/7 side-by-side installation is permitted for this phase.
+No TypeScript 6/7 side-by-side installation is permitted for this phase.
 
 ## CI rules
 
 The Quality Gate must:
 
-1. run on Node 22;
+1. run on Node 24;
 2. install npm 11.19.1 explicitly;
 3. use `npm ci`;
 4. avoid `--force`;
 5. avoid `--legacy-peer-deps`;
-6. avoid installing a second Playwright version outside the lockfile;
-7. run typecheck;
-8. run lint;
+6. use the Playwright version declared in `package.json`;
+7. run lint;
+8. run typecheck;
 9. run unit tests;
 10. run accessibility tests;
-11. run the production build;
-12. run the E2E suite using the Playwright version declared in `package.json`.
+11. run the production build with the same required public Supabase placeholders used by the E2E environment;
+12. run the E2E suite.
+
+The application lint command intentionally excludes the local, Git-ignored `welcome-to-docker/**` subtree so external legacy JavaScript cannot contaminate the project Quality Gate.
+
+## Current local validation
+
+The current local checkout at commit `b01c7b2` was validated with:
+
+- `npm ci` — PASS
+- `npm run lint` — PASS
+- `npm run typecheck` — PASS
+- `npm test` — 370/370 PASS
+- `npm run test:a11y` — 4/4 PASS
+- `npm run build` — PASS
+- `npm run test:e2e` — 2 PASS, 1 intentionally skipped because dedicated `E2E_EMAIL`/`E2E_PASSWORD` variables were not configured.
+
+The skipped E2E is an unexecuted authenticated scenario, not a confirmed application failure.
+
+## GitHub validation
+
+For commit `b01c7b2`, the push-triggered workflows observed at the time of this reconciliation were successful:
+
+- Academia Arcana Quality Gate
+- Gitleaks
+- CodeQL
+- OpenSSF Scorecard
+- autofix.ci
 
 ## Vercel
 
-The current production deployment is attached to the same `main` commit used for this baseline audit and is READY.
+A production-target deployment exists for commit `b01c7b2` and is `READY`.
 
-The repository should keep Vercel aligned with:
+The deployment is:
 
-- Node 22.x;
-- npm/package-lock resolution;
-- the repository build script `npm run build`.
+- deployment: `dpl_5N96fZ4sqhFMtb5GeDb43SCptWTD`
+- target: `production`
+- commit: `b01c7b20f183e384e40f058f5a125040c155a83d`
 
-No separate Vercel dependency-resolution strategy is permitted.
+The public domain `academiaarcana.vercel.app` is still associated with the earlier deployment for commit `d06941d`. Therefore GitHub `main`, the latest READY deployment, and the public production domain are not yet fully reconciled.
 
-## Known external/security issue
+No domain promotion is implied by this document.
 
-The current `main` branch has a failing scheduled Gitleaks run because the historical Quality Gate contains a hard-coded Supabase publishable key. The Phase 0 branch removes the literal value from the workflow and references a GitHub Actions secret instead.
+## Supabase
 
-The E2E Quality Gate uses an isolated, non-production Supabase URL and dummy publishable key. Production credentials are not required for this test environment.
+The repository contains versioned migrations, the Supabase CLI package, and `supabase/config.toml`, but `supabase/seed.sql` remains absent.
 
-## Local environment note
+The presence of `supabase/config.toml` and the versioned migrations provides the local configuration and schema, but the absence of `supabase/seed.sql` means a fully populated local database state is not reproducible from the repository alone.
 
-The most recently reported developer-machine versions were Node `22.23.2`, npm `12.0.2`, and pnpm `12.4.2`.
+Do not hand-author a speculative `config.toml`. Generate the configuration with the project-pinned Supabase CLI in an isolated checkout, review the generated content, and then commit only the configuration that is actually required.
 
-Node 22.23.2 matches the Node major baseline. npm 12.0.2 does **not** match the repository baseline and must be changed locally to npm 11.19.1 before treating the local environment as conformant. pnpm may remain installed globally for unrelated projects, but it must not be used to install Academia Arcana.
+### Migration history reconciliation
+
+The repository contains three application migrations:
+
+- `20260915181306_remote_schema`
+- `20260917120000_rename_notebooks_grimoire_index`
+- `20260921174822_revoke_excess_authenticated_table_privileges`
+
+The linked production Supabase project currently reports only:
+
+- `20260915181306_remote_schema`
+- `20260921174822_revoke_excess_authenticated_table_privileges`
+
+At the same time, the live database has the renamed index `idx_notebooks_grimoire_id`, which indicates that the effect of the missing migration is present even though the migration history does not contain it.
+
+This is a **migration-history drift** finding. It remains pending reconciliation and must not be repaired by blindly changing production.
+
+## Known security state
+
+The current Supabase Security Advisor reports one warning for leaked-password protection being disabled. Seven unused indexes are also reported by the Performance Advisor; the tables are currently empty, so those indexes must not be removed solely from that observation.
+
+## Observability configuration
+
+Honeybadger configuration consumes public environment variables for the browser/server integration. These are optional from the build's perspective because the configuration handles missing values without failing the build. They should remain environment-managed and must not be replaced with hard-coded secrets.
 
 ## Change policy
 
@@ -108,4 +152,5 @@ Node 22.23.2 matches the Node major baseline. npm 12.0.2 does **not** match the 
 - Do not upgrade to `latest` automatically.
 - Do not bypass peer-dependency validation.
 - Do not disable lint/type rules to obtain a green build.
-- Do not introduce product functionality in this phase.
+- Do not introduce product functionality during infrastructure reconciliation.
+- Do not mutate production solely to make documentation or migration history appear green; reconcile from observed state and preserve evidence.
