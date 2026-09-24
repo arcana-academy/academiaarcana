@@ -37,8 +37,8 @@ type WorkspaceShellProps = {
     title: string;
     content: Page["content"];
   }) => Promise<Page>;
-  initialPageProgress: Record<string, PageProgressStatus>;
-  onSetPageProgress: (input: {
+  initialPageProgress?: Record<string, PageProgressStatus>;
+  onSetPageProgress?: (input: {
     pageId: string;
     status: PageProgressStatus;
   }) => Promise<void>;
@@ -100,8 +100,8 @@ export function WorkspaceShell({
   onMovePage,
   onDeletePage,
   onSavePage,
-  initialPageProgress,
-  onSetPageProgress,
+  initialPageProgress = {},
+  onSetPageProgress = async () => undefined,
 }: WorkspaceShellProps) {
 
   const [state, setState] = useState<WorkspaceState>(initialState);
