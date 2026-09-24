@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { CompleteStudyTaskResult, StudyTaskRewardRepository } from "@/application/gamification/complete-study-task";
 import type { GamificationProfile } from "@/domains/gamification";
 import type { StudyTask } from "@/domains/planning";
 
@@ -20,7 +19,7 @@ type CompleteStudyTaskRow = {
   mission_completed: boolean;
 };
 
-function toResult(row: CompleteStudyTaskRow): CompleteStudyTaskResult {
+function toResult(row: CompleteStudyTaskRow) {
   const task: StudyTask = {
     id: row.task_id,
     ownerId: row.task_owner_id,
@@ -47,12 +46,10 @@ function toResult(row: CompleteStudyTaskRow): CompleteStudyTaskResult {
   };
 }
 
-export class SupabaseStudyTaskRewardRepository
-  implements StudyTaskRewardRepository
-{
+export class SupabaseStudyTaskRewardRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
-  async completeWithReward(taskId: string): Promise<CompleteStudyTaskResult> {
+  async completeWithReward(taskId: string) {
     const { data, error } = await this.supabase.rpc(
       "complete_study_task_with_reward",
       { p_task_id: taskId },
