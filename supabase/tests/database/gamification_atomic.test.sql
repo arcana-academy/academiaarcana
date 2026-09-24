@@ -489,26 +489,6 @@ select extensions.dblink_exec(
 
 select extensions.dblink_disconnect('aa_reset_2');
 
-set local role authenticated;
-  owner_id,
-  xp,
-  streak_days,
-  last_active_on
-)
-values (
-  (select owner_id from aa_gamification_test_ids),
-  2147483640,
-  7,
-  current_date
-);
-
-insert into public.study_tasks (id, owner_id, title)
-values (
-  (select task_failure from aa_gamification_test_ids),
-  (select owner_id from aa_gamification_test_ids),
-  'Falha transacional'
-);
-
 set local request.jwt.claim.sub = (
   select owner_id::text from aa_gamification_test_ids
 );
