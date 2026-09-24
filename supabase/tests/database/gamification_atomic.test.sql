@@ -68,7 +68,7 @@ select extensions.ok(
 
 select extensions.dblink_connect(
   'aa_setup',
-  'dbname=postgres'
+  'dbname=postgres user=postgres password=postgres'
 );
 
 select extensions.dblink_exec(
@@ -170,8 +170,8 @@ select extensions.dblink_exec(
 
 select extensions.dblink_disconnect('aa_setup');
 
-select extensions.dblink_connect('aa_same_a', 'dbname=postgres');
-select extensions.dblink_connect('aa_same_b', 'dbname=postgres');
+select extensions.dblink_connect('aa_same_a', 'dbname=postgres user=postgres password=postgres');
+select extensions.dblink_connect('aa_same_b', 'dbname=postgres user=postgres password=postgres');
 
 select extensions.dblink_exec(
   'aa_same_a',
@@ -289,7 +289,7 @@ select extensions.is(
 select extensions.dblink_disconnect('aa_same_a');
 select extensions.dblink_disconnect('aa_same_b');
 
-select extensions.dblink_connect('aa_reset_1', 'dbname=postgres');
+select extensions.dblink_connect('aa_reset_1', 'dbname=postgres user=postgres password=postgres');
 
 select extensions.dblink_exec(
   'aa_reset_1',
@@ -333,8 +333,8 @@ select extensions.dblink_exec(
 
 select extensions.dblink_disconnect('aa_reset_1');
 
-select extensions.dblink_connect('aa_profile_a', 'dbname=postgres');
-select extensions.dblink_connect('aa_profile_b', 'dbname=postgres');
+select extensions.dblink_connect('aa_profile_a', 'dbname=postgres user=postgres password=postgres');
+select extensions.dblink_connect('aa_profile_b', 'dbname=postgres user=postgres password=postgres');
 
 select extensions.dblink_exec(
   'aa_profile_a',
@@ -440,7 +440,7 @@ select extensions.is(
 select extensions.dblink_disconnect('aa_profile_a');
 select extensions.dblink_disconnect('aa_profile_b');
 
-select extensions.dblink_connect('aa_reset_2', 'dbname=postgres');
+select extensions.dblink_connect('aa_reset_2', 'dbname=postgres user=postgres password=postgres');
 
 select extensions.dblink_exec(
   'aa_reset_2',
@@ -533,7 +533,7 @@ select extensions.is(
   'failed reward leaves no mission completion behind'
 );
 
-select extensions.dblink_connect('aa_cleanup', 'dbname=postgres');
+select extensions.dblink_connect('aa_cleanup', 'dbname=postgres user=postgres password=postgres');
 
 select extensions.dblink_exec(
   'aa_cleanup',
