@@ -34,12 +34,12 @@ This document defines the currently supported development and build baseline for
 
 | Technology | Baseline |
 |---|---:|
-| Next.js | 16.3.5 |
+| Next.js | 16.3.6 |
 | React | 19.3.0 |
 | React DOM | 19.3.0 |
 | TypeScript | 6.0.3 |
 | ESLint | 9.39.5 |
-| eslint-config-next | 16.3.5 |
+| eslint-config-next | 16.3.6 |
 | typescript-eslint | 8.70.0 (resolved transitively by eslint-config-next) |
 | Vitest | 4.1.11 |
 | Testing Library React | 16.3.3 |
