@@ -1,0 +1,44 @@
+name: Academia Arcana Database Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database:
+    name: Database Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Run database tests
+        run: supabase test db supabase/tests/database/gamification_atomic.test.sql
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop

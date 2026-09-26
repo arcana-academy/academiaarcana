@@ -1,6 +1,7 @@
 "use server";
 
-import type { Chapter, Grimoire, Notebook, Page, PageContent } from "@/domains/learning";
+import type { Chapter, Grimoire, Notebook, Page, PageContent, PageProgressStatus } from "@/domains/learning";
+import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
 import { createChapterRepository } from "@/infrastructure/supabase/workspace/chapter-repository";
 import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/grimoire-repository";
 import { createNotebookRepository } from "@/infrastructure/supabase/workspace/notebook-repository";
@@ -215,6 +216,23 @@ export async function createWorkspaceGrimoire(
     createdAt: now,
     updatedAt: now,
   });
+}
+
+/** Persist the authenticated learning progress for one page. */
+export async function setWorkspacePageProgress(input: {
+  pageId: string;
+  status: PageProgressStatus;
+}): Promise<void> {
+  const claims = await requireAuthenticatedUser();
+  const supabase = await createClient();
+  const repository = new SupabasePageProgressRepository(supabase);
+
+  await repository.setStatus(
+    claims.sub,
+    input.pageId,
+    input.status,
+    input.status === "completed" ? new Date().toISOString() : null,
+  );
 }
 
 /** Move an authenticated Workspace page one position within its chapter. */
