@@ -2,7 +2,7 @@
 
 ## Status
 
-Current repository baseline — reconciled 2026-09-27 against `main` at commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f`.
+Current repository baseline — reconciled 2026-09-27 against `main` at commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,39 +77,34 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The current `main` commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f` is the security-patched Next.js 16.3.6 baseline.
+The current `main` commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03` includes the Next.js 16.3.6 security baseline and the subsequent authentication callback hardening from PR #290.
 
-The push-triggered GitHub Quality Gate for this commit completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. CodeQL, Secret Scan, Scorecards, autofix, and the other recorded security/quality checks also completed successfully for the commit.
+The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
 The E2E suite distinguishes anonymous runtime smoke coverage from authenticated Sanctuary coverage that requires dedicated `E2E_EMAIL`/`E2E_PASSWORD` variables. An unexecuted authenticated scenario is not treated as a confirmed application failure.
 
 ## GitHub validation
 
-For commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f`:
+For the current `main` commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03`:
 
-- Quality Gate — PASS
-- CodeQL (JavaScript/TypeScript) — PASS
-- CodeQL (Actions) — PASS
-- Secret scan — PASS
-- Scorecards analysis — PASS
-- Autofix — PASS
-- pre-commit.ci — PASS
+- The authentication callback hardening from PR #290 is integrated.
+- The Next.js security patch to 16.3.6 is integrated.
+- The preceding security/quality validation for those changes completed successfully.
 
-The GitHub `Vercel` status is currently `failure` with the description `Checks for Deployment have failed`. This is not counted as a successful Vercel check.
+The GitHub Vercel integration status remains an external deployment-check concern and must be validated against the current deployment rather than inferred from build success.
 
 ## Vercel
 
-The current Production deployment for commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f` is:
+The current Production deployment for commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03` is:
 
-- Deployment: `dpl_Cm3rRSEQUyJCwgPEUoVPtF9t4GYT`
+- Deployment: `dpl_HJYWcuQ49iPjpd7YeEMyXv8JdDvp`
 - State: `READY`
 - Target: `production`
-- Deployment URL: `https://academiaarcana-ms9qetm85-academia-arcana1.vercel.app`
-- Reported aliases: `academiaarcana-academia-arcana1.vercel.app` and `academiaarcana-git-main-academia-arcana1.vercel.app`
+- Deployment URL: `https://academiaarcana-50vewo5b4-academia-arcana1.vercel.app`
 
-The deployment URL independently returned HTTP 200 on `/` and `/login`. Anonymous `/santuario` returned the expected redirect to `/login` with HTTP 307. Runtime logs for the current Production deployment contained no error/fatal entries in the most recent one-hour observation.
+The current Production deployment is reported as `READY`. Runtime validation of the newer Next.js deployment immediately before this commit also showed no error/fatal entries in the most recent one-hour observation.
 
-A direct fetch of the public alias `academiaarcana-academia-arcana1.vercel.app` currently serves an older deployment identifier `dpl_9WJTkLsSRAfEMGR3JwgKeUv1nSqt`. Because the authoritative deployment record reports the alias on the new Production deployment while the fetched public alias still resolves to an older build, the alias-to-current-deployment association is not yet reconciled. This is treated as a Vercel-side routing/cache/configuration item, not as evidence that the new Production build is broken.
+A direct fetch of the project public alias previously returned an older deployment identifier rather than the then-current Production deployment. This alias discrepancy remains a Vercel-side item to verify and must not be hidden by treating the deployment build itself as sufficient evidence.
 
 The current Vercel connector does not expose a reliable write operation for alias promotion or project environment-variable mutation. No unsupported Vercel-side mutation is being claimed.
 
@@ -143,7 +138,7 @@ The last recorded Supabase Security Advisor evidence reported one warning for le
 
 Honeybadger configuration consumes public environment variables for the browser/server integration. These are optional from the build's perspective because the configuration handles missing values without failing the build. They should remain environment-managed and must not be replaced with hard-coded secrets.
 
-Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. The current Production deployment has produced no error/fatal runtime entries in the most recent one-hour observation, but the Vercel environment-variable configuration itself is not directly verifiable through the available connector surface.
+Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. Recent runtime observations for the current deployments did not show new error/fatal entries, but the Vercel environment-variable configuration itself is not directly verifiable through the available connector surface.
 
 ## Change policy
 
