@@ -146,6 +146,7 @@ export function WorkspaceShell({
             ...(chapter.pages ?? []),
             ...(createdPages[chapter.id] ?? []),
           ]
+            .map((page) => pages[page.id] ?? page)
             .filter((page) => !deletedPageIds.includes(page.id))
             .sort(
               (left, right) =>
@@ -165,6 +166,7 @@ export function WorkspaceShell({
     createdNotebooks,
     createdPages,
     deletedPageIds,
+    pages,
     reorderedPages,
     tree,
   ]);

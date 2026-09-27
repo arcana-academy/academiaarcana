@@ -54,7 +54,7 @@ const createdPage: Page = {
 };
 
 /** Build the smallest hierarchy needed to exercise page creation. */
-function createTree() {
+function createTree(): Parameters<typeof WorkspaceShell>[0]["tree"] {
   return {
     grimoires: [
       {
@@ -246,7 +246,7 @@ describe("WorkspaceShell", () => {
     const onSavePage = vi.fn(() => Promise.resolve(createdPage));
 
     const tree = createTree();
-    tree.grimoires[0].notebooks[0].chapters = [];
+    tree.grimoires[0]!.notebooks![0]!.chapters = [];
 
     render(
       <WorkspaceShell
@@ -337,5 +337,50 @@ describe("WorkspaceShell", () => {
       title: "Nova página",
     });
     expect(screen.getByRole("button", { name: "Nova página" })).toBeTruthy();
+  });
+
+  test("reflects a saved page title in the Workspace tree", async () => {
+    const onSavePage = vi.fn(() =>
+      Promise.resolve({
+        ...createdPage,
+        title: "Página renomeada",
+      }),
+    );
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [createdPage];
+
+    render(
+      <WorkspaceShell
+        tree={tree}
+        initialState={{
+          grimoireId: "g1",
+          notebookId: "n1",
+          chapterId: "c1",
+          pageId: "p1",
+        }}
+        onCreateGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
+        onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: createdPage,
+            swappedPage: null,
+          }),
+        )}
+        onDeletePage={vi.fn(() => Promise.resolve())}
+        onSavePage={onSavePage}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Página renomeada" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+
+    expect(await screen.findByRole("button", { name: "Página renomeada" })).toBeTruthy();
   });
 });

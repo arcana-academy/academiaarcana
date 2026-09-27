@@ -9,7 +9,7 @@ Academia Arcana is a Next.js application organized as a modular monolith. The te
 - TypeScript (strict)
 - Tailwind CSS (planned for the presentation layer)
 - Lucide React
-- Supabase (integration boundary reserved for auth/data work)
+- Supabase (authentication and data integration)
 - Vitest + Testing Library
 - ESLint
 - GitHub Actions
@@ -18,27 +18,29 @@ Academia Arcana is a Next.js application organized as a modular monolith. The te
 
 The approved domain boundaries are:
 
-`identity`, `context`, `authorization`, `learning`, `planning`, `gamification`, `education`, `social`, `adaptive`, `intelligence`, `flonts`, `trust`, `data`.
+`identity`, `context`, `authorization`, `learning`, `planning`, `gamification`, `education`, `social`, `adaptive`, `intelligence`, `flonts`, `trust`, `data`, `sanctuary`.
 
 The foundation keeps core contracts independent from presentation and infrastructure concerns.
 
 ## Development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
 ## Quality Gate
 
 ```bash
-npm run typecheck
 npm run lint
+npm run typecheck
 npm test
+npm run test:a11y
 npm run build
+npm run test:e2e
 ```
 
-CI executes the same quality sequence on pushes to `main` and `feat/**`, and on pull requests targeting `main`.
+CI executes the same quality sequence on pushes to `main`, `feat/**`, and `chore/**`, and on pull requests targeting `main`.
 
 ## Environment
 

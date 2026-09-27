@@ -1,6 +1,14 @@
 "use server";
 
-import type { Chapter, Grimoire, Notebook, Page, PageContent } from "@/domains/learning";
+import type {
+  Chapter,
+  Grimoire,
+  Notebook,
+  Page,
+  PageContent,
+  PageMoveDirection,
+  PageMoveResult,
+} from "@/domains/learning";
 import { createChapterRepository } from "@/infrastructure/supabase/workspace/chapter-repository";
 import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/grimoire-repository";
 import { createNotebookRepository } from "@/infrastructure/supabase/workspace/notebook-repository";
@@ -41,13 +49,10 @@ type RenameWorkspaceItemInput = {
 
 type MoveWorkspacePageInput = {
   id: string;
-  direction: "up" | "down";
+  direction: PageMoveDirection;
 };
 
-type MoveWorkspacePageResult = {
-  movedPage: Page;
-  swappedPage: Page | null;
-};
+type MoveWorkspacePageResult = PageMoveResult;
 
 
 type RepositoryClient = Parameters<typeof createPageRepository>[0];
@@ -223,48 +228,21 @@ export async function moveWorkspacePage(
 ): Promise<MoveWorkspacePageResult> {
   await requireAuthenticatedUser();
 
+  if (input.direction !== "up" && input.direction !== "down") {
+    throw new Error("Direção de movimento inválida.");
+  }
+
   const supabase = await createClient();
   const repository = createPageRepository(
     supabase as unknown as RepositoryClient,
   );
+  const result = await repository.move(input.id, input.direction);
 
-  const page = await repository.getById(input.id);
-  if (!page) {
+  if (!result) {
     throw new Error("Página não encontrada.");
   }
 
-  const pages = (await repository.listByChapter(page.chapterId)).sort(
-    (left, right) => left.position - right.position,
-  );
-  const index = pages.findIndex((item) => item.id === page.id);
-
-  if (index < 0) {
-    throw new Error("Página não encontrada.");
-  }
-
-  const targetIndex = input.direction === "up" ? index - 1 : index + 1;
-  const target = pages[targetIndex];
-
-  if (!target) {
-    return {
-      movedPage: page,
-      swappedPage: null,
-    };
-  }
-
-  await repository.reorder(page.id, target.position);
-  await repository.reorder(target.id, page.position);
-
-  return {
-    movedPage: {
-      ...page,
-      position: target.position,
-    },
-    swappedPage: {
-      ...target,
-      position: page.position,
-    },
-  };
+  return result;
 }
 
 

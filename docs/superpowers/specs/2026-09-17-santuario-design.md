@@ -1,7 +1,7 @@
 # Santuário — Design Técnico
 
 **Data:** 2026-09-17  
-**Status:** Implementação presente em `main` (commit `b01c7b2`); esta especificação permanece como contrato de design e deve ser usada para reconciliação da implementação. Os itens ainda não comprovados permanecem explicitamente pendentes.
+**Status:** Implementação presente em `main` (commit `810a1ce861391f01cf94c034789fd25a81775b1c`); esta especificação permanece como contrato de design e deve ser usada para reconciliação da implementação. Os itens ainda não comprovados permanecem explicitamente pendentes.
 
 ## 1. Objetivo
 
@@ -386,9 +386,9 @@ Esses sistemas podem posteriormente fornecer adapters ao Santuário através dos
 
 ## 16. Dependências e riscos conhecidos
 
-Os problemas históricos de build/deploy mencionados durante o desenho não devem ser tratados como estado atual sem nova evidência. O commit atual possui build local verde e deployment Vercel `READY` para o mesmo SHA.
+Os problemas históricos de build/deploy mencionados durante o desenho não devem ser tratados como estado atual sem nova evidência. O commit atual possui build local verde; o endpoint público do deployment responde e o E2E anônimo passou. Porém, o status GitHub do Vercel está `failure` (`Checks for Deployment have failed`) e o estado `READY` não foi confirmado sem acesso autenticado ao Vercel.
 
-A publicação final ainda requer reconciliação do deployment com o domínio público e validação operacional das integrações externas.
+A publicação final ainda requer reconciliação do deployment com o domínio público, confirmação do check Vercel e validação operacional das integrações externas. O cenário E2E autenticado permanece bloqueado pela ausência de `E2E_EMAIL` e `E2E_PASSWORD` reais.
 
 ## 17. Próximo passo
 

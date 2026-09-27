@@ -78,5 +78,19 @@ export default defineConfig([
       ],
     },
   },
-  globalIgnores([".next/**", "node_modules/**"]),
+  // Scope the lint to the main source tree.
+  // - ".next" / "node_modules" must match at ANY depth: the repository root
+  //   holds local project copies (e.g. "academiaarcana-clean/") that carry
+  //   their own ".next" and "node_modules"; a root-anchored pattern does not
+  //   stop those from being linted, which floods the report with findings in
+  //   generated Next.js output.
+  // - The local copies themselves are git-ignored working artefacts, not part
+  //   of the linted source.
+  globalIgnores([
+    ".next/**",
+    "**/.next/**",
+    "node_modules/**",
+    "**/node_modules/**",
+    "academiaarcana-clean/**",
+  ]),
 ]);

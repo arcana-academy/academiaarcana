@@ -2,7 +2,7 @@
 
 ## Status
 
-Current repository baseline — reconciled 2026-09-23.
+Current repository baseline — reconciled 2026-09-24 against `main` at commit `810a1ce861391f01cf94c034789fd25a81775b1c`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -75,41 +75,32 @@ The Quality Gate must:
 
 The application lint command intentionally excludes the local, Git-ignored `welcome-to-docker/**` subtree so external legacy JavaScript cannot contaminate the project Quality Gate.
 
-## Current local validation
+## Current validation
 
-The current local checkout at commit `b01c7b2` was validated with:
+The current `main` checkout was reconciled against a clean validation checkout at commit `810a1ce861391f01cf94c034789fd25a81775b1c`.
 
-- `npm ci` — PASS
+- `npm ci` — PASS in the original workspace (exit code 0; `package-lock.json` unchanged). In the clean validation checkout, the first full invocation exceeded the orchestration timeout after materializing dependencies; `npm ls --depth=0` and `npm ci --dry-run` passed, and GitHub CI independently completed the canonical install for this SHA.
 - `npm run lint` — PASS
 - `npm run typecheck` — PASS
-- `npm test` — 370/370 PASS
-- `npm run test:a11y` — 4/4 PASS
+- `npm test` — 82 test files / 370 tests PASS
+- `npm run test:a11y` — 3 test files / 4 tests PASS
 - `npm run build` — PASS
+- `npm exec -- playwright install --with-deps chromium` — PASS
 - `npm run test:e2e` — 2 PASS, 1 intentionally skipped because dedicated `E2E_EMAIL`/`E2E_PASSWORD` variables were not configured.
 
-The skipped E2E is an unexecuted authenticated scenario, not a confirmed application failure.
+The skipped E2E is an unexecuted authenticated scenario, not a confirmed application failure. The local untracked validation copies were excluded from the clean checkout and were preserved.
 
 ## GitHub validation
 
-For commit `b01c7b2`, the push-triggered workflows observed at the time of this reconciliation were successful:
+For commit `810a1ce861391f01cf94c034789fd25a81775b1c`, the push-triggered Quality Gate run `35944336443` completed successfully, including install, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The same commit also had successful Gitleaks, CodeQL, OpenSSF Scorecard, autofix, and Supabase Preview checks.
 
-- Academia Arcana Quality Gate
-- Gitleaks
-- CodeQL
-- OpenSSF Scorecard
-- autofix.ci
+The GitHub `Vercel` status for this commit is currently `failure` with the description `Checks for Deployment have failed`; this is not counted as a successful deployment check.
 
 ## Vercel
 
-A production-target deployment exists for commit `b01c7b2` and is `READY`.
+A Production deployment record exists for commit `810a1ce861391f01cf94c034789fd25a81775b1c` and points to `https://academiaarcana-42ppsfy51-academia-arcana1.vercel.app`. The public `/login` endpoint returned HTTP 200, the root redirected to `/login`, and a browser check found no console errors or missing-Supabase-variable marker.
 
-The deployment is:
-
-- deployment: `dpl_5N96fZ4sqhFMtb5GeDb43SCptWTD`
-- target: `production`
-- commit: `b01c7b20f183e384e40f058f5a125040c155a83d`
-
-The public domain `academiaarcana.vercel.app` is still associated with the earlier deployment for commit `d06941d`. Therefore GitHub `main`, the latest READY deployment, and the public production domain are not yet fully reconciled.
+However, the GitHub Vercel status and deployment status are both `failure` with `Checks for Deployment have failed`. The Vercel dashboard/API requires authentication, so the exact failed check and the authoritative `READY` state were not independently verifiable. The public domain `academiaarcana.vercel.app` also returned HTTP 200, but its alias-to-SHA association was not proven.
 
 No domain promotion is implied by this document.
 
@@ -123,24 +114,21 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 ### Migration history reconciliation
 
-The repository contains three application migrations:
+The repository contains five application migrations:
 
 - `20260915181306_remote_schema`
 - `20260917120000_rename_notebooks_grimoire_index`
 - `20260921174822_revoke_excess_authenticated_table_privileges`
+- `20260924003140_rename_notebooks_grimoire_index_reconcile`
+- `20260924210000_atomic_move_workspace_page`
 
-The linked production Supabase project currently reports only:
+The reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename.
 
-- `20260915181306_remote_schema`
-- `20260921174822_revoke_excess_authenticated_table_privileges`
-
-At the same time, the live database has the renamed index `idx_notebooks_grimoire_id`, which indicates that the effect of the missing migration is present even though the migration history does not contain it.
-
-This is a **migration-history drift** finding. It remains pending reconciliation and must not be repaired by blindly changing production.
+A prior audit recorded that the live database had `idx_notebooks_grimoire_id` while the remote migration history lacked the rename step. The remote migration list, live index query, and current advisors were not revalidated in this workspace because the Supabase CLI has no linked project or database credential. Do not mutate production without a fresh, authorized observation.
 
 ## Known security state
 
-The current Supabase Security Advisor reports one warning for leaked-password protection being disabled. Seven unused indexes are also reported by the Performance Advisor; the tables are currently empty, so those indexes must not be removed solely from that observation.
+The last recorded Supabase Security Advisor evidence reported one warning for leaked-password protection being disabled and seven low-usage indexes. The tables were reported empty, so those indexes must not be removed solely from that observation. Current advisor output was not revalidated because the remote project is not linked in this workspace.
 
 ## Observability configuration
 

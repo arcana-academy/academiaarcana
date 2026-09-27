@@ -37,6 +37,10 @@ type QueryBuilder = {
 
 type SupabaseClientLike = {
   from: (table: string) => QueryBuilder;
+  rpc: (
+    functionName: string,
+    parameters: Record<string, unknown>,
+  ) => Promise<QueryResult<Record<string, unknown> | null>>;
 };
 
 function createQueryBuilder(
@@ -89,6 +93,9 @@ function createSupabaseMock(
 
   const supabase: SupabaseClientLike = {
     from: vi.fn(() => query),
+    rpc: vi.fn(
+      async () => result as QueryResult<Record<string, unknown> | null>,
+    ),
   };
 
   return {
@@ -761,6 +768,113 @@ describe("PageRepository", () => {
 
     expect(query.delete).toHaveBeenCalled();
     expect(query.eq).toHaveBeenCalledWith("id", page.id);
+  });
+
+  it("moves a page through one atomic RPC call", async () => {
+    const movedPage = { ...page, position: 1 };
+    const swappedPage = {
+      ...page,
+      id: "page-2",
+      title: "Segunda página",
+      position: 0,
+    };
+    const { supabase } = createSupabaseMock({
+      data: {
+        moved_page: {
+          id: movedPage.id,
+          chapter_id: movedPage.chapterId,
+          title: movedPage.title,
+          content: movedPage.content,
+          position: movedPage.position,
+          created_at: movedPage.createdAt,
+          updated_at: movedPage.updatedAt,
+        },
+        swapped_page: {
+          id: swappedPage.id,
+          chapter_id: swappedPage.chapterId,
+          title: swappedPage.title,
+          content: swappedPage.content,
+          position: swappedPage.position,
+          created_at: swappedPage.createdAt,
+          updated_at: swappedPage.updatedAt,
+        },
+      },
+      error: null,
+    });
+
+    const repository = createPageRepository(supabase);
+    const result = await repository.move(page.id, "down");
+
+    expect(supabase.rpc).toHaveBeenCalledOnce();
+    expect(supabase.rpc).toHaveBeenCalledWith("move_workspace_page", {
+      p_page_id: page.id,
+      p_direction: "down",
+    });
+    expect(supabase.from).not.toHaveBeenCalled();
+    expect(result).toEqual({ movedPage, swappedPage });
+  });
+
+  it("returns null when the atomic move finds no visible page", async () => {
+    const { supabase } = createSupabaseMock({
+      data: { moved_page: null, swapped_page: null },
+      error: null,
+    });
+
+    const repository = createPageRepository(supabase);
+
+    await expect(repository.move("missing", "up")).resolves.toBeNull();
+    expect(supabase.from).not.toHaveBeenCalled();
+  });
+
+  it("maps a boundary move with no swapped page", async () => {
+    const { supabase } = createSupabaseMock({
+      data: {
+        moved_page: {
+          id: page.id,
+          chapter_id: page.chapterId,
+          title: page.title,
+          content: page.content,
+          position: page.position,
+          created_at: page.createdAt,
+          updated_at: page.updatedAt,
+        },
+        swapped_page: null,
+      },
+      error: null,
+    });
+
+    const repository = createPageRepository(supabase);
+
+    await expect(repository.move(page.id, "up")).resolves.toEqual({
+      movedPage: page,
+      swappedPage: null,
+    });
+  });
+
+  it("rejects an unexpected null RPC payload", async () => {
+    const { supabase } = createSupabaseMock({
+      data: null,
+      error: null,
+    });
+
+    const repository = createPageRepository(supabase);
+
+    await expect(repository.move("missing", "up")).rejects.toThrow(
+      "Resposta inválida ao mover a página.",
+    );
+  });
+
+  it("propagates errors from the atomic move RPC", async () => {
+    const { supabase } = createSupabaseMock({
+      data: null,
+      error: { message: "atomic move failed" },
+    });
+
+    const repository = createPageRepository(supabase);
+
+    await expect(repository.move(page.id, "down")).rejects.toThrow(
+      "atomic move failed",
+    );
   });
 
   it("reorders a page", async () => {

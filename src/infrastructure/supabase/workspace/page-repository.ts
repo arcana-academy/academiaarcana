@@ -1,4 +1,8 @@
-import type { Page, PageRepository } from "@/domains/learning";
+import type {
+  Page,
+  PageMovementRepository,
+  PageRepository,
+} from "@/domains/learning";
 
 type SupabaseQueryResult<T> = {
   data: T;
@@ -23,8 +27,16 @@ type SupabaseQuery = {
   ) => Promise<unknown>;
 };
 
+type SupabaseRpcResult = PromiseLike<
+  SupabaseQueryResult<Record<string, unknown> | null>
+>;
+
 type SupabaseClientLike = {
   from: (table: string) => SupabaseQuery;
+  rpc?: (
+    functionName: string,
+    parameters: Record<string, unknown>,
+  ) => SupabaseRpcResult;
 };
 
 type PageRow = {
@@ -71,7 +83,7 @@ function throwIfError<T>(result: SupabaseQueryResult<T>): T {
 
 export function createPageRepository(
   supabase: SupabaseClientLike,
-): PageRepository {
+): PageRepository & PageMovementRepository {
   return {
     async create(page) {
       const result = await supabase
@@ -156,6 +168,42 @@ export function createPageRepository(
       throwIfError(
         result as SupabaseQueryResult<Record<string, unknown> | null>,
       );
+    },
+
+    async move(id, direction) {
+      if (!supabase.rpc) {
+        throw new Error("Operação de mover página indisponível.");
+      }
+
+      const result = await supabase.rpc("move_workspace_page", {
+        p_page_id: id,
+        p_direction: direction,
+      });
+      const data = throwIfError(result);
+
+      if (data === null || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("Resposta inválida ao mover a página.");
+      }
+
+      if (data.moved_page === null && data.swapped_page === null) {
+        return null;
+      }
+
+      if (
+        typeof data.moved_page !== "object" ||
+        data.moved_page === null ||
+        (data.swapped_page !== null && typeof data.swapped_page !== "object")
+      ) {
+        throw new Error("Resposta inválida ao mover a página.");
+      }
+
+      return {
+        movedPage: toDomain(data.moved_page as PageRow),
+        swappedPage:
+          data.swapped_page === null
+            ? null
+            : toDomain(data.swapped_page as PageRow),
+      };
     },
 
     async reorder(id, position) {

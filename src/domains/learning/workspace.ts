@@ -48,6 +48,14 @@ export type PageContentBlock = {
     updatedAt: string;
   };
   
+export type PageMoveDirection = "up" | "down";
+
+export type PageMoveResult = {
+  movedPage: Page;
+  swappedPage: Page | null;
+};
+
+
   export type WorkspaceState = {
     grimoireId: string | null;
     notebookId: string | null;
@@ -88,4 +96,11 @@ export type PageContentBlock = {
     update(id: string, changes: Partial<Page>): Promise<Page>;
     delete(id: string): Promise<void>;
     reorder(id: string, position: number): Promise<void>;
+  }
+
+  export interface PageMovementRepository {
+    move(
+      id: string,
+      direction: PageMoveDirection,
+    ): Promise<PageMoveResult | null>;
   }
