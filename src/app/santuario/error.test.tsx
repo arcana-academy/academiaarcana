@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { fireEvent, render, screen } from "@testing-library/react";
+import { redirect } from "next/navigation";
 import { describe, expect, it, vi } from "vitest";
 
 import SanctuaryError from "./error";
@@ -32,6 +33,25 @@ describe("SanctuaryError", () => {
             screen.queryByText(/mensagem tecnica privada/i),
         ).not.toBeInTheDocument();
     });
+    it("rethrows Next.js redirects instead of rendering the error fallback", () => {
+        let redirectError: unknown;
+
+        try {
+            redirect("/login");
+        } catch (error) {
+            redirectError = error;
+        }
+
+        expect(() =>
+            render(
+                <SanctuaryError
+                    error={redirectError as Error & { digest?: string }}
+                    reset={vi.fn()}
+                />,
+            ),
+        ).toThrow();
+    });
+
 
     it("offers a recovery action wired to the Next.js reset callback", () => {
         const reset = vi.fn();
