@@ -242,6 +242,16 @@ select extensions.dblink_exec(
   )
 );
 
+select extensions.dblink_exec(
+  'aa_same_a',
+  'set statement_timeout = 5000; set lock_timeout = 2000'
+);
+
+select extensions.dblink_exec(
+  'aa_same_b',
+  'set statement_timeout = 5000; set lock_timeout = 2000'
+);
+
 select extensions.dblink_send_query(
   'aa_same_a',
   format(
