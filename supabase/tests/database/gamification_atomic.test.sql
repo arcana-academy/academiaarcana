@@ -315,7 +315,7 @@ select extensions.is(
 
 select extensions.is(
   (
-    select xp
+    select xp::bigint
     from public.gamification_profiles
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
