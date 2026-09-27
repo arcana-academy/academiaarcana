@@ -4,11 +4,25 @@
 
 Only services that are part of the application's runtime or delivery path belong in the repository integration contract. ChatGPT connectors and development assistants are not runtime dependencies and must not be embedded as secrets or opaque client-side integrations.
 
+## ChatGPT catalog
+
+The repository contains the 114 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
+
+The application exposes `/integracoes` and `GET /api/integrations/status` so the current state is inspectable at runtime:
+
+- `catalogued`: the supplied plugin name exists in the catalog, but no live external connection has been verified.
+- `connected`: a provider-specific runtime verification has succeeded.
+- `error`: the provider-specific verification was attempted but failed.
+
+The first implemented provider verification is GitHub. It is a public, read-only API verification of `arcana-academy/academiaarcana`; it does **not** represent a user's GitHub account OAuth authorization.
+
+A provider may move from `catalogued` to a real authenticated integration only after its documented API/OAuth/MCP mechanism, scopes, credentials and server-side adapter have been implemented and verified.
+
 ## Runtime / delivery integrations
 
 | Service | Role | Repository integration | External configuration | State |
 | --- | --- | --- | --- | --- |
-| GitHub | Source control + CI | Repository, branches, pull requests, Actions workflow | Repository permissions / branch rules | Connected |
+| GitHub | Source control + CI + verified provider reachability | Repository, branches, pull requests, Actions workflow, read-only public verification endpoint | Repository visibility / permissions for project operations | Connected for public read-only verification; account OAuth not configured |
 | Vercel | Hosting + deployment | Next.js deployment target | Project configuration, aliases, environment variables | Connected / external configuration pending |
 | Supabase | Auth + PostgreSQL persistence | Browser/server clients, session refresh, repositories, RLS-backed schema | Project URL + publishable key; Auth settings | Connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
@@ -32,7 +46,7 @@ Honeybadger remains optional from the build perspective.
 
 ## Services deliberately kept outside the runtime
 
-Canva, Figma, Notion, Dropbox, Slack, GitHub connector actions, Vercel connector actions, Supabase connector actions, and other ChatGPT-side tools are operational/development integrations. They should be used to work on the project, not bundled into the public application unless a separate product requirement explicitly defines an application-facing API integration.
+Canva, Figma, Notion, Dropbox, Slack, Vercel connector actions, Supabase connector actions, and other ChatGPT-side tools are not automatically imported into the web runtime. They become application integrations only through a provider-specific API/OAuth/MCP adapter.
 
 This prevents accidental exposure of connector credentials, unnecessary client dependencies, and coupling between the web application and the assistant tool layer.
 
@@ -47,14 +61,7 @@ The integration baseline is considered operational only when all of these are tr
 5. Production environment variables are configured in Vercel.
 6. Honeybadger is configured when production error monitoring is required.
 7. Runtime smoke checks return the expected application behavior.
-
-## Current observations
-
-- The current Vercel project is `academiaarcana`.
-- The current Supabase project is healthy and exposes the project's publishable key through the provider configuration.
-- Historical Vercel runtime errors include missing Supabase public environment variables; the repository now fails earlier during production build rather than waiting for a request-time failure.
-- The public Vercel alias has previously served an older deployment than the current `main` deployment. This must be resolved in Vercel before treating the delivery path as fully reconciled.
-- Web Analytics and Speed Insights are not currently wired into the application. Activating them should be a separate, explicit change because it adds telemetry and requires provider-side enablement.
+8. Every application-facing provider marked `connected` has a provider-specific runtime check and an E2E test.
 
 ## Security rules
 
@@ -62,3 +69,4 @@ The integration baseline is considered operational only when all of these are tr
 - Browser code may use only the Supabase publishable key.
 - Server and edge code must continue using the established SSR/session adapters.
 - RLS remains mandatory for protected data.
+- Public integration endpoints must expose only the minimum verification metadata required for observability.
