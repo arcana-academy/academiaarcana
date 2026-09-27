@@ -557,7 +557,7 @@ select extensions.dblink_exec(
         streak_days,
         last_active_on
       )
-      values (%L::uuid, 2147483640, 7, current_date);
+      values (%L::uuid, 9223372036854775800::bigint, 7, current_date);
 
       insert into public.study_tasks (id, owner_id, title)
       values (%L::uuid, %L::uuid, 'Falha transacional');
@@ -602,7 +602,7 @@ select extensions.is(
     from public.gamification_profiles
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
-  9223372035804775800::bigint,
+  9223372036854775800::bigint,
   'failed bigint reward does not modify XP'
 );
 
