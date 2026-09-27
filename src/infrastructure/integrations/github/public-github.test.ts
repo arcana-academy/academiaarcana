@@ -7,7 +7,7 @@ import {
 } from "./public-github";
 
 describe("GitHub integration verifier", () => {
-  it("performs a server-side, no-secret repository lookup", async () => {
+  it("declares GitHub as a read-only, no-secret integration", async () => {\n    expect((await import("./public-github")).GITHUB_INTEGRATION_DEFINITION).toMatchObject({\n      id: "github",\n      displayName: "GitHub",\n      authMode: "none",\n      userConnectionRequired: false,\n      serverSideOnly: true,\n      scopes: [],\n    });\n  });\n\n  it("performs a server-side, no-secret repository lookup", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
