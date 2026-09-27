@@ -259,7 +259,7 @@ select extensions.is(
   (
     select count(*)::integer
     from public.complete_study_task_with_reward(
-      (select task_profile_a from aa_gamification_test_ids)
+      (select task_failure from aa_gamification_test_ids)
     )
   ),
   1,
