@@ -27,3 +27,10 @@ export type {
   GitHubFetch,
   GitHubRepositorySnapshot,
 } from "./github/public-github";
+
+export { getIntegrationStatusSnapshot } from "./status";
+export type {
+  IntegrationCatalogStatus,
+  IntegrationStatusEntry,
+  IntegrationStatusSnapshot,
+} from "./status";
