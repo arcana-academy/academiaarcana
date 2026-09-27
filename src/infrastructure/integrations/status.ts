@@ -1,6 +1,5 @@
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
-  DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
   verifyGitHubConnection,
   type GitHubConnectionVerification,
 } from "./github/public-github";
@@ -86,6 +85,3 @@ export async function getIntegrationStatusSnapshot({
   };
 }
 
-export {
-  DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
-};
