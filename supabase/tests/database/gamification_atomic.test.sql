@@ -514,7 +514,7 @@ select extensions.is(
     from public.gamification_profiles
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
-  10,
+  10::bigint,
   'concurrent first access preserves the single daily reward without losing the XP update'
 );
 
