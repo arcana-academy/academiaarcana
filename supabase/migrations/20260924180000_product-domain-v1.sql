@@ -255,17 +255,17 @@ begin
     if found then
       v_mission_completed := true;
 
-      update public.gamification_profiles
-         set xp = xp + v_mission.reward_xp,
+      update public.gamification_profiles as gp
+         set xp = gp.xp + v_mission.reward_xp,
              streak_days = case
-               when last_active_on = v_active_on then streak_days
-               when last_active_on = v_active_on - 1 then streak_days + 1
+               when gp.last_active_on = v_active_on then gp.streak_days
+               when gp.last_active_on = v_active_on - 1 then gp.streak_days + 1
                else 1
              end,
              last_active_on = v_active_on,
              updated_at = v_now
-       where owner_id = v_owner_id
-       returning * into v_profile;
+       where gp.owner_id = v_owner_id
+       returning gp.* into v_profile;
     end if;
   end if;
 
