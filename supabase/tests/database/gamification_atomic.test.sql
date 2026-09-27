@@ -3,6 +3,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 create extension if not exists dblink with schema extensions;
 
+set statement_timeout = '15s';
+set lock_timeout = '5s';
+
 create temporary table aa_gamification_test_ids (
   owner_id uuid not null,
   task_same uuid not null,
