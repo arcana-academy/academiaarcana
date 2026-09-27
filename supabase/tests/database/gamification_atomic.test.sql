@@ -282,8 +282,8 @@ declare
   v_deadline timestamptz := clock_timestamp() + interval '7 seconds';
 begin
   while (
-    extensions.dblink_is_busy('aa_same_a')
-    or extensions.dblink_is_busy('aa_same_b')
+    extensions.dblink_is_busy('aa_same_a') = 1
+    or extensions.dblink_is_busy('aa_same_b') = 1
   ) and clock_timestamp() < v_deadline
   loop
     perform pg_catalog.pg_sleep(0.02);
@@ -476,8 +476,8 @@ declare
   v_deadline timestamptz := clock_timestamp() + interval '7 seconds';
 begin
   while (
-    extensions.dblink_is_busy('aa_profile_a')
-    or extensions.dblink_is_busy('aa_profile_b')
+    extensions.dblink_is_busy('aa_profile_a') = 1
+    or extensions.dblink_is_busy('aa_profile_b') = 1
   ) and clock_timestamp() < v_deadline
   loop
     perform pg_catalog.pg_sleep(0.02);
