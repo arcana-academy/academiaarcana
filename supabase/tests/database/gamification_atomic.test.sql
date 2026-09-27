@@ -294,12 +294,6 @@ begin
     perform extensions.dblink_cancel_query('aa_same_b');
   end if;
 
-  while extensions.dblink_is_busy('aa_same_a')
-     or extensions.dblink_is_busy('aa_same_b')
-  loop
-    perform pg_catalog.pg_sleep(0.02);
-  end loop;
-
   select result into v_a
   from extensions.dblink_get_result('aa_same_a') as r(result text);
 
@@ -491,12 +485,6 @@ begin
   if extensions.dblink_is_busy('aa_profile_b') then
     perform extensions.dblink_cancel_query('aa_profile_b');
   end if;
-
-  while extensions.dblink_is_busy('aa_profile_a')
-     or extensions.dblink_is_busy('aa_profile_b')
-  loop
-    perform pg_catalog.pg_sleep(0.02);
-  end loop;
 
   select result into v_a
   from extensions.dblink_get_result('aa_profile_a') as r(result text);
