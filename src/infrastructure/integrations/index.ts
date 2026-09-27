@@ -16,6 +16,7 @@ export type { ChatGPTPluginCatalogEntry } from "./chatgpt-plugin-catalog";
 
 export {
   DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
+  GITHUB_INTEGRATION_DEFINITION,
   GITHUB_PLUGIN_NAME,
   GITHUB_PROVIDER_ID,
   GitHubConnectionError,
