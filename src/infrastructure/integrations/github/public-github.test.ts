@@ -2,12 +2,24 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
+  GITHUB_INTEGRATION_DEFINITION,
   GitHubConnectionError,
   verifyGitHubConnection,
 } from "./public-github";
 
 describe("GitHub integration verifier", () => {
-  it("declares GitHub as a read-only, no-secret integration", async () => {\n    expect((await import("./public-github")).GITHUB_INTEGRATION_DEFINITION).toMatchObject({\n      id: "github",\n      displayName: "GitHub",\n      authMode: "none",\n      userConnectionRequired: false,\n      serverSideOnly: true,\n      scopes: [],\n    });\n  });\n\n  it("performs a server-side, no-secret repository lookup", async () => {
+  it("declares GitHub as a read-only, no-secret integration", () => {
+    expect(GITHUB_INTEGRATION_DEFINITION).toMatchObject({
+      id: "github",
+      displayName: "GitHub",
+      authMode: "none",
+      userConnectionRequired: false,
+      serverSideOnly: true,
+      scopes: [],
+    });
+  });
+
+  it("performs a server-side, no-secret repository lookup", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -77,6 +89,27 @@ describe("GitHub integration verifier", () => {
     ).rejects.toMatchObject({
       name: GitHubConnectionError.name,
       httpStatus: 404,
+    });
+  });
+
+  it("fails closed when GitHub returns invalid JSON", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response("not-json", {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    );
+
+    await expect(
+      verifyGitHubConnection({
+        repository: DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
+        fetchImpl,
+      }),
+    ).rejects.toMatchObject({
+      name: GitHubConnectionError.name,
+      httpStatus: 502,
     });
   });
 });
