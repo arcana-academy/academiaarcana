@@ -248,19 +248,22 @@ select extensions.dblink_disconnect('aa_setup');
 
 -- Verify the REST-facing wrapper works under the authenticated role,
 -- not merely as the privileged test connection.
-set local role authenticated;
+select task_failure::text as task_failure_id
+from aa_gamification_test_ids
+\gset aa_test_
+
 select pg_catalog.set_config(
   'request.jwt.claim.sub',
   (select owner_id::text from aa_gamification_test_ids),
   true
 );
 
+set local role authenticated;
+
 select extensions.is(
   (
     select count(*)::integer
-    from public.complete_study_task_with_reward(
-      (select task_failure from aa_gamification_test_ids)
-    )
+    from public.complete_study_task_with_reward(:'aa_test_task_failure_id'::uuid)
   ),
   1,
   'authenticated role can execute the public invoker wrapper'
