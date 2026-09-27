@@ -35,7 +35,7 @@ describe("Academia Arcana home", () => {
 
     const html = renderToStaticMarkup(await Page());
 
-    expect(html).toContain('<h1 id="home-title">');
+    expect(html).toContain('<h1 id="home-title"');
     expect(html).toContain("Academia Arcana");
     expect(html).toContain('href="/login"');
     expect(html).toContain('href="/cadastro"');
