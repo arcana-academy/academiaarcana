@@ -248,28 +248,42 @@ select extensions.dblink_disconnect('aa_setup');
 
 -- Verify the REST-facing wrapper works under the authenticated role,
 -- not merely as the privileged test connection.
-select task_failure::text as task_failure_id
-from aa_gamification_test_ids
-\gset aa_test_
-
-select pg_catalog.set_config(
-  'request.jwt.claim.sub',
-  (select owner_id::text from aa_gamification_test_ids),
-  true
+select extensions.dblink_connect_u(
+  'aa_wrapper',
+  'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres'
 );
 
-set local role authenticated;
+select extensions.dblink_exec(
+  'aa_wrapper',
+  'set role authenticated'
+);
+
+select extensions.dblink_exec(
+  'aa_wrapper',
+  format(
+    $sql$
+      select pg_catalog.set_config('request.jwt.claim.sub', %L, false)
+    $sql$,
+    (select owner_id::text from aa_gamification_test_ids)
+  )
+);
 
 select extensions.is(
   (
     select count(*)::integer
-    from public.complete_study_task_with_reward(:'aa_test_task_failure_id'::uuid)
+    from extensions.dblink(
+      'aa_wrapper',
+      format(
+        'select count(*)::integer from public.complete_study_task_with_reward(%L::uuid)',
+        (select task_failure from aa_gamification_test_ids)
+      )
+    ) as result(row_count integer)
   ),
   1,
   'authenticated role can execute the public invoker wrapper'
 );
 
-reset role;
+select extensions.dblink_disconnect('aa_wrapper');
 
 select extensions.dblink_connect_u('aa_same_a', 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres');
 select extensions.dblink_connect_u('aa_same_b', 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres');
