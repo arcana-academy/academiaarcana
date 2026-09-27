@@ -1,14 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("runtime smoke routes", () => {
-  const publicRoutes = [
-    "/login",
-    "/cadastro",
-    "/recuperar-senha",
-  ] as const;
+  const publicRoutes = ["/", "/login", "/cadastro", "/recuperar-senha"] as const;
 
   const protectedRoutes = [
-    "/",
     "/redefinir-senha",
     "/santuario",
     "/workspace",
@@ -19,7 +14,9 @@ test.describe("runtime smoke routes", () => {
       const response = await page.goto(route);
 
       expect(response?.status()).toBe(200);
-      await expect(page).toHaveURL(new RegExp(`${route.replaceAll("/", "\\/")}$`));
+      await expect(
+        page,
+      ).toHaveURL(new RegExp(`${route.replaceAll("/", "\\\\/")}$`));
     });
   }
 
