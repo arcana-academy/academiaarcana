@@ -36,7 +36,7 @@ create temporary table aa_concurrency_results (
   value text not null
 ) on commit drop;
 
-select extensions.plan(21);
+select extensions.plan(26);
 
 select extensions.ok(
   has_function_privilege(
@@ -54,6 +54,38 @@ select extensions.ok(
     'EXECUTE'
   ),
   'anon cannot execute the atomic reward RPC'
+);
+
+select extensions.ok(
+  not (
+    select prosecdef
+    from pg_proc
+    where oid = 'public.complete_study_task_with_reward(uuid)'::regprocedure
+  ),
+  'public atomic reward RPC is SECURITY INVOKER'
+);
+
+select extensions.ok(
+  (
+    select prosecdef
+    from pg_proc
+    where oid = 'private.complete_study_task_with_reward_impl(uuid)'::regprocedure
+  ),
+  'private atomic reward implementation is SECURITY DEFINER'
+);
+
+select extensions.ok(
+  has_schema_privilege('authenticated', 'private', 'USAGE'),
+  'authenticated can invoke the private implementation through the public wrapper'
+);
+
+select extensions.ok(
+  not has_function_privilege(
+    'anon',
+    'private.complete_study_task_with_reward_impl(uuid)',
+    'EXECUTE'
+  ),
+  'anon cannot execute the private atomic reward implementation'
 );
 
 select extensions.ok(
@@ -213,6 +245,28 @@ select extensions.dblink_exec(
 );
 
 select extensions.dblink_disconnect('aa_setup');
+
+-- Verify the REST-facing wrapper works under the authenticated role,
+-- not merely as the privileged test connection.
+set local role authenticated;
+select pg_catalog.set_config(
+  'request.jwt.claim.sub',
+  (select owner_id::text from aa_gamification_test_ids),
+  true
+);
+
+select extensions.is(
+  (
+    select count(*)::integer
+    from public.complete_study_task_with_reward(
+      (select task_profile_a from aa_gamification_test_ids)
+    )
+  ),
+  1,
+  'authenticated role can execute the public invoker wrapper'
+);
+
+reset role;
 
 select extensions.dblink_connect_u('aa_same_a', 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres');
 select extensions.dblink_connect_u('aa_same_b', 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres');
