@@ -1,9 +1,23 @@
-import type { IntegrationConnectionStatus } from "../contracts";
+import type {
+  IntegrationConnectionStatus,
+  IntegrationDefinition,
+} from "../contracts";
 
 export const GITHUB_PLUGIN_NAME = "GitHub" as const;
 export const GITHUB_PROVIDER_ID = "github" as const;
 export const DEFAULT_GITHUB_VERIFICATION_REPOSITORY =
   "arcana-academy/academiaarcana" as const;
+
+export const GITHUB_INTEGRATION_DEFINITION = {
+  id: GITHUB_PROVIDER_ID,
+  displayName: GITHUB_PLUGIN_NAME,
+  authMode: "none",
+  capabilities: ["read", "search"],
+  userConnectionRequired: false,
+  serverSideOnly: true,
+  scopes: [],
+  documentationUrl: "https://docs.github.com/en/rest/repos/repos",
+} satisfies IntegrationDefinition;
 
 const GITHUB_API_ORIGIN = "https://api.github.com";
 
@@ -126,7 +140,17 @@ export async function verifyGitHubConnection({
     );
   }
 
-  const payload = (await response.json()) as GitHubRepositoryApiResponse;
+  let payload: GitHubRepositoryApiResponse;
+
+  try {
+    payload = (await response.json()) as GitHubRepositoryApiResponse;
+  } catch {
+    throw new GitHubConnectionError(
+      "GitHub returned a response that was not valid JSON.",
+      502,
+    );
+  }
+
   const repositorySnapshot = parseRepositoryResponse(payload);
 
   return {
