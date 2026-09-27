@@ -34,7 +34,7 @@ jobs:
           version: 2.118.0
 
       - name: Start local Supabase
-        run: supabase start -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+        run: supabase db start
 
       - name: Apply local migrations
         run: supabase migration up --local --include-all
