@@ -14,9 +14,7 @@ test.describe("runtime smoke routes", () => {
       const response = await page.goto(route);
 
       expect(response?.status()).toBe(200);
-      await expect(
-        page,
-      ).toHaveURL(new RegExp(`${route.replaceAll("/", "\\\\/")}$`));
+      await expect(page).toHaveURL(route);
     });
   }
 
