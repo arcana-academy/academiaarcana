@@ -10,3 +10,6 @@ export type {
   IntegrationToolRequest,
   IntegrationToolResult,
 } from "./contracts";
+
+export { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
+export type { ChatGPTPluginCatalogEntry } from "./chatgpt-plugin-catalog";
