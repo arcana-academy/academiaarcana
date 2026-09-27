@@ -194,7 +194,7 @@ select extensions.dblink_exec(
         streak_days,
         last_active_on
       )
-      values (%L::uuid, 9223372036854775800::bigint, 7, current_date);
+      values (%L::uuid, 2147483640, 7, current_date);
     $sql$,
     (select owner_id from aa_gamification_test_ids)
   )
