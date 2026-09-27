@@ -16,6 +16,6 @@ A successful response reports:
 - repository identity and visibility
 - verification timestamp
 
-The verifier sends no user token, OAuth secret, service token, or API key. It is intentionally read-only and limited to a repository identifier validated as `owner/name`.
+The verifier sends no user token, OAuth secret, service token, or API key. It is intentionally read-only and targets only the Academia Arcana public repository; it is not a general-purpose GitHub proxy.
 
 For additional providers, the same integration boundary must be backed by the provider's documented API, OAuth flow, or MCP transport. A catalog entry alone is never treated as a live connection.
