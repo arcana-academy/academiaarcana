@@ -317,13 +317,15 @@ exception
 end;
 $$;
 
-select extensions.ok(
-  (select value from aa_concurrency_results where name = 'same_a') = 'ok',
+select extensions.is(
+  (select value from aa_concurrency_results where name = 'same_a'),
+  'ok',
   'first concurrent completion succeeds'
 );
 
-select extensions.ok(
-  (select value from aa_concurrency_results where name = 'same_b') = 'ok',
+select extensions.is(
+  (select value from aa_concurrency_results where name = 'same_b'),
+  'ok',
   'second concurrent completion is idempotent'
 );
 
@@ -513,13 +515,15 @@ exception
 end;
 $$;
 
-select extensions.ok(
-  (select value from aa_concurrency_results where name = 'profile_a') = 'ok',
+select extensions.is(
+  (select value from aa_concurrency_results where name = 'profile_a'),
+  'ok',
   'concurrent first access can initialize the profile'
 );
 
-select extensions.ok(
-  (select value from aa_concurrency_results where name = 'profile_b') = 'ok',
+select extensions.is(
+  (select value from aa_concurrency_results where name = 'profile_b'),
+  'ok',
   'second concurrent first access does not hit a duplicate-profile failure'
 );
 
