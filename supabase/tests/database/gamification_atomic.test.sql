@@ -319,7 +319,7 @@ select extensions.is(
     from public.gamification_profiles
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
-  2147483650,
+  2147483650::bigint,
   'first concurrent completion awards exactly one daily reward'
 );
 
@@ -494,7 +494,7 @@ select extensions.is(
     from public.gamification_profiles
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
-  10,
+  10::bigint,
   'concurrent first access preserves the single daily reward without losing the XP update'
 );
 
@@ -580,7 +580,7 @@ select extensions.is(
     from public.gamification_profiles
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
-  2147483640,
+  2147483640::bigint,
   'failed reward does not modify XP'
 );
 
