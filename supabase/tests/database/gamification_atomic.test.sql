@@ -191,7 +191,7 @@ select extensions.dblink_exec(
         streak_days,
         last_active_on
       )
-      values (%L::uuid, 2147483640, 7, current_date);
+      values (%L::uuid, 9223372036854775800::bigint, 7, current_date);
     $sql$,
     (select owner_id from aa_gamification_test_ids)
   )
@@ -576,12 +576,14 @@ select pg_catalog.set_config(
   true
 );
 
-select extensions.lives_ok(
+select extensions.throws_ok(
   format(
     'select * from public.complete_study_task_with_reward(%L::uuid)',
     (select task_failure from aa_gamification_test_ids)
   ),
-  'reward remains valid beyond int4 range'
+  '22003',
+  null,
+  'reward overflow fails as a bigint database error'
 );
 
 select extensions.is(
@@ -590,8 +592,8 @@ select extensions.is(
     from public.study_tasks
     where id = (select task_failure from aa_gamification_test_ids)
   ),
-  'completed',
-  'large XP reward commits task completion'
+  'pending',
+  'failed bigint reward does not commit task completion'
 );
 
 select extensions.is(
@@ -600,8 +602,8 @@ select extensions.is(
     from public.gamification_profiles
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
-  2147483650::bigint,
-  'large XP reward is persisted without int4 overflow'
+  9223372035804775800::bigint,
+  'failed bigint reward does not modify XP'
 );
 
 select extensions.is(
@@ -610,8 +612,8 @@ select extensions.is(
     from public.missions
     where owner_id = (select owner_id from aa_gamification_test_ids)
   ),
-  1,
-  'large XP reward creates the daily mission exactly once'
+  0,
+  'failed bigint reward leaves no mission completion behind'
 );
 
 select extensions.dblink_connect_u('aa_cleanup', 'host=127.0.0.1 port=5432 dbname=postgres user=postgres password=postgres');
