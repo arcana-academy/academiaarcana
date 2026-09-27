@@ -16,7 +16,11 @@ describe("GET /auth/callback", () => {
     exchangeCodeForSession.mockResolvedValue({ error: null });
   });
 
-  it.each(["//evil.example", "/\\evil.example", "/\\/evil.example"])(
+  it.each([
+    "//evil.example",
+    "/\\evil.example",
+    "/\\/evil.example",
+  ])(
     "redirects external next value %s to the application root",
     async (next) => {
       const response = await GET(
@@ -28,6 +32,16 @@ describe("GET /auth/callback", () => {
       expect(response.headers.get("location")).toBe("https://app.example/");
     },
   );
+
+  it("rejects an absolute URL without a leading slash", async () => {
+    const response = await GET(
+      new Request(
+        "https://app.example/auth/callback?code=valid-code&next=https%3A%2F%2Fevil.example",
+      ),
+    );
+
+    expect(response.headers.get("location")).toBe("https://app.example/");
+  });
 
   it("preserves a valid internal path, query string, and fragment", async () => {
     const response = await GET(
