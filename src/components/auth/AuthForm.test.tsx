@@ -131,6 +131,48 @@ describe("AuthForm", () => {
     );
   });
 
+  it("rejects a password shorter than eight characters when updating", async () => {
+    render(<AuthForm mode="update-password" />);
+
+    fireEvent.change(screen.getByLabelText("Senha"), {
+      target: { value: "1234567" },
+    });
+
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), {
+      target: { value: "1234567" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Atualizar senha" }),
+    );
+
+    expect(updateUser).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toContain(
+      "A senha precisa ter pelo menos 8 caracteres.",
+    );
+  });
+
+  it("rejects a password shorter than eight characters during signup", async () => {
+    render(<AuthForm mode="signup" />);
+
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "student@example.com" },
+    });
+
+    fireEvent.change(screen.getByLabelText("Senha"), {
+      target: { value: "1234567" },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Criar conta" }),
+    );
+
+    expect(signUp).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toContain(
+      "A senha precisa ter pelo menos 8 caracteres.",
+    );
+  });
+
   it("updates the password when confirmation matches", async () => {
     render(<AuthForm mode="update-password" />);
 
