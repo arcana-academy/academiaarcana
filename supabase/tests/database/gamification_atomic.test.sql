@@ -289,11 +289,11 @@ begin
     perform pg_catalog.pg_sleep(0.02);
   end loop;
 
-  if extensions.dblink_is_busy('aa_same_a') then
+  if extensions.dblink_is_busy('aa_same_a') = 1 then
     perform extensions.dblink_cancel_query('aa_same_a');
   end if;
 
-  if extensions.dblink_is_busy('aa_same_b') then
+  if extensions.dblink_is_busy('aa_same_b') = 1 then
     perform extensions.dblink_cancel_query('aa_same_b');
   end if;
 
@@ -483,11 +483,11 @@ begin
     perform pg_catalog.pg_sleep(0.02);
   end loop;
 
-  if extensions.dblink_is_busy('aa_profile_a') then
+  if extensions.dblink_is_busy('aa_profile_a') = 1 then
     perform extensions.dblink_cancel_query('aa_profile_a');
   end if;
 
-  if extensions.dblink_is_busy('aa_profile_b') then
+  if extensions.dblink_is_busy('aa_profile_b') = 1 then
     perform extensions.dblink_cancel_query('aa_profile_b');
   end if;
 
