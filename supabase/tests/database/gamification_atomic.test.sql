@@ -276,7 +276,24 @@ do $$
 declare
   v_a text;
   v_b text;
+  v_deadline timestamptz := clock_timestamp() + interval '7 seconds';
 begin
+  while (
+    extensions.dblink_is_busy('aa_same_a')
+    or extensions.dblink_is_busy('aa_same_b')
+  ) and clock_timestamp() < v_deadline
+  loop
+    perform pg_catalog.pg_sleep(0.02);
+  end loop;
+
+  if extensions.dblink_is_busy('aa_same_a') then
+    perform extensions.dblink_cancel_query('aa_same_a');
+  end if;
+
+  if extensions.dblink_is_busy('aa_same_b') then
+    perform extensions.dblink_cancel_query('aa_same_b');
+  end if;
+
   while extensions.dblink_is_busy('aa_same_a')
      or extensions.dblink_is_busy('aa_same_b')
   loop
@@ -457,7 +474,24 @@ do $$
 declare
   v_a text;
   v_b text;
+  v_deadline timestamptz := clock_timestamp() + interval '7 seconds';
 begin
+  while (
+    extensions.dblink_is_busy('aa_profile_a')
+    or extensions.dblink_is_busy('aa_profile_b')
+  ) and clock_timestamp() < v_deadline
+  loop
+    perform pg_catalog.pg_sleep(0.02);
+  end loop;
+
+  if extensions.dblink_is_busy('aa_profile_a') then
+    perform extensions.dblink_cancel_query('aa_profile_a');
+  end if;
+
+  if extensions.dblink_is_busy('aa_profile_b') then
+    perform extensions.dblink_cancel_query('aa_profile_b');
+  end if;
+
   while extensions.dblink_is_busy('aa_profile_a')
      or extensions.dblink_is_busy('aa_profile_b')
   loop
