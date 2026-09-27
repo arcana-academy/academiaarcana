@@ -2,7 +2,7 @@
 
 ## Status
 
-Current repository baseline — reconciled 2026-09-27 against `main` at commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec`.
+Current repository baseline — reconciled 2026-09-27 against `main` at commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -34,7 +34,7 @@ This document defines the currently supported development and build baseline for
 
 | Technology | Baseline |
 |---|---:|
-| Next.js | 16.3.5 |
+| Next.js | 16.3.6 |
 | React | 19.3.0 |
 | React DOM | 19.3.0 |
 | TypeScript | 6.0.3 |
@@ -77,31 +77,41 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The current `main` checkout was validated locally on Node `v24.21.0` and npm `11.19.1` at commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec`. The same commit was independently validated by the push-triggered Quality Gate recorded below.
+The current `main` commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f` is the security-patched Next.js 16.3.6 baseline.
 
-- `npm ci` — not re-executed during this reconciliation. Dependency installation remains owned by the Quality Gate, which completed the canonical `npm ci` for this same commit; `package.json` and `package-lock.json` were not modified.
-- `npm run lint` — PASS
-- `npm run typecheck` — PASS
-- `npm test` — 83 test files / 394 tests PASS
-- `npm run test:a11y` — 3 test files / 4 tests PASS
-- `npm run build` — PASS (10 routes generated)
-- `npm run test:e2e` — 10 passed, 1 intentionally skipped because dedicated `E2E_EMAIL`/`E2E_PASSWORD` variables were not configured.
+The push-triggered GitHub Quality Gate for this commit completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. CodeQL, Secret Scan, Scorecards, autofix, and the other recorded security/quality checks also completed successfully for the commit.
 
-The skipped E2E is the authenticated Sanctuary flow guarded by `test.skip` in `tests/e2e/sanctuary.spec.ts` and is an unexecuted authenticated scenario, not a confirmed application failure. The local untracked validation copies were excluded from the clean checkout and were preserved.
+The E2E suite distinguishes anonymous runtime smoke coverage from authenticated Sanctuary coverage that requires dedicated `E2E_EMAIL`/`E2E_PASSWORD` variables. An unexecuted authenticated scenario is not treated as a confirmed application failure.
 
 ## GitHub validation
 
-For commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec`, the push-triggered Quality Gate run `36327788234` (run #1217) completed successfully, including install, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The same commit also had successful Gitleaks, CodeQL, OpenSSF Scorecard, autofix, Anti-Dark Pattern, and Supabase Preview checks.
+For commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f`:
 
-The GitHub `Vercel` status for this commit is `failure` with the description `Checks for Deployment have failed`; this is not counted as a successful deployment check. The same `failure` is present on each of the last seven commits examined (`26773f6` through `8b68a9d`), so it is chronic rather than a regression introduced by this commit.
+- Quality Gate — PASS
+- CodeQL (JavaScript/TypeScript) — PASS
+- CodeQL (Actions) — PASS
+- Secret scan — PASS
+- Scorecards analysis — PASS
+- Autofix — PASS
+- pre-commit.ci — PASS
+
+The GitHub `Vercel` status is currently `failure` with the description `Checks for Deployment have failed`. This is not counted as a successful Vercel check.
 
 ## Vercel
 
-A Production deployment record exists for commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec` and points to `https://academiaarcana-pxvvsyjac-academia-arcana1.vercel.app`. That deployment URL returned HTTP 200 on `/login`, rendering the authentication form, and the root resolved to the login flow. A headless-browser check against the public domain `academiaarcana.vercel.app` reported no console errors, and both `/santuario` and `/workspace` resolved to `/login` for an anonymous session, matching the E2E contract in `tests/e2e/runtime-smoke.spec.ts`. The HTML served by the public domain is identical to the deployment HTML once per-build identifiers are normalized, so the alias-to-SHA association for this commit is established rather than assumed.
+The current Production deployment for commit `adc75e0400f18a8d80bb7a44263e0090797f8f7f` is:
 
-The GitHub Vercel status and deployment status remain `failure` with `Checks for Deployment have failed`. The build output and the running application were independently observed to be functional, so the failing element is a check evaluated around the deployment rather than the compiled artifact. The exact failed check and the authoritative `READY` state are still not verifiable: no `VERCEL_TOKEN` is available in this workspace and the Vercel deployments API rejects unauthenticated requests. This remains an open item and is not counted as a passing deployment check.
+- Deployment: `dpl_Cm3rRSEQUyJCwgPEUoVPtF9t4GYT`
+- State: `READY`
+- Target: `production`
+- Deployment URL: `https://academiaarcana-ms9qetm85-academia-arcana1.vercel.app`
+- Reported aliases: `academiaarcana-academia-arcana1.vercel.app` and `academiaarcana-git-main-academia-arcana1.vercel.app`
 
-No domain promotion is implied by this document.
+The deployment URL independently returned HTTP 200 on `/` and `/login`. Anonymous `/santuario` returned the expected redirect to `/login` with HTTP 307. Runtime logs for the current Production deployment contained no error/fatal entries in the most recent one-hour observation.
+
+A direct fetch of the public alias `academiaarcana-academia-arcana1.vercel.app` currently serves an older deployment identifier `dpl_9WJTkLsSRAfEMGR3JwgKeUv1nSqt`. Because the authoritative deployment record reports the alias on the new Production deployment while the fetched public alias still resolves to an older build, the alias-to-current-deployment association is not yet reconciled. This is treated as a Vercel-side routing/cache/configuration item, not as evidence that the new Production build is broken.
+
+The current Vercel connector does not expose a reliable write operation for alias promotion or project environment-variable mutation. No unsupported Vercel-side mutation is being claimed.
 
 ## Supabase
 
@@ -132,6 +142,8 @@ The last recorded Supabase Security Advisor evidence reported one warning for le
 ## Observability configuration
 
 Honeybadger configuration consumes public environment variables for the browser/server integration. These are optional from the build's perspective because the configuration handles missing values without failing the build. They should remain environment-managed and must not be replaced with hard-coded secrets.
+
+Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. The current Production deployment has produced no error/fatal runtime entries in the most recent one-hour observation, but the Vercel environment-variable configuration itself is not directly verifiable through the available connector surface.
 
 ## Change policy
 
