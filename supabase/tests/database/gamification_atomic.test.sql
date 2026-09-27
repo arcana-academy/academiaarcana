@@ -135,9 +135,9 @@ select extensions.dblink_exec(
     $sql$
       create schema %I;
 
-      create function %I.complete_and_hold(
+      create function %I.complete_after_delay(
         p_task_id uuid,
-        p_hold_seconds double precision
+        p_delay_seconds double precision
       )
       returns text
       language plpgsql
@@ -145,8 +145,8 @@ select extensions.dblink_exec(
       set search_path = ''
       as $fn$
       begin
+        perform pg_catalog.pg_sleep(p_delay_seconds);
         perform public.complete_study_task_with_reward(p_task_id);
-        perform pg_catalog.pg_sleep(p_hold_seconds);
         return 'ok';
       end;
       $fn$;
@@ -258,7 +258,7 @@ select extensions.dblink_exec(
 select extensions.dblink_send_query(
   'aa_same_a',
   format(
-    'select %I.complete_and_hold(%L::uuid, 0.50)',
+    'select %I.complete_after_delay(%L::uuid, 0.20)',
     (select helper_schema from aa_gamification_test_ids),
     (select task_same from aa_gamification_test_ids)
   )
@@ -269,7 +269,7 @@ select pg_catalog.pg_sleep(0.05);
 select extensions.dblink_send_query(
   'aa_same_b',
   format(
-    'select %I.complete_and_hold(%L::uuid, 0.00)',
+    'select %I.complete_after_delay(%L::uuid, 0.20)',
     (select helper_schema from aa_gamification_test_ids),
     (select task_same from aa_gamification_test_ids)
   )
@@ -452,7 +452,7 @@ select extensions.dblink_exec(
 select extensions.dblink_send_query(
   'aa_profile_a',
   format(
-    'select %I.complete_and_hold(%L::uuid, 0.50)',
+    'select %I.complete_after_delay(%L::uuid, 0.20)',
     (select helper_schema from aa_gamification_test_ids),
     (select task_profile_a from aa_gamification_test_ids)
   )
@@ -463,7 +463,7 @@ select pg_catalog.pg_sleep(0.05);
 select extensions.dblink_send_query(
   'aa_profile_b',
   format(
-    'select %I.complete_and_hold(%L::uuid, 0.00)',
+    'select %I.complete_after_delay(%L::uuid, 0.20)',
     (select helper_schema from aa_gamification_test_ids),
     (select task_profile_b from aa_gamification_test_ids)
   )
