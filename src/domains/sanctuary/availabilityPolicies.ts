@@ -1,24 +1,19 @@
 import type { FeatureAvailability } from "./contracts";
 
 /**
- * Task 4 — Availability Policies
- *
- * Resolves the availability of Planning, Gamification and Progress.
- * In the current state of the repository, these domains have no real source
- * (Planning and Gamification have empty contracts; Progress has no
- * repository, adapter, use case, table, view, RPC or calculation),
- * so they return "not-configured" deterministically without arguments.
+ * Planning, Gamification and Progress now have real contracts and
+ * persistence adapters in product-domain-v1. Runtime availability is still
+ * subject to the authenticated repository wiring performed by the application
+ * layer.
  */
 export function resolvePlanningAvailability(): FeatureAvailability {
-  return "not-configured";
+  return "available";
 }
 
-/** Resolve the current availability of the Gamification domain. */
 export function resolveGamificationAvailability(): FeatureAvailability {
-  return "not-configured";
+  return "available";
 }
 
-/** Resolve the current availability of the Progress domain. */
 export function resolveProgressAvailability(): FeatureAvailability {
-  return "not-configured";
+  return "available";
 }

@@ -23,8 +23,10 @@ import {
   deleteWorkspacePage,
   moveWorkspacePage,
   updateWorkspacePage,
+  setWorkspacePageProgress,
 } from "./actions";
 import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
+import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
 
 type WorkspacePageProps = {
   searchParams: Promise<{
@@ -121,6 +123,17 @@ export default async function WorkspacePage({
     claims.sub,
   );
 
+  const allPageIds = tree.flatMap((grimoire) =>
+    grimoire.notebooks.flatMap((notebook) =>
+      notebook.chapters.flatMap((chapter) => chapter.pages.map((page) => page.id)),
+    ),
+  );
+  const pageProgressRepository = new SupabasePageProgressRepository(supabase);
+  const pageProgressRows = await pageProgressRepository.listByPages(claims.sub, allPageIds);
+  const initialPageProgress = Object.fromEntries(
+    pageProgressRows.map((item) => [item.pageId, item.status]),
+  );
+
   const initialState: WorkspaceState = {
     grimoireId: params.grimoire ?? null,
     notebookId: params.notebook ?? null,
@@ -143,6 +156,8 @@ export default async function WorkspacePage({
         onMovePage={moveWorkspacePage}
         onDeletePage={deleteWorkspacePage}
         onSavePage={updateWorkspacePage}
+        initialPageProgress={initialPageProgress}
+        onSetPageProgress={setWorkspacePageProgress}
       />
     </AuthenticatedShell>
   );
