@@ -11,9 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const result = await verifyGitHubConnection({
-      repository:
-        process.env.GITHUB_VERIFICATION_REPOSITORY ??
-        DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
+      repository: DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
     });
 
     return NextResponse.json(result, {
@@ -24,10 +22,7 @@ export async function GET() {
     });
   } catch (error) {
     const isKnownError = error instanceof GitHubConnectionError;
-    const status =
-      isKnownError && error.httpStatus === 400
-        ? 500
-        : 502;
+    const status = isKnownError && error.httpStatus === 400 ? 500 : 502;
 
     return NextResponse.json(
       {
