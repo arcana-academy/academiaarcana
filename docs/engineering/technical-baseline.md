@@ -2,7 +2,7 @@
 
 ## Status
 
-Current repository baseline — reconciled 2026-09-27 against `main` at commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03`.
+Current repository baseline — reconciled 2026-09-27 against `main` at commit `8b55cd3e198d6190340a628fb2344ead812c2cce`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The current `main` commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03` includes the Next.js 16.3.6 security baseline and the subsequent authentication callback hardening from PR #290.
+The current `main` commit `8b55cd3e198d6190340a628fb2344ead812c2cce` includes the Next.js 16.3.6 security baseline, the subsequent authentication callback hardening from PR #290, and the current technical-baseline reconciliation.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,7 +85,7 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-For the current `main` commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03`:
+For the current `main` commit `8b55cd3e198d6190340a628fb2344ead812c2cce`:
 
 - The authentication callback hardening from PR #290 is integrated.
 - The Next.js security patch to 16.3.6 is integrated.
@@ -95,14 +95,14 @@ The GitHub Vercel integration status remains an external deployment-check concer
 
 ## Vercel
 
-The current Production deployment for commit `34d5f85eae9ee4e8f60e594493ded35f24dd7b03` is:
+The current Production deployment for commit `8b55cd3e198d6190340a628fb2344ead812c2cce` is:
 
-- Deployment: `dpl_HJYWcuQ49iPjpd7YeEMyXv8JdDvp`
+- Deployment: `dpl_FdSLiyK8ffv5y6aejTwdEuyHHLn7`
 - State: `READY`
 - Target: `production`
-- Deployment URL: `https://academiaarcana-50vewo5b4-academia-arcana1.vercel.app`
+- Deployment URL: `https://academiaarcana-arcdte82f-academia-arcana1.vercel.app`
 
-The current Production deployment is reported as `READY`. Runtime validation of the newer Next.js deployment immediately before this commit also showed no error/fatal entries in the most recent one-hour observation.
+The current Production deployment is reported as `READY`. A deployment-scoped runtime error query for this current Production deployment returned no error/fatal logs in the latest 24-hour observation.
 
 A direct fetch of the project public alias previously returned an older deployment identifier rather than the then-current Production deployment. This alias discrepancy remains a Vercel-side item to verify and must not be hidden by treating the deployment build itself as sufficient evidence.
 
