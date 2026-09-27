@@ -550,8 +550,10 @@ select extensions.dblink_exec(
 
 select extensions.dblink_disconnect('aa_reset_2');
 
-set local request.jwt.claim.sub = (
-  select owner_id::text from aa_gamification_test_ids
+select pg_catalog.set_config(
+  'request.jwt.claim.sub',
+  (select owner_id::text from aa_gamification_test_ids),
+  true
 );
 
 select extensions.throws_ok(
