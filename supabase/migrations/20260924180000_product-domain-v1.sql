@@ -28,7 +28,7 @@ create table public.study_tasks (
 
 create table public.gamification_profiles (
   owner_id uuid primary key references auth.users(id) on delete cascade,
-  xp integer not null default 0 check (xp >= 0),
+  xp bigint not null default 0 check (xp >= 0),
   streak_days integer not null default 0 check (streak_days >= 0),
   last_active_on date,
   updated_at timestamptz not null default now()
@@ -166,7 +166,7 @@ returns table (
   task_completed_at timestamptz,
   task_created_at timestamptz,
   task_updated_at timestamptz,
-  xp integer,
+  xp bigint,
   streak_days integer,
   last_active_on date,
   gamification_updated_at timestamptz,
