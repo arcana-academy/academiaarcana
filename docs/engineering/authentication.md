@@ -58,9 +58,9 @@ The browser submits the password to Supabase Auth through the Supabase client. T
 Password recovery deliberately returns a generic success message so the form does not enumerate accounts.
 
 ## 5. Callback and code exchange
-The callback receives a short-lived authorization `code`. Before exchanging it, the route rejects missing values, absolute URLs, protocol-relative paths such as `//evil.example`, malformed input, and destinations whose resolved origin differs from the application origin.
+The callback receives a short-lived authorization `code`. A missing `code` is rejected. For the optional `next` destination, invalid values—including absolute URLs, protocol-relative paths such as `//evil.example`, malformed input, and destinations whose resolved origin differs from the application origin—are normalized to `/` before the callback continues.
 
-Only after that validation does the server call `supabase.auth.exchangeCodeForSession(code)`. Failed exchanges redirect to `/login?error=auth`.
+Only after that destination normalization does the server call `supabase.auth.exchangeCodeForSession(code)`. Failed code exchanges redirect to `/login?error=auth`.
 
 ## 6. Session and token handling
 The repository delegates session and token lifecycle to `@supabase/ssr` and Supabase Auth.
