@@ -27,6 +27,11 @@ const COPY: Record<AuthMode, { title: string; submit: string }> = {
 const GENERIC_AUTH_ERROR =
   "Não foi possível concluir a operação. Tente novamente.";
 
+const MIN_PASSWORD_LENGTH = 8;
+
+const PASSWORD_TOO_SHORT_ERROR =
+  "A senha precisa ter pelo menos 8 caracteres.";
+
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const emailId = useId();
@@ -73,6 +78,12 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
+        if (password.length < MIN_PASSWORD_LENGTH) {
+          setStatus("error");
+          setMessage(PASSWORD_TOO_SHORT_ERROR);
+          return;
+        }
+
         const { error } = await supabase.auth.updateUser({ password });
 
         if (error) {
@@ -81,6 +92,12 @@ export function AuthForm({ mode }: AuthFormProps) {
 
         setStatus("success");
         setMessage("Senha atualizada com sucesso.");
+        return;
+      }
+
+      if (mode === "signup" && password.length < MIN_PASSWORD_LENGTH) {
+        setStatus("error");
+        setMessage(PASSWORD_TOO_SHORT_ERROR);
         return;
       }
 
@@ -159,7 +176,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 mode === "login" ? "current-password" : "new-password"
               }
               required
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={status === "error"}
@@ -184,7 +201,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               type={passwordInputType}
               autoComplete="new-password"
               required
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               aria-invalid={status === "error"}
