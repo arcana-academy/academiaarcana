@@ -2,7 +2,7 @@
 
 ## Status
 
-Current repository baseline — reconciled 2026-09-24 against `main` at commit `810a1ce861391f01cf94c034789fd25a81775b1c`.
+Current repository baseline — reconciled 2026-09-27 against `main` at commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,30 +77,29 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The current `main` checkout was reconciled against a clean validation checkout at commit `810a1ce861391f01cf94c034789fd25a81775b1c`.
+The current `main` checkout was validated locally on Node `v24.21.0` and npm `11.19.1` at commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec`. The same commit was independently validated by the push-triggered Quality Gate recorded below.
 
-- `npm ci` — PASS in the original workspace (exit code 0; `package-lock.json` unchanged). In the clean validation checkout, the first full invocation exceeded the orchestration timeout after materializing dependencies; `npm ls --depth=0` and `npm ci --dry-run` passed, and GitHub CI independently completed the canonical install for this SHA.
+- `npm ci` — not re-executed during this reconciliation. Dependency installation remains owned by the Quality Gate, which completed the canonical `npm ci` for this same commit; `package.json` and `package-lock.json` were not modified.
 - `npm run lint` — PASS
 - `npm run typecheck` — PASS
-- `npm test` — 82 test files / 370 tests PASS
+- `npm test` — 83 test files / 394 tests PASS
 - `npm run test:a11y` — 3 test files / 4 tests PASS
-- `npm run build` — PASS
-- `npm exec -- playwright install --with-deps chromium` — PASS
-- `npm run test:e2e` — 2 PASS, 1 intentionally skipped because dedicated `E2E_EMAIL`/`E2E_PASSWORD` variables were not configured.
+- `npm run build` — PASS (10 routes generated)
+- `npm run test:e2e` — 10 passed, 1 intentionally skipped because dedicated `E2E_EMAIL`/`E2E_PASSWORD` variables were not configured.
 
-The skipped E2E is an unexecuted authenticated scenario, not a confirmed application failure. The local untracked validation copies were excluded from the clean checkout and were preserved.
+The skipped E2E is the authenticated Sanctuary flow guarded by `test.skip` in `tests/e2e/sanctuary.spec.ts` and is an unexecuted authenticated scenario, not a confirmed application failure. The local untracked validation copies were excluded from the clean checkout and were preserved.
 
 ## GitHub validation
 
-For commit `810a1ce861391f01cf94c034789fd25a81775b1c`, the push-triggered Quality Gate run `35944336443` completed successfully, including install, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The same commit also had successful Gitleaks, CodeQL, OpenSSF Scorecard, autofix, and Supabase Preview checks.
+For commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec`, the push-triggered Quality Gate run `36327788234` (run #1217) completed successfully, including install, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The same commit also had successful Gitleaks, CodeQL, OpenSSF Scorecard, autofix, Anti-Dark Pattern, and Supabase Preview checks.
 
-The GitHub `Vercel` status for this commit is currently `failure` with the description `Checks for Deployment have failed`; this is not counted as a successful deployment check.
+The GitHub `Vercel` status for this commit is `failure` with the description `Checks for Deployment have failed`; this is not counted as a successful deployment check. The same `failure` is present on each of the last seven commits examined (`26773f6` through `8b68a9d`), so it is chronic rather than a regression introduced by this commit.
 
 ## Vercel
 
-A Production deployment record exists for commit `810a1ce861391f01cf94c034789fd25a81775b1c` and points to `https://academiaarcana-42ppsfy51-academia-arcana1.vercel.app`. The public `/login` endpoint returned HTTP 200, the root redirected to `/login`, and a browser check found no console errors or missing-Supabase-variable marker.
+A Production deployment record exists for commit `8b68a9d32cabdab118d389b4d7fc4f9df193feec` and points to `https://academiaarcana-pxvvsyjac-academia-arcana1.vercel.app`. That deployment URL returned HTTP 200 on `/login`, rendering the authentication form, and the root resolved to the login flow. A headless-browser check against the public domain `academiaarcana.vercel.app` reported no console errors, and both `/santuario` and `/workspace` resolved to `/login` for an anonymous session, matching the E2E contract in `tests/e2e/runtime-smoke.spec.ts`. The HTML served by the public domain is identical to the deployment HTML once per-build identifiers are normalized, so the alias-to-SHA association for this commit is established rather than assumed.
 
-However, the GitHub Vercel status and deployment status are both `failure` with `Checks for Deployment have failed`. The Vercel dashboard/API requires authentication, so the exact failed check and the authoritative `READY` state were not independently verifiable. The public domain `academiaarcana.vercel.app` also returned HTTP 200, but its alias-to-SHA association was not proven.
+The GitHub Vercel status and deployment status remain `failure` with `Checks for Deployment have failed`. The build output and the running application were independently observed to be functional, so the failing element is a check evaluated around the deployment rather than the compiled artifact. The exact failed check and the authoritative `READY` state are still not verifiable: no `VERCEL_TOKEN` is available in this workspace and the Vercel deployments API rejects unauthenticated requests. This remains an open item and is not counted as a passing deployment check.
 
 No domain promotion is implied by this document.
 
