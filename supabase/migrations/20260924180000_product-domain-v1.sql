@@ -1,6 +1,7 @@
 -- Product domain v1: learning progress, study planning and gamification.
 --
 -- User-owned records are protected by RLS. Study-task completion and
+-- XP is bigint to preserve headroom beyond PostgreSQL integer limits.
 -- gamification rewards use one atomic database operation so a reward cannot
 -- be separated from the task transition.
 
