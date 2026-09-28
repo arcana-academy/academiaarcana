@@ -1,30 +1,15 @@
 import Link from "next/link";
 
-export type AuthenticatedRouteHref =
-  | "/academia"
-  | "/grimorios"
-  | "/santuario"
-  | "/workspace"
-  | "/cronograma"
-  | "/personalizar";
+import {
+  navigationItems,
+  type AuthenticatedRouteHref,
+} from "./navigation-items";
 
-type AuthenticatedNavigationItem = {
-  href: AuthenticatedRouteHref;
-  label: string;
-};
+export type { AuthenticatedRouteHref };
 
 type AuthenticatedNavigationProps = {
   currentPath: AuthenticatedRouteHref;
 };
-
-const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
-  { href: "/academia", label: "Academia" },
-  { href: "/grimorios", label: "Grimórios" },
-  { href: "/santuario", label: "Santuário" },
-  { href: "/workspace", label: "Workspace" },
-  { href: "/cronograma", label: "Cronograma" },
-  { href: "/personalizar", label: "Personalizar" },
-];
 
 export function AuthenticatedNavigation({
   currentPath,
@@ -34,15 +19,16 @@ export function AuthenticatedNavigation({
       <ul className="aa-navigation-list">
         {navigationItems.map((item) => {
           const isCurrent = item.href === currentPath;
-          const variant = isCurrent ? "aa-button-primary" : "aa-button-secondary";
-          const reinforcement = isCurrent ? "aa-nav-link-active" : "";
 
           return (
             <li key={item.href}>
               <Link
-                className={["aa-button", variant, "aa-button-sm", reinforcement]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={[
+                  "aa-button",
+                  isCurrent ? "aa-button-primary" : "aa-button-secondary",
+                  "aa-button-sm",
+                  isCurrent ? "aa-nav-link-active" : "",
+                ].filter(Boolean).join(" ")}
                 href={item.href}
                 aria-current={isCurrent ? "page" : undefined}
               >
