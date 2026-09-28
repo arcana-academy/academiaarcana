@@ -42,6 +42,14 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         verification: null,
       },
       {
+        name: "Agentic Course Redesign",
+        source: "chatgpt-catalog",
+        status: "catalogued",
+        executionMode: "chatgpt-hosted",
+        providerId: "agentic-course-redesign",
+        verification: null,
+      },
+      {
         name: "GitHub",
         source: "chatgpt-catalog",
         status: "connected",
@@ -74,6 +82,11 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("1");
     expect(html).toContain("Ainda catalogados");
     expect(html).toContain("113");
+    expect(html).toContain("Agentic Course Redesign");
+    expect(html).toContain("Hospedado no ChatGPT");
+    expect(html).toContain(
+      "o site não possui uma API oficial para invocação direta",
+    );
     expect(html).toContain("GitHub");
     expect(html).toContain("Verificado");
     expect(html).toContain("A conexão externa foi verificada em runtime.");
