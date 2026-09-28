@@ -135,6 +135,16 @@ export default async function IntegracoesPage() {
               >
                 {statusDescription(entry.status)}
               </p>
+              {entry.name === "1 Billion Brain Cells" && (
+                <a
+                  className="aa-button aa-button-secondary"
+                  href="https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Abrir no ChatGPT
+                </a>
+              )}
             </li>
           ))}
         </ul>
