@@ -197,7 +197,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                     minLength={MIN_PASSWORD_LENGTH}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    error={mode === "signup" && passwordError ? passwordError : undefined}
+                    error={undefined}
                   />
                   <Button
                     type="button"
@@ -226,7 +226,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   minLength={MIN_PASSWORD_LENGTH}
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  error={passwordError}
+                  error={undefined}
                 />
               ) : null}
             </fieldset>

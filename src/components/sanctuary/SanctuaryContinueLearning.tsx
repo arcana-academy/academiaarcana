@@ -24,16 +24,15 @@ export function SanctuaryContinueLearning({
       {continueLearning ? (
         <div className="aa-continue-learning">
           <Link className="aa-link" href={continueLearning.href}>
-            <span className="aa-visually-hidden">Abrir </span>
-            {continueLearning.pageTitle ?? continueLearning.chapterTitle ?? continueLearning.notebookTitle ?? continueLearning.grimoireTitle}
+            Continuar no contexto atual
           </Link>
 
-          <ol className="aa-learning-path" aria-label="Hierarquia do contexto">
+          <div className="aa-learning-path" aria-label="Hierarquia do contexto">
             <li>{continueLearning.grimoireTitle}</li>
             {continueLearning.notebookTitle ? <li>{continueLearning.notebookTitle}</li> : null}
             {continueLearning.chapterTitle ? <li>{continueLearning.chapterTitle}</li> : null}
             {continueLearning.pageTitle ? <li>{continueLearning.pageTitle}</li> : null}
-          </ol>
+          </div>
         </div>
       ) : (
         <SanctuaryEmptyState />

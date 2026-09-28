@@ -76,7 +76,6 @@ function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
         placeholder="Título do grimório"
       />
       <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar grimório"}
       </button>
@@ -129,7 +128,6 @@ function NotebookCreationForm({
         placeholder="Título do caderno"
       />
       <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar caderno"}
       </button>
@@ -180,7 +178,6 @@ function ChapterCreationForm({
         placeholder="Título do capítulo"
       />
       <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar capítulo"}
       </button>
@@ -238,7 +235,6 @@ function PageCreationForm({
         placeholder="Título da página"
       />
       <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar página"}
       </button>

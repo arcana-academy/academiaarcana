@@ -23,7 +23,7 @@ export function SanctuarySchedule({ schedule }: SanctuaryScheduleProps) {
             <li className="aa-data-item" key={item.id}>
               <div>
                 <p className="aa-data-item-title">
-                  <time>{item.time}</time> · {item.title}
+                  <time>{item.time}</time><span aria-hidden="true"> · </span><span>{item.title}</span>
                 </p>
                 {item.location ? (
                   <p className="aa-data-item-meta">{item.location}</p>

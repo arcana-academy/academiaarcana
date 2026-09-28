@@ -56,26 +56,22 @@ export default async function IntegracoesPage() {
           <article className="aa-card aa-card-default aa-stat-card">
             <Library size={18} aria-hidden="true" />
             <h2 id="integrations-summary-title">Catálogo</h2>
-            <strong>{snapshot.catalogSize}</strong>
-            <p>plugins registrados</p>
+            <p><strong>{snapshot.catalogSize}</strong> plugins registrados</p>
           </article>
           <article className="aa-card aa-card-default aa-stat-card">
             <CheckCircle2 size={18} aria-hidden="true" />
             <h2>Conexões verificadas</h2>
-            <strong>{snapshot.connectedCount}</strong>
-            <p>conexões confirmadas</p>
+            <p><strong>{snapshot.connectedCount}</strong> conexões confirmadas</p>
           </article>
           <article className="aa-card aa-card-default aa-stat-card">
             <PlugZap size={18} aria-hidden="true" />
             <h2>Ainda catalogados</h2>
-            <strong>{snapshot.cataloguedCount}</strong>
-            <p>sem verificação runtime</p>
+            <p><strong>{snapshot.cataloguedCount}</strong> sem verificação runtime</p>
           </article>
           <article className="aa-card aa-card-default aa-stat-card">
             <CircleAlert size={18} aria-hidden="true" />
             <h2>Erros</h2>
-            <strong>{snapshot.errorCount}</strong>
-            <p>última verificação</p>
+            <p><strong>{snapshot.errorCount}</strong> na última verificação</p>
           </article>
         </section>
 
