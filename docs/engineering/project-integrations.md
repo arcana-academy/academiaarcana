@@ -57,6 +57,24 @@ This gives the project a complete and honest state:
 - Academia Arcana web-runtime adapter: not enabled until an external provider contract is verified.
 - Credentials: none required or stored for the bridge.
 
+## Spotify
+
+The Academia Arcana catalog includes **Spotify**. The integration hub now provides
+an explicit bridge to Spotify's official ChatGPT app:
+
+- ChatGPT app bridge: available.
+- Official app: https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c
+- Web-runtime Spotify Web API adapter: not connected.
+- Credentials stored by Academia Arcana: none.
+- Runtime status: `catalogued`.
+
+The bridge is navigation-only. It does not import, proxy, or iframe the Spotify
+ChatGPT app into the Next.js runtime. A future direct Spotify account
+integration must implement the documented Spotify authorization flow,
+server-side credential storage, least-privilege scopes, authorization checks,
+provider health/representative-operation checks, failure isolation, and E2E
+verification before the state can become `connected`.
+
 ## Runtime / delivery integrations
 
 | Service | Role | Repository integration | External configuration | State |

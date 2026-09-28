@@ -27,6 +27,11 @@ export const A_Z_HOLY_BIBLE_APP_ID = "a-z-holy-bible" as const;
 export const A_Z_HOLY_BIBLE_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_69985bb469908191a8abda024bb692cb" as const;
 
+export const SPOTIFY_APP_ID = "spotify" as const;
+
+export const SPOTIFY_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c" as const;
+
 export const ACADEMIC_WRITING_TOOLKIT_APP_ID =
   "academic-writing-toolkit" as const;
 
@@ -58,6 +63,11 @@ export const CHATGPT_APP_BRIDGES = {
     providerId: ACADEMIC_WRITING_TOOLKIT_APP_ID,
     displayName: "Academic Writing Toolkit",
     appUrl: ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
+  },
+  [SPOTIFY_APP_ID]: {
+    providerId: SPOTIFY_APP_ID,
+    displayName: "Spotify",
+    appUrl: SPOTIFY_CHATGPT_APP_URL,
   },
 } as const;
 

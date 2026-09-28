@@ -24,6 +24,8 @@ export {
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
+  SPOTIFY_APP_ID,
+  SPOTIFY_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
 export type { ChatGPTAppBridge } from "./chatgpt-app-bridges";
 

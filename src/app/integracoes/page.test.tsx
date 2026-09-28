@@ -51,6 +51,14 @@ vi.mock("@/infrastructure/integrations/status", () => ({
           verifiedAt: "2026-09-27T00:00:00.000Z",
         },
       },
+      {
+        name: "Spotify",
+        source: "chatgpt-catalog",
+        status: "catalogued",
+        chatgptAppUrl:
+          "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c",
+        verification: null,
+      },
     ],
   })),
 }));
@@ -73,6 +81,10 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("A-Z Daily Word");
     expect(html).toContain("A-Z Dictionary");
     expect(html).toContain("A-Z Holy Bible");
+    expect(html).toContain("Spotify");
+    expect(html).toContain(
+      "plugin_asdk_app_68de829bf7648191acd70a907364c67c",
+    );
     expect(html).toContain("Abrir no ChatGPT");
     expect(html).toContain("plugin_asdk_app_69cd086370708191905606fa0641d238");
     expect(html).toContain("plugin_asdk_app_69bd3c483c008191beb1e4cc0ce87b24");
