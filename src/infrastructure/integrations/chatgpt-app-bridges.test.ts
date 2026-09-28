@@ -11,6 +11,8 @@ import {
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
+  SPOTIFY_APP_ID,
+  SPOTIFY_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
 
 describe("ChatGPT app bridges", () => {
@@ -59,6 +61,18 @@ describe("ChatGPT app bridges", () => {
 
     expect(ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL).toBe(
       "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779",
+    );
+  });
+
+  it("defines the Spotify bridge with the official ChatGPT app URL", () => {
+    expect(CHATGPT_APP_BRIDGES[SPOTIFY_APP_ID]).toEqual({
+      providerId: SPOTIFY_APP_ID,
+      displayName: "Spotify",
+      appUrl: SPOTIFY_CHATGPT_APP_URL,
+    });
+
+    expect(SPOTIFY_CHATGPT_APP_URL).toBe(
+      "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c",
     );
   });
 
