@@ -1,42 +1,46 @@
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
+
 import type { QuickAction, SanctuaryViewModel } from "@/domains/sanctuary";
 
 type SanctuaryHeaderProps = {
-    header: SanctuaryViewModel["header"];
-    primaryAction: QuickAction;
+  header: SanctuaryViewModel["header"];
+  primaryAction: QuickAction;
 };
 
-/**
- * Identity header for the authenticated Sanctuary.
- *
- * Renders the greeting as the level-one heading that labels `<main>`, the
- * optional user display name, and the already-resolved primary action as a
- * semantic link. Priority resolution stays in the domain/application layers,
- * so this component never re-derives it from `primaryAction.priority`.
- *
- * Styling reuses the existing `aa-card`/`aa-button` classes and design tokens
- * from `globals.css` (including the global `:focus-visible` outline and the
- * density-scaled target size), so no new visual tokens are introduced.
- */
+/** Identity header for the authenticated Sanctuary. */
 export function SanctuaryHeader({
-    header,
-    primaryAction,
+  header,
+  primaryAction,
 }: SanctuaryHeaderProps) {
-    const displayName = header.user.displayName?.trim();
+  const displayName = header.user.displayName?.trim();
 
-    return (
-        <header className="aa-card aa-card-default">
-            <h1 id="sanctuary-title">{header.greeting}</h1>
+  return (
+    <header className="sanctuary-hero aa-card aa-card-elevated">
+      <div className="sanctuary-hero-copy">
+        <p className="aa-eyebrow">Santuário</p>
+        <div className="sanctuary-title-line">
+          <span className="sanctuary-title-mark" aria-hidden="true">
+            <Sparkles size={20} strokeWidth={1.8} />
+          </span>
+          <h1 id="sanctuary-title">{header.greeting}</h1>
+        </div>
 
-            {displayName ? (
-                <p data-testid="sanctuary-user-name">{displayName}</p>
-            ) : null}
+        {displayName ? (
+          <p data-testid="sanctuary-user-name">
+            {displayName}, este é o ponto de retomada da sua jornada.
+          </p>
+        ) : null}
+      </div>
 
-            <a
-                className="aa-button aa-button-primary aa-button-lg"
-                href={primaryAction.href}
-            >
-                {primaryAction.label}
-            </a>
-        </header>
-    );
+      <div className="aa-actions">
+        <Link
+          className="aa-button aa-button-primary aa-button-lg"
+          href={primaryAction.href}
+        >
+          {primaryAction.label}
+        </Link>
+      </div>
+    </header>
+  );
 }
