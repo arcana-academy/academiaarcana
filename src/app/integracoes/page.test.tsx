@@ -10,6 +10,14 @@ vi.mock("@/infrastructure/integrations/status", () => ({
     errorCount: 0,
     entries: [
       {
+        name: "1 Billion Brain Cells",
+        source: "chatgpt-catalog",
+        status: "catalogued",
+        chatgptAppUrl:
+          "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",
+        verification: null,
+      },
+      {
         name: "GitHub",
         source: "chatgpt-catalog",
         status: "connected",
