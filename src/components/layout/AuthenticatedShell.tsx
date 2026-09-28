@@ -29,9 +29,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
 
       <aside className="aa-sidebar" aria-label="Navegação principal">
         <div className="aa-sidebar-brand">
-          <div className="aa-brand-mark" aria-hidden="true">
-            ✦
-          </div>
+          <div className="aa-brand-mark" aria-hidden="true">✦</div>
           <div>
             <p className="aa-brand-name">Academia Arcana</p>
             <p className="aa-brand-subtitle">Jornada de aprendizagem</p>
@@ -62,9 +60,9 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
           </div>
         </header>
 
-        <main id="main-content" className="aa-main-content">
+        <div id="main-content" className="aa-main-content">
           {children}
-        </main>
+        </div>
       </div>
 
       <div className="aa-mobile-nav">
