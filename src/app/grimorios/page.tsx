@@ -7,14 +7,17 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 import { createClient } from "@/lib/supabase/server";
 
 export default async function GrimoiresPage() {
+  const claims = await requireAuthenticatedUser();
+  const supabase = await createClient();
+  const repositoryClient = supabase as unknown as Parameters<
+    typeof createGrimoireRepository
+  >[0];
+
   let grimoires: Grimoire[] = [];
   let loadError = false;
 
   try {
-    const user = await requireAuthenticatedUser();
-    const supabase = await createClient();
-    const repository = createGrimoireRepository(supabase);
-    grimoires = await repository.listByOwner(user.id);
+    grimoires = await createGrimoireRepository(repositoryClient).listByOwner(claims.sub);
   } catch {
     loadError = true;
   }
@@ -71,7 +74,12 @@ export default async function GrimoiresPage() {
                   <h2>{grimoire.title}</h2>
                   {grimoire.description ? <p>{grimoire.description}</p> : null}
                 </div>
-                <Link className="aa-button aa-button-ghost" href="/workspace">Abrir</Link>
+                <Link
+                  className="aa-button aa-button-ghost"
+                  href={`/workspace?grimoire=${encodeURIComponent(grimoire.id)}`}
+                >
+                  Abrir grimório
+                </Link>
               </article>
             ))}
           </section>
