@@ -2,6 +2,11 @@ import Link from "next/link";
 
 import { getIntegrationStatusSnapshot } from "@/infrastructure/integrations/status";
 
+type IntegrationExecutionMode =
+  | "runtime"
+  | "chatgpt-hosted"
+  | "catalog-only";
+
 function statusLabel(status: "catalogued" | "connected" | "error") {
   switch (status) {
     case "connected":
@@ -13,7 +18,14 @@ function statusLabel(status: "catalogued" | "connected" | "error") {
   }
 }
 
-function statusDescription(status: "catalogued" | "connected" | "error") {
+function statusDescription(
+  status: "catalogued" | "connected" | "error",
+  executionMode: IntegrationExecutionMode,
+) {
+  if (executionMode === "chatgpt-hosted") {
+    return "Disponível no ChatGPT; o site não possui uma API oficial para invocação direta.";
+  }
+
   switch (status) {
     case "connected":
       return "A conexão externa foi verificada em runtime.";
@@ -123,8 +135,15 @@ export default async function IntegracoesPage() {
                 }}
               >
                 <h3 style={{ margin: 0 }}>{entry.name}</h3>
-                <span aria-label={statusDescription(entry.status)}>
-                  {statusLabel(entry.status)}
+                <span
+                  aria-label={statusDescription(
+                    entry.status,
+                    entry.executionMode,
+                  )}
+                >
+                  {entry.executionMode === "chatgpt-hosted"
+                    ? "Hospedado no ChatGPT"
+                    : statusLabel(entry.status)}
                 </span>
               </div>
               <p
@@ -133,7 +152,7 @@ export default async function IntegracoesPage() {
                   marginBottom: 0,
                 }}
               >
-                {statusDescription(entry.status)}
+                {statusDescription(entry.status, entry.executionMode)}
               </p>
               {entry.chatgptAppUrl && (
                 <a
