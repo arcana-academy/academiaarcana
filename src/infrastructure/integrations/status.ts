@@ -1,3 +1,4 @@
+import { CHATGPT_APP_BRIDGES, ONE_BILLION_BRAIN_CELLS_APP_ID } from "./chatgpt-app-bridges";
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
   verifyGitHubConnection,
