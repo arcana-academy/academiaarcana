@@ -248,7 +248,6 @@ export function AuthForm({ mode }: AuthFormProps) {
                   mode === "login" ? "current-password" : "new-password"
                 }
                 required
-                minLength={MIN_PASSWORD_LENGTH}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 error={passwordTooShort ? PASSWORD_TOO_SHORT_ERROR : undefined}
