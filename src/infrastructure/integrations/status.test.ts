@@ -69,6 +69,16 @@ describe("integration status snapshot", () => {
       verification: null,
     });
 
+    const tarteel = snapshot.entries.find(
+      (entry) => entry.name === "Tarteel",
+    );
+    expect(tarteel).toMatchObject({
+      name: "Tarteel",
+      status: "catalogued",
+      verification: null,
+    });
+    expect(tarteel?.chatgptAppUrl).toBeUndefined();
+
     const spotify = snapshot.entries.find(
       (entry) => entry.name === "Spotify",
     );
