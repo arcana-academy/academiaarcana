@@ -23,6 +23,7 @@ describe("integration status route", () => {
           name: "GitHub",
           source: "chatgpt-catalog",
           status: "connected",
+          executionMode: "runtime",
           verification: {
             providerId: "github",
             repository: "arcana-academy/academiaarcana",

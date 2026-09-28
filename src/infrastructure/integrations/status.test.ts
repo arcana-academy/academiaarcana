@@ -33,6 +33,7 @@ describe("integration status snapshot", () => {
     );
     expect(brainCells).toMatchObject({
       name: "1 Billion Brain Cells",
+      executionMode: "catalog-only",
       status: "catalogued",
       chatgptAppUrl:
         "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",
@@ -78,6 +79,17 @@ describe("integration status snapshot", () => {
       verification: null,
     });
     expect(tarteel?.chatgptAppUrl).toBeUndefined();
+
+    const agenticCourseRedesign = snapshot.entries.find(
+      (entry) => entry.name === "Agentic Course Redesign",
+    );
+    expect(agenticCourseRedesign).toMatchObject({
+      name: "Agentic Course Redesign",
+      status: "catalogued",
+      executionMode: "chatgpt-hosted",
+      providerId: "agentic-course-redesign",
+      verification: null,
+    });
 
     const spotify = snapshot.entries.find(
       (entry) => entry.name === "Spotify",
