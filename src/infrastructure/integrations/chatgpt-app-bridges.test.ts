@@ -4,6 +4,8 @@ import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
   A_Z_DICTIONARY_APP_ID,
   A_Z_DICTIONARY_CHATGPT_APP_URL,
+  A_Z_HOLY_BIBLE_APP_ID,
+  A_Z_HOLY_BIBLE_CHATGPT_APP_URL,
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
@@ -30,6 +32,18 @@ describe("ChatGPT app bridges", () => {
     });
 
     expect(A_Z_DICTIONARY_CHATGPT_APP_URL).toMatch(
+      /^https:\/\/chatgpt\.com\//,
+    );
+  });
+
+  it("defines the A-Z Holy Bible bridge without credentials", () => {
+    expect(CHATGPT_APP_BRIDGES[A_Z_HOLY_BIBLE_APP_ID]).toEqual({
+      providerId: A_Z_HOLY_BIBLE_APP_ID,
+      displayName: "A-Z Holy Bible",
+      appUrl: A_Z_HOLY_BIBLE_CHATGPT_APP_URL,
+    });
+
+    expect(A_Z_HOLY_BIBLE_CHATGPT_APP_URL).toMatch(
       /^https:\/\/chatgpt\.com\//,
     );
   });
