@@ -1,12 +1,11 @@
 import Link from "next/link";
-
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 const learningAreas = [
-  { href: "/workspace", title: "Workspace", description: "Organize grimoires, notebooks, chapters and pages." },
-  { href: "/cronograma", title: "Cronograma", description: "Planeje e acompanhe suas próximas tarefas de estudo." },
-  { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem." },
+  { href: "/workspace", title: "Workspace", description: "Organize grimórios, cadernos, capítulos e páginas.", mark: "◇" },
+  { href: "/cronograma", title: "Cronograma", description: "Planeje e acompanhe suas próximas tarefas de estudo.", mark: "◷" },
+  { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem.", mark: "✦" },
 ] as const;
 
 export default async function AcademiaPage() {
@@ -14,33 +13,34 @@ export default async function AcademiaPage() {
 
   return (
     <AuthenticatedShell currentPath="/academia">
-      <main
-        aria-labelledby="academia-title"
-        style={{
-          display: "grid",
-          gap: "var(--aa-spacing-lg)",
-          maxWidth: "72rem",
-          margin: "0 auto",
-          padding: "clamp(1.5rem, 4vw, 3rem)",
-        }}
-      >
-        <header className="aa-card aa-card-elevated">
-          <p style={{ margin: 0, color: "var(--aa-text-secondary)", fontWeight: 650, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            Academia
-          </p>
-          <h1 id="academia-title">Sua jornada de aprendizagem</h1>
-          <p style={{ color: "var(--aa-text-secondary)" }}>
-            Um ponto de entrada para as ferramentas de estudo que já estão implementadas na Academia Arcana.
-          </p>
+      <main className="aa-page aa-page-narrow" aria-labelledby="academia-title">
+        <header className="aa-page-header">
+          <div className="aa-page-header-copy">
+            <p className="aa-eyebrow">Academia · aprendizagem</p>
+            <h1 id="academia-title">Sua jornada de aprendizagem</h1>
+            <p>Um ponto de entrada para os espaços que sustentam seu estudo dentro da Academia Arcana.</p>
+          </div>
         </header>
 
-        <section aria-labelledby="academia-areas-title" style={{ display: "grid", gap: "var(--aa-spacing-md)" }}>
-          <h2 id="academia-areas-title">Áreas de estudo</h2>
-          <div style={{ display: "grid", gap: "var(--aa-spacing-md)", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 18rem), 1fr))" }}>
+        <section className="aa-stat-grid" aria-label="Visão da Academia">
+          <div className="aa-stat"><span className="aa-stat-label">Ambiente</span><div className="aa-stat-value">Arcana</div><div className="aa-stat-meta">Seu espaço de estudo</div></div>
+          <div className="aa-stat"><span className="aa-stat-label">Estrutura</span><div className="aa-stat-value">Modular</div><div className="aa-stat-meta">Ferramentas conectadas</div></div>
+          <div className="aa-stat"><span className="aa-stat-label">Foco</span><div className="aa-stat-value">Seu ritmo</div><div className="aa-stat-meta">Sem excesso de ruído</div></div>
+        </section>
+
+        <section className="aa-surface aa-sanctuary-section" aria-labelledby="academia-areas-title">
+          <div className="aa-surface-header">
+            <div>
+              <p className="aa-eyebrow">Portas de entrada</p>
+              <h2 id="academia-areas-title">Áreas de estudo</h2>
+            </div>
+          </div>
+          <div className="aa-stat-grid">
             {learningAreas.map((area) => (
-              <article className="aa-card aa-card-default" key={area.href}>
+              <article className="aa-surface aa-sanctuary-section" key={area.href}>
+                <span className="aa-brand-mark" aria-hidden="true">{area.mark}</span>
                 <h3>{area.title}</h3>
-                <p style={{ color: "var(--aa-text-secondary)" }}>{area.description}</p>
+                <p>{area.description}</p>
                 <Link className="aa-button aa-button-secondary" href={area.href}>Abrir</Link>
               </article>
             ))}

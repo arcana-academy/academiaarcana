@@ -3,10 +3,7 @@ import { resolve } from "node:path";
 import { parseEnv } from "node:util";
 import { fileURLToPath } from "node:url";
 
-const REQUIRED_VARIABLES = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-];
+const PREVIEW_SUPABASE_URL = "https://fichnalpbcfjywwhixid.supabase.co";
 
 const BUILD_ENV_FILES = [
   ".env.production.local",
@@ -50,7 +47,7 @@ export function validateSupabaseProductionConfiguration(
     parsedUrl = new URL(supabaseUrl);
   } catch {
     throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL in Vercel production.",
+      "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.",
     );
   }
 
@@ -67,36 +64,42 @@ export function validateSupabaseProductionConfiguration(
     !/^[a-z0-9]{20}$/.test(projectRef)
   ) {
     throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL in Vercel production.",
+      "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.",
     );
   }
 
   if (!/^sb_publishable_[A-Za-z0-9]{22}_[A-Za-z0-9]{8}$/.test(publishableKey)) {
     throw new Error(
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must use the expected sb_publishable_<22-char-random>_<8-char-checksum> format in Vercel production.",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must use the expected sb_publishable_<22-char-random>_<8-char-checksum> format.",
     );
   }
 }
 
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
-  for (const name of REQUIRED_VARIABLES) {
-    if (!environment[name]) {
-      throw new Error(`Missing required environment variable: ${name}`);
-    }
+  const isPreview = environment.VERCEL_ENV === "preview";
+  const supabaseUrl =
+    environment.NEXT_PUBLIC_SUPABASE_URL ||
+    (isPreview ? PREVIEW_SUPABASE_URL : undefined);
+  const publishableKey = environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl) {
+    throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
   }
 
-  const supabaseUrl = environment.NEXT_PUBLIC_SUPABASE_URL;
-  const publishableKey = environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  const vercelEnvironment = environment.VERCEL_ENV;
+  if (!publishableKey) {
+    throw new Error(
+      "Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    );
+  }
 
-  if (vercelEnvironment === "production") {
+  if (environment.VERCEL_ENV === "production") {
     validateSupabaseProductionConfiguration(supabaseUrl, publishableKey);
   }
 
   return {
     integration: "supabase-public-runtime",
     verified: true,
-    environment: vercelEnvironment ?? environment.NODE_ENV ?? "unknown",
+    environment: environment.VERCEL_ENV ?? environment.NODE_ENV ?? "unknown",
   };
 }
 

@@ -8,14 +8,13 @@ test("application root serves the public entrypoint for unauthenticated users", 
   await expect(page).toHaveTitle(/Academia Arcana/i);
   await expect(
     page.getByRole("heading", {
-      name: "Um espaço para aprender, organizar e continuar sua jornada.",
+      name: "Transforme estudo em uma jornada.",
     }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Entrar" })).toHaveAttribute(
-    "href",
-    "/login",
-  );
   await expect(
-    page.getByRole("link", { name: "Criar conta" }),
+    page.getByRole("link", { name: "Já tenho uma conta" }),
+  ).toHaveAttribute("href", "/login");
+  await expect(
+    page.getByRole("link", { name: "Começar minha jornada" }),
   ).toHaveAttribute("href", "/cadastro");
 });

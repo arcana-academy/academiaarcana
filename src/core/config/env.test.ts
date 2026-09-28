@@ -16,6 +16,17 @@ describe("runtime configuration", () => {
     });
   });
 
+  it("uses the project URL as a Vercel preview fallback", () => {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-key");
+
+    expect(getPublicRuntimeConfig()).toEqual({
+      supabaseUrl: "https://fichnalpbcfjywwhixid.supabase.co",
+      supabasePublishableKey: "publishable-key",
+    });
+  });
+
   it.each([
     ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"],
     ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_URL"],

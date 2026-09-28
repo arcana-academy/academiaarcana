@@ -6,81 +6,82 @@ import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/gr
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function GrimoriosPage() {
+export default async function GrimoiresPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
   const repositoryClient = supabase as unknown as Parameters<
     typeof createGrimoireRepository
   >[0];
-  const grimoires: Grimoire[] = await createGrimoireRepository(repositoryClient).listByOwner(
-    claims.sub,
-  );
+
+  let grimoires: Grimoire[] = [];
+  let loadError = false;
+
+  try {
+    grimoires = await createGrimoireRepository(repositoryClient).listByOwner(claims.sub);
+  } catch {
+    loadError = true;
+  }
 
   return (
     <AuthenticatedShell currentPath="/grimorios">
-      <main
-        aria-labelledby="grimorios-title"
-        style={{
-          display: "grid",
-          gap: "var(--aa-spacing-lg)",
-          maxWidth: "72rem",
-          margin: "0 auto",
-          padding: "clamp(1.5rem, 4vw, 3rem)",
-        }}
-      >
-        <header className="aa-card aa-card-elevated">
-          <p
-            style={{
-              margin: 0,
-              color: "var(--aa-text-secondary)",
-              fontWeight: 650,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            Biblioteca
-          </p>
-          <h1 id="grimorios-title">Seus grimórios</h1>
-          <p style={{ color: "var(--aa-text-secondary)" }}>
-            Acesse diretamente os espaços de estudo que você criou.
-          </p>
+      <main className="aa-page" aria-labelledby="grimorios-title">
+        <header className="aa-page-header">
+          <div className="aa-page-header-copy">
+            <p className="aa-eyebrow">Biblioteca · conhecimento</p>
+            <h1 id="grimorios-title">Grimórios</h1>
+            <p>Sua biblioteca pessoal de estudos e conhecimentos, organizada para voltar ao que importa.</p>
+          </div>
+          <Link className="aa-button aa-button-primary" href="/workspace">Novo espaço</Link>
         </header>
 
-        {grimoires.length === 0 ? (
-          <section className="aa-card aa-card-default" aria-labelledby="grimorios-empty-title">
+        <section className="aa-stat-grid" aria-label="Resumo da biblioteca">
+          <div className="aa-stat">
+            <span className="aa-stat-label">Grimórios</span>
+            <div className="aa-stat-value">{grimoires.length}</div>
+            <div className="aa-stat-meta">espaços de estudo</div>
+          </div>
+          <div className="aa-stat">
+            <span className="aa-stat-label">Biblioteca</span>
+            <div className="aa-stat-value">Pessoal</div>
+            <div className="aa-stat-meta">dados vinculados à sua conta</div>
+          </div>
+          <div className="aa-stat">
+            <span className="aa-stat-label">Próximo passo</span>
+            <div className="aa-stat-value">Explorar</div>
+            <div className="aa-stat-meta">abra um grimório para continuar</div>
+          </div>
+        </section>
+
+        {loadError ? (
+          <section className="aa-surface aa-sanctuary-section" role="alert">
+            <p className="aa-eyebrow">Biblioteca</p>
+            <h2>Não foi possível carregar os grimórios</h2>
+            <p>Tente novamente em alguns instantes.</p>
+          </section>
+        ) : grimoires.length === 0 ? (
+          <section className="aa-surface aa-sanctuary-section" aria-labelledby="grimorios-empty-title">
+            <p className="aa-eyebrow">Primeiro capítulo</p>
             <h2 id="grimorios-empty-title">Nenhum grimório ainda</h2>
-            <p style={{ color: "var(--aa-text-secondary)" }}>
-              Crie seu primeiro grimório no Workspace para começar sua biblioteca.
-            </p>
-            <Link className="aa-button aa-button-primary" href="/workspace">
-              Abrir Workspace
-            </Link>
+            <p>Sua biblioteca está pronta para receber seu primeiro grimório. Crie-o no Workspace para começar a construir seu espaço de conhecimento.</p>
+            <Link className="aa-button aa-button-primary" href="/workspace">Abrir Workspace</Link>
           </section>
         ) : (
-          <section aria-labelledby="grimorios-list-title" style={{ display: "grid", gap: "var(--aa-spacing-md)" }}>
-            <h2 id="grimorios-list-title">Biblioteca de estudo</h2>
-            <div
-              style={{
-                display: "grid",
-                gap: "var(--aa-spacing-md)",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 18rem), 1fr))",
-              }}
-            >
-              {grimoires.map((grimoire) => (
-                <article className="aa-card aa-card-default" key={grimoire.id}>
-                  <h3>{grimoire.title}</h3>
-                  {grimoire.description ? (
-                    <p style={{ color: "var(--aa-text-secondary)" }}>{grimoire.description}</p>
-                  ) : null}
-                  <Link
-                    className="aa-button aa-button-secondary"
-                    href={`/workspace?grimoire=${encodeURIComponent(grimoire.id)}`}
-                  >
-                    Abrir grimório
-                  </Link>
-                </article>
-              ))}
-            </div>
+          <section className="aa-list" aria-label="Seus grimórios">
+            {grimoires.map((grimoire) => (
+              <article className="aa-list-item aa-surface" key={grimoire.id}>
+                <div>
+                  <p className="aa-eyebrow">Grimório</p>
+                  <h2>{grimoire.title}</h2>
+                  {grimoire.description ? <p>{grimoire.description}</p> : null}
+                </div>
+                <Link
+                  className="aa-button aa-button-ghost"
+                  href={`/workspace?grimoire=${encodeURIComponent(grimoire.id)}`}
+                >
+                  Abrir grimório
+                </Link>
+              </article>
+            ))}
           </section>
         )}
       </main>

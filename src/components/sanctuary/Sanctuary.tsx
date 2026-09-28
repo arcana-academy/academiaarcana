@@ -9,24 +9,32 @@ type SanctuaryProps = {
   viewModel: SanctuaryViewModel;
 };
 
-/** Render the complete Sanctuary from its already-resolved view model. */
 export function Sanctuary({ viewModel }: SanctuaryProps) {
   return (
-    <main aria-labelledby="sanctuary-title">
+    <main className="aa-page aa-sanctuary" aria-labelledby="sanctuary-title">
       <SanctuaryHeader
         header={viewModel.header}
         primaryAction={viewModel.primaryAction}
       />
 
-      <SanctuaryContinueLearning
-        continueLearning={viewModel.continueLearning}
-      />
+      <section className="aa-sanctuary-command" aria-label="Comando da jornada">
+        <div className="aa-sanctuary-command-primary">
+          <p className="aa-eyebrow">Próximo passo</p>
+          <h2>Continue aprendendo</h2>
+          <SanctuaryContinueLearning continueLearning={viewModel.continueLearning} />
+        </div>
 
-      <SanctuaryProgress progress={viewModel.progress} />
+        <div className="aa-sanctuary-command-secondary">
+          <p className="aa-eyebrow">Visão geral</p>
+          <h2>Seu progresso</h2>
+          <SanctuaryProgress progress={viewModel.progress} />
+        </div>
+      </section>
 
-      <SanctuaryMissions missions={viewModel.missions} />
-
-      <SanctuarySchedule schedule={viewModel.schedule} />
+      <div className="aa-sanctuary-grid">
+        <SanctuaryMissions missions={viewModel.missions} />
+        <SanctuarySchedule schedule={viewModel.schedule} />
+      </div>
     </main>
   );
 }

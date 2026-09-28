@@ -84,6 +84,30 @@ describe("verify-public-runtime-config", () => {
     ).toThrow(/expected sb_publishable/);
   });
 
+  it("uses the preview URL fallback when only the publishable key is configured", () => {
+    expect(
+      verifyPublicRuntimeConfig({
+        VERCEL_ENV: "preview",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }),
+    ).toEqual({
+      integration: "supabase-public-runtime",
+      verified: true,
+      environment: "preview",
+    });
+  });
+
+  it("rejects a preview without the required publishable key", () => {
+    expect(() =>
+      verifyPublicRuntimeConfig({
+        VERCEL_ENV: "preview",
+        NEXT_PUBLIC_SUPABASE_URL: validUrl,
+      }),
+    ).toThrow(
+      "Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    );
+  });
+
   it("uses loaded local configuration for a production verification", () => {
     const directory = mkdtempSync(join(tmpdir(), "academia-arcana-env-"));
 
