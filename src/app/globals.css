@@ -986,7 +986,7 @@ p {
 }
 
 
-.aa-public-page {
+.aa-button:focus-visible, .aa-sidebar-link:focus-visible, .aa-mobile-link:focus-visible {\n  outline: 3px solid var(--aa-focus-ring);\n  outline-offset: 3px;\n}\n\n.aa-public-page {
   min-height: 100vh;
   width: min(100% - 2rem, 76rem);
   margin: 0 auto;
