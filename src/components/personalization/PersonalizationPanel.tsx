@@ -80,6 +80,8 @@ export function PersonalizationPanel() {
               className="aa-native-control"
               id="motion-select"
               value={state?.configuredMotionPreference ?? "system"}
+              disabled={!state}
+              aria-busy={!state}
               onChange={(event) => {
                 void setMotionPreference(
                   event.target.value as "system" | "normal" | "reduced",
@@ -93,6 +95,12 @@ export function PersonalizationPanel() {
               ))}
             </select>
           </div>
+
+          {!state ? (
+            <p className="aa-field-description" role="status">
+              Carregando sua preferência de movimento…
+            </p>
+          ) : null}
 
           {state?.error ? (
             <p className="aa-preference-error" role="alert">
