@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  BookOpen,
+  CalendarDays,
+  GraduationCap,
+  House,
+  Library,
+  SlidersHorizontal,
+} from "lucide-react";
 
 export type AuthenticatedRouteHref =
   | "/academia"
@@ -11,42 +19,48 @@ export type AuthenticatedRouteHref =
 type AuthenticatedNavigationItem = {
   href: AuthenticatedRouteHref;
   label: string;
+  icon: typeof House;
 };
 
 type AuthenticatedNavigationProps = {
   currentPath: AuthenticatedRouteHref;
+  mobile?: boolean;
 };
 
 const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
-  { href: "/academia", label: "Academia" },
-  { href: "/grimorios", label: "Grimórios" },
-  { href: "/santuario", label: "Santuário" },
-  { href: "/workspace", label: "Workspace" },
-  { href: "/cronograma", label: "Cronograma" },
-  { href: "/personalizar", label: "Personalizar" },
+  { href: "/santuario", label: "Santuário", icon: House },
+  { href: "/academia", label: "Academia", icon: GraduationCap },
+  { href: "/grimorios", label: "Grimórios", icon: Library },
+  { href: "/workspace", label: "Workspace", icon: BookOpen },
+  { href: "/cronograma", label: "Cronograma", icon: CalendarDays },
+  { href: "/personalizar", label: "Personalizar", icon: SlidersHorizontal },
 ];
 
 export function AuthenticatedNavigation({
   currentPath,
+  mobile = false,
 }: AuthenticatedNavigationProps) {
   return (
-    <nav className="aa-card aa-card-default" aria-label="Navegação principal">
+    <nav
+      className={mobile ? "aa-navigation aa-navigation-mobile" : "aa-navigation"}
+      aria-label={mobile ? "Navegação móvel" : "Seções da Academia"}
+    >
       <ul className="aa-navigation-list">
         {navigationItems.map((item) => {
           const isCurrent = item.href === currentPath;
-          const variant = isCurrent ? "aa-button-primary" : "aa-button-secondary";
-          const reinforcement = isCurrent ? "aa-nav-link-active" : "";
+          const Icon = item.icon;
 
           return (
             <li key={item.href}>
               <Link
-                className={["aa-button", variant, "aa-button-sm", reinforcement]
+                className={["aa-nav-link", isCurrent ? "aa-nav-link-current" : ""]
                   .filter(Boolean)
                   .join(" ")}
                 href={item.href}
                 aria-current={isCurrent ? "page" : undefined}
               >
-                {item.label}
+                <Icon aria-hidden="true" size={mobile ? 20 : 19} strokeWidth={1.8} />
+                <span>{item.label}</span>
               </Link>
             </li>
           );
