@@ -6,6 +6,8 @@ import {
   A_Z_DICTIONARY_CHATGPT_APP_URL,
   A_Z_HOLY_BIBLE_APP_ID,
   A_Z_HOLY_BIBLE_CHATGPT_APP_URL,
+  ACADEMIC_WRITING_TOOLKIT_APP_ID,
+  ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
@@ -45,6 +47,18 @@ describe("ChatGPT app bridges", () => {
 
     expect(A_Z_HOLY_BIBLE_CHATGPT_APP_URL).toMatch(
       /^https:\/\/chatgpt\.com\//,
+    );
+  });
+
+  it("defines the Academic Writing Toolkit bridge without credentials", () => {
+    expect(CHATGPT_APP_BRIDGES[ACADEMIC_WRITING_TOOLKIT_APP_ID]).toEqual({
+      providerId: ACADEMIC_WRITING_TOOLKIT_APP_ID,
+      displayName: "Academic Writing Toolkit",
+      appUrl: ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
+    });
+
+    expect(ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL).toBe(
+      "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779",
     );
   });
 
