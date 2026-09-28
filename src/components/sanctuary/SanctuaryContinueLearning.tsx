@@ -24,7 +24,7 @@ export function SanctuaryContinueLearning({
       {continueLearning ? (
         <div className="aa-continue-learning">
           <Link className="aa-link" href={continueLearning.href}>
-            Continuar aprendendo
+            Abrir contexto atual
           </Link>
 
           <div className="aa-learning-path" aria-label="Hierarquia do contexto">
