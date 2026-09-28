@@ -1,0 +1,95 @@
+name: Academia Arcana Production Smoke
+
+on:
+  workflow_run:
+    workflows: ["Academia Arcana Quality Gate"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Production Smoke
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check production alias
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="https://academiaarcana.vercel.app"
+
+          for attempt in {1..12}; do
+            status="$(curl -sS -o /tmp/production.html -w "%{http_code}" --max-time 20 "${base_url}/")"
+            if [ "$status" = "200" ] && grep -qi "Academia Arcana" /tmp/production.html; then
+              echo "Production root is healthy."
+              exit 0
+            fi
+
+            echo "Production root not ready (attempt $attempt, HTTP $status); retrying..."
+            sleep 10
+          done
+
+          echo "Production root smoke check failed."
+          exit 1
+
+      - name: Check public runtime routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="https://academiaarcana.vercel.app"
+
+          for path in /login /cadastro /recuperar-senha /integracoes; do
+            status="$(curl -sS -o /tmp/route.html -w "%{http_code}" --max-time 20 "${base_url}${path}")"
+            if [ "$status" != "200" ]; then
+              echo "Route $path returned HTTP $status."
+              exit 1
+            fi
+          done
+
+          echo "Public production routes are healthy."
+
+      - name: Check integration status contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="https://academiaarcana.vercel.app"
+
+          curl -fsS --max-time 20 "${base_url}/api/integrations/status" -o /tmp/integration-status.json
+
+          node <<'NODE'
+          const fs = require("fs");
+          const body = JSON.parse(fs.readFileSync("/tmp/integration-status.json", "utf8"));
+
+          if (body.catalogSize !== 114) {
+            throw new Error(`Expected catalogSize=114, received ${body.catalogSize}`);
+          }
+
+          if (body.connectedCount !== 1 || body.errorCount !== 0) {
+            throw new Error(
+              `Unexpected integration counts: connected=${body.connectedCount}, error=${body.errorCount}`,
+            );
+          }
+
+          const github = body.entries?.find((entry) => entry.name === "GitHub");
+          if (
+            github?.status !== "connected" ||
+            github?.verification?.repository !== "arcana-academy/academiaarcana"
+          ) {
+            throw new Error("GitHub runtime verification contract failed.");
+          }
+
+          console.log("Production integration status contract is healthy.");
+          NODE
