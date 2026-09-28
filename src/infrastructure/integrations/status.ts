@@ -1,4 +1,8 @@
-import { CHATGPT_APP_BRIDGES, ONE_BILLION_BRAIN_CELLS_APP_ID } from "./chatgpt-app-bridges";
+import {
+  A_Z_DAILY_WORD_APP_ID,
+  CHATGPT_APP_BRIDGES,
+  ONE_BILLION_BRAIN_CELLS_APP_ID,
+} from "./chatgpt-app-bridges";
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
   verifyGitHubConnection,
@@ -45,6 +49,18 @@ function githubVerificationEntry(
   };
 }
 
+function chatgptBridgeUrl(pluginName: string): string | undefined {
+  if (pluginName === "1 Billion Brain Cells") {
+    return CHATGPT_APP_BRIDGES[ONE_BILLION_BRAIN_CELLS_APP_ID].appUrl;
+  }
+
+  if (pluginName === "A-Z Daily Word") {
+    return CHATGPT_APP_BRIDGES[A_Z_DAILY_WORD_APP_ID].appUrl;
+  }
+
+  return undefined;
+}
+
 export async function getIntegrationStatusSnapshot({
   githubVerifier = verifyGitHubConnection,
 }: {
@@ -71,11 +87,8 @@ export async function getIntegrationStatusSnapshot({
           name: plugin.name,
           source: plugin.source,
           status: "catalogued" as const,
-          ...(plugin.name === "1 Billion Brain Cells"
-            ? {
-                chatgptAppUrl:
-                  CHATGPT_APP_BRIDGES[ONE_BILLION_BRAIN_CELLS_APP_ID].appUrl,
-              }
+          ...(chatgptBridgeUrl(plugin.name)
+            ? { chatgptAppUrl: chatgptBridgeUrl(plugin.name) }
             : {}),
           verification: null,
         },
@@ -92,4 +105,3 @@ export async function getIntegrationStatusSnapshot({
     entries,
   };
 }
-
