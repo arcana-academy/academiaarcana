@@ -16,7 +16,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
         </div>
       </div>
 
-      <nav aria-label="Seções da Academia Arcana">
+      <nav aria-label="Navegação principal">
         <ul className="aa-sidebar-list">
           {navigationItems.map((item) => {
             const active = item.href === currentPath;
