@@ -38,6 +38,17 @@ describe("integration status snapshot", () => {
         "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",
     });
 
+    const dailyWord = snapshot.entries.find(
+      (entry) => entry.name === "A-Z Daily Word",
+    );
+    expect(dailyWord).toMatchObject({
+      name: "A-Z Daily Word",
+      status: "catalogued",
+      chatgptAppUrl:
+        "https://chatgpt.com/plugins/plugin_asdk_app_69bd3c483c008191beb1e4cc0ce87b24",
+      verification: null,
+    });
+
     const github = snapshot.entries.find((entry) => entry.name === "GitHub");
     expect(github).toMatchObject({
       name: "GitHub",
