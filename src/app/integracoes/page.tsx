@@ -135,10 +135,10 @@ export default async function IntegracoesPage() {
               >
                 {statusDescription(entry.status)}
               </p>
-              {entry.name === "1 Billion Brain Cells" && (
+              {entry.chatgptAppUrl && (
                 <a
                   className="aa-button aa-button-secondary"
-                  href="https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238"
+                  href={entry.chatgptAppUrl}
                   rel="noreferrer"
                   target="_blank"
                 >
