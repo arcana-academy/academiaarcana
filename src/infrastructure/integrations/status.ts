@@ -1,8 +1,4 @@
-import {
-  A_Z_DAILY_WORD_APP_ID,
-  CHATGPT_APP_BRIDGES,
-  ONE_BILLION_BRAIN_CELLS_APP_ID,
-} from "./chatgpt-app-bridges";
+import { CHATGPT_APP_BRIDGES } from "./chatgpt-app-bridges";
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
   verifyGitHubConnection,
@@ -50,15 +46,9 @@ function githubVerificationEntry(
 }
 
 function chatgptBridgeUrl(pluginName: string): string | undefined {
-  if (pluginName === "1 Billion Brain Cells") {
-    return CHATGPT_APP_BRIDGES[ONE_BILLION_BRAIN_CELLS_APP_ID].appUrl;
-  }
-
-  if (pluginName === "A-Z Daily Word") {
-    return CHATGPT_APP_BRIDGES[A_Z_DAILY_WORD_APP_ID].appUrl;
-  }
-
-  return undefined;
+  return Object.values(CHATGPT_APP_BRIDGES).find(
+    (bridge) => bridge.displayName === pluginName,
+  )?.appUrl;
 }
 
 export async function getIntegrationStatusSnapshot({
@@ -80,19 +70,21 @@ export async function getIntegrationStatusSnapshot({
     // network, authentication, or infrastructure details.
   }
 
-  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) =>
-    plugin.name === "GitHub"
-      ? githubEntry
-      : {
-          name: plugin.name,
-          source: plugin.source,
-          status: "catalogued" as const,
-          ...(chatgptBridgeUrl(plugin.name)
-            ? { chatgptAppUrl: chatgptBridgeUrl(plugin.name) }
-            : {}),
-          verification: null,
-        },
-  );
+  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
+    if (plugin.name === "GitHub") {
+      return githubEntry;
+    }
+
+    const bridgeUrl = chatgptBridgeUrl(plugin.name);
+
+    return {
+      name: plugin.name,
+      source: plugin.source,
+      status: "catalogued" as const,
+      ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
+      verification: null,
+    };
+  });
 
   return {
     generatedAt: new Date().toISOString(),
