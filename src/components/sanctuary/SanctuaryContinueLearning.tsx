@@ -8,7 +8,7 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
   if (!continueLearning) {
     return (
       <div className="aa-empty" aria-labelledby="sanctuary-continue-learning">
-        <p id="sanctuary-continue-learning">Nenhum estudo recente para retomar ainda.</p>
+        <p id="sanctuary-continue-learning">Nenhum estudo recente para retomar ainda. Comece um novo capítulo quando estiver pronto.</p>
       </div>
     );
   }
