@@ -11,7 +11,7 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
         <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
           Continuar aprendendo
         </h2>
-        <p>Nenhum estudo recente para retomar ainda. Comece um novo capítulo quando estiver pronto.</p>
+        <p>Nenhum estudo recente para retomar ainda. Começar a explorar um novo capítulo quando estiver pronto.</p>
       </section>
     );
   }
@@ -31,7 +31,8 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
       <div className="aa-sanctuary-path">
         {path.map((item, index) => (
           <span key={`${item}-${index}`}>
-            {index > 0 ? "› " : ""}{item}
+            {index > 0 ? <span aria-hidden="true">› </span> : null}
+            {item}
           </span>
         ))}
       </div>
