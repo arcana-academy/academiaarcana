@@ -5,7 +5,12 @@
  * endpoint available to the Academia Arcana application.
  */
 export const CHATGPT_PLUGIN_CATALOG = [
-  {\n    name: "1 Billion Brain Cells",\n    source: "chatgpt-catalog" as const,\n    chatgptAppUrl:\n      "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",\n  },
+  {
+    name: "1 Billion Brain Cells",
+    source: "chatgpt-catalog" as const,
+    chatgptAppUrl:
+      "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",
+  },
   { name: "A-Z Daily Word", source: "chatgpt-catalog" as const },
   { name: "A-Z Dictionary", source: "chatgpt-catalog" as const },
   { name: "A-Z Holy Bible", source: "chatgpt-catalog" as const },
