@@ -33,7 +33,7 @@ export function AppShell({
           ) : null}
         </header>
 
-        <main className="aa-app-main">{children}</main>
+        <div className="aa-app-main">{children}</div>
       </div>
 
       <MobileNavigation currentPath={currentPath} />
