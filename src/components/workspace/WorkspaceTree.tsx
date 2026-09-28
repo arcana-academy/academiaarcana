@@ -1,7 +1,20 @@
-﻿"use client";
+"use client";
 
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+} from "lucide-react";
 import { useState } from "react";
-import type { Chapter, Grimoire, Notebook, Page, WorkspaceState } from "@/domains/learning";
+
+import type {
+  Chapter,
+  Grimoire,
+  Notebook,
+  Page,
+  WorkspaceState,
+} from "@/domains/learning";
 
 type WorkspaceTreeData = {
   grimoires: Array<
@@ -55,84 +68,125 @@ export function WorkspaceTree({
   };
 
   return (
-    <nav aria-label="Navegação do workspace">
+    <nav className="workspace-tree" aria-label="Navegação do workspace">
+      <div className="workspace-tree-heading">
+        <span className="aa-eyebrow">Biblioteca</span>
+        <span className="workspace-tree-count">
+          {data.grimoires.length}{" "}
+          {data.grimoires.length === 1 ? "grimório" : "grimórios"}
+        </span>
+      </div>
+
       {data.grimoires.length === 0 ? (
-        <p role="status">Nenhum grimório encontrado</p>
+        <p className="aa-empty-state" role="status">
+          Nenhum grimório encontrado
+        </p>
       ) : (
-        data.grimoires.map((grimoire) => {
-          const collapsed = collapsedGrimoires.has(grimoire.id);
+        <div className="workspace-tree-list">
+          {data.grimoires.map((grimoire) => {
+            const collapsed = collapsedGrimoires.has(grimoire.id);
+            const grimoireSelected = state.grimoireId === grimoire.id;
 
-          return (
-            <div key={grimoire.id}>
-              <div>
-                <button
-                  type="button"
-                  aria-current={
-                    state.grimoireId === grimoire.id ? "true" : undefined
-                  }
-                  onClick={() => onOpenGrimoire(grimoire.id)}
-                >
-                  {grimoire.title}
-                </button>
+            return (
+              <div className="workspace-tree-node" key={grimoire.id}>
+                <div className="workspace-tree-row">
+                  <button
+                    className="workspace-tree-item"
+                    type="button"
+                    aria-current={grimoireSelected ? "page" : undefined}
+                    onClick={() => onOpenGrimoire(grimoire.id)}
+                  >
+                    <BookOpen aria-hidden="true" size={17} strokeWidth={1.8} />
+                    <span>{grimoire.title}</span>
+                  </button>
 
-                <button
-                  type="button"
-                  aria-label={`${
-                    collapsed ? "Expandir" : "Recolher"
-                  } ${grimoire.title}`}
-                  aria-expanded={!collapsed}
-                  onClick={() => toggleGrimoire(grimoire.id)}
-                >
-                  {collapsed ? "Expandir" : "Recolher"}
-                </button>
-              </div>
+                  <button
+                    className="workspace-tree-toggle"
+                    type="button"
+                    aria-label={
+                      (collapsed ? "Expandir " : "Recolher ") + grimoire.title
+                    }
+                    aria-expanded={!collapsed}
+                    onClick={() => toggleGrimoire(grimoire.id)}
+                  >
+                    {collapsed ? (
+                      <ChevronRight aria-hidden="true" size={17} strokeWidth={1.9} />
+                    ) : (
+                      <ChevronDown aria-hidden="true" size={17} strokeWidth={1.9} />
+                    )}
+                  </button>
+                </div>
 
-              {!collapsed &&
-                grimoire.notebooks?.map((notebook) => (
-                  <div key={notebook.id} style={{ paddingLeft: "1rem" }}>
-                    <button
-                      type="button"
-                      aria-current={
-                        state.notebookId === notebook.id ? "true" : undefined
-                      }
-                      onClick={() => onOpenNotebook(notebook.id)}
-                    >
-                      {notebook.title}
-                    </button>
-
-                    {notebook.chapters?.map((chapter) => (
-                      <div key={chapter.id} style={{ paddingLeft: "1rem" }}>
+                {!collapsed ? (
+                  <div className="workspace-tree-children workspace-tree-level-2">
+                    {grimoire.notebooks?.map((notebook) => (
+                      <div className="workspace-tree-node" key={notebook.id}>
                         <button
+                          className="workspace-tree-item"
                           type="button"
                           aria-current={
-                            state.chapterId === chapter.id ? "true" : undefined
+                            state.notebookId === notebook.id ? "page" : undefined
                           }
-                          onClick={() => onOpenChapter(chapter.id)}
+                          onClick={() => onOpenNotebook(notebook.id)}
                         >
-                          {chapter.title}
+                          <FileText aria-hidden="true" size={16} strokeWidth={1.7} />
+                          <span>{notebook.title}</span>
                         </button>
 
-                        {chapter.pages?.map((page) => (
-                          <div key={page.id} style={{ paddingLeft: "1rem" }}>
-                            <button
-                              type="button"
-                              tabIndex={0}
-                              aria-current={
-                                state.pageId === page.id ? "page" : undefined
-                              }
-                              onClick={() => onOpenPage(page.id)}
-                            >
-                              {page.title}
-                            </button>
-                          </div>
-                        ))}
+                        <div className="workspace-tree-children workspace-tree-level-3">
+                          {notebook.chapters?.map((chapter) => (
+                            <div className="workspace-tree-node" key={chapter.id}>
+                              <button
+                                className="workspace-tree-item"
+                                type="button"
+                                aria-current={
+                                  state.chapterId === chapter.id
+                                    ? "page"
+                                    : undefined
+                                }
+                                onClick={() => onOpenChapter(chapter.id)}
+                              >
+                                <FileText
+                                  aria-hidden="true"
+                                  size={15}
+                                  strokeWidth={1.7}
+                                />
+                                <span>{chapter.title}</span>
+                              </button>
+
+                              <div className="workspace-tree-children workspace-tree-level-4">
+                                {chapter.pages?.map((page) => (
+                                  <button
+                                    className="workspace-tree-item"
+                                    key={page.id}
+                                    type="button"
+                                    tabIndex={0}
+                                    aria-current={
+                                      state.pageId === page.id
+                                        ? "page"
+                                        : undefined
+                                    }
+                                    onClick={() => onOpenPage(page.id)}
+                                  >
+                                    <span
+                                      className="workspace-tree-page-marker"
+                                      aria-hidden="true"
+                                    />
+                                    <span>{page.title}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
-                ))}
-            </div>
-          );
-        })
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       )}
     </nav>
   );
