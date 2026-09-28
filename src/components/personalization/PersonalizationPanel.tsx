@@ -20,7 +20,7 @@ export function PersonalizationPanel() {
       <header className="aa-page-header">
         <div className="aa-page-header-copy">
           <p className="aa-eyebrow">Personalização · identidade</p>
-          <h1 id="personalizar-title">Personalizar Academia</h1>
+          <h1 id="personalizar-title">Personalizar</h1>
           <p>Crie um ambiente que favoreça leitura, foco e conforto sem perder a identidade Arcana.</p>
         </div>
       </header>
@@ -32,7 +32,7 @@ export function PersonalizationPanel() {
         <div className="aa-control-grid">
           <div className="aa-control">
             <label htmlFor="theme-select">
-              Tema
+              Escolha um tema
               <select id="theme-select" value={theme} onChange={(event) => setTheme(event.target.value as ThemeId)}>
                 {THEME_IDS.map((id) => <option key={id} value={id}>{themePresets[id].name}</option>)}
               </select>
@@ -40,7 +40,7 @@ export function PersonalizationPanel() {
           </div>
           <div className="aa-control">
             <label htmlFor="motion-select">
-              Movimento
+              Preferência de movimento
               <select
                 id="motion-select"
                 value={state?.configuredMotionPreference ?? "system"}
