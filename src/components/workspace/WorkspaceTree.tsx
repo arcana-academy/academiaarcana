@@ -160,7 +160,7 @@ export function WorkspaceTree({
                                     type="button"
                                     tabIndex={0}
                                     aria-current={
-                                      state.pageId === page.id ? "true" : undefined
+                                      state.pageId === page.id ? "page" : undefined
                                     }
                                     onClick={() => onOpenPage(page.id)}
                                   >
