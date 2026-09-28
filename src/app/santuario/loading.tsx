@@ -1,92 +1,33 @@
-import type { CSSProperties } from "react";
+import { Skeleton } from "@/components/ui";
 
-const skeletonBlockStyle: CSSProperties = {
-    background: "var(--aa-surfaces-inset)",
-    border: "1px solid var(--aa-border-default)",
-    borderRadius: "var(--aa-radius-md)",
-};
-
-const sectionSpacingStyle: CSSProperties = {
-    marginTop: "var(--aa-spacing-lg)",
-};
-
-/**
- * Structural skeleton for the authenticated Sanctuary route.
- *
- * Mirrors the real layout — header, primary action and main areas — so the
- * segment never falls back to a blank screen while data loads. It renders
- * without any Supabase client or repository, contains no data, and uses no
- * animations, so reduced-motion preferences are respected. The placeholder
- * blocks are decorative (`aria-hidden`); the loading state itself is announced
- * through the visible heading and the `role="status"` message.
- */
 export default function SanctuaryLoading() {
-    return (
-        <main aria-busy="true" aria-labelledby="sanctuary-loading-title">
-            <h1 id="sanctuary-loading-title">Carregando o Santuário</h1>
+  return (
+    <main
+      className="aa-page aa-page-wide aa-loading-page"
+      aria-busy="true"
+      aria-labelledby="sanctuary-loading-title"
+    >
+      <header className="aa-page-header">
+        <p className="aa-eyebrow">Santuário</p>
+        <h1 id="sanctuary-loading-title">Carregando o Santuário</h1>
+        <p role="status">Buscando seu contexto de aprendizagem…</p>
+      </header>
 
-            <p role="status">Buscando seu contexto de aprendizagem…</p>
+      <div className="aa-skeleton-grid" aria-hidden="true">
+        <section className="aa-card aa-card-default">
+          <Skeleton className="aa-skeleton-xl" />
+          <Skeleton className="aa-skeleton-sm" />
+        </section>
 
-            <div aria-hidden="true" data-testid="sanctuary-loading-skeleton">
-                <div
-                    className="aa-card aa-card-default"
-                    data-testid="sanctuary-loading-header"
-                >
-                    <div
-                        style={{
-                            ...skeletonBlockStyle,
-                            height: "1.75rem",
-                            width: "60%",
-                        }}
-                    />
+        <section className="aa-card aa-card-default">
+          <Skeleton className="aa-skeleton-action" />
+        </section>
 
-                    <div
-                        style={{
-                            ...skeletonBlockStyle,
-                            height: "1rem",
-                            marginTop: "var(--aa-spacing-sm)",
-                            width: "35%",
-                        }}
-                    />
-                </div>
-
-                <div
-                    className="aa-card aa-card-default"
-                    data-testid="sanctuary-loading-primary-action"
-                    style={sectionSpacingStyle}
-                >
-                    <div
-                        style={{
-                            ...skeletonBlockStyle,
-                            height: "2.5rem",
-                            width: "100%",
-                        }}
-                    />
-                </div>
-
-                <div
-                    className="aa-card aa-card-default"
-                    data-testid="sanctuary-loading-areas"
-                    style={sectionSpacingStyle}
-                >
-                    <div
-                        style={{
-                            ...skeletonBlockStyle,
-                            height: "6rem",
-                            width: "100%",
-                        }}
-                    />
-
-                    <div
-                        style={{
-                            ...skeletonBlockStyle,
-                            height: "6rem",
-                            marginTop: "var(--aa-spacing-md)",
-                            width: "100%",
-                        }}
-                    />
-                </div>
-            </div>
-        </main>
-    );
+        <section className="aa-card aa-card-default">
+          <Skeleton className="aa-skeleton-area" />
+          <Skeleton className="aa-skeleton-area" />
+        </section>
+      </div>
+    </main>
+  );
 }
