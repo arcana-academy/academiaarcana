@@ -78,12 +78,12 @@ export default async function IntegracoesPage() {
           <article className="aa-card aa-card-default">
             <p className="aa-eyebrow">Verificados</p>
             <h3>{snapshot.connectedCount}</h3>
-            <p>conexões em runtime</p>
+            <p>Conexões verificadas</p>
           </article>
           <article className="aa-card aa-card-default">
             <p className="aa-eyebrow">Catalogados</p>
             <h3>{snapshot.cataloguedCount}</h3>
-            <p>sem conexão verificada</p>
+            <p>Ainda catalogados</p>
           </article>
           <article className="aa-card aa-card-default">
             <p className="aa-eyebrow">Erros</p>
