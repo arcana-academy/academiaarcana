@@ -14,17 +14,17 @@ export default function SanctuaryLoading() {
       </header>
 
       <div className="aa-skeleton-grid" aria-hidden="true">
-        <section className="aa-card aa-card-default">
+        <section className="aa-card aa-card-default" data-testid="sanctuary-loading-header">
           <Skeleton className="aa-skeleton-xl" />
           <Skeleton className="aa-skeleton-sm" />
         </section>
 
-        <section className="aa-card aa-card-default">
+        <section className="aa-card aa-card-default" data-testid="sanctuary-loading-primary-action">
           <Skeleton className="aa-skeleton-action" />
         </section>
 
-        <section className="aa-card aa-card-default">
-          <Skeleton className="aa-skeleton-area" />
+        <section className="aa-card aa-card-default" data-testid="sanctuary-loading-areas">
+          <Skeleton data-testid="sanctuary-loading-skeleton" className="aa-skeleton-area" />
           <Skeleton className="aa-skeleton-area" />
         </section>
       </div>
