@@ -31,6 +31,8 @@ export {
   QUIZLET_APP_ID,
   QUIZLET_CHATGPT_APP_URL,
   SPOTIFY_APP_ID,
+  TARTEEL_APP_ID,
+  TARTEEL_CHATGPT_APP_URL,
   SPOTIFY_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
 export type { ChatGPTAppBridge } from "./chatgpt-app-bridges";
