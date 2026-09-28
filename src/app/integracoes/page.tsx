@@ -1,8 +1,11 @@
 import Link from "next/link";
 
+import { Badge } from "@/components/ui";
 import { getIntegrationStatusSnapshot } from "@/infrastructure/integrations/status";
 
-function statusLabel(status: "catalogued" | "connected" | "error") {
+type IntegrationStatus = "catalogued" | "connected" | "error";
+
+function statusLabel(status: IntegrationStatus) {
   switch (status) {
     case "connected":
       return "Verificado";
@@ -13,7 +16,20 @@ function statusLabel(status: "catalogued" | "connected" | "error") {
   }
 }
 
-function statusDescription(status: "catalogued" | "connected" | "error") {
+function statusVariant(
+  status: IntegrationStatus,
+): "neutral" | "success" | "danger" {
+  switch (status) {
+    case "connected":
+      return "success";
+    case "error":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
+function statusDescription(status: IntegrationStatus) {
   switch (status) {
     case "connected":
       return "A conexão externa foi verificada em runtime.";
@@ -29,113 +45,81 @@ export default async function IntegracoesPage() {
 
   return (
     <main
+      className="aa-page aa-page-wide"
       aria-labelledby="integrations-title"
-      style={{
-        maxWidth: "72rem",
-        margin: "0 auto",
-        padding: "clamp(1.5rem, 4vw, 3rem)",
-      }}
     >
-      <header
-        className="aa-card aa-card-elevated"
-        style={{ display: "grid", gap: "var(--aa-spacing-sm)" }}
-      >
-        <p
-          style={{
-            margin: 0,
-            color: "var(--aa-text-secondary)",
-            fontWeight: 650,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-          }}
-        >
-          Integrações
-        </p>
-        <h1 id="integrations-title" style={{ margin: 0 }}>
-          Hub de integrações da Academia Arcana
-        </h1>
-        <p style={{ margin: 0, color: "var(--aa-text-secondary)" }}>
+      <header className="aa-card aa-card-elevated aa-page-header">
+        <p className="aa-eyebrow">Integrações</p>
+        <h1 id="integrations-title">Hub de integrações da Academia Arcana</h1>
+        <p className="aa-page-intro">
           Este painel separa claramente o que foi catalogado do que tem uma
           conexão externa realmente verificada.
         </p>
       </header>
 
       <section
+        className="aa-section"
         aria-labelledby="integrations-summary-title"
-        style={{
-          display: "grid",
-          gap: "var(--aa-spacing-md)",
-          gridTemplateColumns: "repeat(auto-fit, minmax(12rem, 1fr))",
-          marginTop: "var(--aa-spacing-lg)",
-        }}
       >
-        <div className="aa-card aa-card-default">
-          <h2 id="integrations-summary-title">Catálogo</h2>
-          <p>{snapshot.catalogSize} plugins registrados</p>
-        </div>
-        <div className="aa-card aa-card-default">
-          <h2>Conexões verificadas</h2>
-          <p>{snapshot.connectedCount}</p>
-        </div>
-        <div className="aa-card aa-card-default">
-          <h2>Ainda catalogados</h2>
-          <p>{snapshot.cataloguedCount}</p>
-        </div>
-        <div className="aa-card aa-card-default">
-          <h2>Erros</h2>
-          <p>{snapshot.errorCount}</p>
+        <header className="aa-page-header">
+          <h2 id="integrations-summary-title">Visão geral</h2>
+          <p className="aa-page-intro">
+            Os números abaixo refletem o snapshot retornado pela camada de
+            integrações, sem inventar conexões ausentes.
+          </p>
+        </header>
+
+        <div className="aa-card-grid">
+          <article className="aa-card aa-card-default">
+            <p className="aa-eyebrow">Catálogo</p>
+            <h3>{snapshot.catalogSize}</h3>
+            <p>plugins registrados</p>
+          </article>
+          <article className="aa-card aa-card-default">
+            <p className="aa-eyebrow">Verificados</p>
+            <h3>{snapshot.connectedCount}</h3>
+            <p>conexões em runtime</p>
+          </article>
+          <article className="aa-card aa-card-default">
+            <p className="aa-eyebrow">Catalogados</p>
+            <h3>{snapshot.cataloguedCount}</h3>
+            <p>sem conexão verificada</p>
+          </article>
+          <article className="aa-card aa-card-default">
+            <p className="aa-eyebrow">Erros</p>
+            <h3>{snapshot.errorCount}</h3>
+            <p>última verificação com falha</p>
+          </article>
         </div>
       </section>
 
-      <section
-        aria-labelledby="integrations-list-title"
-        style={{
-          display: "grid",
-          gap: "var(--aa-spacing-sm)",
-          marginTop: "var(--aa-spacing-lg)",
-        }}
-      >
-        <div>
+      <section className="aa-section" aria-labelledby="integrations-list-title">
+        <header className="aa-page-header">
           <h2 id="integrations-list-title">Plugins</h2>
-          <p style={{ color: "var(--aa-text-secondary)" }}>
+          <p className="aa-page-intro">
             Última verificação: {snapshot.generatedAt}
           </p>
-        </div>
+        </header>
 
-        <ul
-          style={{
-            display: "grid",
-            gap: "var(--aa-spacing-sm)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(18rem, 1fr))",
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-          }}
-        >
+        <ul className="aa-card-grid aa-card-list">
           {snapshot.entries.map((entry) => (
-            <li key={entry.name} className="aa-card aa-card-default">
-              <div
-                style={{
-                  alignItems: "baseline",
-                  display: "flex",
-                  gap: "var(--aa-spacing-sm)",
-                  justifyContent: "space-between",
-                }}
-              >
-                <h3 style={{ margin: 0 }}>{entry.name}</h3>
-                <span aria-label={statusDescription(entry.status)}>
+            <li
+              key={entry.name}
+              className="aa-card aa-card-default aa-feature-card"
+            >
+              <div className="aa-card-heading-row">
+                <h3>{entry.name}</h3>
+                <Badge
+                  variant={statusVariant(entry.status)}
+                  aria-label={statusDescription(entry.status)}
+                >
                   {statusLabel(entry.status)}
-                </span>
+                </Badge>
               </div>
-              <p
-                style={{
-                  color: "var(--aa-text-secondary)",
-                  marginBottom: 0,
-                }}
-              >
-                {statusDescription(entry.status)}
-              </p>
-              {entry.chatgptAppUrl && (
+
+              <p>{statusDescription(entry.status)}</p>
+
+              {entry.chatgptAppUrl ? (
                 <a
                   className="aa-button aa-button-secondary"
                   href={entry.chatgptAppUrl}
@@ -144,16 +128,13 @@ export default async function IntegracoesPage() {
                 >
                   Abrir no ChatGPT
                 </a>
-              )}
+              ) : null}
             </li>
           ))}
         </ul>
       </section>
 
-      <nav
-        aria-label="Navegação de integrações"
-        style={{ marginTop: "var(--aa-spacing-lg)" }}
-      >
+      <nav aria-label="Navegação de integrações" className="aa-actions">
         <Link className="aa-button aa-button-secondary" href="/">
           Voltar ao início
         </Link>
