@@ -39,8 +39,11 @@ jobs:
       - name: Apply local migrations
         run: supabase migration up --local --include-all
 
-      - name: Run database tests
+      - name: Run gamification database tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/gamification_atomic.test.sql
+
+      - name: Run workspace page movement database tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/move_workspace_page_test.sql
 
       - name: Stop local Supabase
         if: always()
