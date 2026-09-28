@@ -49,6 +49,17 @@ describe("integration status snapshot", () => {
       verification: null,
     });
 
+    const dictionary = snapshot.entries.find(
+      (entry) => entry.name === "A-Z Dictionary",
+    );
+    expect(dictionary).toMatchObject({
+      name: "A-Z Dictionary",
+      status: "catalogued",
+      chatgptAppUrl:
+        "https://chatgpt.com/plugins/plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db",
+      verification: null,
+    });
+
     const github = snapshot.entries.find((entry) => entry.name === "GitHub");
     expect(github).toMatchObject({
       name: "GitHub",
