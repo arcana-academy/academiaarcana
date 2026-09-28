@@ -1,5 +1,5 @@
-import type { SanctuaryViewModel } from "@/domains/sanctuary";
 import { Progress } from "@/components/ui/progress";
+import type { SanctuaryViewModel } from "@/domains/sanctuary";
 
 type SanctuaryProgressProps = {
   progress: SanctuaryViewModel["progress"];
@@ -7,7 +7,11 @@ type SanctuaryProgressProps = {
 
 export function SanctuaryProgress({ progress }: SanctuaryProgressProps) {
   return (
-    <div className="aa-sanctuary-section">
+    <section className="aa-sanctuary-section" aria-labelledby="sanctuary-progress">
+      <h2 id="sanctuary-progress" className="aa-visually-hidden">
+        Progresso
+      </h2>
+
       {progress.status === "ready" ? (
         <>
           <div className="aa-progress-copy">
@@ -29,6 +33,6 @@ export function SanctuaryProgress({ progress }: SanctuaryProgressProps) {
       {progress.status === "error" ? (
         <div className="aa-empty"><p>Não foi possível carregar o progresso agora.</p></div>
       ) : null}
-    </div>
+    </section>
   );
 }
