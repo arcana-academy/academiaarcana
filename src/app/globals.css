@@ -1474,3 +1474,62 @@ p {
     width: 100%;
   }
 }
+
+.aa-preference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--aa-spacing-lg);
+}
+
+.aa-preference-card {
+  display: grid;
+  gap: var(--aa-spacing-md);
+}
+
+.aa-preference-card > header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.aa-preference-card > header h2,
+.aa-preference-card > header p {
+  margin-bottom: 0;
+}
+
+.aa-preference-card > header p:last-child {
+  color: var(--aa-text-secondary);
+  font-size: 0.9rem;
+}
+
+.aa-preference-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.aa-preference-field label {
+  font-weight: 700;
+}
+
+.aa-preference-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--aa-text-secondary);
+  font-size: 0.9rem;
+}
+
+.aa-preference-error {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--aa-status-danger);
+  border-radius: var(--aa-radius-md);
+  background: color-mix(in srgb, var(--aa-status-danger) 7%, var(--aa-surfaces-inset));
+  color: var(--aa-status-danger);
+}
+
+@media (max-width: 60rem) {
+  .aa-preference-grid {
+    grid-template-columns: 1fr;
+  }
+}
