@@ -21,12 +21,15 @@ describe("SanctuaryLoading", () => {
   it("renders the sanctuary loading structure", () => {
     render(<SanctuaryLoading />);
 
+    const skeletonRegion = document.querySelector(
+      ".aa-card-grid[aria-hidden='true']",
+    );
     const skeletonCards = document.querySelectorAll(".aa-skeleton-card");
 
     expect(skeletonCards).toHaveLength(3);
     expect(screen.getByRole("heading", { name: "Carregando o Santuário" }))
       .toBeInTheDocument();
-    expect(skeletonCards[0]).toHaveAttribute("aria-hidden", "true");
+    expect(skeletonRegion).toBeInTheDocument();
   });
 
   it("exposes accessible loading semantics", () => {
