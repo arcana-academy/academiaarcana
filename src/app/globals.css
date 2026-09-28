@@ -1315,3 +1315,259 @@ textarea::placeholder {
     flex-direction: column;
   }
 }
+
+.sanctuary-stack {
+  display: grid;
+  gap: var(--aa-spacing-lg);
+}
+
+.sanctuary-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--aa-spacing-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.sanctuary-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -4rem -4rem auto;
+  width: 14rem;
+  height: 14rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--aa-accent-primary) 11%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.sanctuary-hero-copy {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  min-width: 0;
+}
+
+.sanctuary-title-line {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.sanctuary-title-line h1 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sanctuary-title-mark {
+  display: inline-flex;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--aa-border-default);
+  border-radius: 50%;
+  background: var(--aa-surfaces-inset);
+  color: var(--aa-accent-primary);
+}
+
+.sanctuary-card {
+  display: grid;
+  gap: var(--aa-spacing-md);
+}
+
+.sanctuary-learning-card {
+  display: grid;
+  gap: var(--aa-spacing-md);
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--aa-spacing-md);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-inset);
+}
+
+.sanctuary-learning-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+  min-width: 0;
+  color: var(--aa-text-primary);
+  font-weight: 650;
+}
+
+.sanctuary-learning-path span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sanctuary-data-block {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+}
+
+.sanctuary-mission-card,
+.sanctuary-schedule-card {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.sanctuary-schedule-time {
+  color: var(--aa-accent-primary);
+  font-size: var(--aa-font-size-sm);
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+
+.sanctuary-empty-state {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.aa-card-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--aa-spacing-sm);
+  min-width: 0;
+}
+
+.aa-card-heading-row > * {
+  min-width: 0;
+}
+
+.aa-list-reset {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aa-feature-card {
+  display: grid;
+  align-content: start;
+  gap: var(--aa-spacing-md);
+}
+
+.aa-feature-icon {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-inset);
+  color: var(--aa-accent-primary);
+}
+
+.aa-task-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aa-task-card {
+  display: grid;
+  align-content: start;
+  gap: var(--aa-spacing-sm);
+}
+
+.aa-task-card .aa-button {
+  width: fit-content;
+}
+
+.aa-error-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: var(--aa-surfaces-canvas);
+}
+
+.aa-error-card {
+  width: min(100%, 40rem);
+  display: grid;
+  gap: var(--aa-spacing-md);
+}
+
+.aa-error-card .aa-button {
+  width: fit-content;
+}
+
+.aa-loading-page {
+  display: grid;
+  gap: var(--aa-spacing-lg);
+}
+
+.aa-skeleton-grid {
+  display: grid;
+  gap: var(--aa-spacing-md);
+}
+
+.aa-skeleton-block {
+  display: block;
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background:
+    linear-gradient(
+      90deg,
+      var(--aa-surfaces-inset),
+      color-mix(in srgb, var(--aa-accent-primary) 5%, var(--aa-surfaces-inset)),
+      var(--aa-surfaces-inset)
+    );
+}
+
+.aa-skeleton-xl {
+  min-height: 1.75rem;
+  width: min(60%, 28rem);
+}
+
+.aa-skeleton-sm {
+  min-height: 1rem;
+  width: min(35%, 16rem);
+}
+
+.aa-skeleton-action {
+  min-height: 2.75rem;
+  width: 100%;
+}
+
+.aa-skeleton-area {
+  min-height: 6rem;
+  width: 100%;
+}
+
+.aa-password-group {
+  align-items: start;
+}
+
+@media (max-width: 56rem) {
+  .sanctuary-hero,
+  .sanctuary-learning-card {
+    grid-template-columns: 1fr;
+  }
+
+  .sanctuary-hero {
+    align-items: start;
+  }
+
+  .sanctuary-learning-card .aa-button,
+  .sanctuary-hero .aa-button {
+    width: 100%;
+  }
+
+  .aa-card-heading-row {
+    flex-direction: column;
+  }
+
+  .aa-task-card .aa-button,
+  .aa-error-card .aa-button {
+    width: 100%;
+  }
+}
