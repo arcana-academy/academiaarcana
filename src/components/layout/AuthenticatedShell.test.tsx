@@ -22,7 +22,7 @@ describe("AuthenticatedShell", () => {
     expect(
       screen.getByRole("navigation", { name: "Seções da Academia" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sair" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sair da Academia" })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: "Seu Santuário de aprendizagem",
