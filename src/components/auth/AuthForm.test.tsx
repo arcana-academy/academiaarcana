@@ -77,7 +77,7 @@ describe("AuthForm", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("alert").textContent).toContain(
-        "Não foi possível concluir a operação. Tente novamente.",
+        "Não foi possível concluir a operação. Confira os dados e tente novamente.",
       );
     });
   });
