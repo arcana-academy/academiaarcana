@@ -57,8 +57,8 @@ describe("ChatGPT app bridges", () => {
       appUrl: ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
     });
 
-    expect(ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL).toMatch(
-      /^https:\/\/chatgpt\.com\//,
+    expect(ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL).toBe(
+      "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779",
     );
   });
 
