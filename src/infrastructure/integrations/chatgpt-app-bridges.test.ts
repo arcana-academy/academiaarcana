@@ -113,9 +113,9 @@ describe("ChatGPT app bridges", () => {
   it("keeps every bridge anchored to a catalog entry and a unique official ChatGPT URL", () => {
     const catalogNames = new Set(CHATGPT_PLUGIN_CATALOG.map((entry) => entry.name));
     const bridges = Object.values(CHATGPT_APP_BRIDGES);
-    const bridgeUrls = bridges
-      .map((bridge) => bridge.appUrl)
-      .filter((url): url is string => typeof url === "string");
+    const bridgeUrls = bridges.flatMap((bridge) =>
+      bridge.appUrl ? [bridge.appUrl] : [],
+    );
 
     expect(bridges.every((bridge) => catalogNames.has(bridge.displayName))).toBe(
       true,
