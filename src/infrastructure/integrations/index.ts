@@ -21,7 +21,6 @@ export {
 } from "./chatgpt-app-bridges";
 export type { ChatGPTAppBridge } from "./chatgpt-app-bridges";
 
-
 export {
   DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
   GITHUB_INTEGRATION_DEFINITION,
