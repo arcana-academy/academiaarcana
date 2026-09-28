@@ -34,6 +34,14 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         verification: null,
       },
       {
+        name: "A-Z Holy Bible",
+        source: "chatgpt-catalog",
+        status: "catalogued",
+        chatgptAppUrl:
+          "https://chatgpt.com/plugins/plugin_asdk_app_69985bb469908191a8abda024bb692cb",
+        verification: null,
+      },
+      {
         name: "GitHub",
         source: "chatgpt-catalog",
         status: "connected",
@@ -64,9 +72,11 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("1 Billion Brain Cells");
     expect(html).toContain("A-Z Daily Word");
     expect(html).toContain("A-Z Dictionary");
+    expect(html).toContain("A-Z Holy Bible");
     expect(html).toContain("Abrir no ChatGPT");
     expect(html).toContain("plugin_asdk_app_69cd086370708191905606fa0641d238");
     expect(html).toContain("plugin_asdk_app_69bd3c483c008191beb1e4cc0ce87b24");
     expect(html).toContain("plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db");
+    expect(html).toContain("plugin_asdk_app_69985bb469908191a8abda024bb692cb");
   });
 });
