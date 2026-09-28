@@ -39,10 +39,10 @@ describe("global error boundary", () => {
 
     expect(document.documentElement).toHaveAttribute("lang", "pt-BR");
     expect(
-      screen.getByRole("heading", { name: "Something went wrong!" }),
+      screen.getByRole("heading", { name: "A aplicação encontrou um erro inesperado" }),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(reset).toHaveBeenCalledOnce();
   });
 

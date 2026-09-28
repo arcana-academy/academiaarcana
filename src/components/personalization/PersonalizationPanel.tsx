@@ -1,11 +1,13 @@
 "use client";
 
-import { useTheme } from "@/design-system/themes";
-import type { ThemeId } from "@/design-system/tokens/types";
+import { Palette, Sparkles } from "lucide-react";
+
 import {
   useAccessibilityPreferencesContext,
 } from "@/application/accessibility-preferences/AccessibilityPreferencesContext";
+import { useTheme } from "@/design-system/themes";
 import { THEME_IDS, themePresets } from "@/design-system/themes/presets";
+import type { ThemeId } from "@/design-system/tokens/types";
 
 const motionOptions = [
   { value: "system" as const, label: "Seguir o sistema" },
@@ -19,54 +21,94 @@ export function PersonalizationPanel() {
     useAccessibilityPreferencesContext();
 
   return (
-    <main aria-labelledby="personalizar-title">
-      <h1 id="personalizar-title">Personalizar</h1>
+    <main className="aa-page" aria-labelledby="personalizar-title">
+      <header className="aa-card aa-card-elevated aa-page-header">
+        <div className="aa-card-icon" aria-hidden="true">
+          <Palette size={20} strokeWidth={1.8} />
+        </div>
+        <p className="aa-eyebrow">Preferências</p>
+        <h1 id="personalizar-title">Personalizar</h1>
+        <p>
+          Ajuste a atmosfera visual e o movimento da interface para criar um
+          ambiente de estudo previsível e confortável.
+        </p>
+      </header>
 
-      <section aria-labelledby="theme-title">
-        <h2 id="theme-title">Tema visual</h2>
-        <label htmlFor="theme-select">Escolha um tema</label>
-        <select
-          id="theme-select"
-          value={theme}
-          onChange={(event) => setTheme(event.target.value as ThemeId)}
-        >
-          {THEME_IDS.map((id) => (
-            <option key={id} value={id}>
-              {themePresets[id].name}
-            </option>
-          ))}
-        </select>
-      </section>
+      <div className="aa-preference-grid">
+        <section className="aa-card aa-card-default aa-preference-card" aria-labelledby="theme-title">
+          <header>
+            <p className="aa-eyebrow">Atmosfera</p>
+            <h2 id="theme-title">Tema visual</h2>
+            <p>As áreas da Academia usam o mesmo sistema semântico de temas.</p>
+          </header>
 
-      <section aria-labelledby="motion-title">
-        <h2 id="motion-title">Movimento</h2>
-        <label htmlFor="motion-select">Preferência de movimento</label>
-        <select
-          id="motion-select"
-          value={state?.configuredMotionPreference ?? "system"}
-          onChange={(event) => {
-            void setMotionPreference(
-              event.target.value as "system" | "normal" | "reduced",
-            );
-          }}
-        >
-          {motionOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          <div className="aa-preference-field">
+            <label htmlFor="theme-select">Escolha um tema</label>
+            <select
+              className="aa-native-control"
+              id="theme-select"
+              value={theme}
+              onChange={(event) => setTheme(event.target.value as ThemeId)}
+            >
+              {THEME_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {themePresets[id].name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {state?.error ? (
-          <p role="alert">
-            Não foi possível persistir a preferência de movimento.
+          <p className="aa-preference-current" role="status" aria-live="polite">
+            <Sparkles size={16} aria-hidden="true" />
+            Tema atual: {themePresets[theme].name}.
           </p>
-        ) : null}
-      </section>
+        </section>
 
-      <p role="status" aria-live="polite">
-        Tema atual: {themePresets[theme].name}.
-      </p>
+        <section className="aa-card aa-card-default aa-preference-card" aria-labelledby="motion-title">
+          <header>
+            <p className="aa-eyebrow">Conforto</p>
+            <h2 id="motion-title">Movimento</h2>
+            <p>
+              Escolha como a interface deve responder a transições e
+              microinterações.
+            </p>
+          </header>
+
+          <div className="aa-preference-field">
+            <label htmlFor="motion-select">Preferência de movimento</label>
+            <select
+              className="aa-native-control"
+              id="motion-select"
+              value={state?.configuredMotionPreference ?? "system"}
+              disabled={!state}
+              aria-busy={!state}
+              onChange={(event) => {
+                void setMotionPreference(
+                  event.target.value as "system" | "normal" | "reduced",
+                );
+              }}
+            >
+              {motionOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {!state ? (
+            <p className="aa-field-description" role="status">
+              Carregando sua preferência de movimento…
+            </p>
+          ) : null}
+
+          {state?.error ? (
+            <p className="aa-preference-error" role="alert">
+              Não foi possível persistir a preferência de movimento.
+            </p>
+          ) : null}
+        </section>
+      </div>
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckCircle2, CircleAlert, Library, PlugZap } from "lucide-react";
 
 import { getIntegrationStatusSnapshot } from "@/infrastructure/integrations/status";
 
@@ -24,140 +25,109 @@ function statusDescription(status: "catalogued" | "connected" | "error") {
   }
 }
 
+function StatusIcon({ status }: { status: "catalogued" | "connected" | "error" }) {
+  if (status === "connected") {
+    return <CheckCircle2 size={17} aria-hidden="true" />;
+  }
+
+  if (status === "error") {
+    return <CircleAlert size={17} aria-hidden="true" />;
+  }
+
+  return <PlugZap size={17} aria-hidden="true" />;
+}
+
 export default async function IntegracoesPage() {
   const snapshot = await getIntegrationStatusSnapshot();
 
   return (
-    <main
-      aria-labelledby="integrations-title"
-      style={{
-        maxWidth: "72rem",
-        margin: "0 auto",
-        padding: "clamp(1.5rem, 4vw, 3rem)",
-      }}
-    >
-      <header
-        className="aa-card aa-card-elevated"
-        style={{ display: "grid", gap: "var(--aa-spacing-sm)" }}
-      >
-        <p
-          style={{
-            margin: 0,
-            color: "var(--aa-text-secondary)",
-            fontWeight: 650,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-          }}
-        >
-          Integrações
-        </p>
-        <h1 id="integrations-title" style={{ margin: 0 }}>
-          Hub de integrações da Academia Arcana
-        </h1>
-        <p style={{ margin: 0, color: "var(--aa-text-secondary)" }}>
-          Este painel separa claramente o que foi catalogado do que tem uma
-          conexão externa realmente verificada.
-        </p>
-      </header>
-
-      <section
-        aria-labelledby="integrations-summary-title"
-        style={{
-          display: "grid",
-          gap: "var(--aa-spacing-md)",
-          gridTemplateColumns: "repeat(auto-fit, minmax(12rem, 1fr))",
-          marginTop: "var(--aa-spacing-lg)",
-        }}
-      >
-        <div className="aa-card aa-card-default">
-          <h2 id="integrations-summary-title">Catálogo</h2>
-          <p>{snapshot.catalogSize} plugins registrados</p>
-        </div>
-        <div className="aa-card aa-card-default">
-          <h2>Conexões verificadas</h2>
-          <p>{snapshot.connectedCount}</p>
-        </div>
-        <div className="aa-card aa-card-default">
-          <h2>Ainda catalogados</h2>
-          <p>{snapshot.cataloguedCount}</p>
-        </div>
-        <div className="aa-card aa-card-default">
-          <h2>Erros</h2>
-          <p>{snapshot.errorCount}</p>
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="integrations-list-title"
-        style={{
-          display: "grid",
-          gap: "var(--aa-spacing-sm)",
-          marginTop: "var(--aa-spacing-lg)",
-        }}
-      >
-        <div>
-          <h2 id="integrations-list-title">Plugins</h2>
-          <p style={{ color: "var(--aa-text-secondary)" }}>
-            Última verificação: {snapshot.generatedAt}
+    <main className="aa-public-page aa-integrations-page" aria-labelledby="integrations-title">
+      <div className="aa-public-frame">
+        <header className="aa-card aa-card-elevated aa-page-header">
+          <p className="aa-eyebrow">Integrações</p>
+          <h1 id="integrations-title">Hub de integrações da Academia Arcana</h1>
+          <p>
+            Este painel separa claramente o que foi catalogado do que tem uma
+            conexão externa realmente verificada.
           </p>
-        </div>
+        </header>
 
-        <ul
-          style={{
-            display: "grid",
-            gap: "var(--aa-spacing-sm)",
-            gridTemplateColumns: "repeat(auto-fit, minmax(18rem, 1fr))",
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-          }}
-        >
-          {snapshot.entries.map((entry) => (
-            <li key={entry.name} className="aa-card aa-card-default">
-              <div
-                style={{
-                  alignItems: "baseline",
-                  display: "flex",
-                  gap: "var(--aa-spacing-sm)",
-                  justifyContent: "space-between",
-                }}
-              >
-                <h3 style={{ margin: 0 }}>{entry.name}</h3>
-                <span aria-label={statusDescription(entry.status)}>
-                  {statusLabel(entry.status)}
-                </span>
-              </div>
-              <p
-                style={{
-                  color: "var(--aa-text-secondary)",
-                  marginBottom: 0,
-                }}
-              >
-                {statusDescription(entry.status)}
-              </p>
-              {entry.chatgptAppUrl && (
-                <a
-                  className="aa-button aa-button-secondary"
-                  href={entry.chatgptAppUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  Abrir no ChatGPT
-                </a>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section className="aa-stat-grid" aria-labelledby="integrations-summary-title">
+          <article className="aa-card aa-card-default aa-stat-card">
+            <Library size={18} aria-hidden="true" />
+            <h2 id="integrations-summary-title">Catálogo</h2>
+            <p>{snapshot.catalogSize} plugins registrados</p>
+          </article>
+          <article className="aa-card aa-card-default aa-stat-card">
+            <CheckCircle2 size={18} aria-hidden="true" />
+            <h2>Conexões verificadas</h2>
+            <p>{snapshot.connectedCount} conexões confirmadas</p>
+          </article>
+          <article className="aa-card aa-card-default aa-stat-card">
+            <PlugZap size={18} aria-hidden="true" />
+            <h2>Ainda catalogados</h2>
+            <p>{snapshot.cataloguedCount} sem verificação runtime</p>
+          </article>
+          <article className="aa-card aa-card-default aa-stat-card">
+            <CircleAlert size={18} aria-hidden="true" />
+            <h2>Erros</h2>
+            <p>{snapshot.errorCount} na última verificação</p>
+          </article>
+        </section>
 
-      <nav
-        aria-label="Navegação de integrações"
-        style={{ marginTop: "var(--aa-spacing-lg)" }}
-      >
-        <Link className="aa-button aa-button-secondary" href="/">
-          Voltar ao início
-        </Link>
-      </nav>
+        <section aria-labelledby="integrations-list-title">
+          <div className="aa-section-heading">
+            <div>
+              <p className="aa-eyebrow">Status</p>
+              <h2 id="integrations-list-title">Plugins</h2>
+            </div>
+            <p>
+              Última verificação: <time dateTime={snapshot.generatedAt}>{snapshot.generatedAt}</time>
+            </p>
+          </div>
+
+          <ul className="aa-card-grid aa-list-reset">
+            {snapshot.entries.map((entry) => (
+              <li key={entry.name} className="aa-card aa-card-default aa-integration-card">
+                <div className="aa-integration-status">
+                  <span className="aa-status-icon" aria-hidden="true">
+                    <StatusIcon status={entry.status} />
+                  </span>
+                  <span
+                    className={
+                      entry.status === "connected"
+                        ? "aa-status-success"
+                        : entry.status === "error"
+                          ? "aa-status-danger"
+                          : "aa-status-info"
+                    }
+                  >
+                    {statusLabel(entry.status)}
+                  </span>
+                </div>
+                <h3>{entry.name}</h3>
+                <p>{statusDescription(entry.status)}</p>
+                {entry.chatgptAppUrl ? (
+                  <a
+                    className="aa-button aa-button-secondary"
+                    href={entry.chatgptAppUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Abrir no ChatGPT
+                  </a>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <nav aria-label="Navegação de integrações">
+          <Link className="aa-button aa-button-secondary" href="/">
+            Voltar ao início
+          </Link>
+        </nav>
+      </div>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
@@ -192,14 +192,18 @@ describe("SanctuaryPage", () => {
 
     render(await SanctuaryPage());
 
-    expect(screen.getByRole("navigation")).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeTruthy();
+
+    const primaryNavigation = screen.getByRole("navigation", {
+      name: "Navegação principal",
+    });
 
     expect(
-      screen.getByRole("link", { name: /santu/i }),
+      within(primaryNavigation).getByRole("link", { name: /santu/i }),
     ).toHaveAttribute("aria-current", "page");
 
     expect(
-      screen.getByRole("link", { name: "Workspace" }),
+      within(primaryNavigation).getByRole("link", { name: "Workspace" }),
     ).not.toHaveAttribute("aria-current");
   });
 });

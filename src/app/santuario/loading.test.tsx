@@ -21,18 +21,12 @@ describe("SanctuaryLoading", () => {
   it("renders the sanctuary loading structure", () => {
     render(<SanctuaryLoading />);
 
-    const skeleton = screen.getByTestId("sanctuary-loading-skeleton");
+    const skeletonCards = document.querySelectorAll(".aa-skeleton-card");
 
-    expect(
-      screen.getByTestId("sanctuary-loading-header"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("sanctuary-loading-primary-action"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("sanctuary-loading-areas"),
-    ).toBeInTheDocument();
-    expect(skeleton).toHaveAttribute("aria-hidden", "true");
+    expect(skeletonCards).toHaveLength(3);
+    expect(screen.getByRole("heading", { name: "Carregando o Santuário" }))
+      .toBeInTheDocument();
+    expect(skeletonCards[0]).toHaveAttribute("aria-hidden", "true");
   });
 
   it("exposes accessible loading semantics", () => {
@@ -60,7 +54,7 @@ describe("SanctuaryLoading", () => {
 
     expect(SanctuaryLoading.length).toBe(0);
     expect(
-      screen.getByTestId("sanctuary-loading-skeleton"),
-    ).toBeInTheDocument();
+      document.querySelectorAll(".aa-skeleton-card"),
+    ).toHaveLength(3);
   });
 });
