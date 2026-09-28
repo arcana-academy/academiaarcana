@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { ArrowUpRight, BookOpen, CalendarDays, House } from "lucide-react";
 
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 const learningAreas = [
-  { href: "/workspace", title: "Workspace", description: "Organize grimoires, notebooks, chapters and pages." },
-  { href: "/cronograma", title: "Cronograma", description: "Planeje e acompanhe suas próximas tarefas de estudo." },
-  { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem." },
+  { href: "/workspace", title: "Workspace", description: "Organize grimoires, notebooks, chapters and pages.", icon: BookOpen, kicker: "Conhecimento" },
+  { href: "/cronograma", title: "Cronograma", description: "Planeje e acompanhe suas próximas tarefas de estudo.", icon: CalendarDays, kicker: "Planejamento" },
+  { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem.", icon: House, kicker: "Centro de comando" },
 ] as const;
 
 export default async function AcademiaPage() {
@@ -14,39 +15,43 @@ export default async function AcademiaPage() {
 
   return (
     <AuthenticatedShell currentPath="/academia">
-      <main
-        aria-labelledby="academia-title"
-        style={{
-          display: "grid",
-          gap: "var(--aa-spacing-lg)",
-          maxWidth: "72rem",
-          margin: "0 auto",
-          padding: "clamp(1.5rem, 4vw, 3rem)",
-        }}
-      >
-        <header className="aa-card aa-card-elevated">
-          <p style={{ margin: 0, color: "var(--aa-text-secondary)", fontWeight: 650, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            Academia
-          </p>
-          <h1 id="academia-title">Sua jornada de aprendizagem</h1>
-          <p style={{ color: "var(--aa-text-secondary)" }}>
-            Um ponto de entrada para as ferramentas de estudo que já estão implementadas na Academia Arcana.
-          </p>
+      <div className="aa-page-stack">
+        <header className="aa-page-hero">
+          <div>
+            <span className="aa-section-kicker">Academia</span>
+            <h1 id="academia-title">Sua jornada de aprendizagem</h1>
+            <p>Um ponto de entrada para as ferramentas de estudo que já estão implementadas na Academia Arcana.</p>
+          </div>
+          <div className="aa-page-hero-mark" aria-hidden="true">✦</div>
         </header>
 
-        <section aria-labelledby="academia-areas-title" style={{ display: "grid", gap: "var(--aa-spacing-md)" }}>
-          <h2 id="academia-areas-title">Áreas de estudo</h2>
-          <div style={{ display: "grid", gap: "var(--aa-spacing-md)", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 18rem), 1fr))" }}>
-            {learningAreas.map((area) => (
-              <article className="aa-card aa-card-default" key={area.href}>
-                <h3>{area.title}</h3>
-                <p style={{ color: "var(--aa-text-secondary)" }}>{area.description}</p>
-                <Link className="aa-button aa-button-secondary" href={area.href}>Abrir</Link>
-              </article>
-            ))}
+        <section aria-labelledby="academia-areas-title">
+          <div className="aa-section-heading">
+            <div>
+              <span className="aa-section-kicker">Escolha um caminho</span>
+              <h2 id="academia-areas-title">Áreas de estudo</h2>
+            </div>
+          </div>
+
+          <div className="aa-area-grid">
+            {learningAreas.map((area) => {
+              const Icon = area.icon;
+              return (
+                <article className="aa-area-card" key={area.href}>
+                  <div className="aa-area-icon" aria-hidden="true"><Icon size={21} strokeWidth={1.8} /></div>
+                  <span className="aa-area-kicker">{area.kicker}</span>
+                  <h3>{area.title}</h3>
+                  <p>{area.description}</p>
+                  <Link className="aa-area-link" href={area.href}>
+                    <span>Abrir área</span>
+                    <ArrowUpRight aria-hidden="true" size={17} />
+                  </Link>
+                </article>
+              );
+            })}
           </div>
         </section>
-      </main>
+      </div>
     </AuthenticatedShell>
   );
 }
