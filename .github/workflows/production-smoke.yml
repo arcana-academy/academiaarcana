@@ -90,5 +90,17 @@ jobs:
             throw new Error("GitHub runtime verification contract failed.");
           }
 
+          const dictionary = body.entries?.find(
+            (entry) => entry.name === "A-Z Dictionary",
+          );
+          if (
+            dictionary?.status !== "catalogued" ||
+            dictionary?.chatgptAppUrl !==
+              "https://chatgpt.com/plugins/plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db" ||
+            dictionary?.verification !== null
+          ) {
+            throw new Error("A-Z Dictionary bridge contract failed.");
+          }
+
           console.log("Production integration status contract is healthy.");
           NODE
