@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -20,6 +20,14 @@ function PageDeleteControl({
   const [error, setError] = useState<string | null>(null);
 
   /** Execute the confirmed deletion and report recoverable failures. */
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isConfirming) {
+      cancelRef.current?.focus();
+    }
+  }, [isConfirming]);
+
   const remove = async () => {
     setIsDeleting(true);
     setError(null);
@@ -50,6 +58,7 @@ function PageDeleteControl({
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <button
+        ref={cancelRef}
         type="button"
         disabled={isDeleting}
         onClick={() => setIsConfirming(false)}
