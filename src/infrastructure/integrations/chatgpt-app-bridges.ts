@@ -31,7 +31,7 @@ export const ACADEMIC_WRITING_TOOLKIT_APP_ID =
   "academic-writing-toolkit" as const;
 
 export const ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL =
-  "https://chatgpt.com/plugins/academic-writing-toolkit" as const;
+  "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779" as const;
 
 export const CHATGPT_APP_BRIDGES = {
   [ONE_BILLION_BRAIN_CELLS_APP_ID]: {
