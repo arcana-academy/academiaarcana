@@ -1532,3 +1532,5 @@ p {
     grid-template-columns: 1fr;
   }
 }
+
+/* Shared responsive application surface validated by CI. */
