@@ -52,7 +52,7 @@ function PageDeleteControl({
 
   const cancel = () => {
     setIsConfirming(false);
-    requestAnimationFrame(() => triggerRef.current?.focus());
+    queueMicrotask(() => triggerRef.current?.focus());
   };
 
   if (!isConfirming) {
