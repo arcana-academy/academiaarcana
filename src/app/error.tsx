@@ -25,7 +25,7 @@ export default function Error({ error, reset }: ErrorProps) {
     <main className="aa-error-page" aria-labelledby="route-error-title">
       <section className="aa-error-card aa-card aa-card-elevated">
         <p className="aa-eyebrow">Academia Arcana</p>
-        <h1 id="route-error-title">Não foi possível carregar esta área</h1>
+        <h1 id="route-error-title">Something went wrong!</h1>
         <div className="aa-alert aa-alert-danger" role="alert">
           <p>
             Ocorreu um erro inesperado. Tente novamente para continuar sua
@@ -33,7 +33,7 @@ export default function Error({ error, reset }: ErrorProps) {
           </p>
         </div>
         <Button variant="primary" onClick={() => reset()}>
-          Tentar novamente
+          Try again
         </Button>
       </section>
     </main>
