@@ -44,8 +44,8 @@ export const baseTokens: ThemeTokens = {
     "2xl": "3rem",
   },
   typography: {
-    body: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif",
-    heading: ""Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif",
+    body: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    heading: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif',
   },
   shadows: {
     sm: "0 1px 2px rgb(0 0 0 / 0.24)",
