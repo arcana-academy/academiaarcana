@@ -18,6 +18,21 @@ The first implemented provider verification is GitHub. It is a public, read-only
 
 A provider may move from `catalogued` to a real authenticated integration only after its documented API/OAuth/MCP mechanism, scopes, credentials and server-side adapter have been implemented and verified.
 
+## 1 Billion Brain Cells
+
+The Academia Arcana catalog includes **1 Billion Brain Cells** and the integration hub exposes its official ChatGPT app entry as an explicit external bridge.
+
+The current public app listing identifies the app as a ChatGPT app by Spheric Admin Ltd and provides its official ChatGPT installation surface. The website does **not** claim that the ChatGPT app itself is a web-runtime dependency.
+
+A public directory currently reports an MCP endpoint for the app, but its live verification is not healthy. Therefore the repository does not hard-code that endpoint or mark the provider as runtime-connected. A direct website integration requires a stable, documented provider contract that can be verified from the application runtime.
+
+This gives the project a complete and honest state:
+
+- ChatGPT app catalog entry: available.
+- Official ChatGPT launch bridge: available.
+- Academia Arcana web-runtime adapter: not enabled until an external provider contract is verified.
+- Credentials: none required or stored for the bridge.
+
 ## Runtime / delivery integrations
 
 | Service | Role | Repository integration | External configuration | State |
