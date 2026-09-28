@@ -36,7 +36,7 @@ create temporary table aa_concurrency_results (
   value text not null
 ) on commit drop;
 
-select extensions.plan(21);
+select extensions.plan(22);
 
 select extensions.ok(
   has_function_privilege(
@@ -54,6 +54,15 @@ select extensions.ok(
     'EXECUTE'
   ),
   'anon cannot execute the atomic reward RPC'
+);
+
+select extensions.ok(
+  not has_function_privilege(
+    'service_role',
+    'public.complete_study_task_with_reward(uuid)',
+    'EXECUTE'
+  ),
+  'service_role cannot execute the public atomic reward RPC'
 );
 
 select extensions.ok(
