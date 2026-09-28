@@ -40,6 +40,15 @@ export {
 export type { ChatGPTAppBridge } from "./chatgpt-app-bridges";
 
 export {
+  TRUE_SKY_INTEGRATION_DEFINITION,
+  TRUE_SKY_OPERATIONS,
+  TRUE_SKY_PLUGIN_NAME,
+  TRUE_SKY_PROVIDER_ID,
+  toTrueSkyIntegrationToolRequest,
+} from "./true-sky";
+export type { TrueSkyGateway, TrueSkyOperation, TrueSkyRequest } from "./true-sky";
+
+export {
   DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
   GITHUB_INTEGRATION_DEFINITION,
   GITHUB_PLUGIN_NAME,
