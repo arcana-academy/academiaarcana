@@ -150,11 +150,6 @@ export function AuthForm({ mode }: AuthFormProps) {
   const copy = COPY[mode];
   const passwordInputType = showPassword ? "text" : "password";
   const isError = status === "error";
-  const passwordError =
-    isError &&
-    (message === PASSWORD_TOO_SHORT_ERROR || message === "As senhas precisam ser iguais.")
-      ? message
-      : undefined;
 
   return (
     <main className="aa-auth-page" aria-labelledby="auth-title">
