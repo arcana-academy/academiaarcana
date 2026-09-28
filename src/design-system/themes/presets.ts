@@ -65,7 +65,6 @@ function createPreset(
     motion: { ...baseTokens.motion, ...overrides.motion },
     density: { ...baseTokens.density, ...overrides.density },
     effects: { ...baseTokens.effects, ...overrides.effects },
-    zIndex: { ...baseTokens.zIndex, ...overrides.zIndex },
     id,
     name,
   };
