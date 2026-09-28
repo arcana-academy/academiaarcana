@@ -1,17 +1,28 @@
 import { CHATGPT_APP_BRIDGES } from "./chatgpt-app-bridges";
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
+  AGENTIC_COURSE_REDESIGN_APP_ID,
+  AGENTIC_COURSE_REDESIGN_CAPABILITIES,
+} from "./agentic-course-redesign";
+import {
   verifyGitHubConnection,
   type GitHubConnectionVerification,
 } from "./github/public-github";
 
 export type IntegrationCatalogStatus = "catalogued" | "connected" | "error";
+export type IntegrationExecutionMode =
+  | "runtime"
+  | "chatgpt-hosted"
+  | "catalog-only";
 
 export type IntegrationStatusEntry = {
   readonly name: string;
   readonly source: "chatgpt-catalog";
   readonly status: IntegrationCatalogStatus;
   readonly chatgptAppUrl?: string;
+  readonly executionMode: IntegrationExecutionMode;
+  readonly capabilities?: readonly string[];
+  readonly providerId?: string;
   readonly verification:
     | {
         readonly providerId: "github";
@@ -37,6 +48,7 @@ function githubVerificationEntry(
     name: "GitHub",
     source: "chatgpt-catalog",
     status: "connected",
+    executionMode: "runtime",
     verification: {
       providerId: verification.providerId,
       repository: verification.repository.fullName,
@@ -60,6 +72,7 @@ export async function getIntegrationStatusSnapshot({
     name: "GitHub",
     source: "chatgpt-catalog",
     status: "error",
+    executionMode: "runtime",
     verification: null,
   };
 
@@ -76,12 +89,23 @@ export async function getIntegrationStatusSnapshot({
     }
 
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
+    const isAgenticCourseRedesign =
+      plugin.name === "Agentic Course Redesign";
 
     return {
       name: plugin.name,
       source: plugin.source,
       status: "catalogued" as const,
+      executionMode: isAgenticCourseRedesign
+        ? ("chatgpt-hosted" as const)
+        : ("catalog-only" as const),
       ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
+      ...(isAgenticCourseRedesign
+        ? {
+            capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,
+            providerId: AGENTIC_COURSE_REDESIGN_APP_ID,
+          }
+        : {}),
       verification: null,
     };
   });
