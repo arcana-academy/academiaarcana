@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
+  A_Z_DICTIONARY_APP_ID,
+  A_Z_DICTIONARY_CHATGPT_APP_URL,
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
-  A_Z_DICTIONARY_APP_ID,
-  A_Z_DICTIONARY_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
 
 describe("ChatGPT app bridges", () => {
@@ -21,7 +21,6 @@ describe("ChatGPT app bridges", () => {
       /^https:\/\/chatgpt\.com\//,
     );
   });
-
 
   it("defines the A-Z Dictionary bridge without credentials", () => {
     expect(CHATGPT_APP_BRIDGES[A_Z_DICTIONARY_APP_ID]).toEqual({
