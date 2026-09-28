@@ -4,6 +4,17 @@ import {
   AGENTIC_COURSE_REDESIGN_APP_ID,
   AGENTIC_COURSE_REDESIGN_CAPABILITIES,
 } from "./agentic-course-redesign";
+
+const TARTEEL_APP_ID = "tarteel";
+const TARTEEL_CAPABILITIES = [
+  "ayah-search",
+  "ayah-translation",
+  "ayah-tafsir",
+  "ayah-mutashabihat",
+  "phrase-mutashabihat",
+  "recitation",
+  "prayer-times",
+] as const;
 import {
   verifyGitHubConnection,
   type GitHubConnectionVerification,
@@ -91,19 +102,27 @@ export async function getIntegrationStatusSnapshot({
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
     const isAgenticCourseRedesign =
       plugin.name === "Agentic Course Redesign";
+    const isTarteel = plugin.name === "Tarteel";
 
     return {
       name: plugin.name,
       source: plugin.source,
       status: "catalogued" as const,
-      executionMode: isAgenticCourseRedesign
-        ? ("chatgpt-hosted" as const)
-        : ("catalog-only" as const),
+      executionMode:
+        isAgenticCourseRedesign || isTarteel
+          ? ("chatgpt-hosted" as const)
+          : ("catalog-only" as const),
       ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
       ...(isAgenticCourseRedesign
         ? {
             capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,
             providerId: AGENTIC_COURSE_REDESIGN_APP_ID,
+          }
+        : {}),
+      ...(isTarteel
+        ? {
+            capabilities: TARTEEL_CAPABILITIES,
+            providerId: TARTEEL_APP_ID,
           }
         : {}),
       verification: null,
