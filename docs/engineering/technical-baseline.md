@@ -85,13 +85,14 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-For the current `main` commit `8b55cd3e198d6190340a628fb2344ead812c2cce`:
+For the current `main` commit `6ce181b741944e1db79e6ddc11807a5e38b097f1`:
 
-- The authentication callback hardening from PR #290 is integrated.
+- PR #290 authentication callback hardening is integrated.
 - The Next.js security patch to 16.3.6 is integrated.
-- The preceding security/quality validation for those changes completed successfully.
+- Product-domain reconciliation, RPC security hardening, and the eight-character password floor are integrated.
+- The current commit reports successful Vercel and pre-commit integration statuses.
 
-The GitHub Vercel integration status remains an external deployment-check concern and must be validated against the current deployment rather than inferred from build success.
+The full Quality Gate is established through pull-request checks; deployment state and runtime observability are additionally verified directly in Vercel.
 
 ## Vercel
 
@@ -122,9 +123,9 @@ The repository contains the six application migrations that match the current pr
 - `20260915181306_remote_schema`
 - `20260921174822_revoke_excess_authenticated_table_privileges`
 - `20260924003140_rename_notebooks_grimoire_index_reconcile`
-- `20260928003542_atomic_move_workspace_page`
 - `20260927205154_product_domain_v1`
 - `20260927213158_product_rpc_security`
+- `20260928003542_atomic_move_workspace_page`
 
 The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
 
