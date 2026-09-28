@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 export type AuthenticatedRouteHref =
+  | "/academia"
   | "/santuario"
   | "/workspace"
   | "/cronograma"
@@ -16,6 +17,7 @@ type AuthenticatedNavigationProps = {
 };
 
 const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
+  { href: "/academia", label: "Academia" },
   { href: "/santuario", label: "Santuário" },
   { href: "/workspace", label: "Workspace" },
   { href: "/cronograma", label: "Cronograma" },
@@ -30,9 +32,7 @@ export function AuthenticatedNavigation({
       <ul className="aa-navigation-list">
         {navigationItems.map((item) => {
           const isCurrent = item.href === currentPath;
-          const variant = isCurrent
-            ? "aa-button-primary"
-            : "aa-button-secondary";
+          const variant = isCurrent ? "aa-button-primary" : "aa-button-secondary";
           const reinforcement = isCurrent ? "aa-nav-link-active" : "";
 
           return (
