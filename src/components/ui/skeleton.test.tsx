@@ -13,5 +13,6 @@ describe("Skeleton", () => {
     expect(element).toBeInTheDocument();
     expect(element).toHaveAttribute("aria-hidden", "true");
     expect(element).toHaveClass("aa-skeleton-block", "aa-skeleton-sm");
+    expect(element).toHaveAttribute("data-testid", "skeleton");
   });
 });
