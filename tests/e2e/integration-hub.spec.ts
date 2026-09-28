@@ -11,7 +11,9 @@ test.describe("integration hub", () => {
     await expect(page.getByText("114 plugins registrados")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
     await expect(page.getByText("GitHub", { exact: true })).toBeVisible();
+    await expect(page.getByText("A-Z Dictionary", { exact: true })).toBeVisible();
     await expect(page.getByText("Verificado", { exact: true })).toBeVisible();
+    await expect(page.getByText("Catalogado", { exact: true })).toBeVisible();
     await expect(
       page.getByText("A conexão externa foi verificada em runtime.", {
         exact: true,
@@ -19,7 +21,7 @@ test.describe("integration hub", () => {
     ).toBeVisible();
   });
 
-  test("serves the status API with a connected GitHub provider", async ({
+  test("serves the status API with a connected GitHub provider and catalogued A-Z Dictionary bridge", async ({
     request,
   }) => {
     const response = await request.get("/api/integrations/status");
@@ -44,6 +46,18 @@ test.describe("integration hub", () => {
         providerId: "github",
         repository: "arcana-academy/academiaarcana",
       },
+    });
+
+    const dictionary = body.entries.find(
+      (entry: { name: string }) => entry.name === "A-Z Dictionary",
+    );
+
+    expect(dictionary).toMatchObject({
+      name: "A-Z Dictionary",
+      status: "catalogued",
+      chatgptAppUrl:
+        "https://chatgpt.com/plugins/plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db",
+      verification: null,
     });
   });
 });
