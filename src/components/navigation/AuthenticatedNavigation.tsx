@@ -2,6 +2,7 @@ import Link from "next/link";
 
 export type AuthenticatedRouteHref =
   | "/academia"
+  | "/grimorios"
   | "/santuario"
   | "/workspace"
   | "/cronograma"
@@ -18,6 +19,7 @@ type AuthenticatedNavigationProps = {
 
 const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
   { href: "/academia", label: "Academia" },
+  { href: "/grimorios", label: "Grimórios" },
   { href: "/santuario", label: "Santuário" },
   { href: "/workspace", label: "Workspace" },
   { href: "/cronograma", label: "Cronograma" },

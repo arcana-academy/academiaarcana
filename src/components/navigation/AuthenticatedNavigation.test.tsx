@@ -11,6 +11,7 @@ describe("AuthenticatedNavigation", () => {
 
     expect(navigation).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Academia" })).toHaveAttribute("href", "/academia");
+    expect(screen.getByRole("link", { name: "Grimórios" })).toHaveAttribute("href", "/grimorios");
     expect(screen.getByRole("link", { name: "Santuário" })).toHaveAttribute("href", "/santuario");
     expect(screen.getByRole("link", { name: "Workspace" })).toHaveAttribute("href", "/workspace");
     expect(screen.getByRole("link", { name: "Cronograma" })).toHaveAttribute("href", "/cronograma");
@@ -22,9 +23,17 @@ describe("AuthenticatedNavigation", () => {
 
     expect(screen.getByRole("link", { name: "Santuário" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Academia" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Grimórios" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Workspace" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Cronograma" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Personalizar" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("updates the current route when Grimórios is active", () => {
+    render(<AuthenticatedNavigation currentPath="/grimorios" />);
+
+    expect(screen.getByRole("link", { name: "Grimórios" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Santuário" })).not.toHaveAttribute("aria-current");
   });
 
   it("updates the current route when Academia is active", () => {
@@ -52,7 +61,7 @@ describe("AuthenticatedNavigation", () => {
   it("keeps links keyboard-focusable through native link semantics", () => {
     render(<AuthenticatedNavigation currentPath="/santuario" />);
 
-    for (const name of ["Academia", "Santuário", "Workspace", "Cronograma", "Personalizar"]) {
+    for (const name of ["Academia", "Grimórios", "Santuário", "Workspace", "Cronograma", "Personalizar"]) {
       const link = screen.getByRole("link", { name });
       link.focus();
       expect(document.activeElement).toBe(link);
