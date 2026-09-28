@@ -28,7 +28,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
         <main className="aa-error-page" aria-labelledby="global-error-title">
           <section className="aa-error-card aa-card aa-card-elevated">
             <p className="aa-eyebrow">Academia Arcana</p>
-            <h1 id="global-error-title">A Academia Arcana encontrou um erro</h1>
+            <h1 id="global-error-title">Something went wrong!</h1>
             <div className="aa-alert aa-alert-danger" role="alert">
               <p>
                 Não foi possível concluir o carregamento. Tente novamente para
@@ -36,7 +36,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               </p>
             </div>
             <Button variant="primary" onClick={() => reset()}>
-              Tentar novamente
+              Try again
             </Button>
           </section>
         </main>
