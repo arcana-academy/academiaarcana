@@ -18,7 +18,7 @@ test("application root serves the public entrypoint for unauthenticated users", 
     page.getByRole("link", { name: "Começar minha jornada" }),
   ).toHaveAttribute("href", "/cadastro");
 
-  await expect(page.getByRole("contentinfo")).toBeVisible();
+  await expect(page.locator("footer")).toBeVisible();
   await expect(
     page.getByRole("navigation", { name: "Navegação da página" }),
   ).toBeVisible();
