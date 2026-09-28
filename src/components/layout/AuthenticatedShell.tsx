@@ -52,9 +52,9 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
         <header className="aa-topbar">
           <div className="aa-topbar-context">
             <span className="aa-topbar-eyebrow">{context.eyebrow}</span>
-            <h1 className="aa-topbar-title">{context.title}</h1>
+            <p className="aa-topbar-title">{context.title}</p>
           </div>
-          <div className="aa-topbar-actions" aria-label="Ações da conta">
+          <div className="aa-topbar-actions" aria-label="Estado da sessão">
             <span className="aa-status-dot" aria-hidden="true" />
             <span className="aa-topbar-status">Espaço seguro</span>
           </div>
