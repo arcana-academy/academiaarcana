@@ -15,6 +15,8 @@ export { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 export type { ChatGPTPluginCatalogEntry } from "./chatgpt-plugin-catalog";
 
 export {
+  A_Z_DAILY_WORD_APP_ID,
+  A_Z_DAILY_WORD_CHATGPT_APP_URL,
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,

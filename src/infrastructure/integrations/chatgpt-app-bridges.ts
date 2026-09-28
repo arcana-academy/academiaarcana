@@ -11,11 +11,21 @@ export const ONE_BILLION_BRAIN_CELLS_APP_ID =
 export const ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238" as const;
 
+export const A_Z_DAILY_WORD_APP_ID = "a-z-daily-word" as const;
+
+export const A_Z_DAILY_WORD_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/plugin_asdk_app_69bd3c483c008191beb1e4cc0ce87b24" as const;
+
 export const CHATGPT_APP_BRIDGES = {
   [ONE_BILLION_BRAIN_CELLS_APP_ID]: {
     providerId: ONE_BILLION_BRAIN_CELLS_APP_ID,
     displayName: "1 Billion Brain Cells",
     appUrl: ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
+  },
+  [A_Z_DAILY_WORD_APP_ID]: {
+    providerId: A_Z_DAILY_WORD_APP_ID,
+    displayName: "A-Z Daily Word",
+    appUrl: A_Z_DAILY_WORD_CHATGPT_APP_URL,
   },
 } as const;
 
