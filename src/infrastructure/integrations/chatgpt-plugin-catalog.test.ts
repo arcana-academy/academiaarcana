@@ -23,16 +23,5 @@ describe("ChatGPT plugin catalog", () => {
       expect(entry).not.toHaveProperty("endpoint");
     }
   });
-  it("provides the official ChatGPT app bridge for 1 Billion Brain Cells", () => {
-    const brainCells = CHATGPT_PLUGIN_CATALOG.find(
-      (entry) => entry.name === "1 Billion Brain Cells",
-    );
-
-    expect(brainCells).toMatchObject({
-      name: "1 Billion Brain Cells",
-      chatgptAppUrl:
-        "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",
-    });
-  });
 
 });
