@@ -53,6 +53,15 @@ export const TARTEEL_CHATGPT_APP_URL = undefined;
 export const ASTROLOGIC_APP_ID = "astrologic" as const;
 
 /**
+ * True Sky is available as an astrology capability in the ChatGPT host.
+ * No public web-runtime URL or vendor API endpoint has been verified for
+ * Academia Arcana, so this remains metadata-only until a supported server
+ * contract is available.
+ */
+export const TRUE_SKY_APP_ID = "true-sky" as const;
+export const TRUE_SKY_CHATGPT_APP_URL: string | undefined = undefined;
+
+/**
  * Astrologic is available as a ChatGPT-side connector in this environment.
  * No public web-runtime URL or vendor API endpoint has been verified for
  * Academia Arcana, so it remains metadata-only until a supported server
@@ -108,6 +117,13 @@ export const CHATGPT_APP_BRIDGES = {
     displayName: "Tarteel",
     ...(TARTEEL_CHATGPT_APP_URL
       ? { appUrl: TARTEEL_CHATGPT_APP_URL }
+      : {}),
+  },
+  [TRUE_SKY_APP_ID]: {
+    providerId: TRUE_SKY_APP_ID,
+    displayName: "True Sky",
+    ...(TRUE_SKY_CHATGPT_APP_URL
+      ? { appUrl: TRUE_SKY_CHATGPT_APP_URL }
       : {}),
   },
 } as const;
