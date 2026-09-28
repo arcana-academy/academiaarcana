@@ -2,6 +2,9 @@ import Link from "next/link";
 
 import { navigationItems, type AuthenticatedRouteHref } from "@/config/navigation";
 
+export { navigationItems };
+export type { AuthenticatedRouteHref };
+
 type AuthenticatedNavigationProps = {
   currentPath: AuthenticatedRouteHref;
 };
