@@ -192,7 +192,7 @@ describe("SanctuaryPage", () => {
 
     render(await SanctuaryPage());
 
-    expect(screen.getByRole("navigation")).toBeTruthy();
+    expect(screen.getAllByRole("navigation")[0]).toBeTruthy();
 
     expect(
       screen.getByRole("link", { name: /santu/i }),
