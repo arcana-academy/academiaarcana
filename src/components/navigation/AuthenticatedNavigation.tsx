@@ -1,50 +1,40 @@
 import Link from "next/link";
-
-export type AuthenticatedRouteHref =
-  | "/academia"
-  | "/santuario"
-  | "/workspace"
-  | "/cronograma"
-  | "/personalizar";
-
-type AuthenticatedNavigationItem = {
-  href: AuthenticatedRouteHref;
-  label: string;
-};
+import type { AuthenticatedRouteHref } from "@/config/navigation";
+import { authenticatedNavigation } from "@/config/navigation";
 
 type AuthenticatedNavigationProps = {
   currentPath: AuthenticatedRouteHref;
 };
 
-const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
-  { href: "/academia", label: "Academia" },
-  { href: "/santuario", label: "Santuário" },
-  { href: "/workspace", label: "Workspace" },
-  { href: "/cronograma", label: "Cronograma" },
-  { href: "/personalizar", label: "Personalizar" },
-];
-
 export function AuthenticatedNavigation({
   currentPath,
 }: AuthenticatedNavigationProps) {
   return (
-    <nav className="aa-card aa-card-default" aria-label="Navegação principal">
+    <nav
+      className="aa-navigation"
+      aria-label="Navegação principal"
+    >
+      <p className="aa-nav-kicker">Navegação</p>
       <ul className="aa-navigation-list">
-        {navigationItems.map((item) => {
+        {authenticatedNavigation.map((item) => {
           const isCurrent = item.href === currentPath;
-          const variant = isCurrent ? "aa-button-primary" : "aa-button-secondary";
-          const reinforcement = isCurrent ? "aa-nav-link-active" : "";
+          const Icon = item.icon;
 
           return (
             <li key={item.href}>
               <Link
-                className={["aa-button", variant, "aa-button-sm", reinforcement]
+                className={[
+                  "aa-nav-link",
+                  isCurrent ? "aa-nav-link-current" : "",
+                ]
                   .filter(Boolean)
                   .join(" ")}
                 href={item.href}
                 aria-current={isCurrent ? "page" : undefined}
+                aria-label={item.description}
               >
-                {item.label}
+                <Icon aria-hidden="true" focusable="false" size={18} strokeWidth={1.8} />
+                <span>{item.label}</span>
               </Link>
             </li>
           );
