@@ -11,6 +11,18 @@ export type {
   IntegrationToolResult,
 } from "./contracts";
 
+export {
+  AGENTIC_COURSE_REDESIGN_APP_ID,
+  AGENTIC_COURSE_REDESIGN_PLUGIN_NAME,
+  AGENTIC_COURSE_REDESIGN_EXECUTION_MODE,
+  AGENTIC_COURSE_REDESIGN_CAPABILITIES,
+  AGENTIC_COURSE_REDESIGN_INTEGRATION,
+} from "./agentic-course-redesign";
+export type {
+  AgenticCourseRedesignCapability,
+  AgenticCourseRedesignIntegration,
+} from "./agentic-course-redesign";
+
 export { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 export type { ChatGPTPluginCatalogEntry } from "./chatgpt-plugin-catalog";
 
@@ -21,9 +33,13 @@ export {
   A_Z_DICTIONARY_CHATGPT_APP_URL,
   A_Z_HOLY_BIBLE_APP_ID,
   A_Z_HOLY_BIBLE_CHATGPT_APP_URL,
+  ACADEMIC_WRITING_TOOLKIT_APP_ID,
+  ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
+  QUIZLET_APP_ID,
+  QUIZLET_CHATGPT_APP_URL,
   SPOTIFY_APP_ID,
   SPOTIFY_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
@@ -46,6 +62,7 @@ export type {
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
+  IntegrationExecutionMode,
   IntegrationStatusEntry,
   IntegrationStatusSnapshot,
 } from "./status";
