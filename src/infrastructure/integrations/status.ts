@@ -11,6 +11,7 @@ export type IntegrationStatusEntry = {
   readonly name: string;
   readonly source: "chatgpt-catalog";
   readonly status: IntegrationCatalogStatus;
+  readonly chatgptAppUrl?: string;
   readonly verification:
     | {
         readonly providerId: "github";
@@ -70,6 +71,12 @@ export async function getIntegrationStatusSnapshot({
           name: plugin.name,
           source: plugin.source,
           status: "catalogued" as const,
+          ...(plugin.name === "1 Billion Brain Cells"
+            ? {
+                chatgptAppUrl:
+                  CHATGPT_APP_BRIDGES[ONE_BILLION_BRAIN_CELLS_APP_ID].appUrl,
+              }
+            : {}),
           verification: null,
         },
   );
