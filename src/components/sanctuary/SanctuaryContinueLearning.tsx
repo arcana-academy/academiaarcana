@@ -7,9 +7,12 @@ type SanctuaryContinueLearningProps = {
 export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinueLearningProps) {
   if (!continueLearning) {
     return (
-      <div className="aa-empty" aria-labelledby="sanctuary-continue-learning">
-        <p id="sanctuary-continue-learning">Nenhum estudo recente para retomar ainda. Comece um novo capítulo quando estiver pronto.</p>
-      </div>
+      <section className="aa-empty" aria-labelledby="sanctuary-continue-learning">
+        <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
+          Continuar aprendendo
+        </h2>
+        <p>Nenhum estudo recente para retomar ainda. Comece um novo capítulo quando estiver pronto.</p>
+      </section>
     );
   }
 
@@ -21,10 +24,10 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
   ].filter(Boolean);
 
   return (
-    <div aria-labelledby="sanctuary-continue-learning">
-      <h3 id="sanctuary-continue-learning" className="aa-visually-hidden">
+    <section aria-labelledby="sanctuary-continue-learning">
+      <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
         Continuar aprendendo
-      </h3>
+      </h2>
       <div className="aa-sanctuary-path">
         {path.map((item, index) => (
           <span key={`${item}-${index}`}>
@@ -32,6 +35,6 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
           </span>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
