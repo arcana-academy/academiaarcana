@@ -1,42 +1,34 @@
 import type { QuickAction, SanctuaryViewModel } from "@/domains/sanctuary";
 
 type SanctuaryHeaderProps = {
-    header: SanctuaryViewModel["header"];
-    primaryAction: QuickAction;
+  header: SanctuaryViewModel["header"];
+  primaryAction: QuickAction;
 };
 
-/**
- * Identity header for the authenticated Sanctuary.
- *
- * Renders the greeting as the level-one heading that labels `<main>`, the
- * optional user display name, and the already-resolved primary action as a
- * semantic link. Priority resolution stays in the domain/application layers,
- * so this component never re-derives it from `primaryAction.priority`.
- *
- * Styling reuses the existing `aa-card`/`aa-button` classes and design tokens
- * from `globals.css` (including the global `:focus-visible` outline and the
- * density-scaled target size), so no new visual tokens are introduced.
- */
-export function SanctuaryHeader({
-    header,
-    primaryAction,
-}: SanctuaryHeaderProps) {
-    const displayName = header.user.displayName?.trim();
+export function SanctuaryHeader({ header, primaryAction }: SanctuaryHeaderProps) {
+  const displayName = header.user.displayName?.trim();
 
-    return (
-        <header className="aa-card aa-card-default">
-            <h1 id="sanctuary-title">{header.greeting}</h1>
+  return (
+    <header className="aa-sanctuary-hero">
+      <div className="aa-sanctuary-hero-copy">
+        <span className="aa-section-kicker">Seu espaço de estudo</span>
+        <h1 id="sanctuary-title">{header.greeting}</h1>
+        {displayName ? (
+          <p className="aa-sanctuary-user" data-testid="sanctuary-user-name">
+            {displayName}
+          </p>
+        ) : null}
+        <p className="aa-sanctuary-lead">
+          Um ponto de partida claro para retomar o que importa e escolher o próximo passo.
+        </p>
+      </div>
 
-            {displayName ? (
-                <p data-testid="sanctuary-user-name">{displayName}</p>
-            ) : null}
-
-            <a
-                className="aa-button aa-button-primary aa-button-lg"
-                href={primaryAction.href}
-            >
-                {primaryAction.label}
-            </a>
-        </header>
-    );
+      <div className="aa-sanctuary-hero-action">
+        <span className="aa-hero-mark" aria-hidden="true">✦</span>
+        <a className="aa-button aa-button-primary aa-button-lg" href={primaryAction.href}>
+          {primaryAction.label}
+        </a>
+      </div>
+    </header>
+  );
 }
