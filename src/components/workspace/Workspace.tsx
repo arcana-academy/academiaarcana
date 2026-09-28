@@ -64,11 +64,8 @@ function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
   };
 
   return (
-    <form
-      aria-label="Criar grimório"
-      onSubmit={(event) => {
-        event.preventDefault();
-      }}
+    <form className="workspace-creation-form" aria-label="Criar grimório"
+      onSubmit={(event) => { event.preventDefault(); void handleCreate(); }}
     >
       <label htmlFor="workspace-new-grimoire-title">Novo grimório</label>
       <input
@@ -78,9 +75,7 @@ function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
         disabled={isCreating}
         placeholder="Título do grimório"
       />
-      <button
-        type="button"
-        disabled={isCreating || !title.trim()}
+      <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
         onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar grimório"}
@@ -122,11 +117,8 @@ function NotebookCreationForm({
   };
 
   return (
-    <form
-      aria-label="Criar caderno"
-      onSubmit={(event) => {
-        event.preventDefault();
-      }}
+    <form className="workspace-creation-form" aria-label="Criar caderno"
+      onSubmit={(event) => { event.preventDefault(); void handleCreate(); }}
     >
       <label htmlFor="workspace-new-notebook-title">Novo caderno</label>
       <input
@@ -136,9 +128,7 @@ function NotebookCreationForm({
         disabled={isCreating}
         placeholder="Título do caderno"
       />
-      <button
-        type="button"
-        disabled={isCreating || !title.trim()}
+      <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
         onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar caderno"}
@@ -180,7 +170,7 @@ function ChapterCreationForm({
   };
 
   return (
-    <form aria-label="Criar capítulo" onSubmit={(event) => event.preventDefault()}>
+    <form className="workspace-creation-form" aria-label="Criar capítulo" onSubmit={(event) => event.preventDefault()}>
       <label htmlFor="workspace-new-chapter-title">Novo capítulo</label>
       <input
         id="workspace-new-chapter-title"
@@ -189,9 +179,7 @@ function ChapterCreationForm({
         disabled={isCreating}
         placeholder="Título do capítulo"
       />
-      <button
-        type="button"
-        disabled={isCreating || !title.trim()}
+      <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
         onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar capítulo"}
@@ -236,11 +224,8 @@ function PageCreationForm({
   };
 
   return (
-    <form
-      aria-label="Criar página"
-      onSubmit={(event) => {
-        event.preventDefault();
-      }}
+    <form className="workspace-creation-form" aria-label="Criar página"
+      onSubmit={(event) => { event.preventDefault(); void handleCreate(); }}
     >
       <label htmlFor="workspace-new-page-title">
         Nova página
@@ -252,9 +237,7 @@ function PageCreationForm({
         disabled={isCreating}
         placeholder="Título da página"
       />
-      <button
-        type="button"
-        disabled={isCreating || !title.trim()}
+      <button className="aa-button aa-button-primary" type="submit" disabled={isCreating || !title.trim()}
         onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar página"}
@@ -301,7 +284,7 @@ export function Workspace({
           onOpenChapter={onOpenChapter}
           onOpenPage={onOpenPage}
         />
-        <main aria-label="Área de trabalho">
+        <main className="workspace-main" aria-label="Área de trabalho">
           <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
 
           {state.grimoireId && !state.notebookId && !state.chapterId ? (
@@ -380,10 +363,10 @@ export function Workspace({
               onSetProgress={onSetPageProgress}
             />
           ) : (
-            <p>Selecione uma página para começar.</p>
+            <p className="workspace-empty-state">Selecione uma página para começar.</p>
           )}
         </main>
-        <aside aria-label="Contexto">
+        <aside className="workspace-context" aria-label="Contexto">
           {selectedPage ? (
             <p>Página selecionada: {selectedPage.title}</p>
           ) : (

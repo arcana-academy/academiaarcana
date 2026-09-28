@@ -1284,3 +1284,208 @@ p {
     width: 100%;
   }
 }
+
+
+.workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aa-spacing-md);
+  min-width: 0;
+  padding: 0 0 var(--aa-spacing-sm);
+}
+
+.workspace-header-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--aa-spacing-sm);
+}
+
+.workspace-header-title .aa-card-icon {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.workspace-header-title h1 {
+  overflow-wrap: anywhere;
+  margin-bottom: 0;
+  font-size: clamp(1.4rem, 1.1rem + 1.5vw, 2.25rem);
+}
+
+.workspace-main {
+  min-width: 0;
+}
+
+.workspace-context {
+  min-width: 0;
+  color: var(--aa-text-secondary);
+}
+
+.workspace-context p {
+  margin: 0;
+}
+
+.workspace-empty-state {
+  display: grid;
+  min-height: 12rem;
+  place-items: center;
+  margin: 0;
+  border: 1px dashed var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  color: var(--aa-text-secondary);
+  background: var(--aa-surfaces-inset);
+  text-align: center;
+  padding: var(--aa-spacing-lg);
+}
+
+.workspace-creation-form {
+  position: relative;
+}
+
+.workspace-creation-form .aa-button {
+  justify-self: start;
+}
+
+.workspace-tree {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.workspace-tree-empty {
+  min-height: 12rem;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--aa-spacing-sm);
+  color: var(--aa-text-secondary);
+  text-align: center;
+}
+
+.workspace-tree-empty p {
+  margin: 0;
+}
+
+.workspace-tree-group {
+  min-width: 0;
+}
+
+.workspace-tree-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.workspace-tree-children {
+  display: grid;
+  gap: 0.1rem;
+  margin-left: 0.75rem;
+  padding-left: 0.55rem;
+  border-left: 1px solid color-mix(in srgb, var(--aa-border-default) 72%, transparent);
+}
+
+.workspace-tree-item,
+.workspace-tree-toggle {
+  min-width: 0;
+  min-height: 2.55rem;
+  border: 1px solid transparent;
+  border-radius: var(--aa-radius-sm);
+  background: transparent;
+  color: var(--aa-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.workspace-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+}
+
+.workspace-tree-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-tree-item:hover,
+.workspace-tree-toggle:hover {
+  background: color-mix(in srgb, var(--aa-surfaces-elevated) 84%, transparent);
+  color: var(--aa-text-primary);
+}
+
+.workspace-tree-item.is-current {
+  border-color: color-mix(in srgb, var(--aa-accent-primary) 44%, var(--aa-border-default));
+  background: color-mix(in srgb, var(--aa-accent-primary) 10%, var(--aa-surfaces-elevated));
+  color: var(--aa-text-primary);
+  font-weight: 750;
+}
+
+.workspace-tree-toggle {
+  display: grid;
+  width: 2.45rem;
+  place-items: center;
+  padding: 0;
+}
+
+.workspace-editor {
+  display: grid;
+  gap: var(--aa-spacing-md);
+}
+
+.workspace-editor > label {
+  margin-bottom: -0.35rem;
+}
+
+.workspace-editor-blocks {
+  display: grid;
+  gap: var(--aa-spacing-md);
+}
+
+.workspace-editor-block {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.workspace-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--aa-spacing-sm);
+}
+
+.workspace-editor > button {
+  justify-self: start;
+}
+
+.workspace-delete-dialog {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  padding: var(--aa-spacing-md);
+  border: 1px solid var(--aa-status-danger);
+  border-radius: var(--aa-radius-md);
+  background: color-mix(in srgb, var(--aa-status-danger) 7%, var(--aa-surfaces-inset));
+}
+
+.workspace-delete-dialog p {
+  margin: 0;
+}
+
+.workspace-delete-dialog button {
+  width: fit-content;
+}
+
+@media (max-width: 38rem) {
+  .workspace-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .workspace-header > .aa-button {
+    width: 100%;
+  }
+}
