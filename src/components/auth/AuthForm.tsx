@@ -1,8 +1,11 @@
 "use client";
 
-import { FormEvent, useId, useState } from "react";
+import { useId, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "signup" | "recover" | "update-password";
@@ -11,15 +14,37 @@ type AuthFormProps = {
   mode: AuthMode;
 };
 
-const COPY: Record<AuthMode, { title: string; submit: string }> = {
-  login: { title: "Entrar", submit: "Entrar" },
-  signup: { title: "Criar conta", submit: "Criar conta" },
+const COPY: Record<
+  AuthMode,
+  {
+    title: string;
+    eyebrow: string;
+    description: string;
+    submit: string;
+  }
+> = {
+  login: {
+    eyebrow: "Entrada",
+    title: "Entrar na Academia",
+    description: "Retome sua jornada de aprendizagem.",
+    submit: "Entrar",
+  },
+  signup: {
+    eyebrow: "Primeiro acesso",
+    title: "Criar sua conta",
+    description: "Prepare seu espaço de aprendizagem na Academia Arcana.",
+    submit: "Criar conta",
+  },
   recover: {
+    eyebrow: "Acesso",
     title: "Recuperar acesso",
+    description: "Enviaremos instruções para o endereço informado, quando aplicável.",
     submit: "Enviar instruções",
   },
   "update-password": {
+    eyebrow: "Segurança",
     title: "Definir nova senha",
+    description: "Escolha uma senha nova para continuar com segurança.",
     submit: "Atualizar senha",
   },
 };
@@ -31,6 +56,43 @@ const MIN_PASSWORD_LENGTH = 8;
 
 const PASSWORD_TOO_SHORT_ERROR =
   "A senha precisa ter pelo menos 8 caracteres.";
+
+function AuthLinks({ mode }: { mode: AuthMode }) {
+  if (mode === "login") {
+    return (
+      <nav className="aa-auth-links" aria-label="Opções de acesso">
+        <Link className="aa-text-link" href="/cadastro">
+          Criar uma conta
+        </Link>
+        <Link className="aa-text-link" href="/recuperar-senha">
+          Esqueci minha senha
+        </Link>
+      </nav>
+    );
+  }
+
+  if (mode === "signup") {
+    return (
+      <nav className="aa-auth-links" aria-label="Opções de acesso">
+        <Link className="aa-text-link" href="/login">
+          Já tenho uma conta
+        </Link>
+      </nav>
+    );
+  }
+
+  if (mode === "recover" || mode === "update-password") {
+    return (
+      <nav className="aa-auth-links" aria-label="Opções de acesso">
+        <Link className="aa-text-link" href="/login">
+          Voltar para entrar
+        </Link>
+      </nav>
+    );
+  }
+
+  return null;
+}
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
@@ -143,82 +205,110 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const copy = COPY[mode];
   const passwordInputType = showPassword ? "text" : "password";
+  const passwordTooShort =
+    (mode === "signup" || mode === "update-password") &&
+    password.length > 0 &&
+    password.length < MIN_PASSWORD_LENGTH;
+  const passwordsMismatch =
+    mode === "update-password" &&
+    confirmPassword.length > 0 &&
+    password !== confirmPassword;
 
   return (
-    <main aria-labelledby="auth-title">
-      <h1 id="auth-title">{copy.title}</h1>
+    <main className="aa-auth-page" aria-labelledby="auth-title">
+      <section className="aa-auth-card aa-card aa-card-elevated">
+        <header>
+          <p className="aa-eyebrow">{copy.eyebrow}</p>
+          <h1 id="auth-title">{copy.title}</h1>
+          <p>{copy.description}</p>
+        </header>
 
-      <form onSubmit={handleSubmit} noValidate>
-        {mode !== "update-password" && (
-          <div>
-            <label htmlFor={emailId}>Email</label>
-            <input
+        <form className="aa-form" onSubmit={handleSubmit}>
+          {mode !== "update-password" && (
+            <Input
               id={emailId}
               name="email"
               type="email"
+              label="Email"
               autoComplete="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={status === "error"}
             />
-          </div>
-        )}
+          )}
 
-        {mode !== "recover" && (
-          <div>
-            <label htmlFor={passwordId}>Senha</label>
-            <input
-              id={passwordId}
-              name="password"
-              type={passwordInputType}
-              autoComplete={
-                mode === "login" ? "current-password" : "new-password"
-              }
-              required
-              minLength={MIN_PASSWORD_LENGTH}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              aria-invalid={status === "error"}
-            />
+          {mode !== "recover" && (
+            <div className="aa-password-group">
+              <Input
+                id={passwordId}
+                name="password"
+                type={passwordInputType}
+                label="Senha"
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
+                required
+                minLength={MIN_PASSWORD_LENGTH}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                error={passwordTooShort ? PASSWORD_TOO_SHORT_ERROR : undefined}
+              />
 
-            <button
-              type="button"
-              onClick={() => setShowPassword((visible) => !visible)}
-              aria-pressed={showPassword}
-            >
-              {showPassword ? "Ocultar senha" : "Mostrar senha"}
-            </button>
-          </div>
-        )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? "Ocultar senha" : "Mostrar senha"}
+              </Button>
+            </div>
+          )}
 
-        {mode === "update-password" && (
-          <div>
-            <label htmlFor={confirmPasswordId}>Confirmar senha</label>
-            <input
+          {mode === "update-password" && (
+            <Input
               id={confirmPasswordId}
               name="confirm-password"
               type={passwordInputType}
+              label="Confirmar senha"
               autoComplete="new-password"
               required
               minLength={MIN_PASSWORD_LENGTH}
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              aria-invalid={status === "error"}
+              error={
+                passwordsMismatch
+                  ? "As senhas precisam ser iguais."
+                  : undefined
+              }
             />
+          )}
+
+          {message ? (
+            <p
+              className="aa-alert"
+              role="alert"
+              aria-live="polite"
+              data-tone={status === "error" ? "danger" : "success"}
+            >
+              {message}
+            </p>
+          ) : null}
+
+          <div className="aa-form-actions">
+            <Button
+              type="submit"
+              loading={status === "loading"}
+              size="lg"
+            >
+              {status === "loading" ? "Processando…" : copy.submit}
+            </Button>
           </div>
-        )}
+        </form>
 
-        {message && (
-          <p role="alert" aria-live="polite">
-            {message}
-          </p>
-        )}
-
-        <button type="submit" disabled={status === "loading"}>
-          {status === "loading" ? "Processando…" : copy.submit}
-        </button>
-      </form>
+        <AuthLinks mode={mode} />
+      </section>
     </main>
   );
 }
