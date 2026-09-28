@@ -113,15 +113,17 @@ describe("ChatGPT app bridges", () => {
   it("keeps every bridge anchored to a catalog entry and a unique official ChatGPT URL", () => {
     const catalogNames = new Set(CHATGPT_PLUGIN_CATALOG.map((entry) => entry.name));
     const bridges = Object.values(CHATGPT_APP_BRIDGES);
-    const bridgeUrls = bridges.map((bridge) => bridge.appUrl);
+    const bridgeUrls = bridges
+      .map((bridge) => bridge.appUrl)
+      .filter((url): url is string => typeof url === "string");
 
     expect(bridges.every((bridge) => catalogNames.has(bridge.displayName))).toBe(
       true,
     );
     expect(new Set(bridgeUrls).size).toBe(bridgeUrls.length);
     expect(
-      bridges.every((bridge) => {
-        const url = new URL(bridge.appUrl);
+      bridgeUrls.every((appUrl) => {
+        const url = new URL(appUrl);
         return url.protocol === "https:" && url.hostname === "chatgpt.com";
       }),
     ).toBe(true);
