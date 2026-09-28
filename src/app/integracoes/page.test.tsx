@@ -37,5 +37,8 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("GitHub");
     expect(html).toContain("Verificado");
     expect(html).toContain("A conexão externa foi verificada em runtime.");
+    expect(html).toContain("1 Billion Brain Cells");
+    expect(html).toContain("Abrir no ChatGPT");
+    expect(html).toContain("plugin_asdk_app_69cd086370708191905606fa0641d238");
   });
 });
