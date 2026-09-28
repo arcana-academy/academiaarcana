@@ -1,51 +1,27 @@
 import Link from "next/link";
 
-export type AuthenticatedRouteHref =
-  | "/academia"
-  | "/grimorios"
-  | "/santuario"
-  | "/workspace"
-  | "/cronograma"
-  | "/personalizar";
-
-type AuthenticatedNavigationItem = {
-  href: AuthenticatedRouteHref;
-  label: string;
-};
+import { navigationItems, type AuthenticatedRouteHref } from "@/config/navigation";
 
 type AuthenticatedNavigationProps = {
   currentPath: AuthenticatedRouteHref;
 };
 
-const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
-  { href: "/academia", label: "Academia" },
-  { href: "/grimorios", label: "Grimórios" },
-  { href: "/santuario", label: "Santuário" },
-  { href: "/workspace", label: "Workspace" },
-  { href: "/cronograma", label: "Cronograma" },
-  { href: "/personalizar", label: "Personalizar" },
-];
-
-export function AuthenticatedNavigation({
-  currentPath,
-}: AuthenticatedNavigationProps) {
+export function AuthenticatedNavigation({ currentPath }: AuthenticatedNavigationProps) {
   return (
-    <nav className="aa-card aa-card-default" aria-label="Navegação principal">
+    <nav className="aa-legacy-navigation" aria-label="Navegação principal">
       <ul className="aa-navigation-list">
         {navigationItems.map((item) => {
           const isCurrent = item.href === currentPath;
-          const variant = isCurrent ? "aa-button-primary" : "aa-button-secondary";
-          const reinforcement = isCurrent ? "aa-nav-link-active" : "";
+          const Icon = item.icon;
 
           return (
             <li key={item.href}>
               <Link
-                className={["aa-button", variant, "aa-button-sm", reinforcement]
-                  .filter(Boolean)
-                  .join(" ")}
+                className={isCurrent ? "aa-button aa-button-primary aa-button-sm aa-nav-link-active" : "aa-button aa-button-secondary aa-button-sm"}
                 href={item.href}
                 aria-current={isCurrent ? "page" : undefined}
               >
+                <Icon size={17} aria-hidden="true" />
                 {item.label}
               </Link>
             </li>
