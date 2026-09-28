@@ -9,13 +9,13 @@ type SidebarProps = {
 
 export function Sidebar({ currentPath }: SidebarProps) {
   return (
-    <aside className="aa-sidebar" aria-label="Navegação principal">
+    <aside className="aa-sidebar" aria-label="Barra lateral">
       <div className="aa-sidebar-intro">
-        <span className="aa-sidebar-kicker">Academia Arcana</span>
+        <span className="aa-sidebar-kicker">Núcleo de estudo</span>
         <p className="aa-sidebar-title">Sua jornada, em um só lugar.</p>
       </div>
 
-      <nav>
+      <nav aria-label="Navegação principal">
         <ul className="aa-sidebar-list">
           {primaryNavigation.map((item) => {
             const Icon = item.icon;
