@@ -192,11 +192,13 @@ describe("SanctuaryPage", () => {
 
     render(await SanctuaryPage());
 
-    expect(screen.getAllByRole("navigation")[0]).toBeTruthy();
-
+    const sanctuaryLinks = screen.getAllByRole("link", { name: /santu/i });
+    expect(sanctuaryLinks).toHaveLength(2);
     expect(
-      screen.getByRole("link", { name: /santu/i }),
-    ).toHaveAttribute("aria-current", "page");
+      sanctuaryLinks.every((link) =>
+        link.getAttribute("aria-current") === "page",
+      ),
+    ).toBe(true);
 
     expect(
       screen.getByRole("link", { name: "Workspace" }),
