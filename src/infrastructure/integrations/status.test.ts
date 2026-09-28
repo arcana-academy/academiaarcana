@@ -28,6 +28,16 @@ describe("integration status snapshot", () => {
     );
     expect(snapshot.errorCount).toBe(0);
 
+    const brainCells = snapshot.entries.find(
+      (entry) => entry.name === "1 Billion Brain Cells",
+    );
+    expect(brainCells).toMatchObject({
+      name: "1 Billion Brain Cells",
+      status: "catalogued",
+      chatgptAppUrl:
+        "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",
+    });
+
     const github = snapshot.entries.find((entry) => entry.name === "GitHub");
     expect(github).toMatchObject({
       name: "GitHub",
