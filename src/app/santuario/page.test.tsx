@@ -200,8 +200,12 @@ describe("SanctuaryPage", () => {
       ),
     ).toBe(true);
 
+    const workspaceLinks = screen.getAllByRole("link", { name: "Workspace" });
+    expect(workspaceLinks).toHaveLength(2);
     expect(
-      screen.getByRole("link", { name: "Workspace" }),
-    ).not.toHaveAttribute("aria-current");
+      workspaceLinks.every(
+        (link) => link.getAttribute("aria-current") === null,
+      ),
+    ).toBe(true);
   });
 });
