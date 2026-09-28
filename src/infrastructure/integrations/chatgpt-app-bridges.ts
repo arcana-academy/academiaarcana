@@ -22,6 +22,11 @@ export const A_Z_DICTIONARY_APP_ID = "a-z-dictionary" as const;
 export const A_Z_DICTIONARY_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db" as const;
 
+export const A_Z_HOLY_BIBLE_APP_ID = "a-z-holy-bible" as const;
+
+export const A_Z_HOLY_BIBLE_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/plugin_asdk_app_69985bb469908191a8abda024bb692cb" as const;
+
 export const CHATGPT_APP_BRIDGES = {
   [ONE_BILLION_BRAIN_CELLS_APP_ID]: {
     providerId: ONE_BILLION_BRAIN_CELLS_APP_ID,
@@ -37,6 +42,11 @@ export const CHATGPT_APP_BRIDGES = {
     providerId: A_Z_DICTIONARY_APP_ID,
     displayName: "A-Z Dictionary",
     appUrl: A_Z_DICTIONARY_CHATGPT_APP_URL,
+  },
+  [A_Z_HOLY_BIBLE_APP_ID]: {
+    providerId: A_Z_HOLY_BIBLE_APP_ID,
+    displayName: "A-Z Holy Bible",
+    appUrl: A_Z_HOLY_BIBLE_CHATGPT_APP_URL,
   },
 } as const;
 
