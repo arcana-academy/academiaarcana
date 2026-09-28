@@ -1,7 +1,8 @@
 import { signOut } from "@/lib/auth/actions";
 import type { NavigationItem } from "@/config/navigation";
 
-import { MobileNavigation, Sidebar } from "@/components/layout";
+import { MobileNavigation } from "@/components/layout/MobileNavigation";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 type AuthenticatedShellProps = {
   currentPath: NavigationItem["href"];
