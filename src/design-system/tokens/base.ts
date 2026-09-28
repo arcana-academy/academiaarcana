@@ -40,10 +40,12 @@ export const baseTokens: ThemeTokens = {
     sm: "0.5rem",
     md: "1rem",
     lg: "1.5rem",
+    xl: "2rem",
+    "2xl": "3rem",
   },
   typography: {
-    body: "system-ui, sans-serif",
-    heading: "Georgia, serif",
+    body: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    heading: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif',
   },
   shadows: {
     sm: "0 1px 2px rgb(0 0 0 / 0.24)",
@@ -60,5 +62,12 @@ export const baseTokens: ThemeTokens = {
   effects: {
     glow: "0 0 0 transparent",
     texture: "none",
+  },
+  zIndex: {
+    base: "0",
+    sticky: "20",
+    overlay: "50",
+    modal: "100",
+    toast: "200",
   },
 };

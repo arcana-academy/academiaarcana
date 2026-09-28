@@ -1,50 +1,46 @@
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
-
 import { Progress } from "@/components/ui/progress";
 
 type SanctuaryProgressProps = {
-    progress: SanctuaryViewModel["progress"];
+  progress: SanctuaryViewModel["progress"];
 };
 
-/**
- * Presentational Progress section for the Sanctuary.
- *
- * Renders `SectionState<ProgressSummary>` explicitly without fabricating,
- * recalculating, or persisting progress data. Only the `ready` state uses
- * the existing `Progress` primitive with the real `percentage`/`label`.
- */
 export function SanctuaryProgress({ progress }: SanctuaryProgressProps) {
-    return (
-        <section aria-labelledby="sanctuary-progress">
-            <h2 id="sanctuary-progress">Progresso</h2>
+  return (
+    <section
+      className="aa-card aa-card-default aa-sanctuary-section"
+      aria-labelledby="sanctuary-progress"
+    >
+      <header>
+        <p className="aa-eyebrow">Progresso</p>
+        <h2 id="sanctuary-progress">Progresso</h2>
+        <p>Veja o avanço disponível para este contexto.</p>
+      </header>
 
-            {progress.status === "ready" ? (
-                <>
-                    <p>{progress.data.label}</p>
-                    <Progress
-                        value={progress.data.percentage}
-                        label={progress.data.label}
-                    />
-                </>
-            ) : null}
+      {progress.status === "ready" ? (
+        <div className="aa-state-card" data-state="success">
+          <p>{progress.data.label}</p>
+          <Progress value={progress.data.percentage} label={progress.data.label} />
+        </div>
+      ) : null}
 
-            {progress.status === "empty" ? (
-                <p>Ainda não há dados de progresso para exibir.</p>
-            ) : null}
+      {progress.status === "empty" ? (
+        <div className="aa-state-card">
+          <p>Ainda não há dados de progresso para exibir.</p>
+        </div>
+      ) : null}
 
-            {progress.status === "not-configured" ? (
-                <p>
-                    O recurso de progresso ainda não está configurado e não há
-                    dados disponíveis.
-                </p>
-            ) : null}
+      {progress.status === "not-configured" ? (
+        <div className="aa-state-card" data-state="warning">
+          <p>O recurso de progresso ainda não está configurado e não há dados disponíveis.</p>
+        </div>
+      ) : null}
 
-            {progress.status === "error" ? (
-                <p>
-                    Não foi possível carregar o progresso agora. Tente novamente
-                    mais tarde.
-                </p>
-            ) : null}
-        </section>
-    );
+      {progress.status === "error" ? (
+        <div className="aa-state-card" data-state="error" role="alert">
+          <p>Não foi possível carregar o progresso agora. Tente novamente mais tarde.</p>
+        </div>
+      ) : null}
+    </section>
+  );
 }

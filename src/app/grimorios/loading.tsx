@@ -1,11 +1,11 @@
 import { AuthenticatedRouteLoading } from "@/components/layout/AuthenticatedRouteLoading";
 
-export default function SanctuaryLoading() {
+export default function GrimoriosLoading() {
   return (
     <AuthenticatedRouteLoading
-      currentPath="/santuario"
-      eyebrow="Santuário"
-      title="Carregando o Santuário"
+      currentPath="/grimorios"
+      eyebrow="Biblioteca"
+      title="Carregando seus grimórios"
     />
   );
 }

@@ -98,7 +98,9 @@ describe("Sanctuary", () => {
         expect(
             screen.getByText(/recurso de miss.es ainda n.o est. configurado/i),
         ).toBeTruthy();
-        expect(screen.queryByRole("list")).toBeNull();
+        expect(
+            screen.getByRole("list", { name: "Hierarquia do contexto" }),
+        ).toBeInTheDocument();
     });
 
     it("delegates the schedule section to SanctuarySchedule", () => {
@@ -110,7 +112,9 @@ describe("Sanctuary", () => {
         expect(
             screen.getByText(/recurso de agenda ainda n.o est. configurado/i),
         ).toBeTruthy();
-        expect(screen.queryByRole("list")).toBeNull();
+        expect(
+            screen.getByRole("list", { name: "Hierarquia do contexto" }),
+        ).toBeInTheDocument();
     });
 
     it("renders an explicit empty state when there is no learning continuation", () => {

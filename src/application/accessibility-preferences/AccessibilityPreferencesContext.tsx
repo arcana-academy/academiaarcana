@@ -88,6 +88,18 @@ export function AccessibilityPreferencesProvider({
     return unsubscribe;
   }, [provider]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const effectiveMotion = state?.effectiveMotionPreference;
+
+    if (!effectiveMotion) {
+      delete root.dataset.motion;
+      return;
+    }
+
+    root.dataset.motion = effectiveMotion;
+  }, [state?.effectiveMotionPreference]);
+
   const value: AccessibilityPreferencesContextValue = {
     state,
 

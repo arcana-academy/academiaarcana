@@ -1,52 +1,46 @@
 import Link from "next/link";
 
-export type AuthenticatedRouteHref =
-  | "/academia"
-  | "/grimorios"
-  | "/santuario"
-  | "/workspace"
-  | "/cronograma"
-  | "/personalizar";
-
-type AuthenticatedNavigationItem = {
-  href: AuthenticatedRouteHref;
-  label: string;
-};
+import {
+  authenticatedNavigationItems,
+  type AuthenticatedRouteHref,
+} from "@/config/navigation";
 
 type AuthenticatedNavigationProps = {
   currentPath: AuthenticatedRouteHref;
+  navigationLabel?: string;
 };
 
-const navigationItems: ReadonlyArray<AuthenticatedNavigationItem> = [
-  { href: "/academia", label: "Academia" },
-  { href: "/grimorios", label: "Grimórios" },
-  { href: "/santuario", label: "Santuário" },
-  { href: "/workspace", label: "Workspace" },
-  { href: "/cronograma", label: "Cronograma" },
-  { href: "/personalizar", label: "Personalizar" },
-];
+export type { AuthenticatedRouteHref };
 
 export function AuthenticatedNavigation({
   currentPath,
+  navigationLabel = "Navegação principal",
 }: AuthenticatedNavigationProps) {
   return (
-    <nav className="aa-card aa-card-default" aria-label="Navegação principal">
+    <nav className="aa-navigation" aria-label={navigationLabel}>
       <ul className="aa-navigation-list">
-        {navigationItems.map((item) => {
+        {authenticatedNavigationItems.map((item) => {
           const isCurrent = item.href === currentPath;
-          const variant = isCurrent ? "aa-button-primary" : "aa-button-secondary";
-          const reinforcement = isCurrent ? "aa-nav-link-active" : "";
+          const Icon = item.icon;
 
           return (
             <li key={item.href}>
               <Link
-                className={["aa-button", variant, "aa-button-sm", reinforcement]
+                className={[
+                  "aa-button",
+                  isCurrent ? "aa-button-primary" : "aa-button-secondary",
+                  "aa-button-sm",
+                  "aa-nav-link",
+                  isCurrent ? "aa-nav-link-active" : "",
+                ]
                   .filter(Boolean)
                   .join(" ")}
                 href={item.href}
                 aria-current={isCurrent ? "page" : undefined}
+                title={item.description}
               >
-                {item.label}
+                <Icon size={17} strokeWidth={1.8} aria-hidden="true" />
+                <span>{item.label}</span>
               </Link>
             </li>
           );
