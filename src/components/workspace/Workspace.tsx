@@ -65,9 +65,11 @@ function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
 
   return (
     <form
+      className="workspace-create-form"
       aria-label="Criar grimório"
       onSubmit={(event) => {
         event.preventDefault();
+        void handleCreate();
       }}
     >
       <label htmlFor="workspace-new-grimoire-title">Novo grimório</label>
@@ -79,9 +81,8 @@ function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
         placeholder="Título do grimório"
       />
       <button
-        type="button"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar grimório"}
       </button>
@@ -123,9 +124,11 @@ function NotebookCreationForm({
 
   return (
     <form
+      className="workspace-create-form"
       aria-label="Criar caderno"
       onSubmit={(event) => {
         event.preventDefault();
+        void handleCreate();
       }}
     >
       <label htmlFor="workspace-new-notebook-title">Novo caderno</label>
@@ -137,9 +140,8 @@ function NotebookCreationForm({
         placeholder="Título do caderno"
       />
       <button
-        type="button"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar caderno"}
       </button>
@@ -180,7 +182,7 @@ function ChapterCreationForm({
   };
 
   return (
-    <form aria-label="Criar capítulo" onSubmit={(event) => event.preventDefault()}>
+    <form className="workspace-create-form" aria-label="Criar capítulo" onSubmit={(event) => event.preventDefault()}>
       <label htmlFor="workspace-new-chapter-title">Novo capítulo</label>
       <input
         id="workspace-new-chapter-title"
@@ -190,9 +192,8 @@ function ChapterCreationForm({
         placeholder="Título do capítulo"
       />
       <button
-        type="button"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar capítulo"}
       </button>
@@ -237,9 +238,11 @@ function PageCreationForm({
 
   return (
     <form
+      className="workspace-create-form"
       aria-label="Criar página"
       onSubmit={(event) => {
         event.preventDefault();
+        void handleCreate();
       }}
     >
       <label htmlFor="workspace-new-page-title">
@@ -253,9 +256,8 @@ function PageCreationForm({
         placeholder="Título da página"
       />
       <button
-        type="button"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar página"}
       </button>
