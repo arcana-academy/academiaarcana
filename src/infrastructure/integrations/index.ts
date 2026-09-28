@@ -34,6 +34,8 @@ export {
   TARTEEL_APP_ID,
   TARTEEL_CHATGPT_APP_URL,
   SPOTIFY_CHATGPT_APP_URL,
+  TRUE_SKY_APP_ID,
+  TRUE_SKY_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
 export type { ChatGPTAppBridge } from "./chatgpt-app-bridges";
 
