@@ -3,10 +3,8 @@ import Link from "next/link";
 import { LogOut, Sparkles } from "lucide-react";
 
 import { signOut } from "@/lib/auth/actions";
-import {
-  AuthenticatedNavigation,
-  type AuthenticatedRouteHref,
-} from "@/components/navigation/AuthenticatedNavigation";
+import { AuthenticatedNavigation } from "@/components/navigation/AuthenticatedNavigation";
+import type { AuthenticatedRouteHref } from "@/config/navigation";
 
 type AuthenticatedShellProps = {
   currentPath: AuthenticatedRouteHref;
