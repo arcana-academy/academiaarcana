@@ -16,15 +16,15 @@ describe("runtime configuration", () => {
     });
   });
 
-  it("uses the project public configuration as a Vercel preview fallback", () => {
+  it("uses the project URL as a Vercel preview fallback", () => {
     vi.stubEnv("VERCEL_ENV", "preview");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-key");
 
-    const config = getPublicRuntimeConfig();
-
-    expect(config.supabaseUrl).toBe("https://fichnalpbcfjywwhixid.supabase.co");
-    expect(config.supabasePublishableKey).toMatch(/^sb_publishable_/);
+    expect(getPublicRuntimeConfig()).toEqual({
+      supabaseUrl: "https://fichnalpbcfjywwhixid.supabase.co",
+      supabasePublishableKey: "publishable-key",
+    });
   });
 
   it.each([
