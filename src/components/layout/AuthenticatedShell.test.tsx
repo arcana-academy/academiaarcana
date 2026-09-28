@@ -20,7 +20,7 @@ describe("AuthenticatedShell", () => {
     expect(screen.getByText("Academia Arcana")).toBeInTheDocument();
     expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();
     expect(
-      screen.getByRole("navigation", { name: "Navegação principal" }),
+      screen.getByRole("navigation", { name: "Seções da Academia" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sair" })).toBeInTheDocument();
     expect(
