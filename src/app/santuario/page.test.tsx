@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
@@ -195,11 +195,11 @@ describe("SanctuaryPage", () => {
     expect(screen.getByRole("navigation", { name: "Seções da Academia" })).toBeInTheDocument();
 
     expect(
-      screen.getByRole("link", { name: /santu/i }),
+      within(screen.getByRole("navigation", { name: "Seções da Academia" })).getByRole("link", { name: "Santuário" }),
     ).toHaveAttribute("aria-current", "page");
 
     expect(
-      screen.getByRole("link", { name: "Workspace" }),
+      within(screen.getByRole("navigation", { name: "Seções da Academia" })).getByRole("link", { name: "Workspace" }),
     ).not.toHaveAttribute("aria-current");
   });
 });
