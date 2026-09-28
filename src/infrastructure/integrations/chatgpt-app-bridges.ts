@@ -16,7 +16,6 @@ export const A_Z_DAILY_WORD_APP_ID = "a-z-daily-word" as const;
 export const A_Z_DAILY_WORD_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_69bd3c483c008191beb1e4cc0ce87b24" as const;
 
-
 export const A_Z_DICTIONARY_APP_ID = "a-z-dictionary" as const;
 
 export const A_Z_DICTIONARY_CHATGPT_APP_URL =
@@ -37,6 +36,11 @@ export const ACADEMIC_WRITING_TOOLKIT_APP_ID =
 
 export const ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779" as const;
+
+export const QUIZLET_APP_ID = "quizlet" as const;
+
+export const QUIZLET_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/plugin_asdk_app_694336f3c5088191bcdfe35bb532ad83" as const;
 
 export const CHATGPT_APP_BRIDGES = {
   [ONE_BILLION_BRAIN_CELLS_APP_ID]: {
@@ -68,6 +72,11 @@ export const CHATGPT_APP_BRIDGES = {
     providerId: SPOTIFY_APP_ID,
     displayName: "Spotify",
     appUrl: SPOTIFY_CHATGPT_APP_URL,
+  },
+  [QUIZLET_APP_ID]: {
+    providerId: QUIZLET_APP_ID,
+    displayName: "Quizlet",
+    appUrl: QUIZLET_CHATGPT_APP_URL,
   },
 } as const;
 
