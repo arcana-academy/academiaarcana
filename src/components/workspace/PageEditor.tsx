@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type {
+  Page,
+  PageContent,
+  PageProgressStatus,
+} from "@/domains/learning";
 
 type PageDeleteControlProps = {
   pageId: string;
@@ -18,6 +26,16 @@ function PageDeleteControl({
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const titleId = `workspace-delete-title-${pageId}`;
+  const descriptionId = `workspace-delete-description-${pageId}`;
+
+  useEffect(() => {
+    if (isConfirming) {
+      confirmRef.current?.focus();
+    }
+  }, [isConfirming]);
 
   /** Execute the confirmed deletion and report recoverable failures. */
   const remove = async () => {
@@ -32,9 +50,16 @@ function PageDeleteControl({
     }
   };
 
+  const cancel = () => {
+    setIsConfirming(false);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  };
+
   if (!isConfirming) {
     return (
       <button
+        ref={triggerRef}
+        className="aa-button aa-button-danger"
         type="button"
         onClick={() => setIsConfirming(true)}
       >
@@ -44,25 +69,37 @@ function PageDeleteControl({
   }
 
   return (
-    <div role="alertdialog" aria-label="Confirmar exclusão da página">
-      <p>
+    <div
+      className="workspace-delete-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+    >
+      <h3 id={titleId}>Confirmar exclusão</h3>
+      <p id={descriptionId}>
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
-      <button
-        type="button"
-        disabled={isDeleting}
-        onClick={() => setIsConfirming(false)}
-      >
-        Cancelar
-      </button>
-      <button
-        type="button"
-        disabled={isDeleting}
-        onClick={remove}
-      >
-        {isDeleting ? "Excluindo…" : "Confirmar exclusão"}
-      </button>
+      <div className="workspace-inline-actions">
+        <button
+          className="aa-button aa-button-secondary"
+          type="button"
+          disabled={isDeleting}
+          onClick={cancel}
+        >
+          Cancelar
+        </button>
+        <button
+          ref={confirmRef}
+          className="aa-button aa-button-danger"
+          type="button"
+          disabled={isDeleting}
+          onClick={remove}
+        >
+          {isDeleting ? "Excluindo…" : "Confirmar exclusão"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -76,14 +113,18 @@ type PageBlocksProps = {
 };
 
 /** Render page blocks while keeping block editing separate from PageEditor orchestration. */
-function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
+function PageBlocks({
+  blocks,
+  blockKeys,
+  onChange,
+}: PageBlocksProps) {
   return (
-    <div aria-label="Blocos da página">
+    <div className="workspace-editor-blocks" aria-label="Blocos da página">
       {blocks.length === 0 ? (
-        <p>Esta página ainda não possui conteúdo.</p>
+        <p className="aa-empty-state">Esta página ainda não possui conteúdo.</p>
       ) : (
         blocks.map((block, index) => (
-          <div key={blockKeys[index]}>
+          <div className="workspace-editor-block" key={blockKeys[index]}>
             <label htmlFor={`workspace-page-block-${index}`}>
               Bloco {index + 1}
             </label>
@@ -130,8 +171,9 @@ function PageMoveControls({
   const moveDownDisabled = isMoving || !canMoveDown;
 
   return (
-    <div aria-label="Ordenação da página">
+    <div className="workspace-inline-actions" aria-label="Ordenação da página">
       <button
+        className="aa-button aa-button-secondary"
         type="button"
         disabled={moveUpDisabled}
         onClick={() => onMove("up")}
@@ -139,6 +181,7 @@ function PageMoveControls({
         {getMoveLabel(isMoving, "up")}
       </button>
       <button
+        className="aa-button aa-button-secondary"
         type="button"
         disabled={moveDownDisabled}
         onClick={() => onMove("down")}
@@ -159,13 +202,25 @@ type PageSaveStatusProps = {
 function PageSaveStatus({ status }: PageSaveStatusProps) {
   const messages: Record<PageSaveState, string> = {
     idle: "",
-    saving: "",
+    saving: "Salvando as alterações…",
     saved: "Página salva.",
     error: "Não foi possível salvar a página.",
   };
 
+  const tone =
+    status === "saved"
+      ? "success"
+      : status === "error"
+        ? "danger"
+        : undefined;
+
   return (
-    <p role="status" aria-live="polite">
+    <p
+      className="aa-status"
+      role="status"
+      aria-live="polite"
+      data-tone={tone}
+    >
       {messages[status]}
     </p>
   );
@@ -289,13 +344,23 @@ export function PageEditor({
   };
 
   return (
-    <article aria-label="Editor da página">
-      <label htmlFor="workspace-page-title">Título</label>
-      <input
-        id="workspace-page-title"
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
-      />
+    <article className="workspace-editor" aria-label="Editor da página">
+      <header className="workspace-editor-header">
+        <div>
+          <p className="aa-eyebrow">Página</p>
+          <h2>Editar conteúdo</h2>
+        </div>
+        <PageSaveStatus status={status} />
+      </header>
+
+      <div className="workspace-editor-field">
+        <label htmlFor="workspace-page-title">Título</label>
+        <input
+          id="workspace-page-title"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+        />
+      </div>
 
       <PageBlocks
         blocks={content.blocks}
@@ -303,49 +368,76 @@ export function PageEditor({
         onChange={updateBlock}
       />
 
-      <button type="button" onClick={addBlock}>
-        Adicionar bloco
-      </button>
+      <div className="workspace-editor-actions">
+        <div className="workspace-inline-actions">
+          <button
+            className="aa-button aa-button-secondary"
+            type="button"
+            onClick={addBlock}
+          >
+            Adicionar bloco
+          </button>
 
-      <button type="button" disabled={status === "saving"} onClick={save}>
-        {getSaveLabel(status)}
-      </button>
+          <button
+            className="aa-button aa-button-primary"
+            type="button"
+            disabled={status === "saving"}
+            onClick={save}
+          >
+            {getSaveLabel(status)}
+          </button>
 
-      <button
-        type="button"
-        disabled={isUpdatingProgress}
-        onClick={updateProgress}
-      >
-        {isUpdatingProgress
-          ? "Atualizando…"
-          : progressStatus === "completed"
-            ? "Marcar como em andamento"
-            : "Concluir página"}
-      </button>
-      <p role="status" aria-live="polite">
-        {progressStatus === "completed"
-          ? "Página concluída."
-          : progressStatus === "in-progress"
-            ? "Página em andamento."
-            : "Página ainda não iniciada."}
-      </p>
-      {progressError ? <p role="alert">{progressError}</p> : null}
+          <button
+            className="aa-button aa-button-secondary"
+            type="button"
+            disabled={isUpdatingProgress}
+            onClick={updateProgress}
+          >
+            {isUpdatingProgress
+              ? "Atualizando…"
+              : progressStatus === "completed"
+                ? "Marcar como em andamento"
+                : "Concluir página"}
+          </button>
+        </div>
 
-      <PageMoveControls
-        isMoving={isMoving}
-        canMoveUp={canMoveUp}
-        canMoveDown={canMoveDown}
-        onMove={move}
-      />
-      {moveError ? <p role="alert">{moveError}</p> : null}
+        <p
+          className="aa-status"
+          role="status"
+          aria-live="polite"
+        >
+          {progressStatus === "completed"
+            ? "Página concluída."
+            : progressStatus === "in-progress"
+              ? "Página em andamento."
+              : "Página ainda não iniciada."}
+        </p>
+        {progressError ? (
+          <p className="aa-error-text" role="alert">
+            {progressError}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="workspace-editor-actions">
+        <PageMoveControls
+          isMoving={isMoving}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
+          onMove={move}
+        />
+        {moveError ? (
+          <p className="aa-error-text" role="alert">
+            {moveError}
+          </p>
+        ) : null}
+      </div>
 
       <PageDeleteControl
         pageId={page.id}
         pageTitle={page.title}
         onDelete={onDelete}
       />
-
-      <PageSaveStatus status={status} />
     </article>
   );
 }
