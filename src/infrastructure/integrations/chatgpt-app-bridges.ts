@@ -42,6 +42,16 @@ export const QUIZLET_APP_ID = "quizlet" as const;
 export const QUIZLET_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_694336f3c5088191bcdfe35bb532ad83" as const;
 
+export const ASTROLOGIC_APP_ID = "astrologic" as const;
+
+/**
+ * Astrologic is available as a ChatGPT-side connector in this environment.
+ * No public web-runtime URL or vendor API endpoint has been verified for
+ * Academia Arcana, so it remains metadata-only until a supported server
+ * contract is available.
+ */
+export const ASTROLOGIC_CHATGPT_APP_URL: string | undefined = undefined;
+
 export const CHATGPT_APP_BRIDGES = {
   [ONE_BILLION_BRAIN_CELLS_APP_ID]: {
     providerId: ONE_BILLION_BRAIN_CELLS_APP_ID,
@@ -77,6 +87,13 @@ export const CHATGPT_APP_BRIDGES = {
     providerId: QUIZLET_APP_ID,
     displayName: "Quizlet",
     appUrl: QUIZLET_CHATGPT_APP_URL,
+  },
+  [ASTROLOGIC_APP_ID]: {
+    providerId: ASTROLOGIC_APP_ID,
+    displayName: "Astrologic",
+    ...(ASTROLOGIC_CHATGPT_APP_URL
+      ? { appUrl: ASTROLOGIC_CHATGPT_APP_URL }
+      : {}),
   },
 } as const;
 
