@@ -93,7 +93,7 @@ export function WorkspaceTree({
                   <button
                     className="workspace-tree-item"
                     type="button"
-                    aria-current={grimoireSelected ? "page" : undefined}
+                    aria-current={grimoireSelected ? "true" : undefined}
                     onClick={() => onOpenGrimoire(grimoire.id)}
                   >
                     <BookOpen aria-hidden="true" size={17} strokeWidth={1.8} />
@@ -125,7 +125,7 @@ export function WorkspaceTree({
                           className="workspace-tree-item"
                           type="button"
                           aria-current={
-                            state.notebookId === notebook.id ? "page" : undefined
+                            state.notebookId === notebook.id ? "true" : undefined
                           }
                           onClick={() => onOpenNotebook(notebook.id)}
                         >
@@ -140,9 +140,7 @@ export function WorkspaceTree({
                                 className="workspace-tree-item"
                                 type="button"
                                 aria-current={
-                                  state.chapterId === chapter.id
-                                    ? "page"
-                                    : undefined
+                                  state.chapterId === chapter.id ? "true" : undefined
                                 }
                                 onClick={() => onOpenChapter(chapter.id)}
                               >
@@ -162,9 +160,7 @@ export function WorkspaceTree({
                                     type="button"
                                     tabIndex={0}
                                     aria-current={
-                                      state.pageId === page.id
-                                        ? "page"
-                                        : undefined
+                                      state.pageId === page.id ? "true" : undefined
                                     }
                                     onClick={() => onOpenPage(page.id)}
                                   >
