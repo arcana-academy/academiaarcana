@@ -5,7 +5,8 @@ import PerfilPage from "./page";
 describe("PerfilPage", () => {
   it("renders identity and privacy entry points", () => {
     render(<PerfilPage />);
-    expect(screen.getByRole("heading", { name: "Perfil" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Configurações" })).toHaveAttribute("href", "/configuracoes");
+    expect(screen.getByRole("heading", { name: "Perfil", level: 1 })).toBeInTheDocument();
+    const settingsLinks = screen.getAllByRole("link", { name: "Configurações" });
+    expect(settingsLinks.some((link) => link.getAttribute("href") === "/configuracoes")).toBe(true);
   });
 });
