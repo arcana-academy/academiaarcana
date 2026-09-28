@@ -18,7 +18,7 @@ export function getPublicRuntimeConfig(): PublicRuntimeConfig {
 
   return {
     supabaseUrl: isVercelPreview
-      ? process.env.NEXT_PUBLIC_SUPABASE_URL ?? PREVIEW_SUPABASE_URL
+      ? process.env.NEXT_PUBLIC_SUPABASE_URL || PREVIEW_SUPABASE_URL
       : requireValue("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL),
     supabasePublishableKey: requireValue(
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
