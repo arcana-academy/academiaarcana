@@ -18,6 +18,22 @@ The first implemented provider verification is GitHub. It is a public, read-only
 
 A provider may move from `catalogued` to a real authenticated integration only after its documented API/OAuth/MCP mechanism, scopes, credentials and server-side adapter have been implemented and verified.
 
+## A-Z Daily Word
+
+The Academia Arcana catalog includes **A-Z Daily Word**. Its current ChatGPT app listing provides an official ChatGPT launch surface, which the integration hub exposes as an explicit bridge.
+
+The bridge is intentionally navigation-only. It does **not** claim that the A-Z Daily Word ChatGPT app is callable by the Academia Arcana web runtime. The website must not invent or scrape a provider API, proxy the ChatGPT app, or store credentials that the provider has not documented for this application.
+
+Current state:
+
+- ChatGPT catalog entry: available.
+- Official ChatGPT launch bridge: available.
+- Web-runtime provider adapter: not connected.
+- Credentials stored by Academia Arcana: none.
+- Runtime status: `catalogued`, not `connected`.
+
+If the provider later exposes a documented, stable API or MCP contract that the Academia Arcana runtime is authorized to consume, that contract can be implemented behind `src/infrastructure/integrations` and promoted to `connected` only after health, authorization, representative-operation and E2E verification pass.
+
 ## 1 Billion Brain Cells
 
 The Academia Arcana catalog includes **1 Billion Brain Cells** and the integration hub exposes its official ChatGPT app entry as an explicit external bridge.
