@@ -2,7 +2,7 @@
 
 ## Status
 
-Current repository baseline — reconciled 2026-09-27 against `main` at commit `6ce181b741944e1db79e6ddc11807a5e38b097f1`.
+Current repository baseline — reconciled 2026-09-27 against `main` at commit `f5f93664d8588373e331c3fbdd6713323fad612f`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The current `main` commit `6ce181b741944e1db79e6ddc11807a5e38b097f1` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, and the eight-character password floor.
+The current `main` commit `f5f93664d8588373e331c3fbdd6713323fad612f` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, and the eight-character password floor.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,7 +85,7 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-For the current `main` commit `6ce181b741944e1db79e6ddc11807a5e38b097f1`:
+For the current `main` commit `f5f93664d8588373e331c3fbdd6713323fad612f`:
 
 - PR #290 authentication callback hardening is integrated.
 - The Next.js security patch to 16.3.6 is integrated.
@@ -96,12 +96,12 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Vercel
 
-The current Production deployment for commit `6ce181b741944e1db79e6ddc11807a5e38b097f1` is:
+The current Production deployment for commit `f5f93664d8588373e331c3fbdd6713323fad612f` is:
 
-- Deployment: `dpl_HCMHDAevZPzm5B9Kn19i1sX7Ljui`
+- Deployment: `dpl_cDJBn2To4XUq3CA9Y8diHSpLbdHN`
 - State: `READY`
 - Target: `production`
-- Deployment URL: `https://academiaarcana-7vvm195wp-academia-arcana1.vercel.app`
+- Deployment URL: `https://academiaarcana-qtkm4a6pl-academia-arcana1.vercel.app`
 - Aliases include `academiaarcana.vercel.app`
 
 A production runtime-error query for the latest two hours returned no runtime errors. A seven-day query still contains only historical errors from an older deployment related to a missing public Supabase runtime variable; those errors are not present in the current two-hour production observation.
