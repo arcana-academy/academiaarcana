@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
 
 import { SanctuaryEmptyState } from "./SanctuaryEmptyState";
@@ -11,24 +12,45 @@ export function SanctuaryContinueLearning({
   continueLearning,
 }: SanctuaryContinueLearningProps) {
   return (
-    <section aria-labelledby="sanctuary-continue-learning">
-      <h2 id="sanctuary-continue-learning">Continuar aprendendo</h2>
+    <section className="sanctuary-card aa-card aa-card-default" aria-labelledby="sanctuary-continue-learning">
+      <header className="aa-page-header">
+        <p className="aa-eyebrow">Retomada</p>
+        <h2 id="sanctuary-continue-learning">Continuar aprendendo</h2>
+        <p className="aa-page-intro">
+          Retome exatamente o contexto que a camada de aprendizagem forneceu.
+        </p>
+      </header>
 
       {continueLearning ? (
-        <div>
-          <p>{continueLearning.grimoireTitle}</p>
+        <div className="sanctuary-learning-card">
+          <div className="sanctuary-learning-path" aria-label="Contexto de aprendizagem">
+            <span>{continueLearning.grimoireTitle}</span>
+            {continueLearning.notebookTitle ? (
+              <>
+                <span aria-hidden="true">›</span>
+                <span>{continueLearning.notebookTitle}</span>
+              </>
+            ) : null}
+            {continueLearning.chapterTitle ? (
+              <>
+                <span aria-hidden="true">›</span>
+                <span>{continueLearning.chapterTitle}</span>
+              </>
+            ) : null}
+            {continueLearning.pageTitle ? (
+              <>
+                <span aria-hidden="true">›</span>
+                <span>{continueLearning.pageTitle}</span>
+              </>
+            ) : null}
+          </div>
 
-          {continueLearning.notebookTitle ? (
-            <p>{continueLearning.notebookTitle}</p>
-          ) : null}
-
-          {continueLearning.chapterTitle ? (
-            <p>{continueLearning.chapterTitle}</p>
-          ) : null}
-
-          {continueLearning.pageTitle ? (
-            <p>{continueLearning.pageTitle}</p>
-          ) : null}
+          <Link
+            className="aa-button aa-button-secondary"
+            href={continueLearning.href}
+          >
+            Abrir contexto
+          </Link>
         </div>
       ) : (
         <SanctuaryEmptyState />
