@@ -58,7 +58,7 @@ describe("ChatGPT app bridges", () => {
     });
 
     expect(ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL).toMatch(
-      /^https:\/\/chatgpt\\.com\//,
+      /^https:\/\/chatgpt\.com\//,
     );
   });
 
