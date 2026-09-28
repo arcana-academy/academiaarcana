@@ -60,6 +60,15 @@ describe("integration status snapshot", () => {
       verification: null,
     });
 
+    const aceKnowledgeGraph = snapshot.entries.find(
+      (entry) => entry.name === "Ace Knowledge Graph",
+    );
+    expect(aceKnowledgeGraph).toMatchObject({
+      name: "Ace Knowledge Graph",
+      status: "catalogued",
+      verification: null,
+    });
+
     const github = snapshot.entries.find((entry) => entry.name === "GitHub");
     expect(github).toMatchObject({
       name: "GitHub",
