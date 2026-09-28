@@ -13,6 +13,7 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         name: "1 Billion Brain Cells",
         source: "chatgpt-catalog",
         status: "catalogued",
+        executionMode: "catalog-only",
         chatgptAppUrl:
           "https://chatgpt.com/plugins/plugin_asdk_app_69cd086370708191905606fa0641d238",
         verification: null,
@@ -21,6 +22,7 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         name: "A-Z Daily Word",
         source: "chatgpt-catalog",
         status: "catalogued",
+        executionMode: "catalog-only",
         chatgptAppUrl:
           "https://chatgpt.com/plugins/plugin_asdk_app_69bd3c483c008191beb1e4cc0ce87b24",
         verification: null,
@@ -29,6 +31,7 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         name: "A-Z Dictionary",
         source: "chatgpt-catalog",
         status: "catalogued",
+        executionMode: "catalog-only",
         chatgptAppUrl:
           "https://chatgpt.com/plugins/plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db",
         verification: null,
@@ -37,6 +40,7 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         name: "A-Z Holy Bible",
         source: "chatgpt-catalog",
         status: "catalogued",
+        executionMode: "catalog-only",
         chatgptAppUrl:
           "https://chatgpt.com/plugins/plugin_asdk_app_69985bb469908191a8abda024bb692cb",
         verification: null,
@@ -53,6 +57,7 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         name: "GitHub",
         source: "chatgpt-catalog",
         status: "connected",
+        executionMode: "runtime",
         verification: {
           providerId: "github",
           repository: "arcana-academy/academiaarcana",
@@ -63,6 +68,7 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         name: "Spotify",
         source: "chatgpt-catalog",
         status: "catalogued",
+        executionMode: "catalog-only",
         chatgptAppUrl:
           "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c",
         verification: null,
