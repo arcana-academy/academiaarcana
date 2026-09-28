@@ -27,7 +27,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
 
       <div className="aa-shell-body">
         <Sidebar currentPath={currentPath} />
-        <main className="aa-main-content">{children}</main>
+        <div className="aa-main-content">{children}</div>
       </div>
 
       <MobileNavigation currentPath={currentPath} />
