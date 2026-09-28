@@ -25,7 +25,7 @@ export function AuthenticatedNavigation({
               <Link
                 className={[
                   "aa-nav-link",
-                  isCurrent ? "aa-nav-link-current" : "",
+                  isCurrent ? "aa-nav-link-current aa-nav-link-active" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
