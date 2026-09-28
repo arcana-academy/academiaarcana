@@ -16,7 +16,7 @@ export function WorkspaceHeader({
   children,
 }: WorkspaceHeaderProps) {
   return (
-    <header>
+    <header className="aa-workspace-title">
       <h1>{title}</h1>
       {actionLabel ? (
         <button type="button" onClick={onAction}>
