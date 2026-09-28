@@ -27,6 +27,12 @@ export const A_Z_HOLY_BIBLE_APP_ID = "a-z-holy-bible" as const;
 export const A_Z_HOLY_BIBLE_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_69985bb469908191a8abda024bb692cb" as const;
 
+export const ACADEMIC_WRITING_TOOLKIT_APP_ID =
+  "academic-writing-toolkit" as const;
+
+export const ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/academic-writing-toolkit" as const;
+
 export const CHATGPT_APP_BRIDGES = {
   [ONE_BILLION_BRAIN_CELLS_APP_ID]: {
     providerId: ONE_BILLION_BRAIN_CELLS_APP_ID,
@@ -47,6 +53,11 @@ export const CHATGPT_APP_BRIDGES = {
     providerId: A_Z_HOLY_BIBLE_APP_ID,
     displayName: "A-Z Holy Bible",
     appUrl: A_Z_HOLY_BIBLE_CHATGPT_APP_URL,
+  },
+  [ACADEMIC_WRITING_TOOLKIT_APP_ID]: {
+    providerId: ACADEMIC_WRITING_TOOLKIT_APP_ID,
+    displayName: "Academic Writing Toolkit",
+    appUrl: ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
   },
 } as const;
 
