@@ -1,23 +1,25 @@
 begin;
 
-select no_plan();
+create extension if not exists pgtap with schema extensions;
 
-select ok(
+select extensions.no_plan();
+
+select extensions.ok(
   to_regprocedure('public.move_workspace_page(uuid,text)') is not null,
   'a RPC move_workspace_page existe'
 );
-select is(
+select extensions.is(
   (select proc.provolatile from pg_proc as proc
    where proc.oid = to_regprocedure('public.move_workspace_page(uuid,text)')),
   'v',
   'a RPC é VOLATILE'
 );
-select ok(
+select extensions.ok(
   not (select proc.prosecdef from pg_proc as proc
        where proc.oid = to_regprocedure('public.move_workspace_page(uuid,text)')),
   'a RPC é SECURITY INVOKER'
 );
-select ok(
+select extensions.ok(
   exists (
     select 1 from pg_proc as proc
     where proc.oid = to_regprocedure('public.move_workspace_page(uuid,text)')
@@ -25,25 +27,25 @@ select ok(
   ),
   'a RPC fixa search_path vazio'
 );
-select ok(
+select extensions.ok(
   has_function_privilege(
     'authenticated', 'public.move_workspace_page(uuid,text)', 'execute'
   ),
   'authenticated pode executar a RPC'
 );
-select ok(
+select extensions.ok(
   not has_function_privilege(
     'anon', 'public.move_workspace_page(uuid,text)', 'execute'
   ),
   'anon não pode executar a RPC'
 );
-select ok(
+select extensions.ok(
   not has_function_privilege(
     'service_role', 'public.move_workspace_page(uuid,text)', 'execute'
   ),
   'service_role não pode executar a RPC'
 );
-select ok(
+select extensions.ok(
   not exists (
     select 1 from pg_constraint as constraint_row
     where constraint_row.conrelid = 'public.pages'::regclass
@@ -98,27 +100,27 @@ select set_config(
   )::text,
   true
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{moved_page,id}',
   '40000000-0000-4000-8000-000000000001',
   'movimento para baixo identifica moved_page'
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{moved_page,position}',
   '1',
   'movimento para baixo retorna a nova posição'
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{swapped_page,id}',
   '40000000-0000-4000-8000-000000000002',
   'movimento para baixo identifica swapped_page'
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{swapped_page,position}',
   '0',
   'movimento para baixo retorna a posição trocada'
 );
-select is(
+select extensions.is(
   (select string_agg(position::text, ',' order by position)
    from public.pages
    where chapter_id = '30000000-0000-4000-8000-000000000001'),
@@ -133,12 +135,12 @@ select set_config(
   )::text,
   true
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{moved_page,position}',
   '0',
   'movimento para cima retorna a nova posição'
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{swapped_page,position}',
   '1',
   'movimento para cima retorna a posição trocada'
@@ -152,12 +154,12 @@ select set_config(
   )::text,
   true
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{moved_page,position}',
   '0',
   'primeiro item mantém posição no limite superior'
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb -> 'swapped_page',
   'null'::jsonb,
   'primeiro item retorna swapped_page nulo'
@@ -170,12 +172,12 @@ select set_config(
   )::text,
   true
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{moved_page,position}',
   '2',
   'último item mantém posição no limite inferior'
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb -> 'swapped_page',
   'null'::jsonb,
   'último item retorna swapped_page nulo'
@@ -188,7 +190,7 @@ select set_config(
   )::text,
   true
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb -> 'moved_page',
   'null'::jsonb,
   'página inexistente retorna moved_page nulo'
@@ -212,7 +214,7 @@ select set_config(
   )::text,
   true
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb -> 'moved_page',
   'null'::jsonb,
   'RLS oculta página de outro owner'
@@ -225,13 +227,13 @@ select set_config(
   )::text,
   true
 );
-select is(
+select extensions.is(
   current_setting('move_test.result')::jsonb #>> '{moved_page,id}',
   '40000000-0000-4000-8000-000000000004',
   'owner correto consegue mover sua página'
 );
 
-select throws_ok(
+select extensions.throws_ok(
   $$select public.move_workspace_page(
     '40000000-0000-4000-8000-000000000004', 'sideways'
   )$$,
@@ -255,7 +257,7 @@ select set_config(
 );
 set local role authenticated;
 
-select throws_ok(
+select extensions.throws_ok(
   $$select public.move_workspace_page(
     '40000000-0000-4000-8000-000000000001', 'down'
   )$$,
@@ -263,13 +265,13 @@ select throws_ok(
   'Capítulo contém posições duplicadas.',
   'estado inconsistente falha explicitamente'
 );
-select is(
+select extensions.is(
   (select position from public.pages
    where id = '40000000-0000-4000-8000-000000000001'),
   0,
   'falha por duplicatas não move a página solicitada'
 );
-select is(
+select extensions.is(
   (select position from public.pages
    where id = '40000000-0000-4000-8000-000000000002'),
   0,
@@ -307,7 +309,7 @@ select set_config(
 );
 set local role authenticated;
 
-select throws_ok(
+select extensions.throws_ok(
   $$select public.move_workspace_page(
     '40000000-0000-4000-8000-000000000001', 'down'
   )$$,
@@ -315,13 +317,13 @@ select throws_ok(
   'falha controlada durante swap',
   'falha controlada aborta a operação'
 );
-select is(
+select extensions.is(
   (select position from public.pages
    where id = '40000000-0000-4000-8000-000000000001'),
   0,
   'rollback preserva posição original da página movida'
 );
-select is(
+select extensions.is(
   (select position from public.pages
    where id = '40000000-0000-4000-8000-000000000002'),
   1,
@@ -331,5 +333,5 @@ select is(
 reset role;
 drop trigger move_workspace_page_test_failure on public.pages;
 
-select finish();
+select extensions.finish();
 rollback;
