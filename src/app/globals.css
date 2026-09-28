@@ -227,3 +227,276 @@ a { color: inherit; }
     align-items: flex-start;
   }
 }
+
+
+/* Production application shell */
+.aa-app-frame {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--aa-accent-primary) 7%, transparent), transparent 28rem),
+    var(--aa-surfaces-canvas);
+}
+
+.aa-app-column {
+  min-width: 0;
+}
+
+.aa-sidebar {
+  display: none;
+}
+
+.aa-sidebar-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--aa-spacing-sm);
+}
+
+.aa-brand-mark {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--aa-border-strong);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-elevated);
+  color: var(--aa-accent-primary);
+  box-shadow: var(--aa-shadows-sm), var(--aa-effects-glow);
+  font-size: 1.1rem;
+}
+
+.aa-mobile-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aa-spacing-md);
+  border-bottom: 1px solid var(--aa-border-default);
+  background: color-mix(in srgb, var(--aa-surfaces-canvas) 92%, transparent);
+  padding: 0.75rem max(1rem, 4vw);
+  backdrop-filter: blur(12px);
+}
+
+.aa-mobile-topbar-actions {
+  flex: 0 0 auto;
+}
+
+.aa-app-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.aa-mobile-navigation {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  display: block;
+  border-top: 1px solid var(--aa-border-default);
+  background: color-mix(in srgb, var(--aa-surfaces-panel) 96%, transparent);
+  padding: 0.35rem max(0.35rem, env(safe-area-inset-left)) calc(0.35rem + env(safe-area-inset-bottom));
+  backdrop-filter: blur(14px);
+}
+
+.aa-mobile-navigation-list {
+  display: grid;
+  grid-auto-columns: minmax(4.5rem, 1fr);
+  grid-auto-flow: column;
+  gap: 0.2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.aa-mobile-navigation-list::-webkit-scrollbar {
+  display: none;
+}
+
+.aa-mobile-navigation-link {
+  display: flex;
+  min-height: 3.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border: 1px solid transparent;
+  border-radius: var(--aa-radius-md);
+  color: var(--aa-text-secondary);
+  padding: 0.35rem 0.45rem;
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-align: center;
+  transition: background-color var(--aa-motion-duration) ease, color var(--aa-motion-duration) ease, border-color var(--aa-motion-duration) ease;
+}
+
+.aa-mobile-navigation-link:hover {
+  background: var(--aa-surfaces-elevated);
+  color: var(--aa-text-primary);
+}
+
+.aa-mobile-navigation-link-active {
+  border-color: color-mix(in srgb, var(--aa-accent-primary) 48%, var(--aa-border-default));
+  background: color-mix(in srgb, var(--aa-accent-primary) 14%, var(--aa-surfaces-elevated));
+  color: var(--aa-text-primary);
+}
+
+.aa-sidebar-list {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+
+.aa-sidebar-link {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--aa-radius-md);
+  color: var(--aa-text-secondary);
+  padding: 0.65rem 0.75rem;
+  text-decoration: none;
+  transition: background-color var(--aa-motion-duration) ease, color var(--aa-motion-duration) ease, border-color var(--aa-motion-duration) ease;
+}
+
+.aa-sidebar-link:hover {
+  border-color: var(--aa-border-default);
+  background: var(--aa-surfaces-elevated);
+  color: var(--aa-text-primary);
+}
+
+.aa-sidebar-link-active {
+  border-color: color-mix(in srgb, var(--aa-accent-primary) 48%, var(--aa-border-default));
+  background: color-mix(in srgb, var(--aa-accent-primary) 13%, var(--aa-surfaces-elevated));
+  color: var(--aa-text-primary);
+}
+
+.aa-sidebar-link-label,
+.aa-sidebar-link-description {
+  display: block;
+}
+
+.aa-sidebar-link-label {
+  font-weight: 700;
+}
+
+.aa-sidebar-link-description {
+  margin-top: 0.1rem;
+  color: var(--aa-text-muted);
+  font-size: 0.75rem;
+}
+
+.aa-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--aa-spacing-lg);
+  border-bottom: 1px solid var(--aa-border-default);
+  padding-bottom: var(--aa-spacing-lg);
+}
+
+.aa-page-header-copy {
+  min-width: 0;
+}
+
+.aa-page-eyebrow {
+  margin: 0 0 var(--aa-spacing-xs);
+  color: var(--aa-accent-primary);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.aa-page-title {
+  margin: 0;
+  color: var(--aa-text-primary);
+  font-family: var(--aa-typography-heading);
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  line-height: 1.1;
+}
+
+.aa-page-description {
+  max-width: 60ch;
+  margin: var(--aa-spacing-sm) 0 0;
+  color: var(--aa-text-secondary);
+  line-height: 1.6;
+}
+
+.aa-page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--aa-spacing-sm);
+  flex: 0 0 auto;
+}
+
+@media (min-width: 60rem) {
+  .aa-app-frame {
+    display: grid;
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+  }
+
+  .aa-sidebar {
+    position: sticky;
+    top: 0;
+    display: block;
+    height: 100dvh;
+    overflow-y: auto;
+    border-right: 1px solid var(--aa-border-default);
+    background: color-mix(in srgb, var(--aa-surfaces-panel) 94%, var(--aa-surfaces-canvas));
+    padding: 1.5rem 1rem;
+  }
+
+  .aa-mobile-topbar,
+  .aa-mobile-navigation {
+    display: none;
+  }
+
+  .aa-app-main {
+    width: min(100%, 110rem);
+    margin-inline: auto;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+  }
+}
+
+@media (max-width: 59.999rem) {
+  .aa-app-main {
+    padding: clamp(1rem, 4vw, 1.5rem);
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  }
+
+  .aa-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .aa-page-header-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 30rem) {
+  .aa-mobile-topbar {
+    padding-inline: 0.75rem;
+  }
+
+  .aa-app-main {
+    padding-inline: 0.75rem;
+  }
+
+  .aa-sidebar-heading .aa-app-context {
+    display: none;
+  }
+
+  .aa-brand-mark {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+}
