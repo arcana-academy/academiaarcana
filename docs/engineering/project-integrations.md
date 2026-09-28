@@ -34,6 +34,14 @@ Current state:
 
 If the provider later exposes a documented, stable API or MCP contract that the Academia Arcana runtime is authorized to consume, that contract can be implemented behind `src/infrastructure/integrations` and promoted to `connected` only after health, authorization, representative-operation and E2E verification pass.
 
+## Ace Knowledge Graph
+
+The Academia Arcana catalog includes **Ace Knowledge Graph**. The app is available as an authenticated ChatGPT-side capability and can render non-hierarchical knowledge graphs, but the current project runtime does not have a provider API, OAuth contract, or MCP endpoint verified for direct web-server invocation.
+
+The website integration hub therefore keeps this provider in `catalogued` state. It is not marked `connected`, and the repository does not invent an app URL or hard-code an unverified endpoint. Promotion to `connected` requires a documented provider contract, a server-side adapter, authorization/scopes when applicable, health and representative-operation checks, automated failure/security tests, and deployed E2E verification.
+
+Until those conditions are met, `catalogued` is the correct observable state rather than a simulated connection.
+
 ## 1 Billion Brain Cells
 
 The Academia Arcana catalog includes **1 Billion Brain Cells** and the integration hub exposes its official ChatGPT app entry as an explicit external bridge.
