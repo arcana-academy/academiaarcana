@@ -46,7 +46,7 @@ export default async function Page() {
         <div className={styles.sigil} aria-hidden="true"><span>✦</span></div>
       </header>
 
-      <section className={styles.pillars} aria-label="Pilares da Academia Arcana">
+      <section id="pilares" className={styles.pillars} aria-label="Pilares da Academia Arcana">
         <article>
           <span className={styles.pillarMark} aria-hidden="true">◇</span>
           <div><p className={styles.cardEyebrow}>01 · Santuário</p><h2>Volte ao ponto certo.</h2><p>Contexto, progresso e próximo passo reunidos em um único lugar.</p></div>
@@ -60,6 +60,21 @@ export default async function Page() {
           <div><p className={styles.cardEyebrow}>03 · Seu ritmo</p><h2>Estude de um jeito que sustenta.</h2><p>Planejamento e personalização sem transformar seu espaço em mais uma fonte de ruído.</p></div>
         </article>
       </section>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerBrand}>
+          <p className={styles.footerName}>Academia Arcana</p>
+          <p className={styles.footerCopy}>
+            Um espaço para aprender, organizar e continuar sua jornada.
+          </p>
+        </div>
+        <nav className={styles.footerNav} aria-label="Navegação da página">
+          <a href="#pilares">Pilares</a>
+          <Link href="/login">Entrar</Link>
+          <Link href="/cadastro">Criar conta</Link>
+        </nav>
+        <p className={styles.footerMeta}>© 2026 Academia Arcana</p>
+      </footer>
     </main>
   );
 }
