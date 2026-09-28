@@ -1,23 +1,29 @@
+import { Accessibility, Palette, ShieldCheck } from "lucide-react";
+import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
+import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
-import { FeaturePage } from "@/components/layout/FeaturePage";
-import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { FeatureCard } from "@/components/ui/feature-card";
 
-const items = [
-  { title: "Acesso e segurança", description: "Estrutura para controles de sessão e segurança expostos de forma segura." },
-  { title: "Experiência", description: "Base para densidade, movimento, acessibilidade e personalização da interface." },
-] as const;
-
-export default async function ConfiguracoesPage() {
-  await requireAuthenticatedUser();
-
+export default function ConfiguracoesPage() {
   return (
     <AuthenticatedShell currentPath="/configuracoes">
-      <FeaturePage
-        eyebrow="Sistema"
+      <ArcanaPage
+        eyebrow="Controle pessoal"
         title="Configurações"
-        description="Centralize controles da conta e da experiência sem misturar responsabilidades de domínio."
-        items={items}
-      />
+        description="Controle acessibilidade, aparência, segurança e outras preferências sem misturar configurações com dados de domínio."
+      >
+        <ArcanaFeatureGrid>
+          <FeatureCard title="Acessibilidade" description="Preferências de movimento, tipografia, contraste e conforto cognitivo." icon={<Accessibility size={22} />}>
+            <p className="aa-state-copy">As preferências de acessibilidade existentes continuam sendo a fonte de verdade.</p>
+          </FeatureCard>
+          <FeatureCard title="Aparência" description="Temas são configurações de tokens, não implementações paralelas de componentes." icon={<Palette size={22} />}>
+            <p className="aa-state-copy">A fundação visual Arcane está ativa; presets adicionais podem ser conectados ao sistema de temas.</p>
+          </FeatureCard>
+          <FeatureCard title="Segurança" description="Autenticação e autorização devem permanecer separadas da apresentação." icon={<ShieldCheck size={22} />}>
+            <p className="aa-state-copy">Configurações sensíveis devem usar os fluxos server-side e as políticas de segurança existentes.</p>
+          </FeatureCard>
+        </ArcanaFeatureGrid>
+      </ArcanaPage>
     </AuthenticatedShell>
   );
 }

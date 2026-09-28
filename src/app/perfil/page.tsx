@@ -1,23 +1,31 @@
+import { BookOpen, Shield, UserRound } from "lucide-react";
+import Link from "next/link";
+import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
+import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
-import { FeaturePage } from "@/components/layout/FeaturePage";
-import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { FeatureCard } from "@/components/ui/feature-card";
 
-const items = [
-  { title: "Identidade", description: "Estrutura para apresentar o perfil autenticado sem expor dados desnecessários." },
-  { title: "Preferências", description: "Base para centralizar escolhas pessoais que não pertencem ao domínio de identidade." },
-] as const;
-
-export default async function PerfilPage() {
-  await requireAuthenticatedUser();
-
+export default function PerfilPage() {
   return (
     <AuthenticatedShell currentPath="/perfil">
-      <FeaturePage
-        eyebrow="Conta"
+      <ArcanaPage
+        eyebrow="Identidade"
         title="Perfil"
-        description="Gerencie a apresentação da sua identidade e as preferências associadas à experiência."
-        items={items}
-      />
+        description="Seu espaço de identidade e preferências, separado dos dados de aprendizagem."
+        actions={[{ href: "/configuracoes", label: "Configurações", variant: "secondary" }]}
+      >
+        <ArcanaFeatureGrid>
+          <FeatureCard title="Identidade" description="Informações básicas devem vir da sessão e dos dados de perfil autorizados." icon={<UserRound size={22} />}>
+            <p className="aa-state-copy">O perfil detalhado será preenchido a partir das fontes de identidade existentes.</p>
+          </FeatureCard>
+          <FeatureCard title="Jornada" description="A aprendizagem continua pertencendo ao domínio Learning." icon={<BookOpen size={22} />}>
+            <Link className="aa-button aa-button-secondary aa-button-sm" href="/grimorios">Abrir grimórios</Link>
+          </FeatureCard>
+          <FeatureCard title="Privacidade" description="Preferências, consentimentos e permissões não são a mesma coisa." icon={<Shield size={22} />}>
+            <Link className="aa-button aa-button-secondary aa-button-sm" href="/configuracoes">Gerenciar configurações</Link>
+          </FeatureCard>
+        </ArcanaFeatureGrid>
+      </ArcanaPage>
     </AuthenticatedShell>
   );
 }

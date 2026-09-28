@@ -1,23 +1,29 @@
+import { BarChart3, BookOpen, TrendingUp } from "lucide-react";
+import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
+import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
-import { FeaturePage } from "@/components/layout/FeaturePage";
-import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { FeatureCard } from "@/components/ui/feature-card";
 
-const items = [
-  { title: "Visão geral", description: "Estrutura para métricas de aprendizagem, planejamento e consistência." },
-  { title: "Evolução", description: "Base para gráficos e comparações alimentados por dados reais." },
-] as const;
-
-export default async function EstatisticasPage() {
-  await requireAuthenticatedUser();
-
+export default function EstatisticasPage() {
   return (
     <AuthenticatedShell currentPath="/estatisticas">
-      <FeaturePage
-        eyebrow="Observação"
+      <ArcanaPage
+        eyebrow="Conhecimento sobre sua jornada"
         title="Estatísticas"
-        description="Transforme registros reais de estudo em uma visão compreensível da sua jornada."
-        items={items}
-      />
+        description="Visualize padrões de aprendizagem apenas quando houver dados suficientes e autorizados para isso."
+      >
+        <ArcanaFeatureGrid>
+          <FeatureCard title="Visão geral" description="Indicadores agregados da jornada de aprendizagem." icon={<BarChart3 size={22} />}>
+            <p className="aa-state-copy">Ainda não há dados agregados suficientes para exibir métricas.</p>
+          </FeatureCard>
+          <FeatureCard title="Aprendizagem" description="Progresso deve vir da fonte real de Learning/Workspace." icon={<BookOpen size={22} />}>
+            <p className="aa-state-copy">A área está preparada para consumir contratos existentes sem duplicar a fonte de verdade.</p>
+          </FeatureCard>
+          <FeatureCard title="Tendências" description="Tendências devem ser descritas com contexto e incerteza apropriados." icon={<TrendingUp size={22} />}>
+            <p className="aa-state-copy">Nenhuma tendência é inferida sem evidência suficiente.</p>
+          </FeatureCard>
+        </ArcanaFeatureGrid>
+      </ArcanaPage>
     </AuthenticatedShell>
   );
 }
