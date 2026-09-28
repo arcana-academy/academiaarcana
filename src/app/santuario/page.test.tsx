@@ -192,7 +192,7 @@ describe("SanctuaryPage", () => {
 
     render(await SanctuaryPage());
 
-    expect(screen.getByRole("navigation")).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Seções da Academia" })).toBeInTheDocument();
 
     expect(
       screen.getByRole("link", { name: /santu/i }),
