@@ -17,6 +17,8 @@ import {
   QUIZLET_CHATGPT_APP_URL,
   SPOTIFY_APP_ID,
   SPOTIFY_CHATGPT_APP_URL,
+  TARTEEL_APP_ID,
+  TARTEEL_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
 
 describe("ChatGPT app bridges", () => {
@@ -98,6 +100,14 @@ describe("ChatGPT app bridges", () => {
     expect(QUIZLET_CHATGPT_APP_URL).toBe(
       "https://chatgpt.com/plugins/plugin_asdk_app_694336f3c5088191bcdfe35bb532ad83",
     );
+  });
+
+  it("catalogues Tarteel without inventing a launch URL", () => {
+    expect(CHATGPT_APP_BRIDGES[TARTEEL_APP_ID]).toEqual({
+      providerId: TARTEEL_APP_ID,
+      displayName: "Tarteel",
+    });
+    expect(TARTEEL_CHATGPT_APP_URL).toBeUndefined();
   });
 
   it("keeps every bridge anchored to a catalog entry and a unique official ChatGPT URL", () => {
