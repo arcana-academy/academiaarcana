@@ -33,7 +33,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
                   </span>
                   <span className="aa-sidebar-copy">
                     <span className="aa-sidebar-label">{item.label}</span>
-                    <span className="aa-sidebar-description">{item.description}</span>
+                    <span className="aa-sidebar-description" aria-hidden="true">{item.description}</span>
                   </span>
                   <ChevronRight className="aa-sidebar-chevron" size={16} aria-hidden="true" />
                 </Link>
