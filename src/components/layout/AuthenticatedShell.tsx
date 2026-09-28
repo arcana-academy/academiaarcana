@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { LogOut, Sparkles } from "lucide-react";
 
@@ -9,7 +10,7 @@ import {
 
 type AuthenticatedShellProps = {
   currentPath: AuthenticatedRouteHref;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export function AuthenticatedShell({
