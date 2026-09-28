@@ -11,6 +11,18 @@ export type {
   IntegrationToolResult,
 } from "./contracts";
 
+export {
+  AGENTIC_COURSE_REDESIGN_APP_ID,
+  AGENTIC_COURSE_REDESIGN_PLUGIN_NAME,
+  AGENTIC_COURSE_REDESIGN_EXECUTION_MODE,
+  AGENTIC_COURSE_REDESIGN_CAPABILITIES,
+  AGENTIC_COURSE_REDESIGN_INTEGRATION,
+} from "./agentic-course-redesign";
+export type {
+  AgenticCourseRedesignCapability,
+  AgenticCourseRedesignIntegration,
+} from "./agentic-course-redesign";
+
 export { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 export type { ChatGPTPluginCatalogEntry } from "./chatgpt-plugin-catalog";
 
@@ -50,6 +62,7 @@ export type {
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
+  IntegrationExecutionMode,
   IntegrationStatusEntry,
   IntegrationStatusSnapshot,
 } from "./status";
