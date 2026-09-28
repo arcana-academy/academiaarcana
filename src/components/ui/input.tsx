@@ -40,7 +40,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </p>
         ) : null}
         {error ? (
-          <p id={errorId} className="aa-field-error" role="alert">
+          <p id={errorId} className="aa-field-error">
             {error}
           </p>
         ) : null}
