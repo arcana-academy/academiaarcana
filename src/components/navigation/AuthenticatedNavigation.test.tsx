@@ -7,7 +7,7 @@ describe("AuthenticatedNavigation", () => {
   it("renders all implemented authenticated routes", () => {
     render(<AuthenticatedNavigation currentPath="/santuario" />);
 
-    const navigation = screen.getByRole("navigation", { name: "Navegação principal" });
+    const navigation = screen.getByRole("navigation", { name: "Seções da Academia" });
 
     expect(navigation).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Academia" })).toHaveAttribute("href", "/academia");
@@ -71,7 +71,7 @@ describe("AuthenticatedNavigation", () => {
   it("reinforces the current route with a non-color indicator", () => {
     render(<AuthenticatedNavigation currentPath="/santuario" />);
 
-    expect(screen.getByRole("link", { name: "Santuário" })).toHaveClass("aa-nav-link-active");
-    expect(screen.getByRole("link", { name: "Academia" })).not.toHaveClass("aa-nav-link-active");
+    expect(screen.getByRole("link", { name: "Santuário" })).toHaveClass("aa-nav-link-current");
+    expect(screen.getByRole("link", { name: "Academia" })).not.toHaveClass("aa-nav-link-current");
   });
 });
