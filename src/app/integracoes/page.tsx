@@ -75,14 +75,14 @@ export default async function IntegracoesPage() {
             <h3>{snapshot.catalogSize} plugins registrados</h3>
           </article>
           <article className="aa-card aa-card-default">
-            <p className="aa-eyebrow">Verificados</p>
-            <h3>{snapshot.connectedCount}</h3>
-            <p>Conexões verificadas</p>
+            <p className="aa-eyebrow">Conexões</p>
+            <h3>Conexões verificadas</h3>
+            <p>{snapshot.connectedCount}</p>
           </article>
           <article className="aa-card aa-card-default">
-            <p className="aa-eyebrow">Catalogados</p>
-            <h3>{snapshot.cataloguedCount}</h3>
-            <p>Ainda catalogados</p>
+            <p className="aa-eyebrow">Catálogo parcial</p>
+            <h3>Ainda catalogados</h3>
+            <p>{snapshot.cataloguedCount}</p>
           </article>
           <article className="aa-card aa-card-default">
             <p className="aa-eyebrow">Erros</p>
