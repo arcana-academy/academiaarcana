@@ -192,14 +192,20 @@ describe("SanctuaryPage", () => {
 
     render(await SanctuaryPage());
 
-    expect(screen.getByRole("navigation")).toBeTruthy();
-
+    const sanctuaryLinks = screen.getAllByRole("link", { name: /santu/i });
+    expect(sanctuaryLinks).toHaveLength(2);
     expect(
-      screen.getByRole("link", { name: /santu/i }),
-    ).toHaveAttribute("aria-current", "page");
+      sanctuaryLinks.every((link) =>
+        link.getAttribute("aria-current") === "page",
+      ),
+    ).toBe(true);
 
+    const workspaceLinks = screen.getAllByRole("link", { name: "Workspace" });
+    expect(workspaceLinks).toHaveLength(2);
     expect(
-      screen.getByRole("link", { name: "Workspace" }),
-    ).not.toHaveAttribute("aria-current");
+      workspaceLinks.every(
+        (link) => link.getAttribute("aria-current") === null,
+      ),
+    ).toBe(true);
   });
 });
