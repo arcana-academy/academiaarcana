@@ -91,6 +91,23 @@ server-side credential storage, least-privilege scopes, authorization checks,
 provider health/representative-operation checks, failure isolation, and E2E
 verification before the state can become `connected`.
 
+
+## Tarteel
+
+The Academia Arcana catalog includes **Tarteel**. The current ChatGPT-side connector provides Quran study capabilities such as ayah search, translations, tafsir, repeated-phrase exploration, recitation playback and prayer times.
+
+The web application keeps Tarteel in **catalogued** state. The repository does not claim that the ChatGPT connector is a web-runtime dependency, and it does not invent a public app URL or provider API endpoint.
+
+Current state:
+
+- ChatGPT catalog entry: available.
+- ChatGPT-side Tarteel capability: available in the connected assistant environment.
+- Official ChatGPT launch bridge: not configured because no verified public launch URL is available to this repository.
+- Web-runtime Tarteel adapter: not connected.
+- Credentials stored by Academia Arcana: none.
+
+A future direct integration belongs behind `src/infrastructure/integrations` and requires a documented provider contract, server-side authorization model, least-privilege credentials when applicable, provider health and representative-operation checks, failure isolation, security tests, and deployed E2E verification before becoming `connected`.
+
 ## Runtime / delivery integrations
 
 | Service | Role | Repository integration | External configuration | State |
