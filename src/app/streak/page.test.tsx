@@ -5,7 +5,7 @@ import StreakPage from "./page";
 describe("StreakPage", () => {
   it("renders an explicit unavailable streak state", () => {
     render(<StreakPage />);
-    expect(screen.getByRole("heading", { name: "Streak" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Streak", level: 1 })).toBeInTheDocument();
     expect(screen.getByText(/nenhuma sequência persistida/i)).toBeInTheDocument();
   });
 });
