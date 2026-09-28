@@ -76,6 +76,17 @@ describe("integration status snapshot", () => {
     expect(tarteel).toMatchObject({
       name: "Tarteel",
       status: "catalogued",
+      executionMode: "chatgpt-hosted",
+      providerId: "tarteel",
+      capabilities: [
+        "ayah-search",
+        "ayah-translation",
+        "ayah-tafsir",
+        "ayah-mutashabihat",
+        "phrase-mutashabihat",
+        "recitation",
+        "prayer-times",
+      ],
       verification: null,
     });
     expect(tarteel?.chatgptAppUrl).toBeUndefined();
