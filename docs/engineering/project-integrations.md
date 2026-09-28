@@ -160,3 +160,19 @@ The integration baseline is considered operational only when all of these are tr
 - Server and edge code must continue using the established SSR/session adapters.
 - RLS remains mandatory for protected data.
 - Public integration endpoints must expose only the minimum verification metadata required for observability.
+
+## True Sky
+
+The Academia Arcana catalog includes **True Sky**. True Sky provides astrology capabilities through the connected ChatGPT host, including natal-chart data, transits, personalized horoscopes, natal readings, synastry, composite charts, and solar/lunar returns.
+
+The repository now exposes a vendor-neutral True Sky integration boundary in `src/infrastructure/integrations/true-sky.ts`. It defines the seven supported operations without importing provider SDKs or exposing credentials to the browser.
+
+Current state:
+
+- ChatGPT-side capability: available in the host.
+- Web-runtime provider adapter: not connected.
+- Credentials stored by Academia Arcana: none.
+- Runtime status: `catalogued`.
+- Direct production invocation: disabled until a documented, stable provider transport and authorization contract is verified.
+
+Astrology results should be presented as interpretive content rather than as medical, legal, financial, or other high-stakes advice. Personalized birth data should only be collected when the user explicitly requests a personalized calculation and should follow minimum-necessary retention and server-side authorization.
