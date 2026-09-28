@@ -36,7 +36,7 @@ export function getOpenSourceAiIntegration(id: OpenSourceAiId) {
   return openSourceAiIntegrations.find((integration) => integration.id === id);
 }
 
-export function getOpenSourceAiStatus(integration: OpenSourceAiIntegration, env: NodeJS.ProcessEnv = process.env) {
+export function getOpenSourceAiStatus(integration: OpenSourceAiIntegration, env: Partial<NodeJS.ProcessEnv> = process.env) {
   const endpointConfigured = integration.endpointEnv ? Boolean(env[integration.endpointEnv]) : false;
   const keyConfigured = integration.apiKeyEnv ? Boolean(env[integration.apiKeyEnv]) : true;
   return { configured: endpointConfigured && keyConfigured, endpointConfigured, keyConfigured };
