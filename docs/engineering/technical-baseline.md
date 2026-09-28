@@ -2,7 +2,7 @@
 
 ## Status
 
-Repository baseline — reconciled on 2026-09-28 against `main` at commit `4926495da1a8524761b9b7e68d061cdde00dda21`.
+Repository baseline — reconciled on 2026-09-28 against `main` at commit `5d7be3beff94519da401eeab25a2d382b61e80c9`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-`main` at commit `4926495da1a8524761b9b7e68d061cdde00dda21` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
+`main` at commit `5d7be3beff94519da401eeab25a2d382b61e80c9` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,7 +85,7 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-At the current baseline (`4926495da1a8524761b9b7e68d061cdde00dda21`):
+At the current baseline (`5d7be3beff94519da401eeab25a2d382b61e80c9`):
 
 - PR #290 authentication callback hardening is integrated.
 - The Next.js security patch to 16.3.6 is integrated.
@@ -97,9 +97,9 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Vercel
 
-The production deployment for `main` commit `4926495da1a8524761b9b7e68d061cdde00dda21` is tracked as `dpl_Dbkt9WjhEQp3rFoeXMR3kLHcAa67`.
+The production deployment for `main` commit `5d7be3beff94519da401eeab25a2d382b61e80c9` is tracked as `dpl_G8RvrtHWNHwY4QZE9rj5kmMuivgn`.
 
-The deployment is generated from `main` and is the current production release. It is `READY`, and the repository's Production Smoke workflow completed successfully for the same commit.
+The deployment is generated from `main` and is the current production release for commit `5d7be3beff94519da401eeab25a2d382b61e80c9`. It is `READY`, and the repository's Production Smoke workflow completed successfully for the same commit.
 
 The current production verification returned no error, warning, or fatal runtime logs in the latest 24-hour observation. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
