@@ -290,9 +290,15 @@ export function Workspace({
   onSetPageProgress = async () => undefined,
 }: WorkspaceProps) {
   return (
-    <section aria-label="Workspace" className="workspace-shell">
-      <WorkspaceHeader title={title} />
-      <div className="workspace-regions">
+    <section aria-label="Workspace" className="aa-workspace">
+      <div className="aa-workspace-heading">
+        <div>
+          <span className="aa-section-kicker">Conhecimento pessoal</span>
+          <WorkspaceHeader title={title} />
+        </div>
+        <span className="aa-section-symbol" aria-hidden="true">ARCANA / 02</span>
+      </div>
+      <div className="aa-workspace-regions">
         <WorkspaceTree
           data={tree}
           state={state}
@@ -301,7 +307,7 @@ export function Workspace({
           onOpenChapter={onOpenChapter}
           onOpenPage={onOpenPage}
         />
-        <main aria-label="Área de trabalho">
+        <main className="aa-workspace-editor" aria-label="Área de trabalho">
           <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
 
           {state.grimoireId && !state.notebookId && !state.chapterId ? (
@@ -383,7 +389,7 @@ export function Workspace({
             <p>Selecione uma página para começar.</p>
           )}
         </main>
-        <aside aria-label="Contexto">
+        <aside className="aa-workspace-context" aria-label="Contexto">
           {selectedPage ? (
             <p>Página selecionada: {selectedPage.title}</p>
           ) : (
