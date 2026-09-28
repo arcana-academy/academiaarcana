@@ -15,7 +15,10 @@ export function MobileNavigation({ currentPath }: MobileNavigationProps) {
         Navegação
       </summary>
       <div className="aa-mobile-navigation-panel">
-        <AuthenticatedNavigation currentPath={currentPath} />
+        <AuthenticatedNavigation
+          currentPath={currentPath}
+          navigationLabel="Navegação móvel"
+        />
       </div>
     </details>
   );

@@ -19,13 +19,13 @@ const COPY: Record<AuthMode, { eyebrow: string; title: string; description: stri
     eyebrow: "Acesso à Academia",
     title: "Entrar",
     description: "Continue sua jornada de aprendizagem.",
-    submit: "Entrar na Academia",
+    submit: "Entrar",
   },
   signup: {
     eyebrow: "Primeiro passo",
     title: "Criar conta",
     description: "Prepare seu espaço de estudo na Academia Arcana.",
-    submit: "Criar minha conta",
+    submit: "Criar conta",
   },
   recover: {
     eyebrow: "Recuperar acesso",

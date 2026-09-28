@@ -7,15 +7,17 @@ import {
 
 type AuthenticatedNavigationProps = {
   currentPath: AuthenticatedRouteHref;
+  navigationLabel?: string;
 };
 
 export type { AuthenticatedRouteHref };
 
 export function AuthenticatedNavigation({
   currentPath,
+  navigationLabel = "Navegação principal",
 }: AuthenticatedNavigationProps) {
   return (
-    <nav className="aa-navigation" aria-label="Navegação principal">
+    <nav className="aa-navigation" aria-label={navigationLabel}>
       <ul className="aa-navigation-list">
         {authenticatedNavigationItems.map((item) => {
           const isCurrent = item.href === currentPath;
