@@ -31,10 +31,16 @@ export function AuthenticatedNavigation({
                   .join(" ")}
                 href={item.href}
                 aria-current={isCurrent ? "page" : undefined}
-                aria-label={item.description}
+                aria-describedby={`aa-nav-description-${item.href.slice(1)}`}
               >
                 <Icon aria-hidden="true" focusable="false" size={18} strokeWidth={1.8} />
                 <span>{item.label}</span>
+                <span
+                  className="aa-visually-hidden"
+                  id={`aa-nav-description-${item.href.slice(1)}`}
+                >
+                  {item.description}
+                </span>
               </Link>
             </li>
           );
