@@ -7,9 +7,14 @@ import type { AuthenticatedRouteHref } from "@/components/navigation/navigation-
 type AppShellProps = {
   currentPath: AuthenticatedRouteHref;
   children: ReactNode;
+  headerActions?: ReactNode;
 };
 
-export function AppShell({ currentPath, children }: AppShellProps) {
+export function AppShell({
+  currentPath,
+  children,
+  headerActions,
+}: AppShellProps) {
   return (
     <div className="aa-app-frame">
       <Sidebar currentPath={currentPath} />
@@ -23,6 +28,9 @@ export function AppShell({ currentPath, children }: AppShellProps) {
               <p className="aa-app-context">Jornada de aprendizagem</p>
             </div>
           </div>
+          {headerActions ? (
+            <div className="aa-mobile-topbar-actions">{headerActions}</div>
+          ) : null}
         </header>
 
         <main className="aa-app-main">{children}</main>
