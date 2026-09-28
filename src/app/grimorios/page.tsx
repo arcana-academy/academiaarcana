@@ -1,15 +1,20 @@
 import Link from "next/link";
 
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
-import { getGrimoires } from "@/domains/grimoires/repository";
-import type { Grimoire } from "@/domains/grimoires/types";
+import type { Grimoire } from "@/domains/learning";
+import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/grimoire-repository";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function GrimoiresPage() {
   let grimoires: Grimoire[] = [];
   let loadError = false;
 
   try {
-    grimoires = await getGrimoires();
+    const user = await requireAuthenticatedUser();
+    const supabase = await createClient();
+    const repository = createGrimoireRepository(supabase);
+    grimoires = await repository.listByOwner(user.id);
   } catch {
     loadError = true;
   }
