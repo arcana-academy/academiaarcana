@@ -44,7 +44,7 @@ describe("GrimoriosPage", () => {
 
     expect(html).toContain('data-current-path="/grimorios"');
     expect(html).toContain("Fisiologia");
-    expect(html).toContain("href="/workspace?grimoire=grimoire-1"");
+    expect(html).toContain("href=\"/workspace?grimoire=grimoire-1\"");
     expect(listByOwner).toHaveBeenCalledWith("user-1");
   });
 
