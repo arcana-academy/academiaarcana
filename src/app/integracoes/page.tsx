@@ -172,9 +172,14 @@ export default async function IntegracoesPage() {
         aria-label="Navegação de integrações"
         style={{ marginTop: "var(--aa-spacing-lg)" }}
       >
-        <Link className="aa-button aa-button-secondary" href="/">
-          Voltar ao início
-        </Link>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)" }}>
+          <Link className="aa-button aa-button-primary" href="/integracoes/ia-aberta">
+            Laboratório de IA aberta
+          </Link>
+          <Link className="aa-button aa-button-secondary" href="/">
+            Voltar ao início
+          </Link>
+        </div>
       </nav>
     </main>
   );
