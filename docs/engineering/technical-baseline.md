@@ -2,7 +2,7 @@
 
 ## Status
 
-Current repository baseline — reconciled 2026-09-27 against `main` at commit `f5f93664d8588373e331c3fbdd6713323fad612f`.
+Repository baseline — last reconciled on 2026-09-27 against `main` at commit `f5f93664d8588373e331c3fbdd6713323fad612f`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The current `main` commit `f5f93664d8588373e331c3fbdd6713323fad612f` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, and the eight-character password floor.
+The reconciliation point at `main` commit `f5f93664d8588373e331c3fbdd6713323fad612f` included the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, and the eight-character password floor.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,26 +85,26 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-For the current `main` commit `f5f93664d8588373e331c3fbdd6713323fad612f`:
+At the reconciliation point recorded above (`f5f93664d8588373e331c3fbdd6713323fad612f`):
 
-- PR #290 authentication callback hardening is integrated.
-- The Next.js security patch to 16.3.6 is integrated.
-- Product-domain reconciliation, RPC security hardening, and the eight-character password floor are integrated.
-- The current commit reports successful Vercel and pre-commit integration statuses.
+- PR #290 authentication callback hardening was integrated.
+- The Next.js security patch to 16.3.6 was integrated.
+- Product-domain reconciliation, RPC security hardening, and the eight-character password floor were integrated.
+- The commit reported successful Vercel and pre-commit integration statuses.
 
-The full Quality Gate is established through pull-request checks; deployment state and runtime observability are additionally verified directly in Vercel.
+The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Vercel for each resulting production deployment.
 
 ## Vercel
 
-The current Production deployment for commit `f5f93664d8588373e331c3fbdd6713323fad612f` is:
+The production deployment explicitly verified for the functional reconciliation in PR #306 was:
 
 - Deployment: `dpl_cDJBn2To4XUq3CA9Y8diHSpLbdHN`
 - State: `READY`
 - Target: `production`
 - Deployment URL: `https://academiaarcana-qtkm4a6pl-academia-arcana1.vercel.app`
-- Aliases include `academiaarcana.vercel.app`
+- Aliases included `academiaarcana.vercel.app`
 
-A production runtime-error query for the latest two hours returned no runtime errors. A seven-day query still contains only historical errors from an older deployment related to a missing public Supabase runtime variable; those errors are not present in the current two-hour production observation.
+That verification returned no runtime errors in the latest two-hour observation. A subsequent docs-only production deployment from PR #307 was also verified `READY`; the production alias served the final homepage, login, signup, and recovery routes with HTTP 200.
 
 The current Vercel connector does not expose a reliable write operation for environment-variable mutation. No unsupported Vercel-side mutation is being claimed.
 
