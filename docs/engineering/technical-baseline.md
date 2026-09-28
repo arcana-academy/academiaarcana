@@ -2,7 +2,7 @@
 
 ## Status
 
-Repository baseline — reconciled on 2026-09-27 against `main` at commit `ba12655e253666169cd64f76e6053c6317129ddb`.
+Repository baseline — reconciled on 2026-09-28 against `main` at commit `4926495da1a8524761b9b7e68d061cdde00dda21`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-`main` at commit `ba12655e253666169cd64f76e6053c6317129ddb` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
+`main` at commit `4926495da1a8524761b9b7e68d061cdde00dda21` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,7 +85,7 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-At the current baseline (`ba12655e253666169cd64f76e6053c6317129ddb`):
+At the current baseline (`4926495da1a8524761b9b7e68d061cdde00dda21`):
 
 - PR #290 authentication callback hardening is integrated.
 - The Next.js security patch to 16.3.6 is integrated.
@@ -97,13 +97,13 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Vercel
 
-The production deployment for `main` commit `ba12655e253666169cd64f76e6053c6317129ddb` is tracked as `dpl_E2iEt2WDkjMRdeEnF4UBN8va8XfZ`.
+The production deployment for `main` commit `4926495da1a8524761b9b7e68d061cdde00dda21` is tracked as `dpl_Dbkt9WjhEQp3rFoeXMR3kLHcAa67`.
 
-The deployment is generated from `main` and is the production release for the least-privilege RPC hardening. Runtime readiness and smoke checks are verified separately after Vercel finishes the deployment.
+The deployment is generated from `main` and is the current production release. It is `READY`, and the repository's Production Smoke workflow completed successfully for the same commit.
 
-The previous production verification returned no runtime errors in the latest two-hour observation. The public production alias also served the homepage, login, signup, and recovery routes with HTTP 200.
+The current production verification returned no error, warning, or fatal runtime logs in the latest 24-hour observation. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
-The current Vercel connector does not expose a reliable write operation for environment-variable mutation. No unsupported Vercel-side mutation is being claimed.
+The Vercel connector used for this audit does not expose a reliable environment-variable mutation operation. The current production deployment is healthy; no unsupported Vercel-side environment mutation is claimed.
 
 ## Supabase
 
