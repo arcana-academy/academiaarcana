@@ -76,7 +76,7 @@ function PageDeleteControl({
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
     >
-      <h3 id={titleId}>Confirmar exclusão</h3>
+      <h3 id={titleId}>Confirmar exclusão da página</h3>
       <p id={descriptionId}>
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
