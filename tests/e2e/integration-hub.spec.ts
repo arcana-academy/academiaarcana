@@ -11,9 +11,14 @@ test.describe("integration hub", () => {
     await expect(page.getByText("114 plugins registrados")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
     await expect(page.getByText("GitHub", { exact: true })).toBeVisible();
-    await expect(page.getByText("A-Z Dictionary", { exact: true })).toBeVisible();
+    const dictionaryCard = page
+      .getByRole("listitem")
+      .filter({ hasText: "A-Z Dictionary" });
+
+    await expect(dictionaryCard).toBeVisible();
+    await expect(dictionaryCard.getByText("A-Z Dictionary", { exact: true })).toBeVisible();
     await expect(page.getByText("Verificado", { exact: true })).toBeVisible();
-    await expect(page.getByText("Catalogado", { exact: true })).toBeVisible();
+    await expect(dictionaryCard.getByText("Catalogado", { exact: true })).toBeVisible();
     await expect(
       page.getByText("A conexão externa foi verificada em runtime.", {
         exact: true,
