@@ -2,7 +2,7 @@
 
 ## Status
 
-Repository baseline — last reconciled on 2026-09-27 against `main` at commit `f5f93664d8588373e331c3fbdd6713323fad612f`.
+Repository baseline — reconciled on 2026-09-27 against `main` at commit `ba12655e253666169cd64f76e6053c6317129ddb`.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The reconciliation point at `main` commit `f5f93664d8588373e331c3fbdd6713323fad612f` included the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, and the eight-character password floor.
+`main` at commit `ba12655e253666169cd64f76e6053c6317129ddb` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,26 +85,23 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-At the reconciliation point recorded above (`f5f93664d8588373e331c3fbdd6713323fad612f`):
+At the current baseline (`ba12655e253666169cd64f76e6053c6317129ddb`):
 
-- PR #290 authentication callback hardening was integrated.
-- The Next.js security patch to 16.3.6 was integrated.
-- Product-domain reconciliation, RPC security hardening, and the eight-character password floor were integrated.
-- The commit reported successful Vercel and pre-commit integration statuses.
+- PR #290 authentication callback hardening is integrated.
+- The Next.js security patch to 16.3.6 is integrated.
+- Product-domain reconciliation, RPC security hardening, and the eight-character password floor are integrated.
+- PR #309 removed unnecessary `service_role` execution from the public reward RPC and added a regression assertion.
+- PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, pre-commit, and Vercel.
 
 The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Vercel for each resulting production deployment.
 
 ## Vercel
 
-The production deployment explicitly verified for the functional reconciliation in PR #306 was:
+The production deployment for `main` commit `ba12655e253666169cd64f76e6053c6317129ddb` is tracked as `dpl_E2iEt2WDkjMRdeEnF4UBN8va8XfZ`.
 
-- Deployment: `dpl_cDJBn2To4XUq3CA9Y8diHSpLbdHN`
-- State: `READY`
-- Target: `production`
-- Deployment URL: `https://academiaarcana-qtkm4a6pl-academia-arcana1.vercel.app`
-- Aliases included `academiaarcana.vercel.app`
+The deployment is generated from `main` and is the production release for the least-privilege RPC hardening. Runtime readiness and smoke checks are verified separately after Vercel finishes the deployment.
 
-That verification returned no runtime errors in the latest two-hour observation. A subsequent docs-only production deployment from PR #307 was also verified `READY`; the production alias served the final homepage, login, signup, and recovery routes with HTTP 200.
+The previous production verification returned no runtime errors in the latest two-hour observation. The public production alias also served the homepage, login, signup, and recovery routes with HTTP 200.
 
 The current Vercel connector does not expose a reliable write operation for environment-variable mutation. No unsupported Vercel-side mutation is being claimed.
 
@@ -118,7 +115,7 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 ### Migration history reconciliation
 
-The repository contains the six application migrations that match the current production migration history:
+The repository contains the seven application migrations represented by the current production migration history:
 
 - `20260915181306_remote_schema`
 - `20260921174822_revoke_excess_authenticated_table_privileges`
@@ -126,10 +123,11 @@ The repository contains the six application migrations that match the current pr
 - `20260927205154_product_domain_v1`
 - `20260927213158_product_rpc_security`
 - `20260928003542_atomic_move_workspace_page`
+- `20260928005837_20260928005514_tighten_product_rpc_execute_grants`
 
 The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
 
-The production migration history was freshly verified. The workspace page movement RPC is now present as `public.move_workspace_page(uuid,text)`, is `VOLATILE` and `SECURITY INVOKER`, fixes `search_path` to empty, and is executable only by `authenticated` among the application-facing roles.
+The production migration history was freshly verified. Supabase registered the least-privilege grant migration with version `20260928005837` and migration name `20260928005514_tighten_product_rpc_execute_grants`; the repository filename matches that recorded history. The public reward wrapper is `SECURITY INVOKER`, has an empty `search_path`, and is executable by `authenticated` but not by `anon` or `service_role`. The workspace page movement RPC is also `VOLATILE`, `SECURITY INVOKER`, uses an empty `search_path`, and is executable only by `authenticated` among the application-facing roles.
 
 ## Known security state
 
