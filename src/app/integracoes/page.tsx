@@ -72,8 +72,7 @@ export default async function IntegracoesPage() {
         <div className="aa-card-grid">
           <article className="aa-card aa-card-default">
             <p className="aa-eyebrow">Catálogo</p>
-            <h3>{snapshot.catalogSize}</h3>
-            <p>plugins registrados</p>
+            <h3>{snapshot.catalogSize} plugins registrados</h3>
           </article>
           <article className="aa-card aa-card-default">
             <p className="aa-eyebrow">Verificados</p>
