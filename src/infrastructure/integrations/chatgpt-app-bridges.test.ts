@@ -8,9 +8,15 @@ import {
   A_Z_HOLY_BIBLE_CHATGPT_APP_URL,
   ACADEMIC_WRITING_TOOLKIT_APP_ID,
   ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
+  ASTROLOGIC_APP_ID,
+  ASTROLOGIC_CHATGPT_APP_URL,
   CHATGPT_APP_BRIDGES,
   ONE_BILLION_BRAIN_CELLS_APP_ID,
   ONE_BILLION_BRAIN_CELLS_CHATGPT_APP_URL,
+  QUIZLET_APP_ID,
+  QUIZLET_CHATGPT_APP_URL,
+  SPOTIFY_APP_ID,
+  SPOTIFY_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
 
 describe("ChatGPT app bridges", () => {
@@ -59,6 +65,38 @@ describe("ChatGPT app bridges", () => {
 
     expect(ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL).toBe(
       "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779",
+    );
+  });
+
+  it("registers Astrologic without claiming an unverified web-runtime endpoint", () => {
+    expect(CHATGPT_APP_BRIDGES[ASTROLOGIC_APP_ID]).toEqual({
+      providerId: ASTROLOGIC_APP_ID,
+      displayName: "Astrologic",
+    });
+    expect(ASTROLOGIC_CHATGPT_APP_URL).toBeUndefined();
+  });
+
+  it("defines the Spotify bridge with the official ChatGPT app URL", () => {
+    expect(CHATGPT_APP_BRIDGES[SPOTIFY_APP_ID]).toEqual({
+      providerId: SPOTIFY_APP_ID,
+      displayName: "Spotify",
+      appUrl: SPOTIFY_CHATGPT_APP_URL,
+    });
+
+    expect(SPOTIFY_CHATGPT_APP_URL).toBe(
+      "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c",
+    );
+  });
+
+  it("defines the Quizlet bridge with the official ChatGPT app URL", () => {
+    expect(CHATGPT_APP_BRIDGES[QUIZLET_APP_ID]).toEqual({
+      providerId: QUIZLET_APP_ID,
+      displayName: "Quizlet",
+      appUrl: QUIZLET_CHATGPT_APP_URL,
+    });
+
+    expect(QUIZLET_CHATGPT_APP_URL).toBe(
+      "https://chatgpt.com/plugins/plugin_asdk_app_694336f3c5088191bcdfe35bb532ad83",
     );
   });
 

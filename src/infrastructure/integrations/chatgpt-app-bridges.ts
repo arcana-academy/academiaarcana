@@ -16,7 +16,6 @@ export const A_Z_DAILY_WORD_APP_ID = "a-z-daily-word" as const;
 export const A_Z_DAILY_WORD_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_69bd3c483c008191beb1e4cc0ce87b24" as const;
 
-
 export const A_Z_DICTIONARY_APP_ID = "a-z-dictionary" as const;
 
 export const A_Z_DICTIONARY_CHATGPT_APP_URL =
@@ -27,11 +26,31 @@ export const A_Z_HOLY_BIBLE_APP_ID = "a-z-holy-bible" as const;
 export const A_Z_HOLY_BIBLE_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_69985bb469908191a8abda024bb692cb" as const;
 
+export const SPOTIFY_APP_ID = "spotify" as const;
+
+export const SPOTIFY_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c" as const;
+
 export const ACADEMIC_WRITING_TOOLKIT_APP_ID =
   "academic-writing-toolkit" as const;
 
 export const ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779" as const;
+
+export const QUIZLET_APP_ID = "quizlet" as const;
+
+export const QUIZLET_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/plugin_asdk_app_694336f3c5088191bcdfe35bb532ad83" as const;
+
+export const ASTROLOGIC_APP_ID = "astrologic" as const;
+
+/**
+ * Astrologic is available as a ChatGPT-side connector in this environment.
+ * No public web-runtime URL or vendor API endpoint has been verified for
+ * Academia Arcana, so it remains metadata-only until a supported server
+ * contract is available.
+ */
+export const ASTROLOGIC_CHATGPT_APP_URL: string | undefined = undefined;
 
 export const CHATGPT_APP_BRIDGES = {
   [ONE_BILLION_BRAIN_CELLS_APP_ID]: {
@@ -58,6 +77,23 @@ export const CHATGPT_APP_BRIDGES = {
     providerId: ACADEMIC_WRITING_TOOLKIT_APP_ID,
     displayName: "Academic Writing Toolkit",
     appUrl: ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL,
+  },
+  [SPOTIFY_APP_ID]: {
+    providerId: SPOTIFY_APP_ID,
+    displayName: "Spotify",
+    appUrl: SPOTIFY_CHATGPT_APP_URL,
+  },
+  [QUIZLET_APP_ID]: {
+    providerId: QUIZLET_APP_ID,
+    displayName: "Quizlet",
+    appUrl: QUIZLET_CHATGPT_APP_URL,
+  },
+  [ASTROLOGIC_APP_ID]: {
+    providerId: ASTROLOGIC_APP_ID,
+    displayName: "Astrologic",
+    ...(ASTROLOGIC_CHATGPT_APP_URL
+      ? { appUrl: ASTROLOGIC_CHATGPT_APP_URL }
+      : {}),
   },
 } as const;
 

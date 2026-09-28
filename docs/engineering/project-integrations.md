@@ -57,6 +57,40 @@ This gives the project a complete and honest state:
 - Academia Arcana web-runtime adapter: not enabled until an external provider contract is verified.
 - Credentials: none required or stored for the bridge.
 
+## Astrologic
+
+The Academia Arcana catalog includes **Astrologic**, a ChatGPT-side astrology capability that exposes personalized natal charts, daily horoscopes, transit charts, and compatibility reports through its connector tools.
+
+The current project runtime registers the provider identity in the integration boundary, but it does not mark Astrologic as a live web-runtime connection. The connector is callable from this assistant environment, while the website still requires a documented server-side API/OAuth/MCP transport before it can invoke those capabilities directly.
+
+Current state:
+
+- ChatGPT-side connector: available in the current assistant environment.
+- Academia Arcana catalog entry: available.
+- Web-runtime provider adapter: not yet verified.
+- Public ChatGPT launch URL: not hard-coded without a verified official app URL.
+- Runtime status: `catalogued`.
+
+Supported capabilities exposed by the connector are birth/natal chart generation, personalized daily horoscope generation, current transit-chart generation, and compatibility reports. The website must preserve provider-specific authorization and must not copy connector credentials into browser code.
+
+## Spotify
+
+The Academia Arcana catalog includes **Spotify**. The integration hub now provides
+an explicit bridge to Spotify's official ChatGPT app:
+
+- ChatGPT app bridge: available.
+- Official app: https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c
+- Web-runtime Spotify Web API adapter: not connected.
+- Credentials stored by Academia Arcana: none.
+- Runtime status: `catalogued`.
+
+The bridge is navigation-only. It does not import, proxy, or iframe the Spotify
+ChatGPT app into the Next.js runtime. A future direct Spotify account
+integration must implement the documented Spotify authorization flow,
+server-side credential storage, least-privilege scopes, authorization checks,
+provider health/representative-operation checks, failure isolation, and E2E
+verification before the state can become `connected`.
+
 ## Runtime / delivery integrations
 
 | Service | Role | Repository integration | External configuration | State |

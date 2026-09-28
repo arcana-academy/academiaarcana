@@ -64,5 +64,17 @@ test.describe("integration hub", () => {
         "https://chatgpt.com/plugins/plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db",
       verification: null,
     });
+
+    const spotify = body.entries?.find(
+      (entry: { name: string }) => entry.name === "Spotify",
+    );
+
+    expect(spotify).toMatchObject({
+      name: "Spotify",
+      status: "catalogued",
+      chatgptAppUrl:
+        "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c",
+      verification: null,
+    });
   });
 });
