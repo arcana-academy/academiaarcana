@@ -46,7 +46,7 @@ export function PersonalizationPanel() {
         </header>
 
         <div className="aa-form-field">
-          <label htmlFor="theme-select">Tema atual</label>
+          <label htmlFor="theme-select">Escolha um tema</label>
           <select
             className="aa-select"
             id="theme-select"
