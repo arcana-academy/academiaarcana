@@ -182,7 +182,14 @@ function ChapterCreationForm({
   };
 
   return (
-    <form className="workspace-create-form" aria-label="Criar capítulo" onSubmit={(event) => event.preventDefault()}>
+    <form
+      className="workspace-create-form"
+      aria-label="Criar capítulo"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void handleCreate();
+      }}
+    >
       <label htmlFor="workspace-new-chapter-title">Novo capítulo</label>
       <input
         id="workspace-new-chapter-title"
