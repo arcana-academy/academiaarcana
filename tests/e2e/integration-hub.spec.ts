@@ -14,6 +14,10 @@ test.describe("integration hub", () => {
     await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
     await expect(page.getByText("NVIDIA · Physical AI", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "GitHub", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Todoist", exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Gerenciar conexão do Todoist" }),
+    ).toBeVisible();
 
     const dictionaryCard = page
       .getByRole("listitem")
@@ -66,6 +70,19 @@ test.describe("integration hub", () => {
       status: "catalogued",
       chatgptAppUrl:
         "https://chatgpt.com/plugins/plugin_asdk_app_6960e92ebfa481918f4ccff0c8b219db",
+      verification: null,
+    });
+
+    const todoist = body.entries.find(
+      (entry: { name: string }) => entry.name === "Todoist",
+    );
+
+    expect(todoist).toMatchObject({
+      name: "Todoist",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "todoist",
+      capabilities: ["read", "write", "search", "calendar"],
       verification: null,
     });
 
