@@ -122,6 +122,17 @@ describe("integration status snapshot", () => {
       verification: null,
     });
 
+    const airtable = snapshot.entries.find((entry) => entry.name === "Airtable");
+    expect(airtable).toMatchObject({
+      name: "Airtable",
+      source: "runtime",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "airtable",
+      capabilities: ["read", "write", "search", "metadata", "analytics"],
+      verification: null,
+    });
+
     const github = snapshot.entries.find((entry) => entry.name === "GitHub");
     expect(github).toMatchObject({
       name: "GitHub",
