@@ -64,6 +64,7 @@ export type TodoistProject = {
 };
 
 export type TodoistCredentials = {
+  readonly subjectId: string;
   readonly accessToken: string;
   readonly refreshToken: string | null;
   readonly accessTokenExpiresAt: number | null;
@@ -191,6 +192,8 @@ export async function decryptTodoistCredentials(
 
     const parsed = JSON.parse(new TextDecoder().decode(plaintext)) as Partial<TodoistCredentials>;
     if (
+      typeof parsed.subjectId !== "string" ||
+      !parsed.subjectId ||
       typeof parsed.accessToken !== "string" ||
       !parsed.accessToken ||
       (parsed.refreshToken !== null && typeof parsed.refreshToken !== "string") ||
@@ -200,6 +203,7 @@ export async function decryptTodoistCredentials(
     }
 
     return {
+      subjectId: parsed.subjectId,
       accessToken: parsed.accessToken,
       refreshToken: parsed.refreshToken ?? null,
       accessTokenExpiresAt: parsed.accessTokenExpiresAt ?? null,
@@ -382,6 +386,7 @@ export async function refreshTodoistCredentials(
   }
 
   return {
+    subjectId: credentials.subjectId,
     accessToken: payload.access_token,
     refreshToken: payload.refresh_token ?? credentials.refreshToken,
     accessTokenExpiresAt:
