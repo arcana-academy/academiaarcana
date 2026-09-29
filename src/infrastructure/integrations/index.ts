@@ -99,6 +99,18 @@ export type {
   DataCampRequest,
 } from "./datacamp";
 
+export {
+  DROPBOX_API_BASE_URL,
+  DROPBOX_INTEGRATION_DEFINITION,
+  DROPBOX_PLUGIN_NAME,
+  DROPBOX_PROVIDER_ID,
+  DropboxConnectionError,
+  executeDropboxRequest,
+  listDropboxFolder,
+  searchDropbox,
+  verifyDropboxConnection,
+} from "./dropbox";
+
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
