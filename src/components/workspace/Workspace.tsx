@@ -391,6 +391,6 @@ export function Workspace({
           )}
         </aside>
       </div>
-    </section>
+    </div>
   );
 }
