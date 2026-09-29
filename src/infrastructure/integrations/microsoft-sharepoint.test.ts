@@ -10,6 +10,7 @@ import {
   verifyMicrosoftSharePointConnection,
   refreshMicrosoftSharePointCredentials,
   listMicrosoftSharePointSites,
+  searchMicrosoftSharePointSiteDrive,
 } from "./microsoft-sharepoint";
 
 describe("Microsoft SharePoint integration", () => {
@@ -80,6 +81,23 @@ describe("Microsoft SharePoint integration", () => {
       expect.stringContaining("/sites?search=*"),
       expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer token" }) }),
     );
+    fetchMock.mockRestore();
+  });
+
+  it("searches inside a selected SharePoint document library", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ value: [] }), { status: 200 }),
+    );
+
+    await searchMicrosoftSharePointSiteDrive("site-1", "drive-1", "plano de estudos", "token");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/sites/site-1/drives/drive-1/root/search(q='"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer token" }),
+      }),
+    );
+
     fetchMock.mockRestore();
   });
 
