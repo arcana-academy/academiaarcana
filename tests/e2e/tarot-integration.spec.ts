@@ -8,7 +8,7 @@ test.describe("Tarot integration", () => {
 
     const tarotCard = page
       .getByRole("listitem")
-      .filter({ hasText: "Tarot" });
+      .filter({ has: page.getByRole("heading", { name: "Tarot", exact: true }) });
 
     await expect(tarotCard).toBeVisible();
     await expect(tarotCard.getByText("Tarot", { exact: true })).toBeVisible();
