@@ -106,7 +106,6 @@ export const CHATGPT_PLUGIN_CATALOG = [
   { name: "Teams", source: "chatgpt-catalog" as const },
   { name: "TinyFish", source: "chatgpt-catalog" as const },
   { name: "Todoist", source: "chatgpt-catalog" as const },
-  { name: "Trello", source: "chatgpt-catalog" as const },
   { name: "Transkriptor", source: "chatgpt-catalog" as const },
   { name: "TriAstra Astrology & Saju", source: "chatgpt-catalog" as const },
   { name: "Trivana Study — Quiz My Notes", source: "chatgpt-catalog" as const },
