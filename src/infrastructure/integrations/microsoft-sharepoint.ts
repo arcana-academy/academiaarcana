@@ -456,6 +456,12 @@ export async function executeMicrosoftSharePointOperation(
     case "list-root":
       path = "/me/drive/root/children";
       break;
+    case "list-sites":
+      path = "/sites?search=*";
+      break;
+    case "list-site-drives":
+      path = `/sites/${encodeURIComponent(String(input.siteId))}/drives`;
+      break;
     case "list-folder":
       path = `/me/drive/items/${encodeURIComponent(String(input.folderId))}/children`;
       break;
