@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import {
   decryptMicrosoftSharePointCredentials,
+  encryptMicrosoftSharePointCredentials,
   getValidMicrosoftSharePointCredentials,
   MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE,
   listMicrosoftSharePointSites,
@@ -26,9 +27,6 @@ export async function GET() {
     const result = await listMicrosoftSharePointSites(validCredentials.accessToken);
 
     if (validCredentials.accessToken !== credentials.accessToken) {
-      const { encryptMicrosoftSharePointCredentials } = await import(
-        "@/infrastructure/integrations/microsoft-sharepoint"
-      );
       cookieStore.set(
         MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE,
         await encryptMicrosoftSharePointCredentials(validCredentials),
