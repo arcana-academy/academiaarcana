@@ -1,7 +1,10 @@
 import Link from "next/link";
+import OpenSourceAiPlayground from "./open-source-ai-playground";
 import { getOpenSourceAiStatus, openSourceAiIntegrations } from "@/infrastructure/integrations/open-source-ai";
 
 export default function OpenSourceAiPage() {
+  const configuredProviders = openSourceAiIntegrations.map((integration) => ({ id: integration.id, name: integration.name, runtime: integration.runtime, configured: getOpenSourceAiStatus(integration).configured }));
+
   return (
     <main aria-labelledby="open-ai-title" style={{ maxWidth: "78rem", margin: "0 auto", padding: "clamp(1.5rem, 4vw, 3rem)" }}>
       <header className="aa-card aa-card-elevated" style={{ display: "grid", gap: "var(--aa-spacing-sm)" }}>
@@ -41,6 +44,8 @@ export default function OpenSourceAiPage() {
           );
         })}
       </section>
+
+      <OpenSourceAiPlayground providers={configuredProviders} />
 
       <section className="aa-card aa-card-default" style={{ marginTop: "var(--aa-spacing-lg)" }}>
         <h2>Runtime local</h2>

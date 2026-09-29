@@ -6,6 +6,7 @@ describe("open source AI integration catalog", () => {
     expect(openSourceAiIntegrations).toHaveLength(10);
     expect(getOpenSourceAiIntegration("ollama")?.license).toBe("MIT");
     expect(getOpenSourceAiIntegration("vllm")?.license).toBe("Apache-2.0");
+    expect(getOpenSourceAiIntegration("huggingface")?.endpointEnv).toBe("HUGGINGFACE_BASE_URL");
   });
 
   it("reports runtime configuration from environment only", () => {
