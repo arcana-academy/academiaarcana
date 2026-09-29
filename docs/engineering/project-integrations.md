@@ -124,7 +124,7 @@ The application requires:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-Production builds now fail early when either is missing. Vercel production also rejects a non-HTTPS/non-Supabase URL or a key that is not a modern `sb_publishable_` key.
+In local and non-Vercel environments, builds fail early when either value is missing. On Vercel preview/production, the application uses the built-in public Supabase fallback when either value is absent, while any explicitly configured production values are validated as HTTPS Supabase configuration and a modern `sb_publishable_` key.
 
 Optional Honeybadger variables:
 
