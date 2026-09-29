@@ -1,10 +1,12 @@
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { BarChart3, BookOpen, TrendingUp } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 
-export default function EstatisticasPage() {
+export default async function EstatisticasPage() {
+  await requireAuthenticatedUser();
   return (
     <AuthenticatedShell currentPath="/estatisticas">
       <ArcanaPage
