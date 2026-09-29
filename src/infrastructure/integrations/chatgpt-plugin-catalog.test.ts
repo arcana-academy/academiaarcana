@@ -5,7 +5,7 @@ describe("ChatGPT plugin catalog", () => {
   it("registers the complete user-supplied catalog without duplicate names", () => {
     const names = CHATGPT_PLUGIN_CATALOG.map((entry) => entry.name);
 
-    expect(names).toHaveLength(116);
+    expect(names).toHaveLength(117);
     expect(new Set(names).size).toBe(names.length);
   });
 
