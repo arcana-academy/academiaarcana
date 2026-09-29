@@ -94,6 +94,7 @@ export type OutlookAvailableSlot = {
 };
 
 export class OutlookCalendarClient {
+  // Availability uses Graph free/busy when supported and calendar-view fallback otherwise.
   constructor(private readonly accessToken: string) {}
 
   async listCalendars(): Promise<OutlookCalendar[]> {
