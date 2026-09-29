@@ -113,6 +113,7 @@ describe("getSanctuary", () => {
       status: "not-configured",
       data: null,
     });
+    expect(result.adaptiveRecommendation).toEqual(expect.objectContaining({ title: "Comece pequeno", href: "/workspace" }));
     expect(result.quickActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -150,6 +151,7 @@ describe("getSanctuary", () => {
       status: "not-configured",
       data: null,
     });
+    expect(result.adaptiveRecommendation).toEqual(expect.objectContaining({ title: "Explore no seu ritmo", href: "/grimorios" }));
     expect(result.quickActions).toEqual(expect.any(Array));
     expect(result.primaryAction).toEqual(
       expect.objectContaining({
@@ -244,6 +246,7 @@ describe("getSanctuary", () => {
         },
       ],
     });
+    expect(result.adaptiveRecommendation).toEqual(expect.objectContaining({ title: "Siga o próximo horário", href: "/cronograma" }));
     expect(result.schedule).toEqual({
       status: "ready",
       data: [
