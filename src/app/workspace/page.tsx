@@ -143,7 +143,7 @@ export default async function WorkspacePage({
 
   return (
     <AuthenticatedShell currentPath="/workspace">
-      <WorkspaceShell
+      <main className="aa-page aa-workspace-page" aria-label="Workspace">\n        <WorkspaceShell
         tree={{ grimoires: tree }}
         initialState={initialState}
         onCreateGrimoire={createWorkspaceGrimoire}
