@@ -23,6 +23,7 @@ describe("Notion integration", () => {
       authMode: "oauth2",
       userConnectionRequired: true,
       serverSideOnly: true,
+      capabilities: ["read", "write", "search", "metadata"],
     });
   });
 
