@@ -1,3 +1,5 @@
+import { getAdaptiveRecommendation } from "@/domains/adaptive";
+
 import {
   decideSanctuaryPriority,
   resolveContinueLearning,
@@ -124,8 +126,22 @@ export async function getSanctuary(repository: SanctuaryRepository, sessionConte
     }
   }
 
+  const adaptiveRecommendation = getAdaptiveRecommendation({
+    progressPercentage: progress.status === "ready" ? progress.data.percentage : null,
+    openMissionCount: missions.status === "ready"
+      ? missions.data.filter((mission) => !mission.isCompleted).length
+      : 0,
+    scheduledTaskCount: schedule.status === "ready" ? schedule.data.length : 0,
+  });
+
   return {
     header: { greeting: "Seu Santuário de aprendizagem", user: sessionContext.user },
-    primaryAction, continueLearning, progress, missions, schedule, quickActions,
+    primaryAction,
+    continueLearning,
+    progress,
+    missions,
+    schedule,
+    quickActions,
+    adaptiveRecommendation,
   };
 }
