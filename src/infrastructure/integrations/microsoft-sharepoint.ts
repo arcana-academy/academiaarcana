@@ -210,6 +210,100 @@ export async function decryptMicrosoftSharePointCredentials(
   }
 }
 
+export function shouldRefreshMicrosoftSharePointCredentials(
+  credentials: MicrosoftSharePointCredentials,
+  now = Date.now(),
+): boolean {
+  if (credentials.accessTokenExpiresAt === null) {
+    return Boolean(credentials.refreshToken);
+  }
+
+  return credentials.accessTokenExpiresAt - now <= 60_000;
+}
+
+export async function refreshMicrosoftSharePointCredentials(
+  credentials: MicrosoftSharePointCredentials,
+): Promise<MicrosoftSharePointCredentials> {
+  if (!credentials.refreshToken) {
+    throw new MicrosoftSharePointConnectionError(
+      "A conexão Microsoft expirou e não possui refresh token.",
+    );
+  }
+
+  const response = await fetch(MICROSOFT_SHAREPOINT_OAUTH_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    cache: "no-store",
+    body: new URLSearchParams({
+      client_id: getMicrosoftSharePointClientId(),
+      client_secret: getMicrosoftSharePointClientSecret(),
+      grant_type: "refresh_token",
+      refresh_token: credentials.refreshToken,
+      scope: MICROSOFT_SHAREPOINT_OAUTH_SCOPE,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new MicrosoftSharePointConnectionError(
+      "Não foi possível renovar a autorização Microsoft.",
+    );
+  }
+
+  const payload = (await response.json()) as {
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+  };
+
+  if (!payload.access_token) {
+    throw new MicrosoftSharePointConnectionError(
+      "A Microsoft não devolveu um novo token de acesso válido.",
+    );
+  }
+
+  return {
+    subjectId: credentials.subjectId,
+    accessToken: payload.access_token,
+    refreshToken: payload.refresh_token ?? credentials.refreshToken,
+    accessTokenExpiresAt:
+      typeof payload.expires_in === "number"
+        ? Date.now() + payload.expires_in * 1000
+        : null,
+  };
+}
+
+export async function getValidMicrosoftSharePointCredentials(
+  credentials: MicrosoftSharePointCredentials,
+): Promise<MicrosoftSharePointCredentials> {
+  if (!shouldRefreshMicrosoftSharePointCredentials(credentials)) {
+    return credentials;
+  }
+
+  return refreshMicrosoftSharePointCredentials(credentials);
+}
+
+export async function listMicrosoftSharePointSites(
+  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+): Promise<IntegrationToolResult> {
+  return executeMicrosoftSharePointOperation("list-sites", {}, token);
+}
+
+export async function listMicrosoftSharePointSiteDrives(
+  siteId: string,
+  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+): Promise<IntegrationToolResult> {
+  const normalizedSiteId = siteId.trim();
+  if (!normalizedSiteId) {
+    throw new Error("O ID do site do SharePoint não pode estar vazio.");
+  }
+
+  return executeMicrosoftSharePointOperation(
+    "list-site-drives",
+    { siteId: normalizedSiteId },
+    token,
+  );
+}
+
 export type MicrosoftSharePointOperation =
   | "list-root"
   | "list-folder"
@@ -217,7 +311,9 @@ export type MicrosoftSharePointOperation =
   | "search-site-drive"
   | "get-metadata"
   | "get-site-item-metadata"
-  | "list-versions";
+  | "list-versions"
+  | "list-sites"
+  | "list-site-drives";
 
 export type MicrosoftSharePointConnectionVerification = {
   readonly providerId: typeof MICROSOFT_SHAREPOINT_PROVIDER_ID;
@@ -228,6 +324,13 @@ export type MicrosoftSharePointConnectionVerification = {
 };
 
 export class MicrosoftSharePointConnectionError extends Error {
+  constructor(message = "Microsoft SharePoint não está configurado ou autorizado.") {
+    super(message);
+    this.name = "MicrosoftSharePointConnectionError";
+  }
+}
+
+
   constructor(message = "Microsoft SharePoint não está configurado ou autorizado.") {
     super(message);
     this.name = "MicrosoftSharePointConnectionError";
