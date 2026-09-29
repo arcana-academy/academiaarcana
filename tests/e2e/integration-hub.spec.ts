@@ -10,7 +10,11 @@ test.describe("integration hub", () => {
     await expect(page.getByRole("heading", { name: "Hub de integrações da Academia Arcana" })).toBeVisible();
     await expect(page.getByText("114 plugins registrados")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ferramentas aplicadas ao ciclo de criação" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
+    await expect(page.getByText("NVIDIA · Physical AI", { exact: true })).toBeVisible();
     await expect(page.getByText("GitHub", { exact: true })).toBeVisible();
+
     const dictionaryCard = page
       .getByRole("listitem")
       .filter({ hasText: "A-Z Dictionary" });
