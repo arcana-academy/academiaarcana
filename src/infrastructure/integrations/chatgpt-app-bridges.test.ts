@@ -17,8 +17,6 @@ import {
   QUIZLET_CHATGPT_APP_URL,
   SPOTIFY_APP_ID,
   SPOTIFY_CHATGPT_APP_URL,
-  TAROT_APP_ID,
-  TAROT_CHATGPT_APP_URL,
   TARTEEL_APP_ID,
   TARTEEL_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
@@ -72,18 +70,6 @@ describe("ChatGPT app bridges", () => {
     );
   });
 
-  it("defines the official Tarot ChatGPT bridge without credentials", () => {
-    expect(CHATGPT_APP_BRIDGES[TAROT_APP_ID]).toEqual({
-      providerId: TAROT_APP_ID,
-      displayName: "Tarot",
-      appUrl: TAROT_CHATGPT_APP_URL,
-    });
-
-    expect(TAROT_CHATGPT_APP_URL).toBe(
-      "https://chatgpt.com/plugins/plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b",
-    );
-  });
-
   it("registers Astrologic without claiming an unverified web-runtime endpoint", () => {
     expect(CHATGPT_APP_BRIDGES[ASTROLOGIC_APP_ID]).toEqual({
       providerId: ASTROLOGIC_APP_ID,
@@ -127,12 +113,9 @@ describe("ChatGPT app bridges", () => {
   it("keeps every bridge anchored to a catalog entry and a unique official ChatGPT URL", () => {
     const catalogNames = new Set(CHATGPT_PLUGIN_CATALOG.map((entry) => entry.name));
     const bridges = Object.values(CHATGPT_APP_BRIDGES);
-    const bridgeUrls: string[] = [];
-    for (const bridge of bridges) {
-      if (typeof bridge.appUrl === "string") {
-        bridgeUrls.push(bridge.appUrl);
-      }
-    }
+    const bridgeUrls = bridges.flatMap((bridge) =>
+      bridge.appUrl ? [bridge.appUrl] : [],
+    );
 
     expect(bridges.every((bridge) => catalogNames.has(bridge.displayName))).toBe(
       true,
