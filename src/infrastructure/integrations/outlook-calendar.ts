@@ -137,50 +137,140 @@ export class OutlookCalendarClient {
     end: string,
     durationMinutes: number,
   ): Promise<OutlookAvailableSlot[]> {
-    const data = await graphRequest<{
-      value?: Array<{
-        scheduleId?: string;
-        availabilityView?: string;
-        scheduleItems?: Array<{
-          start: { dateTime: string; timeZone: string };
-          end: { dateTime: string; timeZone: string };
+    if (!Number.isInteger(durationMinutes) || durationMinutes < 5) {
+      throw new OutlookCalendarError("A duração deve ser um número inteiro de pelo menos 5 minutos.");
+    }
+
+    try {
+      const data = await graphRequest<{
+        value?: Array<{
+          availabilityView?: string;
         }>;
-      }>;
-    }>(this.accessToken, "/me/calendar/getSchedule", {
-      method: "POST",
-      body: JSON.stringify({
-        schedules: ["me"],
-        startTime: { dateTime: start, timeZone: "UTC" },
-        endTime: { dateTime: end, timeZone: "UTC" },
-        availabilityViewInterval: durationMinutes,
-      }),
-    });
+      }>(this.accessToken, "/me/calendar/getSchedule", {
+        method: "POST",
+        body: JSON.stringify({
+          schedules: ["me"],
+          startTime: { dateTime: start, timeZone: "UTC" },
+          endTime: { dateTime: end, timeZone: "UTC" },
+          availabilityViewInterval: durationMinutes,
+        }),
+      });
 
-    const schedule = data.value?.[0];
-    if (!schedule?.availabilityView) return [];
+      const schedule = data.value?.[0];
+      if (schedule?.availabilityView) {
+        return this.availabilityViewToSlots(
+          schedule.availabilityView,
+          start,
+          durationMinutes,
+        );
+      }
+    } catch (error) {
+      if (
+        !(error instanceof OutlookCalendarError) ||
+        ![400, 403].includes(error.status ?? 0)
+      ) {
+        throw error;
+      }
+    }
 
+    const events = await this.listEvents(start, end);
+    return this.eventsToSlots(events, start, end, durationMinutes);
+  }
+
+  private availabilityViewToSlots(
+    availabilityView: string,
+    start: string,
+    durationMinutes: number,
+  ): OutlookAvailableSlot[] {
     const slots: OutlookAvailableSlot[] = [];
-    const interval = durationMinutes;
-    for (let index = 0; index < schedule.availabilityView.length; index += 1) {
-      if (schedule.availabilityView[index] !== "0") continue;
+
+    for (let index = 0; index < availabilityView.length; index += 1) {
+      if (availabilityView[index] !== "0") continue;
+
       let endIndex = index + 1;
       while (
-        endIndex < schedule.availabilityView.length &&
-        schedule.availabilityView[endIndex] === "0"
+        endIndex < availabilityView.length &&
+        availabilityView[endIndex] === "0"
       ) {
         endIndex += 1;
       }
-      const availableMinutes = (endIndex - index) * interval;
-      if (availableMinutes < durationMinutes) continue;
 
-      const startDate = new Date(start);
-      startDate.setUTCMinutes(startDate.getUTCMinutes() + index * interval);
-      const endDate = new Date(startDate);
-      endDate.setUTCMinutes(endDate.getUTCMinutes() + durationMinutes);
+      if ((endIndex - index) * durationMinutes < durationMinutes) continue;
+
+      const slotStart = new Date(start);
+      slotStart.setUTCMinutes(
+        slotStart.getUTCMinutes() + index * durationMinutes,
+      );
 
       slots.push({
-        start_datetime: startDate.toISOString(),
-        end_datetime: endDate.toISOString(),
+        start_datetime: slotStart.toISOString(),
+        end_datetime: new Date(
+          slotStart.getTime() + durationMinutes * 60_000,
+        ).toISOString(),
+        duration_minutes: durationMinutes,
+      });
+    }
+
+    return slots;
+  }
+
+  private eventsToSlots(
+    events: readonly OutlookEvent[],
+    start: string,
+    end: string,
+    durationMinutes: number,
+  ): OutlookAvailableSlot[] {
+    const windowStart = new Date(start).getTime();
+    const windowEnd = new Date(end).getTime();
+    const durationMs = durationMinutes * 60_000;
+
+    if (!Number.isFinite(windowStart) || !Number.isFinite(windowEnd) || windowEnd <= windowStart) {
+      throw new OutlookCalendarError("A janela de disponibilidade é inválida.");
+    }
+
+    const busy = events
+      .filter(
+        (event) =>
+          !event.isCancelled &&
+          event.showAs !== "free" &&
+          event.showAs !== "workingElsewhere",
+      )
+      .map((event) => ({
+        start: new Date(event.start.dateTime).getTime(),
+        end: new Date(event.end.dateTime).getTime(),
+      }))
+      .filter(
+        (event) =>
+          Number.isFinite(event.start) &&
+          Number.isFinite(event.end) &&
+          event.end > event.start,
+      )
+      .sort((a, b) => a.start - b.start);
+
+    const slots: OutlookAvailableSlot[] = [];
+    let cursor = windowStart;
+
+    for (const event of busy) {
+      const eventStart = Math.max(event.start, windowStart);
+      const eventEnd = Math.min(event.end, windowEnd);
+
+      if (eventEnd <= windowStart || eventStart >= windowEnd) continue;
+
+      if (eventStart - cursor >= durationMs) {
+        slots.push({
+          start_datetime: new Date(cursor).toISOString(),
+          end_datetime: new Date(cursor + durationMs).toISOString(),
+          duration_minutes: durationMinutes,
+        });
+      }
+
+      cursor = Math.max(cursor, eventEnd);
+    }
+
+    if (windowEnd - cursor >= durationMs) {
+      slots.push({
+        start_datetime: new Date(cursor).toISOString(),
+        end_datetime: new Date(cursor + durationMs).toISOString(),
         duration_minutes: durationMinutes,
       });
     }
