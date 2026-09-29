@@ -9,13 +9,13 @@ import {
 
 describe("Microsoft SharePoint integration", () => {
   it("declares server-side OAuth capabilities without write access", () => {
-    expect(MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION.authMode).toBe("oauth");
+    expect(MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION.authMode).toBe("oauth2");
     expect(MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION.serverSideOnly).toBe(true);
     expect(MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION.capabilities).toEqual(
       expect.arrayContaining(["read", "search", "files", "versions", "metadata"]),
     );
     expect(MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION.scopes).toEqual(
-      expect.arrayContaining(["Files.Read"]),
+      expect.arrayContaining(["Files.Read", "Sites.Read.All"]),
     );
   });
 
