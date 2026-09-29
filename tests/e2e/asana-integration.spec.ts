@@ -17,7 +17,11 @@ test.describe("Asana integration", () => {
   });
 
   test("protects the Asana status endpoint", async ({ request }) => {
-    const response = await request.get("/api/integrations/asana/status");
-    expect([401, 403]).toContain(response.status());
+    const response = await request.get("/api/integrations/asana/status", {
+      maxRedirects: 0,
+    });
+
+    expect(response.status()).toBe(307);
+    expect(response.headers().location).toMatch(/\/login$/);
   });
 });
