@@ -18,6 +18,8 @@ export type IntegrationCapability =
   | "write"
   | "search"
   | "files"
+  | "versions"
+  | "metadata"
   | "calendar"
   | "messaging"
   | "design"
