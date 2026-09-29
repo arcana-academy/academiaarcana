@@ -21,6 +21,7 @@ import {
   verifyAirtableConnection,
   type AirtableConnectionVerification,
 } from "./airtable";
+import { ASANA_PROVIDER_ID } from "./asana";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
@@ -300,6 +301,17 @@ export async function getIntegrationStatusSnapshot({
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
     if (plugin.name === "Dropbox") return dropboxEntry;
+    if (plugin.name === "Asana") {
+      return {
+        name: "Asana",
+        source: "runtime" as const,
+        status: "catalogued" as const,
+        executionMode: "runtime" as const,
+        providerId: ASANA_PROVIDER_ID,
+        capabilities: ["read", "write", "search"],
+        verification: null,
+      };
+    }
     if (plugin.name === "Notion") {
       return {
         name: "Notion",
