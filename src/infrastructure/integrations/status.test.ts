@@ -133,6 +133,17 @@ describe("integration status snapshot", () => {
       verification: null,
     });
 
+    const asana = snapshot.entries.find((entry) => entry.name === "Asana");
+    expect(asana).toMatchObject({
+      name: "Asana",
+      source: "runtime",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "asana",
+      capabilities: ["read", "write", "search"],
+      verification: null,
+    });
+
     const airtable = snapshot.entries.find((entry) => entry.name === "Airtable");
     expect(airtable).toMatchObject({
       name: "Airtable",
