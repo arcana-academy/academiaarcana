@@ -242,6 +242,17 @@ export async function getIntegrationStatusSnapshot({
         verification: null,
       };
     }
+    if (plugin.name === "Trello") {
+      return {
+        name: "Trello",
+        source: "runtime" as const,
+        status: "catalogued" as const,
+        executionMode: "runtime" as const,
+        providerId: "trello",
+        capabilities: ["read", "write", "search", "metadata"],
+        verification: null,
+      };
+    }
 
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
     const isAgenticCourseRedesign = plugin.name === "Agentic Course Redesign";
