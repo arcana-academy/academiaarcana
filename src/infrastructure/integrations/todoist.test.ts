@@ -7,7 +7,11 @@ import {
   createOAuthVerifier,
   createPkceChallenge,
   createTodoistTask,
+  decryptTodoistCredentials,
+  encryptTodoistCredentials,
   exchangeTodoistAuthorizationCode,
+  refreshTodoistCredentials,
+  shouldRefreshTodoistCredentials,
   verifyTodoistConnection,
 } from "./todoist";
 
@@ -45,39 +49,102 @@ describe("Todoist integration", () => {
     expect(url.searchParams.has("client_secret")).toBe(false);
   });
 
-  it("exchanges an authorization code server-side", async () => {
+  it("exchanges an authorization code server-side and accepts refresh-token responses", async () => {
     vi.stubEnv("TODOIST_CLIENT_ID", "client-id");
     vi.stubEnv("TODOIST_CLIENT_SECRET", "client-secret");
     vi.stubEnv("TODOIST_REDIRECT_URI", "https://example.com/api/integrations/todoist/callback");
 
     const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ access_token: "access-token", token_type: "Bearer" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+      new Response(JSON.stringify({
+        access_token: "access-token",
+        token_type: "Bearer",
+        refresh_token: "refresh-token",
+        expires_in: 3600,
+      }), { status: 200, headers: { "Content-Type": "application/json" } }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await exchangeTodoistAuthorizationCode({
       code: "authorization-code",
       codeVerifier: "verifier",
+      requestUrl: "https://example.com/api/integrations/todoist/callback",
     });
 
-    expect(result).toEqual({ accessToken: "access-token", tokenType: "Bearer" });
+    expect(result.accessToken).toBe("access-token");
+    expect(result.refreshToken).toBe("refresh-token");
+    expect(result.accessTokenExpiresAt).toBeGreaterThan(Date.now());
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.todoist.com/oauth/access_token",
-      expect.objectContaining({
-        method: "POST",
-        body: expect.any(URLSearchParams),
-      }),
+      expect.objectContaining({ method: "POST", body: expect.any(URLSearchParams) }),
     );
+  });
+
+  it("encrypts credentials without exposing bearer values in the cookie", async () => {
+    vi.stubEnv("TODOIST_CLIENT_SECRET", "cookie-encryption-secret");
+
+    const credentials = {
+      subjectId: "academy-user-1",
+      accessToken: "secret-access-token",
+      refreshToken: "secret-refresh-token",
+      accessTokenExpiresAt: Date.now() + 3_600_000,
+    };
+
+    const encoded = await encryptTodoistCredentials(credentials);
+    expect(encoded).not.toContain(credentials.accessToken);
+    expect(encoded).not.toContain(credentials.refreshToken);
+    expect(await decryptTodoistCredentials(encoded)).toEqual(credentials);
+  });
+
+  it("rejects invalid encrypted credential payloads", async () => {
+    vi.stubEnv("TODOIST_CLIENT_SECRET", "cookie-encryption-secret");
+    expect(await decryptTodoistCredentials("invalid-cookie-value")).toBeNull();
+  });
+
+  it("recognizes expiring refreshable credentials", () => {
+    const now = Date.now();
+    expect(shouldRefreshTodoistCredentials({
+      subjectId: "academy-user-1",
+      accessToken: "access",
+      refreshToken: "refresh",
+      accessTokenExpiresAt: now + 30_000,
+    }, now)).toBe(true);
+    expect(shouldRefreshTodoistCredentials({
+      subjectId: "academy-user-1",
+      accessToken: "access",
+      refreshToken: "refresh",
+      accessTokenExpiresAt: now + 120_000,
+    }, now)).toBe(false);
+  });
+
+  it("refreshes an access token and rotates the refresh token", async () => {
+    vi.stubEnv("TODOIST_CLIENT_ID", "client-id");
+    vi.stubEnv("TODOIST_CLIENT_SECRET", "client-secret");
+
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({
+        access_token: "new-access",
+        refresh_token: "new-refresh",
+        expires_in: 3600,
+      }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await refreshTodoistCredentials({
+      subjectId: "academy-user-1",
+      accessToken: "old-access",
+      refreshToken: "old-refresh",
+      accessTokenExpiresAt: Date.now() - 1000,
+    });
+
+    expect(result.subjectId).toBe("academy-user-1");
+    expect(result.accessToken).toBe("new-access");
+    expect(result.refreshToken).toBe("new-refresh");
+    expect(result.accessTokenExpiresAt).toBeGreaterThan(Date.now());
   });
 
   it("never returns the bearer token from connection verification", async () => {
     const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ id: "user-123", fullName: "Arcana Learner" }), {
-        status: 200,
-      }),
+      new Response(JSON.stringify({ id: "user-123", fullName: "Arcana Learner" }), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
@@ -99,6 +166,10 @@ describe("Todoist integration", () => {
     await createTodoistTask("secret-token", {
       content: "Estudar",
       dueDateTime: "2026-09-30T14:00:00.000Z",
+      durationMinutes: 30,
+      priority: 2,
+      projectId: "project-1",
+      labels: ["academia-arcana"],
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -108,6 +179,11 @@ describe("Todoist integration", () => {
         body: JSON.stringify({
           content: "Estudar",
           due_datetime: "2026-09-30T14:00:00.000Z",
+          duration: 30,
+          duration_unit: "minute",
+          priority: 2,
+          project_id: "project-1",
+          labels: ["academia-arcana"],
         }),
       }),
     );
