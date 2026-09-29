@@ -29,4 +29,18 @@ describe("AuthenticatedShell", () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it("exposes authenticated page content through the main landmark", () => {
+    render(
+      <AuthenticatedShell currentPath="/santuario">
+        <h1>Seu Santuário de aprendizagem</h1>
+      </AuthenticatedShell>,
+    );
+
+    expect(screen.getByRole("main")).toContainElement(
+      screen.getByRole("heading", {
+        name: "Seu Santuário de aprendizagem",
+      }),
+    );
+  });
 });
