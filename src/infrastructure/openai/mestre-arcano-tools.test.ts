@@ -1,11 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { getMicrosoftSharePointDocumentContext } = vi.hoisted(() => ({
+const {
+  getMicrosoftSharePointDocumentContext,
+  searchParallelWeb,
+  extractParallelWeb,
+} = vi.hoisted(() => ({
   getMicrosoftSharePointDocumentContext: vi.fn(),
+  searchParallelWeb: vi.fn(),
+  extractParallelWeb: vi.fn(),
 }));
 
 vi.mock("@/infrastructure/integrations/microsoft-sharepoint-content", () => ({
   getMicrosoftSharePointDocumentContext,
+}));
+
+vi.mock("@/infrastructure/parallel/parallel-search", () => ({
+  searchParallelWeb,
+  extractParallelWeb,
 }));
 
 import {
@@ -13,25 +24,122 @@ import {
   MESTRE_ARCANO_TOOLS,
 } from "./mestre-arcano-tools";
 
-describe("Mestre Arcano SharePoint tools", () => {
-  it("declares the SharePoint source discovery and context tools as strict functions", () => {
-    const sourceTool = MESTRE_ARCANO_TOOLS.find(
-      (tool) => tool.name === "get_connected_sharepoint_sources",
+describe("Mestre Arcano tools", () => {
+  it("declares the web research tools as strict functions", () => {
+    const searchTool = MESTRE_ARCANO_TOOLS.find(
+      (tool) => tool.name === "search_web",
     );
-    const contextTool = MESTRE_ARCANO_TOOLS.find(
-      (tool) => tool.name === "get_sharepoint_document_context",
+    const extractTool = MESTRE_ARCANO_TOOLS.find(
+      (tool) => tool.name === "extract_web_source",
     );
 
-    expect(sourceTool).toMatchObject({
-      type: "function",
-      strict: true,
-    });
-    expect(contextTool).toMatchObject({
+    expect(searchTool).toMatchObject({
       type: "function",
       strict: true,
       parameters: {
-        required: ["sourceId"],
+        required: ["objective", "searchQueries"],
       },
+    });
+    expect(extractTool).toMatchObject({
+      type: "function",
+      strict: true,
+      parameters: {
+        required: ["urls", "objective", "searchQueries"],
+      },
+    });
+  });
+
+  it("delegates web search and preserves source traceability", async () => {
+    searchParallelWeb.mockResolvedValue({
+      sources: [
+        {
+          title: "Fonte educacional",
+          url: "https://example.com/source",
+          publishDate: "2026-09-29",
+          excerpts: ["Trecho relevante"],
+        },
+      ],
+      sessionId: "session-1",
+    });
+
+    const output = await executeMestreArcanoTool(
+      {
+        name: "search_web",
+        arguments: JSON.stringify({
+          objective: "Encontrar material educacional",
+          searchQueries: ["material educacional"],
+        }),
+      },
+      {
+        supabase: {} as never,
+        ownerId: "user-1",
+        microsoftSharePointCredentials: null,
+      },
+    );
+
+    expect(searchParallelWeb).toHaveBeenCalledWith({
+      objective: "Encontrar material educacional",
+      searchQueries: ["material educacional"],
+    });
+    expect(JSON.parse(output)).toEqual({
+      sources: [
+        {
+          title: "Fonte educacional",
+          url: "https://example.com/source",
+          publishDate: "2026-09-29",
+          excerpts: ["Trecho relevante"],
+        },
+      ],
+      sessionId: "session-1",
+    });
+  });
+
+  it("delegates web extraction and preserves extraction errors", async () => {
+    extractParallelWeb.mockResolvedValue({
+      sources: [
+        {
+          title: "Documento",
+          url: "https://example.com/document.pdf",
+          publishDate: null,
+          excerpts: ["Resumo"],
+          fullContent: "# Documento",
+        },
+      ],
+      errors: [
+        {
+          url: "https://example.com/private",
+          type: "fetch_error",
+          status: 403,
+        },
+      ],
+      sessionId: "session-2",
+    });
+
+    const output = await executeMestreArcanoTool(
+      {
+        name: "extract_web_source",
+        arguments: JSON.stringify({
+          urls: ["https://example.com/document.pdf"],
+          objective: "Extrair pontos principais",
+          searchQueries: [],
+        }),
+      },
+      {
+        supabase: {} as never,
+        ownerId: "user-1",
+        microsoftSharePointCredentials: null,
+      },
+    );
+
+    expect(extractParallelWeb).toHaveBeenCalledWith({
+      urls: ["https://example.com/document.pdf"],
+      objective: "Extrair pontos principais",
+      searchQueries: [],
+    });
+    expect(JSON.parse(output)).toMatchObject({
+      sources: [{ url: "https://example.com/document.pdf", fullContent: "# Documento" }],
+      errors: [{ status: 403 }],
+      sessionId: "session-2",
     });
   });
 
