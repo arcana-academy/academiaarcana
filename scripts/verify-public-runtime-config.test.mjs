@@ -94,6 +94,7 @@ describe("verify-public-runtime-config", () => {
       integration: "supabase-public-runtime",
       verified: true,
       environment: "preview",
+      configuration: "environment",
     });
   });
 
@@ -106,6 +107,7 @@ describe("verify-public-runtime-config", () => {
       integration: "supabase-public-runtime",
       verified: true,
       environment: "preview",
+      configuration: "safe-vercel-fallback",
     });
   });
 
@@ -141,6 +143,7 @@ describe("verify-public-runtime-config", () => {
         integration: "supabase-public-runtime",
         verified: true,
         environment: "production",
+        configuration: "environment",
       });
     } finally {
       rmSync(directory, { recursive: true, force: true });
