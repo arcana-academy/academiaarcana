@@ -286,6 +286,7 @@ export class OutlookCalendarClient {
     body?: string;
     calendarId?: string;
     reminderMinutesBeforeStart?: number;
+    transactionId?: string;
   }): Promise<OutlookEvent> {
     const path = input.calendarId
       ? `/me/calendars/${encodeURIComponent(input.calendarId)}/events`
@@ -302,6 +303,7 @@ export class OutlookCalendarClient {
         reminderMinutesBeforeStart:
           input.reminderMinutesBeforeStart ?? 15,
         showAs: "busy",
+        ...(input.transactionId ? { transactionId: input.transactionId } : {}),
       }),
     });
   }
@@ -351,6 +353,10 @@ export class OutlookCalendarClient {
             reminderMinutesBeforeStart:
               typeof input.reminderMinutesBeforeStart === "number"
                 ? input.reminderMinutesBeforeStart
+                : undefined,
+            transactionId:
+              typeof input.transactionId === "string"
+                ? input.transactionId
                 : undefined,
           }),
         };
