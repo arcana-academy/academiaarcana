@@ -58,7 +58,7 @@ test.describe("integration hub", () => {
     const body = await response.json();
 
     expect(body).toMatchObject({
-      catalogSize: 117,
+      catalogSize: 118,
       connectedCount: 1,
       errorCount: 0,
     });
