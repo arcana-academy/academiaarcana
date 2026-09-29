@@ -34,7 +34,7 @@ describe("RelewiseSearch", () => {
     );
 
     render(<RelewiseSearch />);
-    fireEvent.change(screen.getByLabelText("Pesquisar"), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Pesquisar" }), {
       target: { value: "produto" },
     });
     fireEvent.submit(screen.getByRole("search"));
