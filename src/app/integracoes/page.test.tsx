@@ -102,7 +102,7 @@ describe("IntegracoesPage", () => {
   it("renders the catalog size and the distinction between verified and catalogued", async () => {
     const html = renderToStaticMarkup(await IntegracoesPage());
 
-    expect(html).toContain("115 plugins registrados");
+    expect(html).toContain("116 plugins registrados");
     expect(html).toContain("Conexões verificadas");
     expect(html).toContain("1");
     expect(html).toContain("Ainda catalogados");
