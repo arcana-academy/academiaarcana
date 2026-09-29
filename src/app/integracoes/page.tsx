@@ -172,6 +172,36 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="trello-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Produtividade · Operações
+          </p>
+          <h2 id="trello-title" style={{ marginTop: 0 }}>
+            Trello
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Conecte seu workspace para administrar boards, listas, cards e
+            checklists, pesquisar o fluxo operacional e levar tarefas do estudo
+            para um espaço de execução externo. A autorização permanece no servidor.
+          </p>
+          <Link className="aa-button aa-button-primary" href="/integracoes/trello">
+            Gerenciar conexão do Trello
+          </Link>
+        </article>
+      </section>
+
+      <section
         aria-labelledby="notion-title"
         style={{ marginTop: "var(--aa-spacing-lg)" }}
       >
