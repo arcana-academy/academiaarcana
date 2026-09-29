@@ -202,6 +202,36 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="asana-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Produtividade · Planejamento
+          </p>
+          <h2 id="asana-title" style={{ marginTop: 0 }}>
+            Asana
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Conecte sua conta para criar e acompanhar tarefas de estudo no Asana.
+            A autorização ocorre no servidor e a Academia Arcana continua sendo a
+            fonte de verdade do progresso educacional.
+          </p>
+          <Link className="aa-button aa-button-primary" href="/integracoes/asana">
+            Gerenciar conexão do Asana
+          </Link>
+        </article>
+      </section>
+
+      <section
         aria-labelledby="notion-title"
         style={{ marginTop: "var(--aa-spacing-lg)" }}
       >
