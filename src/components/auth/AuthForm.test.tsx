@@ -77,7 +77,7 @@ describe("AuthForm", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("alert").textContent).toContain(
-        "Não foi possível concluir a operação. Tente novamente.",
+        "Não foi possível concluir a operação. Confira os dados e tente novamente.",
       );
     });
   });
@@ -103,7 +103,7 @@ describe("AuthForm", () => {
         }),
       );
 
-      expect(screen.getByRole("alert").textContent).toContain(
+      expect(screen.getByRole("status").textContent).toContain(
         "Se o endereço estiver cadastrado, você receberá as instruções para recuperar o acesso.",
       );
     });
@@ -191,7 +191,7 @@ describe("AuthForm", () => {
     await waitFor(() => {
       expect(updateUser).toHaveBeenCalledTimes(1);
       expect(updateUser).toHaveBeenCalledWith({ password: "new-password" });
-      expect(screen.getByRole("alert").textContent).toContain(
+      expect(screen.getByRole("status").textContent).toContain(
         "Senha atualizada com sucesso.",
       );
     });

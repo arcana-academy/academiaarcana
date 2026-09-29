@@ -3,7 +3,7 @@ import {
   renderHook,
   waitFor,
 } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   AccessibilityPreferencesContext,
@@ -34,6 +34,10 @@ function createDependencies() {
 }
 
 describe("AccessibilityPreferencesContext", () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.motion;
+  });
+
   it("expõe o contexto de preferências de acessibilidade", () => {
     expect(AccessibilityPreferencesContext).toBeDefined();
   });
@@ -79,5 +83,39 @@ describe("AccessibilityPreferencesContext", () => {
     expect(
       secondContext.setMotionPreference,
     ).toBeTypeOf("function");
+  });
+
+  it("applies the resolved motion preference to the document", async () => {
+    const dependencies = createDependencies();
+
+    const wrapper = ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => (
+      <AccessibilityPreferencesProvider
+        {...dependencies}
+      >
+        {children}
+      </AccessibilityPreferencesProvider>
+    );
+
+    const { result } = renderHook(
+      () => useAccessibilityPreferencesContext(),
+      { wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.state).not.toBeNull();
+      expect(document.documentElement.dataset.motion).toBe("normal");
+    });
+
+    await act(async () => {
+      await result.current.setMotionPreference("reduced");
+    });
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.motion).toBe("reduced");
+    });
   });
 });
