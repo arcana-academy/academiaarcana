@@ -62,9 +62,9 @@ export function validateSupabaseProductionConfiguration(
     );
   }
 
-  if (!/^sb_publishable_[A-Za-z0-9]{22}_[A-Za-z0-9]{8}$/.test(publishableKey)) {
+  if (!/^sb_publishable_[A-Za-z0-9]{22}_[A-Za-z0-9]{7}$/.test(publishableKey)) {
     throw new Error(
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must use the expected sb_publishable_<22-char-random>_<8-char-checksum> format.",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must use the expected sb_publishable_<22-char-random>_<7-char-checksum> format.",
     );
   }
 }
