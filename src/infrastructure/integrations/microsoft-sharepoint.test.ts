@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION,
+  buildMicrosoftSharePointAuthorizationUrl,
+  createMicrosoftPkceChallenge,
+  createMicrosoftOAuthVerifier,
   MicrosoftSharePointConnectionError,
   executeMicrosoftSharePointOperation,
   searchMicrosoftSharePoint,
@@ -17,6 +20,20 @@ describe("Microsoft SharePoint integration", () => {
     expect(MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION.scopes).toEqual(
       expect.arrayContaining(["Files.Read", "Sites.Read.All"]),
     );
+  });
+
+  it("builds a PKCE authorization URL without exposing a client secret", async () => {
+    vi.stubEnv("MICROSOFT_CLIENT_ID", "client-id");
+    vi.stubEnv("MICROSOFT_REDIRECT_URI", "https://example.test/api/integrations/microsoft-sharepoint/callback");
+    const verifier = createMicrosoftOAuthVerifier();
+    const challenge = await createMicrosoftPkceChallenge(verifier);
+    const url = new URL(buildMicrosoftSharePointAuthorizationUrl({ state: "state", codeChallenge: challenge }));
+    expect(url.searchParams.get("client_id")).toBe("client-id");
+    expect(url.searchParams.get("code_challenge")).toBe(challenge);
+    expect(url.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(url.searchParams.get("scope")).toContain("Sites.Read.All");
+    expect(url.search).not.toContain("client_secret");
+    vi.unstubAllEnvs();
   });
 
   it("fails closed when no access token is available", async () => {
