@@ -10,7 +10,7 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+export async function POST() {
   await requireAuthenticatedUser();
 
   const cookieStore = await cookies();
