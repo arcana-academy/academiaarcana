@@ -1,7 +1,7 @@
 import type {
   MestreArcanoExecution,
   MestreArcanoGateway,
-} from "@/domains/intelligence/contracts";
+} from "@/domains/intelligence";
 
 export async function executeMestreArcano(
   gateway: MestreArcanoGateway,
