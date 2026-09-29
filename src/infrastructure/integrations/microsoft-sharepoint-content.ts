@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getMicrosoftSharePointSiteItemMetadata,
   type MicrosoftSharePointCredentials,
+  MICROSOFT_GRAPH_API_BASE_URL,
   MICROSOFT_SHAREPOINT_PROVIDER_ID,
 } from "./microsoft-sharepoint";
 
@@ -133,7 +134,7 @@ async function readResponseBytesWithinLimit(
 
       chunks.push(result.value);
     }
-  }finally {
+  } finally {
     reader.releaseLock();
   }
 
@@ -173,7 +174,7 @@ async function downloadMicrosoftSharePointSiteItemContent(
   fetchImpl: typeof fetch,
 ): Promise<Uint8Array> {
   const url =
-    `${"https://graph.microsoft.com/v1.0"}/drives/${encodeURIComponent(
+    `${MICROSOFT_GRAPH_API_BASE_URL}/drives/${encodeURIComponent(
       source.driveId,
     )}/items/${encodeURIComponent(source.itemId)}/content`;
 
