@@ -144,6 +144,7 @@ export {
   getValidMicrosoftSharePointCredentials,
   listMicrosoftSharePointVersions,
   searchMicrosoftSharePoint,
+  searchMicrosoftSharePointSiteDrive,
   verifyMicrosoftSharePointConnection,
 } from "./microsoft-sharepoint";
 export type {
