@@ -70,31 +70,25 @@ export function validateSupabaseProductionConfiguration(
 }
 
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
-  const isVercel = ["preview", "production"].includes(environment.VERCEL_ENV);
-  const hasConfiguredPublicValues =
-    Boolean(environment.NEXT_PUBLIC_SUPABASE_URL) &&
-    Boolean(environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-
-  if (!isVercel && !environment.NEXT_PUBLIC_SUPABASE_URL) {
-    throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
+  for (const name of [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  ]) {
+    if (!environment[name]?.trim()) {
+      throw new Error(`Missing required environment variable: ${name}`);
+    }
   }
 
-  if (!isVercel && !environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
-  }
-
-  if (hasConfiguredPublicValues && environment.VERCEL_ENV === "production") {
-    validateSupabaseProductionConfiguration(
-      environment.NEXT_PUBLIC_SUPABASE_URL,
-      environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    );
-  }
+  validateSupabaseProductionConfiguration(
+    environment.NEXT_PUBLIC_SUPABASE_URL,
+    environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  );
 
   return {
     integration: "supabase-public-runtime",
     verified: true,
     environment: environment.VERCEL_ENV ?? environment.NODE_ENV ?? "unknown",
-    configuration: hasConfiguredPublicValues ? "environment" : "safe-vercel-fallback",
+    configuration: "environment",
   };
 }
 
