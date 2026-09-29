@@ -6,7 +6,10 @@ import {
   OUTLOOK_CALENDAR_SCOPES,
   OutlookCalendarError,
 } from "./outlook-calendar";
-import { storeOutlookTokens } from "./outlook-calendar-session";
+import {
+  clearLegacyOutlookTokenCookies,
+  storeOutlookTokens,
+} from "./outlook-calendar-session";
 
 const STATE_COOKIE = "arcana_outlook_oauth_state";
 const VERIFIER_COOKIE = "arcana_outlook_oauth_verifier";
@@ -66,6 +69,7 @@ export async function createOutlookAuthorizationUrl() {
 }
 
 export async function redeemOutlookAuthorizationCode(
+  ownerId: string,
   code: string,
   state: string,
 ) {
@@ -123,12 +127,13 @@ export async function redeemOutlookAuthorizationCode(
     );
   }
 
-  await storeOutlookTokens({
+  await storeOutlookTokens(ownerId, {
     accessToken: payload.access_token,
     refreshToken: payload.refresh_token,
     expiresAt: new Date(Date.now() + payload.expires_in * 1000).toISOString(),
   });
 
+  await clearLegacyOutlookTokenCookies();
   jar.delete(STATE_COOKIE);
   jar.delete(VERIFIER_COOKIE);
 }
