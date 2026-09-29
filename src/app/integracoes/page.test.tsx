@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/infrastructure/integrations/status", () => ({
   getIntegrationStatusSnapshot: vi.fn(async () => ({
     generatedAt: "2026-09-27T00:00:00.000Z",
-    catalogSize: 115,
+    catalogSize: 116,
     connectedCount: 1,
-    cataloguedCount: 114,
+    cataloguedCount: 115,
     errorCount: 0,
     runtimeIntegrations: [
       {
@@ -64,6 +64,15 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         verification: null,
       },
       {
+        name: "Trello",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        providerId: "trello",
+        capabilities: ["read", "write", "search", "metadata"],
+        verification: null,
+      },
+      {
         name: "GitHub",
         source: "chatgpt-catalog",
         status: "connected",
@@ -111,6 +120,7 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Gerenciar SharePoint");
     expect(html).toContain("Notion");
     expect(html).toContain("Gerenciar conexão do Notion");
+    expect(html).toContain("Gerenciar conexão do Trello");
 
     expect(html).toContain("OpenAI Agents");
     expect(html).toContain("gpt-5.6-sol");
