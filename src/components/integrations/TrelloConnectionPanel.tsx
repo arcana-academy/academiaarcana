@@ -142,9 +142,13 @@ export function TrelloConnectionPanel() {
   }, []);
 
   useEffect(() => {
-    if (selectedBoardId && status.status === "connected") {
+    if (!selectedBoardId || status.status !== "connected") return;
+
+    const timer = window.setTimeout(() => {
       void loadBoard(selectedBoardId);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [selectedBoardId, status.status]);
 
   const cardsByList = useMemo(() => {
