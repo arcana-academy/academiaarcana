@@ -21,6 +21,7 @@ import {
   verifyAirtableConnection,
   type AirtableConnectionVerification,
 } from "./airtable";
+import { ASANA_PROVIDER_ID } from "./asana";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
@@ -323,6 +324,18 @@ export async function getIntegrationStatusSnapshot({
       };
     }
     if (plugin.name === "Airtable") return airtableEntry;
+
+    if (plugin.name === "Asana") {
+      return {
+        name: "Asana",
+        source: "runtime" as const,
+        status: "catalogued" as const,
+        executionMode: "runtime" as const,
+        providerId: ASANA_PROVIDER_ID,
+        capabilities: ["read", "write", "search"],
+        verification: null,
+      };
+    }
 
     if (plugin.name === "Trello") {
       return {
