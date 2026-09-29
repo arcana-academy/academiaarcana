@@ -57,10 +57,7 @@ export function RelewiseSearch() {
   }
 
   return (
-    <section
-      aria-labelledby="relewise-search-title"
-      className="aa-card"
-    >
+    <section aria-labelledby="relewise-search-title" className="aa-card">
       <p className="aa-eyebrow">Busca inteligente</p>
       <h2 id="relewise-search-title">Encontre o que você procura</h2>
 
@@ -105,10 +102,7 @@ export function RelewiseSearch() {
       {results.length > 0 ? (
         <ul className="mt-4 space-y-2" aria-label="Resultados da busca">
           {results.map((result, index) => (
-            <li
-              key={result.productId ?? `result-${index}`}
-              className="aa-card"
-            >
+            <li key={result.productId ?? `result-${index}`} className="aa-card">
               {result.displayName ?? result.productId ?? "Resultado"}
             </li>
           ))}
