@@ -205,7 +205,7 @@ describe("Trello integration", () => {
   });
 
   it("creates cards against an explicit list", async () => {
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
           id: "card-1",
