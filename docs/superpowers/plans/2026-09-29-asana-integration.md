@@ -123,8 +123,8 @@
 - Explicitly distinguishes the Asana web API runtime integration from the Asana ChatGPT connector.
 
 - [ ] **Step 1: Write documentation assertions/checks** for required variables and route list.
-- [ ] **Step 2: Implement documentation and configuration naming.
-- [ ] **Step 3: Verify documentation matches code and contains no invented provider behavior.
+- [ ] **Step 2: Implement documentation and configuration naming.**
+- [ ] **Step 3: Verify documentation matches code and contains no invented provider behavior.**
 - [ ] **Step 4: Commit** with `docs: document Asana integration`.
 
 ### Task 6: Full quality validation and corrective pass
@@ -146,7 +146,7 @@
 **Files:** none unless validation reveals a documentation/status correction.
 
 - [ ] **Step 1: Verify the exact final commit is the commit tested by the local quality suite.**
-- [ ] **Step 2: Verify the integration documentation and hub status agree with the implementation.
-- [ ] **Step 3: Verify no Vercel action was performed.
-- [ ] **Step 4: Record the remaining external prerequisites for a real user connection: Asana OAuth application credentials and exact registered redirect URI.
+- [ ] **Step 2: Verify the integration documentation and hub status agree with the implementation.**
+- [ ] **Step 3: Verify no Vercel action was performed.**
+- [ ] **Step 4: Record the remaining external prerequisites for a real user connection: Asana OAuth application credentials and exact registered redirect URI.**
 - [ ] **Step 5: Commit any final metadata-only correction if required.
