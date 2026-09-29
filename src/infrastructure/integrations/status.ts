@@ -231,14 +231,14 @@ export async function getIntegrationStatusSnapshot({
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
     if (plugin.name === "Dropbox") return dropboxEntry;
-    if (plugin.name === "Microsoft SharePoint") {
+    if (plugin.name === "Notion") {
       return {
-        name: "Microsoft SharePoint",
+        name: "Notion",
         source: "runtime" as const,
         status: "catalogued" as const,
         executionMode: "runtime" as const,
-        providerId: "microsoft-sharepoint",
-        capabilities: ["read", "search", "files", "versions", "metadata"],
+        providerId: "notion",
+        capabilities: ["read", "write", "search", "metadata"],
         verification: null,
       };
     }
