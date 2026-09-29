@@ -44,3 +44,47 @@ describe("Outlook Calendar integration", () => {
     fetchMock.mockRestore();
   });
 });
+
+
+  it("falls back to calendar events when Graph availability is unsupported", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ error: { message: "getSchedule unsupported" } }),
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            value: [
+              {
+                id: "event-1",
+                subject: "Aula",
+                start: { dateTime: "2026-09-30T15:30:00.000Z", timeZone: "UTC" },
+                end: { dateTime: "2026-09-30T16:30:00.000Z", timeZone: "UTC" },
+                isCancelled: false,
+                showAs: "busy",
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+    const slots = await new OutlookCalendarClient("access-token").findAvailableSlots(
+      "2026-09-30T14:00:00.000Z",
+      "2026-09-30T18:00:00.000Z",
+      50,
+    );
+
+    expect(slots[0]).toMatchObject({
+      start_datetime: "2026-09-30T14:00:00.000Z",
+      end_datetime: "2026-09-30T14:50:00.000Z",
+      duration_minutes: 50,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    fetchMock.mockRestore();
+  });
