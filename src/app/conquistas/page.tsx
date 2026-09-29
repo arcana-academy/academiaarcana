@@ -1,10 +1,12 @@
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { Award, Crown, Gem } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 
-export default function ConquistasPage() {
+export default async function ConquistasPage() {
+  await requireAuthenticatedUser();
   return (
     <AuthenticatedShell currentPath="/conquistas">
       <ArcanaPage
