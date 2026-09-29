@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ProductSearchBuilder } from "@relewise/client";
 
-import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { getAuthenticatedUserClaims } from "@/lib/auth/get-authenticated-user-claims";
 import {
   createRelewiseSearcher,
   createRelewiseSearchUser,
@@ -9,6 +9,8 @@ import {
 
 const MAX_TERM_LENGTH = 120;
 const MAX_PAGE_SIZE = 30;
+const MAX_LANGUAGE_LENGTH = 20;
+const MAX_CURRENCY_LENGTH = 10;
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -37,35 +39,52 @@ export async function GET(request: Request) {
     );
   }
 
+  if (
+    language.length > MAX_LANGUAGE_LENGTH ||
+    currency.length > MAX_CURRENCY_LENGTH
+  ) {
+    return NextResponse.json(
+      { error: "Os parâmetros de idioma ou moeda são inválidos." },
+      { status: 400 },
+    );
+  }
+
   const page = Number.isFinite(rawPage) ? Math.max(1, rawPage) : 1;
   const pageSize = Number.isFinite(rawPageSize)
     ? Math.min(MAX_PAGE_SIZE, Math.max(1, rawPageSize))
     : 20;
 
-  const claims = await requireAuthenticatedUser();
-  const searcher = createRelewiseSearcher();
+  const claims = await getAuthenticatedUserClaims();
 
-  const requestBuilder = new ProductSearchBuilder({
-    language,
-    currency,
-    displayedAtLocation: "Academia Arcana Search",
-    user: createRelewiseSearchUser(claims.sub),
-  })
-    .setTerm(term)
-    .setSelectedProductProperties({
-      displayName: true,
-      brand: true,
-      pricing: true,
-    })
-    .pagination((pagination) => {
-      pagination.setPage(page);
-      pagination.setPageSize(pageSize);
-    });
+  if (!claims?.sub) {
+    return NextResponse.json(
+      { error: "Autenticação necessária." },
+      { status: 401 },
+    );
+  }
 
   try {
+    const searcher = createRelewiseSearcher();
+    const requestBuilder = new ProductSearchBuilder({
+      language,
+      currency,
+      displayedAtLocation: "Academia Arcana Search",
+      user: createRelewiseSearchUser(claims.sub),
+    })
+      .setTerm(term)
+      .setSelectedProductProperties({
+        displayName: true,
+        brand: true,
+        pricing: true,
+      })
+      .pagination((pagination) => {
+        pagination.setPage(page);
+        pagination.setPageSize(pageSize);
+      });
+
     const response = await searcher.searchProducts(requestBuilder.build());
 
-    return NextResponse.json(response ?? null, {
+    return NextResponse.json(response, {
       headers: {
         "Cache-Control": "private, no-store",
       },
