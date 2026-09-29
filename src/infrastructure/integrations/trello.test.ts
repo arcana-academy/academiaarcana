@@ -65,7 +65,7 @@ describe("Trello integration", () => {
       "https://example.com/api/integrations/trello/callback",
     );
 
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) =>
       new Response(
         JSON.stringify({
           access_token: "access-token",
@@ -181,7 +181,7 @@ describe("Trello integration", () => {
   });
 
   it("lists boards through the Trello API", async () => {
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       new Response(
         JSON.stringify([
           {
