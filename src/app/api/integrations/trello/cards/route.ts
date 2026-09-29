@@ -50,7 +50,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await createTrelloCard(credentials.accessToken, body);
+    const result = await createTrelloCard(credentials.accessToken, {
+      listId: body.listId.trim(),
+      name: body.name.trim(),
+      description: body.description,
+      due: body.due,
+    });
     return NextResponse.json(result.output, { status: 201 });
   } catch {
     return NextResponse.json({ error: "trello_request_failed" }, { status: 502 });

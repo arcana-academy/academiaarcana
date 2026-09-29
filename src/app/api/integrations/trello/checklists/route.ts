@@ -48,7 +48,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await createTrelloChecklist(credentials.accessToken, body);
+    const result = await createTrelloChecklist(credentials.accessToken, {
+      cardId: body.cardId.trim(),
+      name: body.name.trim(),
+    });
     return NextResponse.json(result.output, { status: 201 });
   } catch {
     return NextResponse.json({ error: "trello_request_failed" }, { status: 502 });
