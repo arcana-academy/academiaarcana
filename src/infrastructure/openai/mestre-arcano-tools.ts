@@ -60,7 +60,7 @@ export const MESTRE_ARCANO_TOOLS = [
     type: "function",
     name: "get_connected_sharepoint_sources",
     description:
-      "Lista as fontes textuais de Microsoft SharePoint que o aluno autenticado conectou à Academia Arcana. Use antes de consultar um documento do SharePoint quando a pergunta depender de uma fonte conectada.",
+      "Lista as fontes de Microsoft SharePoint que o aluno autenticado conectou à Academia Arcana. Use antes de consultar um documento do SharePoint quando a pergunta depender de uma fonte conectada.",
     strict: true,
     parameters: {
       type: "object",
