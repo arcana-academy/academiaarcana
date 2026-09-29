@@ -96,6 +96,7 @@ export type OutlookEvent = {
   end: { dateTime: string; timeZone: string };
   webLink?: string | null;
   isAllDay?: boolean | null;
+  isCancelled?: boolean | null;
   showAs?: string | null;
 };
 
