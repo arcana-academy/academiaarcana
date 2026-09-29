@@ -44,5 +44,10 @@ O GitHub já possui workflows separados para:
 - gitleaks;
 - smoke de produção.
 
+### Último ciclo validado
+O commit `46b55b0f3eea3bbd9bc136b16ddba254bdc4ccd5` concluiu com sucesso: Quality Gate, Database Tests, Supabase Preview, CodeQL (JavaScript/TypeScript), CodeQL (Actions), Secret Scan, Scorecards e autofix.
+
+O smoke de produção permanece manual e reservado à validação pós-publicação; ele não bloqueia o ciclo pré-Vercel.
+
 ## Regra de publicação
 Nenhuma publicação, promoção, rollback ou alteração de infraestrutura de produção da Vercel faz parte desta etapa. A etapa Vercel somente será executada após a validação final do conjunto GitHub + Supabase + aplicação.
