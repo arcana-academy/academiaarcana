@@ -154,6 +154,17 @@ export type {
 } from "./microsoft-sharepoint";
 
 export {
+  MAX_SHAREPOINT_CONTEXT_CHARACTERS,
+  MAX_SHAREPOINT_DOWNLOAD_BYTES,
+  getMicrosoftSharePointDocumentContext,
+  isSupportedMicrosoftSharePointTextDocument,
+} from "./microsoft-sharepoint-content";
+export type {
+  MicrosoftSharePointDocumentContext,
+  SharePointExternalDocumentSource,
+} from "./microsoft-sharepoint-content";
+
+export {
   TODOIST_API_BASE_URL,
   TODOIST_CREDENTIALS_COOKIE,
   TODOIST_INTEGRATION_DEFINITION,
