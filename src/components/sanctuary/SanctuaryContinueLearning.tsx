@@ -1,41 +1,38 @@
+import Link from "next/link";
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
+
+import { SanctuaryEmptyState } from "./SanctuaryEmptyState";
 
 type SanctuaryContinueLearningProps = {
   continueLearning: SanctuaryViewModel["continueLearning"];
 };
 
-export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinueLearningProps) {
-  if (!continueLearning) {
-    return (
-      <section className="aa-empty" aria-labelledby="sanctuary-continue-learning">
-        <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
-          Continuar aprendendo
-        </h2>
-        <p>Nenhum estudo recente para retomar ainda. Começar a explorar um novo capítulo quando estiver pronto.</p>
-      </section>
-    );
-  }
-
-  const path = [
-    continueLearning.grimoireTitle,
-    continueLearning.notebookTitle,
-    continueLearning.chapterTitle,
-    continueLearning.pageTitle,
-  ].filter(Boolean);
-
+export function SanctuaryContinueLearning({
+  continueLearning,
+}: SanctuaryContinueLearningProps) {
   return (
-    <section aria-labelledby="sanctuary-continue-learning">
-      <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
-        Continuar aprendendo
-      </h2>
-      <div className="aa-sanctuary-path">
-        {path.map((item, index) => (
-          <span key={`${item}-${index}`}>
-            {index > 0 ? <span aria-hidden="true">› </span> : null}
-            {item}
-          </span>
-        ))}
-      </div>
+    <section
+      className="aa-card aa-card-default aa-sanctuary-section"
+      aria-labelledby="sanctuary-continue-learning"
+    >
+      <header>
+        <p className="aa-eyebrow">Retomar</p>
+        <h2 id="sanctuary-continue-learning">Continuar aprendendo</h2>
+        <p>Volte diretamente ao contexto de estudo em que você parou.</p>
+      </header>
+
+      {continueLearning ? (
+        <div className="aa-continue-learning">
+          <ol className="aa-learning-path" aria-label="Hierarquia do contexto">
+            <li>{continueLearning.grimoireTitle}</li>
+            {continueLearning.notebookTitle ? <li>{continueLearning.notebookTitle}</li> : null}
+            {continueLearning.chapterTitle ? <li>{continueLearning.chapterTitle}</li> : null}
+            {continueLearning.pageTitle ? <li>{continueLearning.pageTitle}</li> : null}
+          </ol>
+        </div>
+      ) : (
+        <SanctuaryEmptyState />
+      )}
     </section>
   );
 }
