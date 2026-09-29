@@ -2,31 +2,58 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import {
+  closeTodoistTask,
   createTodoistTask,
+  decryptTodoistCredentials,
+  encryptTodoistCredentials,
   getTodoistProjects,
   getTodoistTasks,
-  TODOIST_ACCESS_TOKEN_COOKIE,
+  refreshTodoistCredentials,
+  shouldRefreshTodoistCredentials,
+  TODOIST_CREDENTIALS_COOKIE,
 } from "@/infrastructure/integrations/todoist";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
 
-async function getTokenOrUnauthorized() {
+async function getCredentialsOrUnauthorized() {
   await requireAuthenticatedUser();
-  return (await cookies()).get(TODOIST_ACCESS_TOKEN_COOKIE)?.value ?? null;
+  const cookieStore = await cookies();
+  let credentials = await decryptTodoistCredentials(
+    cookieStore.get(TODOIST_CREDENTIALS_COOKIE)?.value,
+  );
+
+  if (!credentials) return { credentials: null, cookieStore };
+
+  if (shouldRefreshTodoistCredentials(credentials)) {
+    credentials = await refreshTodoistCredentials(credentials);
+    cookieStore.set(
+      TODOIST_CREDENTIALS_COOKIE,
+      await encryptTodoistCredentials(credentials),
+      {
+        httpOnly: true,
+        maxAge: 365 * 24 * 60 * 60,
+        path: "/",
+        sameSite: "lax",
+        secure: true,
+      },
+    );
+  }
+
+  return { credentials, cookieStore };
 }
 
 export async function GET() {
-  const token = await getTokenOrUnauthorized();
+  const { credentials } = await getCredentialsOrUnauthorized();
 
-  if (!token) {
+  if (!credentials) {
     return NextResponse.json({ status: "disconnected" }, { status: 200 });
   }
 
   try {
     const [tasks, projects] = await Promise.all([
-      getTodoistTasks(token),
-      getTodoistProjects(token),
+      getTodoistTasks(credentials.accessToken),
+      getTodoistProjects(credentials.accessToken),
     ]);
 
     return NextResponse.json(
@@ -42,9 +69,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const token = await getTokenOrUnauthorized();
+  const { credentials } = await getCredentialsOrUnauthorized();
 
-  if (!token) {
+  if (!credentials) {
     return NextResponse.json({ error: "todoist_not_connected" }, { status: 409 });
   }
 
@@ -61,13 +88,40 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await createTodoistTask(token, {
+    const result = await createTodoistTask(credentials.accessToken, {
       content: body.content,
       description: body.description,
       dueDateTime: body.dueDateTime,
     });
 
     return NextResponse.json(result.output, { status: 201 });
+  } catch {
+    return NextResponse.json(
+      { error: "todoist_request_failed" },
+      { status: 502 },
+    );
+  }
+}
+
+
+export async function PATCH(request: Request) {
+  const { credentials } = await getCredentialsOrUnauthorized();
+
+  if (!credentials) {
+    return NextResponse.json({ error: "todoist_not_connected" }, { status: 409 });
+  }
+
+  const body = (await request.json().catch(() => null)) as
+    | { taskId?: string }
+    | null;
+
+  if (!body?.taskId?.trim()) {
+    return NextResponse.json({ error: "task_id_required" }, { status: 400 });
+  }
+
+  try {
+    const result = await closeTodoistTask(credentials.accessToken, body.taskId);
+    return NextResponse.json(result.output, { status: 200 });
   } catch {
     return NextResponse.json(
       { error: "todoist_request_failed" },
