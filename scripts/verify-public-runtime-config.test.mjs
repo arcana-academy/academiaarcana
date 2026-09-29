@@ -24,8 +24,7 @@ describe("verify-public-runtime-config", () => {
           `NEXT_PUBLIC_SUPABASE_URL=${validUrl}`,
           `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${validKey}`,
           "LOCAL_ONLY=value-from-file",
-        ].join("
-"),
+        ].join("\n"),
       );
 
       const environment = loadBuildEnvironment(
@@ -145,8 +144,7 @@ describe("verify-public-runtime-config", () => {
         [
           `NEXT_PUBLIC_SUPABASE_URL=${validUrl}`,
           `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${validKey}`,
-        ].join("
-"),
+        ].join("\n"),
       );
 
       const environment = loadBuildEnvironment(
