@@ -18,7 +18,7 @@ export const NOTION_INTEGRATION_DEFINITION = {
   id: NOTION_PROVIDER_ID,
   displayName: NOTION_PLUGIN_NAME,
   authMode: "oauth2",
-  capabilities: ["read", "write", "search", "files", "metadata"],
+  capabilities: ["read", "write", "search", "metadata"],
   userConnectionRequired: true,
   serverSideOnly: true,
   scopes: [],
