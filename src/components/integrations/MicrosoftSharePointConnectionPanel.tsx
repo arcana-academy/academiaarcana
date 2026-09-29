@@ -153,12 +153,7 @@ export function MicrosoftSharePointConnectionPanel() {
   }, []);
 
   useEffect(() => {
-    if (!selectedSite) {
-      setDrives([]);
-      setSelectedDrive("");
-      setItems([]);
-      return;
-    }
+    if (!selectedSite) return;
 
     const loadDrives = async () => {
       setBusy(true);
@@ -290,7 +285,20 @@ export function MicrosoftSharePointConnectionPanel() {
             </div>
             <div className="aa-field">
               <label htmlFor="sharepoint-site">Site do SharePoint</label>
-              <select id="sharepoint-site" className="aa-input" value={selectedSite} onChange={(event) => setSelectedSite(event.target.value)} disabled={busy}>
+              <select
+                id="sharepoint-site"
+                className="aa-input"
+                value={selectedSite}
+                onChange={(event) => {
+                  const nextSite = event.target.value;
+                  setSelectedSite(nextSite);
+                  setDrives([]);
+                  setSelectedDrive("");
+                  setItems([]);
+                  setSelectedSource(null);
+                }}
+                disabled={busy}
+              >
                 <option value="">Selecione um site…</option>
                 {sites.map((item) => <option key={item.id} value={item.id}>{item.displayName ?? item.name ?? item.id}</option>)}
               </select>
