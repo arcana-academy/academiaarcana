@@ -33,6 +33,7 @@ export async function createOutlookEventForTask(taskId: string) {
     end: end.toISOString(),
     body: "Sessão de estudo criada a partir do Cronograma da Academia Arcana.",
     reminderMinutesBeforeStart: 15,
+    transactionId: task.id,
   });
 
   revalidatePath("/cronograma");
