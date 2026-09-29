@@ -226,7 +226,7 @@ describe("Trello integration", () => {
       name: "Validar acessibilidade",
     });
 
-    const request = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
+    const request = fetchMock.mock.calls.at(-1)?.[1] as RequestInit | undefined;
     expect(JSON.parse(String(request?.body))).toEqual({
       idList: "list-1",
       name: "Validar acessibilidade",
