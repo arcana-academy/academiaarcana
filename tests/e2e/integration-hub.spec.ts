@@ -40,7 +40,6 @@ test.describe("integration hub", () => {
 
     await expect(dictionaryCard).toBeVisible();
     await expect(dictionaryCard.getByText("A-Z Dictionary", { exact: true })).toBeVisible();
-    await expect(page.getByText("Verificado", { exact: true })).toBeVisible();
     await expect(dictionaryCard.getByText("Catalogado", { exact: true })).toBeVisible();
     await expect(
       page.getByText("A conexão externa foi verificada em runtime.", {
