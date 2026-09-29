@@ -26,6 +26,7 @@ export function MestreArcanoPanel() {
 
     setPending(true);
     setError(null);
+    setOutput(null);
 
     try {
       const response = await fetch("/api/agent/mestre-arcano", {
