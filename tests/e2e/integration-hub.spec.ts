@@ -8,7 +8,7 @@ test.describe("integration hub", () => {
 
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { name: "Hub de integrações da Academia Arcana" })).toBeVisible();
-    await expect(page.getByText("116 plugins registrados")).toBeVisible();
+    await expect(page.getByText("115 plugins registrados")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ferramentas aplicadas ao ciclo de criação" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
@@ -17,6 +17,10 @@ test.describe("integration hub", () => {
     await expect(page.getByRole("heading", { name: "Todoist", exact: true }).first()).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Gerenciar conexão do Todoist" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Trello", exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Gerenciar conexão do Trello" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Notion", exact: true }).first()).toBeVisible();
     await expect(
@@ -47,7 +51,7 @@ test.describe("integration hub", () => {
     const body = await response.json();
 
     expect(body).toMatchObject({
-      catalogSize: 116,
+      catalogSize: 115,
       connectedCount: 1,
       errorCount: 0,
     });
@@ -99,19 +103,6 @@ test.describe("integration hub", () => {
       status: "catalogued",
       executionMode: "runtime",
       providerId: "notion",
-      capabilities: ["read", "write", "search", "metadata"],
-      verification: null,
-    });
-
-    const trello = body.entries.find(
-      (entry: { name: string }) => entry.name === "Trello",
-    );
-
-    expect(trello).toMatchObject({
-      name: "Trello",
-      status: "catalogued",
-      executionMode: "runtime",
-      providerId: "trello",
       capabilities: ["read", "write", "search", "metadata"],
       verification: null,
     });
