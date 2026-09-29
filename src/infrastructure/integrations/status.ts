@@ -10,6 +10,10 @@ import {
   type DataCampConnectionVerification,
 } from "./datacamp";
 import {
+  verifyDropboxConnection,
+  type DropboxConnectionVerification,
+} from "./dropbox";
+import {
   verifyGitHubConnection,
   type GitHubConnectionVerification,
 } from "./github/public-github";
@@ -48,6 +52,11 @@ export type IntegrationStatusEntry = {
     | {
         readonly providerId: "datacamp";
         readonly endpoint: string;
+        readonly verifiedAt: string;
+      }
+    | {
+        readonly providerId: "dropbox";
+        readonly accountId: string;
         readonly verifiedAt: string;
       }
     | null;
@@ -123,6 +132,48 @@ function dataCampCatalogEntry(): IntegrationStatusEntry {
   };
 }
 
+function dropboxVerificationEntry(
+  verification: DropboxConnectionVerification,
+): IntegrationStatusEntry {
+  return {
+    name: "Dropbox",
+    source: "chatgpt-catalog",
+    status: "connected",
+    executionMode: "runtime",
+    providerId: verification.providerId,
+    capabilities: ["read", "search", "files"],
+    verification: {
+      providerId: verification.providerId,
+      accountId: verification.accountId,
+      verifiedAt: verification.verifiedAt,
+    },
+  };
+}
+
+function dropboxCatalogEntry(): IntegrationStatusEntry {
+  return {
+    name: "Dropbox",
+    source: "chatgpt-catalog",
+    status: "catalogued",
+    executionMode: "catalog-only",
+    providerId: "dropbox",
+    capabilities: ["read", "search", "files"],
+    verification: null,
+  };
+}
+
+function dropboxErrorEntry(): IntegrationStatusEntry {
+  return {
+    name: "Dropbox",
+    source: "chatgpt-catalog",
+    status: "error",
+    executionMode: "runtime",
+    providerId: "dropbox",
+    capabilities: ["read", "search", "files"],
+    verification: null,
+  };
+}
+
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
@@ -132,11 +183,17 @@ function chatgptBridgeUrl(pluginName: string): string | undefined {
 export async function getIntegrationStatusSnapshot({
   githubVerifier = verifyGitHubConnection,
   dataCampVerifier = verifyDataCampConnection,
+  dropboxVerifier = verifyDropboxConnection,
   dataCampApiKey = process.env.DATACAMP_API_KEY,
+  dropboxToken = process.env.DROPBOX_RUNTIME_TOKEN,
 }: {
   readonly githubVerifier?: () => Promise<GitHubConnectionVerification>;
   readonly dataCampVerifier?: () => Promise<DataCampConnectionVerification>;
+  readonly dropboxVerifier?: (
+    token?: string,
+  ) => Promise<DropboxConnectionVerification>;
   readonly dataCampApiKey?: string;
+  readonly dropboxToken?: string;
 } = {}): Promise<IntegrationStatusSnapshot> {
   let githubEntry: IntegrationStatusEntry = {
     name: "GitHub",
@@ -149,12 +206,10 @@ export async function getIntegrationStatusSnapshot({
   try {
     githubEntry = githubVerificationEntry(await githubVerifier());
   } catch {
-    // Keep the public status response generic. Provider failures must not leak
-    // network, authentication, or infrastructure details.
+    // Keep the public status response generic.
   }
 
   let dataCampEntry = dataCampCatalogEntry();
-
   if (dataCampApiKey?.trim()) {
     try {
       dataCampEntry = dataCampVerificationEntry(await dataCampVerifier());
@@ -163,18 +218,22 @@ export async function getIntegrationStatusSnapshot({
     }
   }
 
-  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
-    if (plugin.name === "GitHub") {
-      return githubEntry;
+  let dropboxEntry = dropboxCatalogEntry();
+  if (dropboxToken?.trim()) {
+    try {
+      dropboxEntry = dropboxVerificationEntry(await dropboxVerifier(dropboxToken));
+    } catch {
+      dropboxEntry = dropboxErrorEntry();
     }
+  }
 
-    if (plugin.name === "DataCamp") {
-      return dataCampEntry;
-    }
+  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
+    if (plugin.name === "GitHub") return githubEntry;
+    if (plugin.name === "DataCamp") return dataCampEntry;
+    if (plugin.name === "Dropbox") return dropboxEntry;
 
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
-    const isAgenticCourseRedesign =
-      plugin.name === "Agentic Course Redesign";
+    const isAgenticCourseRedesign = plugin.name === "Agentic Course Redesign";
     const isTarteel = plugin.name === "Tarteel";
 
     return {
@@ -193,10 +252,7 @@ export async function getIntegrationStatusSnapshot({
           }
         : {}),
       ...(isTarteel
-        ? {
-            capabilities: TARTEEL_CAPABILITIES,
-            providerId: TARTEEL_APP_ID,
-          }
+        ? { capabilities: TARTEEL_CAPABILITIES, providerId: TARTEEL_APP_ID }
         : {}),
       verification: null,
     };
@@ -207,10 +263,8 @@ export async function getIntegrationStatusSnapshot({
   return {
     generatedAt: new Date().toISOString(),
     catalogSize: entries.length,
-    connectedCount: entries.filter((entry) => entry.status === "connected")
-      .length,
-    cataloguedCount: entries.filter((entry) => entry.status === "catalogued")
-      .length,
+    connectedCount: entries.filter((entry) => entry.status === "connected").length,
+    cataloguedCount: entries.filter((entry) => entry.status === "catalogued").length,
     errorCount: entries.filter((entry) => entry.status === "error").length,
     entries,
     runtimeIntegrations,
