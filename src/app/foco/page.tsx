@@ -20,8 +20,8 @@ export default async function FocoPage() {
         <FocusSession />
 
       <ArcanaFeatureGrid>
-          <FeatureCard title="Sessão de foco" description="Base visual para uma experiência de foco sem sobrecarga." icon={<Focus size={22} />}>
-            <p className="aa-state-copy">O temporizador persistente ainda não está configurado. A interface não simula uma sessão inexistente.</p>
+          <FeatureCard title="Sessão de foco" description="Um ciclo Pomodoro funcional, com estados explícitos e recuperação local." icon={<Focus size={22} />}>
+            <p className="aa-state-copy">O ciclo Pomodoro recupera o estado local após recarregar a página e alterna entre foco de 25 minutos e pausa de 5 minutos.</p>
           </FeatureCard>
           <FeatureCard title="Ritmo" description="Estruture blocos de trabalho e pausas de acordo com sua preferência." icon={<Clock3 size={22} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">Ver cronograma</Link>
