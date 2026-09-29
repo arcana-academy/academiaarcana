@@ -75,6 +75,15 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         },
       },
       {
+        name: "Trello",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        providerId: "trello",
+        capabilities: ["read", "write", "search", "metadata"],
+        verification: null,
+      },
+      {
         name: "Spotify",
         source: "chatgpt-catalog",
         status: "catalogued",
