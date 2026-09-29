@@ -4,6 +4,10 @@ import {
   getMicrosoftSharePointDocumentContext,
 } from "@/infrastructure/integrations/microsoft-sharepoint-content";
 import type { MicrosoftSharePointCredentials } from "@/infrastructure/integrations/microsoft-sharepoint";
+import {
+  extractParallelWeb,
+  searchParallelWeb,
+} from "@/infrastructure/parallel/parallel-search";
 
 type ToolContext = {
   readonly supabase: SupabaseClient;
@@ -84,6 +88,77 @@ export const MESTRE_ARCANO_TOOLS = [
         },
       },
       required: ["sourceId"],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "search_web",
+    description:
+      "Pesquisa a web em tempo real por fontes externas. Use quando a pergunta exigir informação atual, fonte externa ou pesquisa que não esteja disponível nos dados internos da Academia Arcana. Retorne e identifique as fontes encontradas.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        objective: {
+          type: "string",
+          minLength: 1,
+          maxLength: 1000,
+          description: "Objetivo específico da pesquisa web.",
+        },
+        searchQueries: {
+          type: "array",
+          minItems: 1,
+          maxItems: 3,
+          items: {
+            type: "string",
+            minLength: 1,
+            maxLength: 120,
+          },
+          description: "Até três consultas curtas e complementares.",
+        },
+      },
+      required: ["objective", "searchQueries"],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "extract_web_source",
+    description:
+      "Extrai conteúdo relevante de URLs HTTP(S) públicas selecionadas. Use depois de encontrar uma fonte ou quando o aluno fornecer uma URL para análise.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        urls: {
+          type: "array",
+          minItems: 1,
+          maxItems: 5,
+          items: {
+            type: "string",
+            minLength: 1,
+            maxLength: 2048,
+          },
+          description: "URLs HTTP(S) públicas a serem extraídas.",
+        },
+        objective: {
+          type: "string",
+          maxLength: 1000,
+          description: "Objetivo opcional para focar a extração.",
+        },
+        searchQueries: {
+          type: "array",
+          maxItems: 3,
+          items: {
+            type: "string",
+            minLength: 1,
+            maxLength: 120,
+          },
+          description: "Consultas opcionais usadas para focar os trechos extraídos.",
+        },
+      },
+      required: ["urls", "objective", "searchQueries"],
       additionalProperties: false,
     },
   },
@@ -215,6 +290,68 @@ async function getUpcomingStudyTasks(
   return data ?? [];
 }
 
+async function searchWeb(
+  args: Record<string, unknown>,
+) {
+  if (typeof args.objective !== "string" || !Array.isArray(args.searchQueries)) {
+    throw new Error("Parâmetros de pesquisa web inválidos.");
+  }
+
+  const searchQueries = args.searchQueries.filter(
+    (query): query is string => typeof query === "string",
+  );
+
+  const result = await searchParallelWeb({
+    objective: args.objective,
+    searchQueries,
+  });
+
+  return {
+    sources: result.sources.map((source) => ({
+      title: source.title,
+      url: source.url,
+      publishDate: source.publishDate,
+      excerpts: source.excerpts,
+    })),
+    sessionId: result.sessionId,
+  };
+}
+
+async function extractWebSource(
+  args: Record<string, unknown>,
+) {
+  if (!Array.isArray(args.urls)) {
+    throw new Error("Parâmetros de extração web inválidos.");
+  }
+
+  const urls = args.urls.filter(
+    (url): url is string => typeof url === "string",
+  );
+  const searchQueries = Array.isArray(args.searchQueries)
+    ? args.searchQueries.filter(
+        (query): query is string => typeof query === "string",
+      )
+    : [];
+
+  const result = await extractParallelWeb({
+    urls,
+    objective: typeof args.objective === "string" ? args.objective : undefined,
+    searchQueries,
+  });
+
+  return {
+    sources: result.sources.map((source) => ({
+      title: source.title,
+      url: source.url,
+      publishDate: source.publishDate,
+      excerpts: source.excerpts,
+      fullContent: source.fullContent,
+    })),
+    errors: result.errors,
+    sessionId: result.sessionId,
+  };
+}
+
 export async function executeMestreArcanoTool(
   call: ToolCall,
   context: ToolContext,
@@ -247,6 +384,10 @@ export async function executeMestreArcanoTool(
       return jsonResult(
         await getSharePointDocumentContext(context, args.sourceId),
       );
+    case "search_web":
+      return jsonResult(await searchWeb(args));
+    case "extract_web_source":
+      return jsonResult(await extractWebSource(args));
     default:
       throw new Error("Ferramenta do Mestre Arcano não autorizada.");
   }
