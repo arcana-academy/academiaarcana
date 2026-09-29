@@ -17,13 +17,20 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 export const dynamic = "force-dynamic";
 
 async function getCredentialsOrUnauthorized() {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
   const cookieStore = await cookies();
   let credentials = await decryptTodoistCredentials(
     cookieStore.get(TODOIST_CREDENTIALS_COOKIE)?.value,
   );
 
-  if (!credentials) return { credentials: null, cookieStore, status: "disconnected" as const };
+  if (!credentials || credentials.subjectId !== claims.sub) {
+    cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
+    return {
+      credentials: null,
+      cookieStore,
+      status: "disconnected" as const,
+    };
+  }
 
   if (shouldRefreshTodoistCredentials(credentials)) {
     try {
