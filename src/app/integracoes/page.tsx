@@ -172,6 +172,36 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="trello-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Operações · Workflow
+          </p>
+          <h2 id="trello-title" style={{ marginTop: 0 }}>
+            Trello
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Administre boards, listas, cards, checklists e pesquisa operacional
+            pela camada de workflow da Academia Arcana, com autenticação e
+            credenciais mantidas no servidor.
+          </p>
+          <Link className="aa-button aa-button-primary" href="/integracoes/trello">
+            Gerenciar conexão do Trello
+          </Link>
+        </article>
+      </section>
+
+      <section
         aria-labelledby="microsoft-sharepoint-title"
         style={{ marginTop: "var(--aa-spacing-lg)" }}
       >

@@ -254,7 +254,7 @@ export async function getIntegrationStatusSnapshot({
       executionMode:
         isAgenticCourseRedesign || isTarteel
           ? ("chatgpt-hosted" as const)
-          : plugin.name === "Todoist"
+          : plugin.name === "Todoist" || plugin.name === "Trello"
             ? ("runtime" as const)
             : ("catalog-only" as const),
       ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
@@ -263,7 +263,12 @@ export async function getIntegrationStatusSnapshot({
             providerId: "todoist",
             capabilities: ["read", "write", "search", "calendar"],
           }
-        : {}),
+        : plugin.name === "Trello"
+          ? {
+              providerId: "trello",
+              capabilities: ["read", "write", "search", "metadata"],
+            }
+          : {}),
       ...(isAgenticCourseRedesign
         ? {
             capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,

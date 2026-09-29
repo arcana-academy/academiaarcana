@@ -120,6 +120,7 @@ export const CHATGPT_PLUGIN_CATALOG = [
   { name: "ZZAIM", source: "chatgpt-catalog" as const },
   { name: "エスキスクン", source: "chatgpt-catalog" as const },
   { name: "상식이", source: "chatgpt-catalog" as const },
+  { name: "Trello", source: "runtime" as const },
   { name: "Microsoft SharePoint", source: "runtime" as const },
 ] as const;
 
