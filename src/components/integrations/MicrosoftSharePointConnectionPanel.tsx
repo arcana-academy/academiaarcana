@@ -111,6 +111,7 @@ export function MicrosoftSharePointConnectionPanel() {
   const [selectedDrive, setSelectedDrive] = useState("");
   const [query, setQuery] = useState("");
   const [selectedSource, setSelectedSource] = useState<Source | null>(null);
+  const [savedSources, setSavedSources] = useState<Array<Source & { id: string; status?: string; created_at?: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,12 +126,17 @@ export function MicrosoftSharePointConnectionPanel() {
       const next = await getJson<ConnectionStatus>("/api/integrations/microsoft-sharepoint/status");
       setStatus(next);
       if (next.status === "connected") {
-        const body = await getJson<GraphEnvelope>("/api/integrations/microsoft-sharepoint/sites");
+        const [body, saved] = await Promise.all([
+          getJson<GraphEnvelope>("/api/integrations/microsoft-sharepoint/sites"),
+          getJson<{ sources?: Array<Source & { id: string; status?: string; created_at?: string }> }>("/api/integrations/microsoft-sharepoint/sources"),
+        ]);
         setSites(itemsFromEnvelope(body).map(normalizeSite).filter((item) => item.id));
+        setSavedSources(saved.sources ?? []);
       } else {
         setSites([]);
         setDrives([]);
         setItems([]);
+        setSavedSources([]);
         setSelectedSite("");
         setSelectedDrive("");
       }
@@ -185,6 +191,7 @@ export function MicrosoftSharePointConnectionPanel() {
       );
       setItems(itemsFromEnvelope(body).map(normalizeSearchItem).filter((item) => item.id));
       setSelectedSource(null);
+      setSavedSources([]);
     } catch {
       setError("Não foi possível pesquisar nesta biblioteca.");
     } finally {
@@ -205,6 +212,7 @@ export function MicrosoftSharePointConnectionPanel() {
       const body = (await response.json().catch(() => null)) as { source?: Source & { id?: string }; error?: string } | null;
       if (!response.ok || !body?.source) throw new Error(body?.error ?? "source_save_failed");
       setSelectedSource(body.source);
+      setSavedSources((current) => [body.source as Source & { id: string }, ...current.filter((source) => source.id !== (body.source as Source & { id: string }).id)]);
     } catch {
       setError("Não foi possível preparar este documento como fonte.");
     } finally {
@@ -377,6 +385,23 @@ export function MicrosoftSharePointConnectionPanel() {
               </dl>
               {selectedSource.webUrl ? <a className="aa-button aa-button-secondary" href={selectedSource.webUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" /> Abrir documento</a> : null}
             </aside>
+          ) : null}
+
+          {savedSources.length > 0 ? (
+            <section aria-labelledby="sharepoint-saved-sources-title" style={{ marginTop: "var(--aa-spacing-lg)" }}>
+              <div className="aa-surface-header">
+                <div><p className="aa-eyebrow">Fontes persistidas</p><h3 id="sharepoint-saved-sources-title">Seu acervo conectado</h3></div>
+                <span className="aa-badge aa-badge-neutral">{savedSources.length}</span>
+              </div>
+              <ul className="aa-list">
+                {savedSources.map((source) => (
+                  <li className="aa-list-item" key={source.id}>
+                    <div><strong>{source.name ?? "Documento Microsoft"}</strong><small>{source.mimeType ?? "Tipo não informado"} · {source.status ?? "active"}</small></div>
+                    {source.webUrl ? <a className="aa-button aa-button-secondary aa-button-sm" href={source.webUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" /> Abrir</a> : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", marginTop: "var(--aa-spacing-lg)" }}>
