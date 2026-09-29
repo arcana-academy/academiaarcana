@@ -59,6 +59,9 @@ jobs:
       - name: Run integration credential security tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/integration_credentials_security.test.sql
 
+      - name: Run external document source privilege tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/external_document_sources_privileges.test.sql
+
       - name: Stop local Supabase
         if: always()
         run: supabase stop
