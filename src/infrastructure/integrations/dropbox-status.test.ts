@@ -7,12 +7,22 @@ describe("Dropbox integration status", () => {
     const snapshot = await getIntegrationStatusSnapshot({
       githubVerifier: async () => ({
         providerId: "github",
-        repository: { fullName: "arcana-academy/academiaarcana" },
+        pluginName: "GitHub",
+        status: "connected",
+        repository: {
+          fullName: "arcana-academy/academiaarcana",
+          defaultBranch: "main",
+          visibility: "public",
+          private: false,
+          htmlUrl: "https://github.com/arcana-academy/academiaarcana",
+        },
         verifiedAt: "2026-09-29T00:00:00.000Z",
       }),
       dropboxToken: "runtime-token",
       dropboxVerifier: async () => ({
         providerId: "dropbox",
+        pluginName: "Dropbox",
+        status: "connected",
         accountId: "dbid:test",
         verifiedAt: "2026-09-29T00:00:00.000Z",
       }),
