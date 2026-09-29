@@ -403,15 +403,15 @@ async function notionRequest<T>(
 
 export async function verifyNotionConnection(
   token: string,
+  workspace: {
+    readonly id?: string | null;
+    readonly name?: string | null;
+  } = {},
 ): Promise<NotionConnectionVerification> {
   const user = await notionRequest<{
     id: string;
     type?: string;
     name?: string | null;
-  }>("/users/me", token);
-
-  const tokenMetadata = await notionRequest<{
-    bot_id?: string;
   }>("/users/me", token);
 
   return {
@@ -424,8 +424,8 @@ export async function verifyNotionConnection(
       type: user.type ?? null,
     },
     workspace: {
-      id: tokenMetadata.bot_id ? null : null,
-      name: null,
+      id: workspace.id ?? null,
+      name: workspace.name ?? null,
     },
     verifiedAt: new Date().toISOString(),
   };
