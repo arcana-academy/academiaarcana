@@ -89,7 +89,23 @@ describe("Sanctuary", () => {
         expect(screen.getByRole("main")).toBeTruthy();
     });
 
-    it("delegates the missions section to SanctuaryMissions", () => {
+    it("exposes the Mestre Arcano command center", () => {
+    render(<Sanctuary viewModel={viewModel} />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "Seu próximo passo pode começar aqui.",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("textbox", {
+        name: "Mensagem para o Mestre Arcano",
+      }),
+    ).toBeTruthy();
+  });
+
+  it("delegates the missions section to SanctuaryMissions", () => {
         render(<Sanctuary viewModel={viewModel} />);
 
         expect(

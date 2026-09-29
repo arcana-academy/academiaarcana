@@ -4,6 +4,7 @@ import { SanctuaryHeader } from "./SanctuaryHeader";
 import { SanctuaryMissions } from "./SanctuaryMissions";
 import { SanctuaryProgress } from "./SanctuaryProgress";
 import { SanctuarySchedule } from "./SanctuarySchedule";
+import { MestreArcanoPanel } from "./MestreArcanoPanel";
 
 type SanctuaryProps = {
   viewModel: SanctuaryViewModel;
@@ -30,6 +31,8 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
           <SanctuaryProgress progress={viewModel.progress} />
         </div>
       </section>
+
+      <MestreArcanoPanel />
 
       <div className="aa-sanctuary-grid">
         <SanctuaryMissions missions={viewModel.missions} />
