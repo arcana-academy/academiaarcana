@@ -36,7 +36,6 @@ function statusForError(message: string): number {
 }
 
 export async function GET(
-  request: Request,
   context: { params: Promise<{ sourceId: string }> },
 ) {
   const user = await requireAuthenticatedUser();
