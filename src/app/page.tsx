@@ -1,9 +1,8 @@
 import Link from "next/link";
+import { BookOpen, Sparkles } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-
-import styles from "./ArcanaLanding.module.css";
 
 async function hasAuthenticatedSession(): Promise<boolean> {
   try {
@@ -16,65 +15,60 @@ async function hasAuthenticatedSession(): Promise<boolean> {
 }
 
 export default async function Page() {
-  if (await hasAuthenticatedSession()) redirect("/santuario");
+  if (await hasAuthenticatedSession()) {
+    redirect("/santuario");
+  }
 
   return (
-    <main className={styles.page} aria-labelledby="home-title">
-      <div className={styles.art} aria-hidden="true" />
-      <div className={styles.vignette} aria-hidden="true" />
-
-      <header className={styles.hero}>
-        <div className={styles.copy}>
-          <p className={styles.eyebrow}>Academia Arcana · espaço de estudo</p>
-          <h1 id="home-title">Transforme estudo em <span>uma jornada.</span></h1>
-          <p className={styles.lead}>
-            Um ambiente para reunir conhecimento, organizar seus estudos e voltar ao próximo passo
-            sem perder o fio daquilo que você está construindo.
-          </p>
-          <div className={styles.actions}>
-            <Link className="aa-button aa-button-primary aa-button-lg" href="/cadastro">
-              Começar minha jornada
-            </Link>
-            <Link className="aa-button aa-button-ghost aa-button-lg" href="/login">
-              Já tenho uma conta
-            </Link>
+    <main className="aa-public-page" aria-labelledby="home-title">
+      <div className="aa-public-frame">
+        <header className="aa-card aa-card-elevated aa-hero">
+          <div className="aa-hero-mark" aria-hidden="true">
+            <Sparkles size={22} strokeWidth={1.7} />
           </div>
-          <div className={styles.signature} aria-label="Princípios da Academia Arcana">
-            <span>Contexto</span><i aria-hidden="true">✦</i><span>Ritmo</span><i aria-hidden="true">✦</i><span>Continuidade</span>
-          </div>
-        </div>
-        <div className={styles.sigil} aria-hidden="true"><span>✦</span></div>
-      </header>
-
-      <section id="pilares" className={styles.pillars} aria-label="Pilares da Academia Arcana">
-        <article>
-          <span className={styles.pillarMark} aria-hidden="true">◇</span>
-          <div><p className={styles.cardEyebrow}>01 · Santuário</p><h2>Volte ao ponto certo.</h2><p>Contexto, progresso e próximo passo reunidos em um único lugar.</p></div>
-        </article>
-        <article>
-          <span className={styles.pillarMark} aria-hidden="true">✧</span>
-          <div><p className={styles.cardEyebrow}>02 · Grimórios</p><h2>Construa seu acervo.</h2><p>Organize livros, capítulos e páginas em uma biblioteca feita para estudar.</p></div>
-        </article>
-        <article>
-          <span className={styles.pillarMark} aria-hidden="true">◈</span>
-          <div><p className={styles.cardEyebrow}>03 · Seu ritmo</p><h2>Estude de um jeito que sustenta.</h2><p>Planejamento e personalização sem transformar seu espaço em mais uma fonte de ruído.</p></div>
-        </article>
-      </section>
-
-      <footer className={styles.footer}>
-        <div className={styles.footerBrand}>
-          <p className={styles.footerName}>Academia Arcana</p>
-          <p className={styles.footerCopy}>
+          <p className="aa-eyebrow">Academia Arcana</p>
+          <h1 id="home-title">
             Um espaço para aprender, organizar e continuar sua jornada.
+          </h1>
+          <p className="aa-hero-copy">
+            Reúna seus grimórios, cadernos, capítulos e páginas em um workspace
+            criado para transformar estudo em uma prática contínua.
           </p>
-        </div>
-        <nav className={styles.footerNav} aria-label="Navegação da página">
-          <a href="#pilares">Pilares</a>
-          <Link href="/login">Entrar</Link>
-          <Link href="/cadastro">Criar conta</Link>
-        </nav>
-        <p className={styles.footerMeta}>© 2026 Academia Arcana</p>
-      </footer>
+
+          <div className="aa-form-actions">
+            <Link className="aa-button aa-button-primary aa-button-lg" href="/login">
+              Entrar
+            </Link>
+            <Link className="aa-button aa-button-secondary aa-button-lg" href="/cadastro">
+              Criar conta
+            </Link>
+          </div>
+        </header>
+
+        <section className="aa-card-grid" aria-labelledby="home-foundation-title">
+          <article className="aa-card aa-card-default">
+            <div className="aa-card-icon" aria-hidden="true">
+              <BookOpen size={20} strokeWidth={1.8} />
+            </div>
+            <h2 id="home-foundation-title">A estrutura já construída</h2>
+            <p>
+              O Santuário reúne seu contexto de aprendizagem, enquanto o
+              Workspace guarda a hierarquia persistida de grimórios até páginas.
+            </p>
+          </article>
+
+          <article className="aa-card aa-card-default">
+            <div className="aa-card-icon" aria-hidden="true">
+              <Sparkles size={20} strokeWidth={1.8} />
+            </div>
+            <h2>Comece pelo seu próximo passo</h2>
+            <p>
+              Entre para continuar sua jornada ou crie sua conta para começar
+              a construir seu primeiro espaço de estudo.
+            </p>
+          </article>
+        </section>
+      </div>
     </main>
   );
 }
