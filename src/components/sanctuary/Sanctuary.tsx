@@ -6,6 +6,7 @@ import { SanctuaryMissions } from "./SanctuaryMissions";
 import { SanctuaryProgress } from "./SanctuaryProgress";
 import { SanctuarySchedule } from "./SanctuarySchedule";
 import { MestreArcanoPanel } from "./MestreArcanoPanel";
+import { RelewiseSearch } from "@/components/search/RelewiseSearch";
 
 type SanctuaryProps = {
   viewModel: SanctuaryViewModel;
@@ -18,6 +19,8 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
         header={viewModel.header}
         primaryAction={viewModel.primaryAction}
       />
+
+      <RelewiseSearch />
 
       <section className="aa-sanctuary-command" aria-label="Comando da jornada">
         <div className="aa-sanctuary-command-primary">
