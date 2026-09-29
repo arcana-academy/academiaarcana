@@ -172,6 +172,37 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="notion-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Conhecimento · Documentação
+          </p>
+          <h2 id="notion-title" style={{ marginTop: 0 }}>
+            Notion
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Conecte seu workspace para pesquisar páginas autorizadas e criar
+            páginas-filhas. O Notion funciona como camada de conhecimento,
+            documentação e governança; o estado transacional da plataforma
+            permanece no Supabase.
+          </p>
+          <Link className="aa-button aa-button-primary" href="/integracoes/notion">
+            Gerenciar conexão do Notion
+          </Link>
+        </article>
+      </section>
+
+      <section
         aria-labelledby="microsoft-sharepoint-title"
         style={{ marginTop: "var(--aa-spacing-lg)" }}
       >
