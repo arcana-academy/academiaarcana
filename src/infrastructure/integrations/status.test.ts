@@ -37,6 +37,18 @@ describe("integration status snapshot", () => {
       },
     ]);
 
+    const dataCamp = snapshot.entries.find(
+      (entry) => entry.name === "DataCamp",
+    );
+    expect(dataCamp).toMatchObject({
+      name: "DataCamp",
+      status: "catalogued",
+      executionMode: "catalog-only",
+      providerId: "datacamp",
+      capabilities: ["read", "search", "analytics"],
+      verification: null,
+    });
+
     const brainCells = snapshot.entries.find(
       (entry) => entry.name === "1 Billion Brain Cells",
     );
@@ -130,6 +142,55 @@ describe("integration status snapshot", () => {
         providerId: "github",
         repository: "arcana-academy/academiaarcana",
       },
+    });
+  });
+
+  it("reports DataCamp as connected only after runtime verification", async () => {
+    const snapshot = await getIntegrationStatusSnapshot({
+      dataCampApiKey: "configured",
+      dataCampVerifier: async () => ({
+        providerId: "datacamp",
+        pluginName: "DataCamp",
+        status: "connected",
+        endpoint:
+          "https://lms-catalog-api.datacamp.com/v1/catalog/live-courses",
+        verifiedAt: "2026-09-28T00:00:00.000Z",
+      }),
+    });
+
+    const dataCamp = snapshot.entries.find(
+      (entry) => entry.name === "DataCamp",
+    );
+
+    expect(dataCamp).toMatchObject({
+      name: "DataCamp",
+      status: "connected",
+      executionMode: "runtime",
+      providerId: "datacamp",
+      verification: {
+        providerId: "datacamp",
+        endpoint:
+          "https://lms-catalog-api.datacamp.com/v1/catalog/live-courses",
+      },
+    });
+  });
+
+  it("reports a generic DataCamp error when configured verification fails", async () => {
+    const snapshot = await getIntegrationStatusSnapshot({
+      dataCampApiKey: "configured",
+      dataCampVerifier: async () => {
+        throw new Error("secret upstream diagnostics");
+      },
+    });
+
+    const dataCamp = snapshot.entries.find(
+      (entry) => entry.name === "DataCamp",
+    );
+
+    expect(dataCamp).toMatchObject({
+      name: "DataCamp",
+      status: "error",
+      verification: null,
     });
   });
 
