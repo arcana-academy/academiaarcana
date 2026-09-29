@@ -14,11 +14,13 @@ Supabase remains the source of truth for application state, authorization and le
 
 ## Runtime configuration
 
-The server-side adapter expects:
+The application now uses OAuth 2.0 Authorization Code + PKCE. Configure the server-side values:
 
-`MICROSOFT_GRAPH_ACCESS_TOKEN`
+- `MICROSOFT_CLIENT_ID`
+- `MICROSOFT_CLIENT_SECRET`
+- `MICROSOFT_REDIRECT_URI`
 
-This token must be provided by a secure OAuth flow in the runtime environment. It must never be exposed through `NEXT_PUBLIC_*` variables or committed to Git.
+Access and refresh tokens are encrypted before being stored in the HTTP-only integration cookie. No Microsoft secret or access token is exposed through `NEXT_PUBLIC_*` variables or committed to Git.
 
 The ChatGPT connector authorization does not automatically become a credential for the deployed Academia Arcana application.
 
