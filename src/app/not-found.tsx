@@ -1,23 +1,23 @@
 import Link from "next/link";
+import { Compass } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <main className="aa-not-found">
-      <div className="aa-card aa-card-elevated aa-not-found-card">
-        <p className="aa-page-eyebrow">Academia Arcana</p>
-        <h1>Página não encontrada</h1>
-        <p className="aa-page-description">
-          O caminho solicitado não existe ou já não está disponível.
-        </p>
-        <div className="aa-not-found-actions">
-          <Link className="aa-button aa-button-primary" href="/">
-            Voltar ao início
-          </Link>
-          <Link className="aa-button aa-button-secondary" href="/santuario">
-            Abrir Santuário
-          </Link>
+    <main className="aa-error-page" aria-labelledby="not-found-title">
+      <section className="aa-card aa-card-elevated aa-error-state">
+        <div className="aa-card-icon" aria-hidden="true">
+          <Compass size={22} strokeWidth={1.8} />
         </div>
-      </div>
+        <p className="aa-eyebrow">404</p>
+        <h1 id="not-found-title">Este caminho não existe</h1>
+        <p>
+          A página que você procurou não foi encontrada ou ainda não foi
+          implementada.
+        </p>
+        <Link className="aa-button aa-button-primary" href="/">
+          Voltar ao início
+        </Link>
+      </section>
     </main>
   );
 }
