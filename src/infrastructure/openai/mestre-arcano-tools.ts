@@ -2,8 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   getMicrosoftSharePointDocumentContext,
-  type MicrosoftSharePointCredentials,
 } from "@/infrastructure/integrations/microsoft-sharepoint-content";
+import type { MicrosoftSharePointCredentials } from "@/infrastructure/integrations/microsoft-sharepoint";
 
 type ToolContext = {
   readonly supabase: SupabaseClient;
