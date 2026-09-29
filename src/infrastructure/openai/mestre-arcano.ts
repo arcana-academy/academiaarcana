@@ -1,10 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import type { MicrosoftSharePointCredentials } from "@/infrastructure/integrations/microsoft-sharepoint";
 import {
   executeMestreArcanoTool,
   MESTRE_ARCANO_TOOLS,
 } from "./mestre-arcano-tools";
-import type { MicrosoftSharePointCredentials } from "@/infrastructure/integrations/microsoft-sharepoint";
 
 const OPENAI_API_ORIGIN = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-5.6-sol";
@@ -116,6 +116,7 @@ export async function runMestreArcano(
     fetchImpl = fetch,
     supabase,
     ownerId,
+    microsoftSharePointCredentials = null,
   }: {
     readonly fetchImpl?: OpenAIFetch;
     readonly supabase: SupabaseClient;
