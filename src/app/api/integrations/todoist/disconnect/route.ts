@@ -11,7 +11,7 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 export const dynamic = "force-dynamic";
 
 export async function POST() {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
   const cookieStore = await cookies();
   const credentials = await decryptTodoistCredentials(
@@ -20,7 +20,7 @@ export async function POST() {
 
   cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
 
-  if (credentials?.accessToken) {
+  if (credentials?.subjectId === claims.sub && credentials.accessToken) {
     try {
       await revokeTodoistAccessToken(credentials.accessToken);
     } catch {
