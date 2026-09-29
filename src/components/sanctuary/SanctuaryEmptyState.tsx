@@ -1,9 +1,14 @@
-/** Render the explicit empty state when no learning context is available. */
+import Link from "next/link";
+
 export function SanctuaryEmptyState() {
   return (
-    <p>
-      Você ainda não tem um contexto de aprendizagem para continuar. Explore o
-      Workspace para começar.
-    </p>
+    <div className="aa-state-card">
+      <p>
+        Você ainda não tem um contexto de aprendizagem para continuar.
+      </p>
+      <Link className="aa-link" href="/workspace">
+        Explorar o Workspace para começar.
+      </Link>
+    </div>
   );
 }
