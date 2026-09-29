@@ -21,6 +21,7 @@ export const CHATGPT_PLUGIN_CATALOG = [
   { name: "AnyLessonPlan for Teachers", source: "chatgpt-catalog" as const },
   { name: "Ask Tarot Cards", source: "chatgpt-catalog" as const },
   { name: "Assessment Generator", source: "chatgpt-catalog" as const },
+  { name: "Asana", source: "chatgpt-catalog" as const },
   { name: "Astro Scope: Astrology", source: "chatgpt-catalog" as const },
   { name: "Astrologic", source: "chatgpt-catalog" as const },
   { name: "Background Music", source: "chatgpt-catalog" as const },
