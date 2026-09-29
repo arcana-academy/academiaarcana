@@ -109,6 +109,9 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Mestre Arcano");
     expect(html).toContain("SharePoint / OneDrive");
     expect(html).toContain("Gerenciar SharePoint");
+    expect(html).toContain("Notion");
+    expect(html).toContain("Gerenciar conexão do Notion");
+
     expect(html).toContain("OpenAI Agents");
     expect(html).toContain("gpt-5.6-sol");
     expect(html).toContain("Abrir OpenAI Agents");
