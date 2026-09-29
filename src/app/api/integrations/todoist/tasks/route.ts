@@ -127,7 +127,7 @@ export async function POST(request: Request) {
 
 
 export async function PATCH(request: Request) {
-  const { credentials } = await getCredentialsOrUnauthorized();
+  const { credentials, status } = await getCredentialsOrUnauthorized();
 
   if (!credentials) {
     return NextResponse.json(
