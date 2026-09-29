@@ -12,12 +12,22 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({})),
 }));
 
-const listDailyMissionsMock = vi.fn();
+const { listDailyMissionsMock, MockSupabaseGamificationRepository } = vi.hoisted(() => {
+  const listDailyMissions = vi.fn();
+
+  class MockRepository {
+    constructor(_supabase: unknown) {}
+    listDailyMissions = listDailyMissions;
+  }
+
+  return {
+    listDailyMissionsMock: listDailyMissions,
+    MockSupabaseGamificationRepository: MockRepository,
+  };
+});
 
 vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => ({
-  SupabaseGamificationRepository: vi.fn(() => ({
-    listDailyMissions: listDailyMissionsMock,
-  })),
+  SupabaseGamificationRepository: MockSupabaseGamificationRepository,
 }));
 
 const requireAuthenticatedUserMock = vi.mocked(requireAuthenticatedUser);
