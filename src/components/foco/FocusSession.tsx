@@ -79,8 +79,19 @@ export function FocusSession({ onStart, onComplete }: FocusSessionProps) {
 
   async function toggle() {
     if (completed) {
-      reset();
-      await start();
+      setRemaining(DEFAULT_SECONDS);
+      setError(null);
+      setBusy(true);
+      try {
+        const session = await onStart(DEFAULT_SECONDS);
+        setSessionId(session.id);
+        setDeadline(Date.now() + DEFAULT_SECONDS * 1000);
+        setRunning(true);
+      } catch {
+        setError("Não foi possível reiniciar a sessão. Tente novamente.");
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     if (running) {
