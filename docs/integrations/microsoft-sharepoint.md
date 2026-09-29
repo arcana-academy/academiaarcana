@@ -7,7 +7,9 @@ The Academia Arcana integration layer treats Microsoft SharePoint/OneDrive as a 
 - discover and search documents;
 - read file metadata;
 - enumerate folder contents;
+- discover accessible SharePoint sites and document libraries;
 - inspect file versions;
+- refresh expiring OAuth access tokens automatically when a refresh token is available;
 - provide controlled document context for Grimórios, Academia, Missões and the Mestre Arcano.
 
 Supabase remains the source of truth for application state, authorization and learning data.
