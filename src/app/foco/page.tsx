@@ -5,6 +5,7 @@ import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { FocusSession } from "@/components/foco/FocusSession";
+import { completeFocusSession, startFocusSession } from "./actions";
 
 export default function FocoPage() {
   return (
@@ -15,7 +16,7 @@ export default function FocoPage() {
         description="Um espaço para reduzir distrações e apoiar sessões de estudo previsíveis e confortáveis."
         actions={[{ href: "/cronograma", label: "Planejar sessão", variant: "primary" }]}
       >
-        <FocusSession />
+        <FocusSession startSession={startFocusSession} completeSession={completeFocusSession} />
 
       <ArcanaFeatureGrid>
           <FeatureCard title="Sessão de foco" description="Base visual para uma experiência de foco sem sobrecarga." icon={<Focus size={22} />}>
