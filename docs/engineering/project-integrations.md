@@ -73,6 +73,22 @@ Current state:
 
 Supported capabilities exposed by the connector are birth/natal chart generation, personalized daily horoscope generation, current transit-chart generation, and compatibility reports. The website must preserve provider-specific authorization and must not copy connector credentials into browser code.
 
+## DataCamp
+
+Academia Arcana now has a server-side DataCamp provider boundary based on DataCamp's documented Catalog API. The API is read-only and can expose courses, projects, assessments, practices, tracks, custom tracks and group-scoped learner events. See the official DataCamp Catalog API documentation for the current endpoint contract and rate limits.
+
+Current repository state:
+
+- ChatGPT catalog entry: available.
+- Web-runtime provider adapter: implemented.
+- Health verification: GET https://lms-catalog-api.datacamp.com/v1/catalog/live-courses.
+- Authentication: server-side DATACAMP_API_KEY.
+- Without the key: runtime remains catalogued.
+- With the key and a successful health check: runtime becomes connected.
+- With a configured key but failed verification: runtime reports error without exposing credentials or upstream diagnostics.
+
+The API key must be configured in Vercel/server runtime, never as NEXT_PUBLIC_*. The adapter is deliberately isolated from browser code.
+
 ## Spotify
 
 The Academia Arcana catalog includes **Spotify**. The integration hub now provides
