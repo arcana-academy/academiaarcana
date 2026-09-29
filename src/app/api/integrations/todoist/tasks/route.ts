@@ -23,31 +23,43 @@ async function getCredentialsOrUnauthorized() {
     cookieStore.get(TODOIST_CREDENTIALS_COOKIE)?.value,
   );
 
-  if (!credentials) return { credentials: null, cookieStore };
+  if (!credentials) return { credentials: null, cookieStore, status: "disconnected" as const };
 
   if (shouldRefreshTodoistCredentials(credentials)) {
-    credentials = await refreshTodoistCredentials(credentials);
-    cookieStore.set(
-      TODOIST_CREDENTIALS_COOKIE,
-      await encryptTodoistCredentials(credentials),
-      {
-        httpOnly: true,
-        maxAge: 365 * 24 * 60 * 60,
-        path: "/",
-        sameSite: "lax",
-        secure: true,
-      },
-    );
+    try {
+      credentials = await refreshTodoistCredentials(credentials);
+      cookieStore.set(
+        TODOIST_CREDENTIALS_COOKIE,
+        await encryptTodoistCredentials(credentials),
+        {
+          httpOnly: true,
+          maxAge: 365 * 24 * 60 * 60,
+          path: "/",
+          sameSite: "lax",
+          secure: true,
+        },
+      );
+    } catch {
+      cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
+      return {
+        credentials: null,
+        cookieStore,
+        status: "reauthorization_required" as const,
+      };
+    }
   }
 
-  return { credentials, cookieStore };
+  return { credentials, cookieStore, status: "connected" as const };
 }
 
 export async function GET() {
   const { credentials } = await getCredentialsOrUnauthorized();
 
   if (!credentials) {
-    return NextResponse.json({ status: "disconnected" }, { status: 200 });
+    return NextResponse.json(
+      { status },
+      { status: 200, headers: { "Cache-Control": "private, no-store" } },
+    );
   }
 
   try {
@@ -72,7 +84,10 @@ export async function POST(request: Request) {
   const { credentials } = await getCredentialsOrUnauthorized();
 
   if (!credentials) {
-    return NextResponse.json({ error: "todoist_not_connected" }, { status: 409 });
+    return NextResponse.json(
+      { error: status },
+      { status: status === "reauthorization_required" ? 401 : 409 },
+    );
   }
 
   const body = (await request.json().catch(() => null)) as
