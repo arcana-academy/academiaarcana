@@ -65,8 +65,10 @@ describe("Trello integration", () => {
       "https://example.com/api/integrations/trello/callback",
     );
 
-    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) =>
-      new Response(
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return new Response(
         JSON.stringify({
           access_token: "access-token",
           refresh_token: "refresh-token",
@@ -74,7 +76,8 @@ describe("Trello integration", () => {
         }),
         { status: 200 },
       ),
-    );
+      );
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await exchangeTrelloAuthorizationCode({
@@ -192,8 +195,8 @@ describe("Trello integration", () => {
           },
         ]),
         { status: 200 },
-      ),
-    );
+      );
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await getTrelloBoards("secret-token");
@@ -205,8 +208,10 @@ describe("Trello integration", () => {
   });
 
   it("creates cards against an explicit list", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return new Response(
         JSON.stringify({
           id: "card-1",
           idBoard: "board-1",
