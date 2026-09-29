@@ -1,11 +1,40 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/auth/require-authenticated-user", () => ({
+  requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn(async () => ({})),
+}));
+
+vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => ({
+  SupabaseGamificationRepository: vi.fn(() => ({
+    getProfile: vi.fn(async () => ({
+      ownerId: "user-1",
+      xp: 900,
+      streakDays: 7,
+      lastActiveOn: "2026-09-29",
+      updatedAt: "2026-09-29T10:00:00.000Z",
+    })),
+    listDailyMissions: vi.fn(async () => []),
+  })),
+}));
+
+vi.mock("@/components/layout/AuthenticatedShell", () => ({
+  AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 import ConquistasPage from "./page";
 
 describe("ConquistasPage", () => {
-  it("renders the achievements foundation", () => {
-    render(<ConquistasPage />);
-    expect(screen.getByRole("heading", { name: "Conquistas", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText(/nenhuma conquista persistida/i)).toBeInTheDocument();
+  it("renders unlocked achievements from real progression rules", async () => {
+    const html = renderToStaticMarkup(await ConquistasPage());
+    expect(html).toContain("Conquistas");
+    expect(html).toContain("Primeiro passo");
+    expect(html).toContain("Aprendiz Arcano");
+    expect(html).toContain("Constância");
+    expect(html).not.toContain("Nenhuma conquista persistida");
   });
 });
