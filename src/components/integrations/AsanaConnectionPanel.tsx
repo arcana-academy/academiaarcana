@@ -49,7 +49,43 @@ export function AsanaConnectionPanel() {
   };
 
   useEffect(() => {
-    void load();
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/integrations/asana/status", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error();
+        const next = (await response.json()) as AsanaStatus;
+        if (controller.signal.aborted) return;
+        setStatus(next);
+
+        if (next.status === "connected") {
+          const tasksResponse = await fetch("/api/integrations/asana/tasks", {
+            cache: "no-store",
+            signal: controller.signal,
+          });
+          if (!tasksResponse.ok) throw new Error();
+          const data = (await tasksResponse.json()) as { tasks?: AsanaTask[] };
+          if (controller.signal.aborted) return;
+          setTasks(data.tasks?.filter((task) => !task.completed).slice(0, 8) ?? []);
+        } else {
+          setTasks([]);
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setError("Não foi possível consultar o estado do Asana.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => controller.abort();
   }, []);
 
   const disconnect = async () => {
