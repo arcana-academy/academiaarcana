@@ -86,13 +86,39 @@ describe("Mestre Arcano SharePoint tools", () => {
       accessTokenExpiresAt: null,
     };
 
+    const maybeSingle = vi.fn(async () => ({
+      data: {
+        id: "source-1",
+        provider_id: "microsoft-sharepoint",
+        source_type: "external_document",
+        site_id: "site-1",
+        drive_id: "drive-1",
+        item_id: "item-1",
+        name: "notes.md",
+        mime_type: "text/markdown",
+        web_url: "https://example.test/notes.md",
+        last_modified_at: null,
+        size_bytes: 10,
+        status: "active",
+      },
+      error: null,
+    }));
+    const builder = {
+      select: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
+      maybeSingle,
+    };
+    const supabase = {
+      from: vi.fn(() => builder),
+    };
+
     const output = await executeMestreArcanoTool(
       {
         name: "get_sharepoint_document_context",
         arguments: JSON.stringify({ sourceId: "source-1" }),
       },
       {
-        supabase: {} as never,
+        supabase: supabase as never,
         ownerId: "user-1",
         microsoftSharePointCredentials: credentials,
       },
@@ -105,7 +131,7 @@ describe("Mestre Arcano SharePoint tools", () => {
     expect(getMicrosoftSharePointDocumentContext).toHaveBeenCalledWith(
       "source-1",
       {
-        supabase: {},
+        supabase,
         ownerId: "user-1",
         credentials,
       },
