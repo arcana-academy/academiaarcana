@@ -5,9 +5,11 @@ import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { FocusSession } from "@/components/foco/FocusSession";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { completeFocusSession, startFocusSession } from "./actions";
 
-export default function FocoPage() {
+export default async function FocoPage() {
+  await requireAuthenticatedUser();
   return (
     <AuthenticatedShell currentPath="/foco">
       <ArcanaPage
