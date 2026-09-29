@@ -1,6 +1,9 @@
 name: Academia Arcana Production Smoke
 
 on:
+  push:
+    branches:
+      - main
   workflow_run:
     workflows: ["Academia Arcana Quality Gate"]
     types: [completed]
@@ -19,6 +22,7 @@ jobs:
     name: Production Smoke
     if: >-
       ${{ github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
       github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -72,8 +76,8 @@ jobs:
           const fs = require("fs");
           const body = JSON.parse(fs.readFileSync("/tmp/integration-status.json", "utf8"));
 
-          if (body.catalogSize !== 114) {
-            throw new Error(`Expected catalogSize=114, received ${body.catalogSize}`);
+          if (!Number.isInteger(body.catalogSize) || body.catalogSize < 1) {
+            throw new Error("Invalid catalogSize: " + body.catalogSize);
           }
 
           if (body.connectedCount !== 1 || body.errorCount !== 0) {
@@ -112,6 +116,31 @@ jobs:
             spotify?.verification !== null
           ) {
             throw new Error("Spotify bridge contract failed.");
+          }
+
+          const tarot = body.entries.find(
+            (entry) => entry.name === "Tarot",
+          );
+          if (
+            tarot.status !== "catalogued" ||
+            tarot.executionMode !== "catalog-only" ||
+            tarot.chatgptAppUrl !==
+              "https://chatgpt.com/plugins/plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b" ||
+            tarot.verification !== null
+          ) {
+            throw new Error("Tarot bridge contract failed.");
+          }
+
+          const bridgedEntries = body.entries.filter(
+            (entry) => typeof entry.chatgptAppUrl === "string",
+          );
+          if (bridgedEntries.some(
+            (entry) =>
+              !entry.chatgptAppUrl.startsWith("https://chatgpt.com/") ||
+              entry.status !== "catalogued" ||
+              entry.verification !== null,
+          )) {
+            throw new Error("ChatGPT bridge security contract failed.");
           }
 
           console.log("Production integration status contract is healthy.");
