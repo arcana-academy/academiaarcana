@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -20,6 +20,14 @@ function PageDeleteControl({
   const [error, setError] = useState<string | null>(null);
 
   /** Execute the confirmed deletion and report recoverable failures. */
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isConfirming) {
+      cancelRef.current?.focus();
+    }
+  }, [isConfirming]);
+
   const remove = async () => {
     setIsDeleting(true);
     setError(null);
@@ -44,12 +52,13 @@ function PageDeleteControl({
   }
 
   return (
-    <div role="alertdialog" aria-label="Confirmar exclusão da página">
-      <p>
+    <div className="workspace-delete-dialog" role="alertdialog" aria-label="Confirmar exclusão da página" aria-describedby="workspace-delete-description">
+      <p id="workspace-delete-description">
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <button
+        ref={cancelRef}
         type="button"
         disabled={isDeleting}
         onClick={() => setIsConfirming(false)}
@@ -78,12 +87,12 @@ type PageBlocksProps = {
 /** Render page blocks while keeping block editing separate from PageEditor orchestration. */
 function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
   return (
-    <div aria-label="Blocos da página">
+    <div className="workspace-editor-blocks" aria-label="Blocos da página">
       {blocks.length === 0 ? (
         <p>Esta página ainda não possui conteúdo.</p>
       ) : (
         blocks.map((block, index) => (
-          <div key={blockKeys[index]}>
+          <div className="workspace-editor-block" key={blockKeys[index]}>
             <label htmlFor={`workspace-page-block-${index}`}>
               Bloco {index + 1}
             </label>
@@ -130,7 +139,7 @@ function PageMoveControls({
   const moveDownDisabled = isMoving || !canMoveDown;
 
   return (
-    <div aria-label="Ordenação da página">
+    <div className="workspace-editor-actions" aria-label="Ordenação da página">
       <button
         type="button"
         disabled={moveUpDisabled}
@@ -289,7 +298,7 @@ export function PageEditor({
   };
 
   return (
-    <article aria-label="Editor da página">
+    <article className="workspace-editor" aria-label="Editor da página">
       <label htmlFor="workspace-page-title">Título</label>
       <input
         id="workspace-page-title"
