@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/infrastructure/integrations/status", () => ({
   getIntegrationStatusSnapshot: vi.fn(async () => ({
     generatedAt: "2026-09-27T00:00:00.000Z",
-    catalogSize: 114,
+    catalogSize: 115,
     connectedCount: 1,
-    cataloguedCount: 113,
+    cataloguedCount: 114,
     errorCount: 0,
     runtimeIntegrations: [
       {
@@ -93,11 +93,11 @@ describe("IntegracoesPage", () => {
   it("renders the catalog size and the distinction between verified and catalogued", async () => {
     const html = renderToStaticMarkup(await IntegracoesPage());
 
-    expect(html).toContain("114 plugins registrados");
+    expect(html).toContain("115 plugins registrados");
     expect(html).toContain("Conexões verificadas");
     expect(html).toContain("1");
     expect(html).toContain("Ainda catalogados");
-    expect(html).toContain("113");
+    expect(html).toContain("114");
     expect(html).toContain("Agentic Course Redesign");
     expect(html).toContain("Hospedado no ChatGPT");
     expect(html).toContain(
@@ -107,6 +107,8 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Verificado");
     expect(html).toContain("A conexão externa foi verificada em runtime.");
     expect(html).toContain("Mestre Arcano");
+    expect(html).toContain("SharePoint / OneDrive");
+    expect(html).toContain("Conectar Microsoft");
     expect(html).toContain("OpenAI Agents");
     expect(html).toContain("gpt-5.6-sol");
     expect(html).toContain("Abrir OpenAI Agents");
