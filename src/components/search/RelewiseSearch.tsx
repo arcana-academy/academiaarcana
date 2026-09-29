@@ -45,7 +45,7 @@ export function RelewiseSearch() {
         );
       }
 
-      setResults(data.results ?? []);
+      setResults("results" in data ? data.results ?? [] : []);
     } catch (searchError) {
       setResults([]);
       setError(
