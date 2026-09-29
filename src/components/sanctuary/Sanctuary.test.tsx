@@ -42,6 +42,12 @@ const viewModel: SanctuaryViewModel = {
         status: "not-configured",
         data: null,
     },
+    adaptiveRecommendation: {
+        title: "Explore no seu ritmo",
+        message: "Escolha um conteúdo e avance no seu ritmo.",
+        reason: "Não há sinais suficientes para uma recomendação mais específica.",
+        href: "/grimorios",
+    },
     quickActions: [
         {
             id: "open-workspace",
