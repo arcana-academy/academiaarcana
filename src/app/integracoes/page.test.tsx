@@ -8,6 +8,16 @@ vi.mock("@/infrastructure/integrations/status", () => ({
     connectedCount: 1,
     cataloguedCount: 113,
     errorCount: 0,
+    runtimeIntegrations: [
+      {
+        providerId: "openai-agents",
+        name: "OpenAI Agents — Mestre Arcano",
+        status: "not_configured",
+        executionMode: "runtime",
+        model: "gpt-5.6-sol",
+        verification: null,
+      },
+    ],
     entries: [
       {
         name: "1 Billion Brain Cells",
@@ -96,6 +106,10 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("GitHub");
     expect(html).toContain("Verificado");
     expect(html).toContain("A conexão externa foi verificada em runtime.");
+    expect(html).toContain("Mestre Arcano");
+    expect(html).toContain("OpenAI Agents");
+    expect(html).toContain("gpt-5.6-sol");
+    expect(html).toContain("Abrir OpenAI Agents");
     expect(html).toContain("1 Billion Brain Cells");
     expect(html).toContain("A-Z Daily Word");
     expect(html).toContain("A-Z Dictionary");

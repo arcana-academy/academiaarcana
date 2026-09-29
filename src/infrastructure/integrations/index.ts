@@ -74,6 +74,13 @@ export type {
   GitHubRepositorySnapshot,
 } from "./github/public-github";
 
+export {
+  OPENAI_AGENTS_INTEGRATION_DEFINITION,
+  OPENAI_AGENTS_PROVIDER_ID,
+  getOpenAIAgentsRuntimeSnapshot,
+} from "./openai-agents";
+export type { OpenAIAgentsRuntimeSnapshot, OpenAIAgentsRuntimeStatus } from "./openai-agents";
+
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,

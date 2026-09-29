@@ -1,4 +1,5 @@
 import { CHATGPT_APP_BRIDGES } from "./chatgpt-app-bridges";
+import { getOpenAIAgentsRuntimeSnapshot } from "./openai-agents";
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import {
   AGENTIC_COURSE_REDESIGN_APP_ID,
@@ -50,6 +51,9 @@ export type IntegrationStatusSnapshot = {
   readonly cataloguedCount: number;
   readonly errorCount: number;
   readonly entries: readonly IntegrationStatusEntry[];
+  readonly runtimeIntegrations: readonly Awaited<
+    ReturnType<typeof getOpenAIAgentsRuntimeSnapshot>
+  >[];
 };
 
 function githubVerificationEntry(
@@ -129,6 +133,8 @@ export async function getIntegrationStatusSnapshot({
     };
   });
 
+  const runtimeIntegrations = [await getOpenAIAgentsRuntimeSnapshot()];
+
   return {
     generatedAt: new Date().toISOString(),
     catalogSize: entries.length,
@@ -138,5 +144,6 @@ export async function getIntegrationStatusSnapshot({
       .length,
     errorCount: entries.filter((entry) => entry.status === "error").length,
     entries,
+    runtimeIntegrations,
   };
 }

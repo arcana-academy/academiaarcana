@@ -9,6 +9,8 @@ import {
   NVIDIA_PHYSICAL_AI_TRACKS,
 } from "@/infrastructure/integrations/nvidia-physical-ai";
 
+export const dynamic = "force-dynamic";
+
 type IntegrationExecutionMode =
   | "runtime"
   | "chatgpt-hosted"
@@ -81,6 +83,61 @@ export default async function IntegracoesPage() {
           conexões reais de catálogo e transformar ferramentas em fluxos do produto.
         </p>
       </header>
+
+      <section
+        aria-labelledby="mestre-arcano-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            OpenAI Agents
+          </p>
+          <h2 id="mestre-arcano-title" style={{ marginTop: 0 }}>
+            Mestre Arcano
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Agente educacional executado no servidor da Academia Arcana. A chave
+            permanece fora do navegador e a conexão só é marcada como verificada
+            após uma checagem real do modelo configurado.
+          </p>
+          {snapshot.runtimeIntegrations.map((integration) => (
+            <div key={integration.providerId}>
+              <strong>
+                {integration.status === "connected"
+                  ? "Conectado"
+                  : integration.status === "not_configured"
+                    ? "Aguardando configuração"
+                    : "Erro na conexão"}
+              </strong>
+              <span
+                style={{
+                  color: "var(--aa-text-secondary)",
+                  display: "block",
+                  marginTop: "0.35rem",
+                }}
+              >
+                Modelo: {integration.model ?? "não definido"}
+              </span>
+            </div>
+          ))}
+          <a
+            className="aa-button aa-button-secondary"
+            href="https://platform.openai.com/agents"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Abrir OpenAI Agents
+          </a>
+        </article>
+      </section>
 
       <section
         aria-labelledby="integrations-summary-title"
