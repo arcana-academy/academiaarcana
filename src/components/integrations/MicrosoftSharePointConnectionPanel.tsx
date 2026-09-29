@@ -162,16 +162,19 @@ export function MicrosoftSharePointConnectionPanel() {
         const body = await getJson<GraphEnvelope>(
           `/api/integrations/microsoft-sharepoint/drives?siteId=${encodeURIComponent(selectedSite)}`,
         );
-        setDrives(itemsFromEnvelope(body).map(normalizeDrive).filter((item) => item.id));
-        setSelectedDrive("");
-        setItems([]);
-        setSelectedSource(null);
+        setDrives(
+          itemsFromEnvelope(body)
+            .map(normalizeDrive)
+            .filter((item) => item.id),
+        );
       } catch {
+        setDrives([]);
         setError("Não foi possível carregar as bibliotecas deste site.");
       } finally {
         setBusy(false);
       }
     };
+
     void loadDrives();
   }, [selectedSite]);
 
