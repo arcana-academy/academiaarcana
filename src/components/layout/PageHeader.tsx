@@ -1,21 +1,32 @@
-import type { ReactNode } from "react";
+import Link from "next/link";
+import { LogOut, Sparkles } from "lucide-react";
 
-type PageHeaderProps = {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  actions?: ReactNode;
-};
+import { signOut } from "@/lib/auth/actions";
+import { Button } from "@/components/ui";
 
-export function PageHeader({ eyebrow, title, description, actions }: PageHeaderProps) {
+export function PageHeader() {
   return (
-    <header className="aa-page-header aa-card aa-card-elevated">
-      <div className="aa-page-header-copy">
-        {eyebrow ? <p className="aa-page-eyebrow">{eyebrow}</p> : null}
-        <h1>{title}</h1>
-        {description ? <p className="aa-page-description">{description}</p> : null}
-      </div>
-      {actions ? <div className="aa-page-header-actions">{actions}</div> : null}
+    <header className="aa-app-header">
+      <Link
+        className="aa-brand-link"
+        href="/santuario"
+        aria-label="Academia Arcana — ir para o Santuário"
+      >
+        <span className="aa-brand-mark" aria-hidden="true">
+          <Sparkles size={18} strokeWidth={1.8} />
+        </span>
+        <span className="aa-brand-copy">
+          <span className="aa-app-brand">Academia Arcana</span>
+          <span className="aa-app-context">Jornada de aprendizagem</span>
+        </span>
+      </Link>
+
+      <form action={signOut}>
+        <Button variant="secondary" size="sm" type="submit">
+          <LogOut size={16} aria-hidden="true" />
+          Sair
+        </Button>
+      </form>
     </header>
   );
 }

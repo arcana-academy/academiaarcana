@@ -5,9 +5,7 @@ import { SanctuaryMissions } from "./SanctuaryMissions";
 import { SanctuaryProgress } from "./SanctuaryProgress";
 import { SanctuarySchedule } from "./SanctuarySchedule";
 
-type SanctuaryProps = {
-  viewModel: SanctuaryViewModel;
-};
+type SanctuaryProps = { viewModel: SanctuaryViewModel };
 
 export function Sanctuary({ viewModel }: SanctuaryProps) {
   return (
@@ -16,22 +14,11 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
         header={viewModel.header}
         primaryAction={viewModel.primaryAction}
       />
-
-      <section className="aa-sanctuary-command" aria-label="Comando da jornada">
-        <div className="aa-sanctuary-command-primary">
-          <p className="aa-eyebrow">Próximo passo</p>
-          <h2>Continue aprendendo</h2>
-          <SanctuaryContinueLearning continueLearning={viewModel.continueLearning} />
-        </div>
-
-        <div className="aa-sanctuary-command-secondary">
-          <p className="aa-eyebrow">Visão geral</p>
-          <h2>Seu progresso</h2>
-          <SanctuaryProgress progress={viewModel.progress} />
-        </div>
-      </section>
-
-      <div className="aa-sanctuary-grid">
+      <div className="aa-card-grid">
+        <SanctuaryContinueLearning continueLearning={viewModel.continueLearning} />
+        <SanctuaryProgress progress={viewModel.progress} />
+      </div>
+      <div className="aa-card-grid">
         <SanctuaryMissions missions={viewModel.missions} />
         <SanctuarySchedule schedule={viewModel.schedule} />
       </div>
