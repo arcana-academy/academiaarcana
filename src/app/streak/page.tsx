@@ -24,7 +24,7 @@ export default async function StreakPage() {
         <ArcanaFeatureGrid>
           <FeatureCard title="Sequência atual" description="Dias consecutivos registrados pelo sistema de gamificação." icon={<Flame size={22} />}>
             <p className="aa-state-copy">
-              {`profile ? \`${profile.streakDays} ${profile.streakDays === 1 ? "dia" : "dias"}\` : "Nenhuma atividade registrada ainda."`}
+              {profile ? `${profile.streakDays} ${profile.streakDays === 1 ? "dia" : "dias"}` : "Nenhuma atividade registrada ainda."}
             </p>
           </FeatureCard>
           <FeatureCard title="Última atividade" description="A data usada como referência pela continuidade persistida." icon={<History size={22} />}>
