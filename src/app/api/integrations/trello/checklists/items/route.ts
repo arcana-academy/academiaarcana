@@ -48,12 +48,18 @@ export async function PATCH(request: Request) {
   const body = (await request.json().catch(() => null)) as
     | { cardId?: string; itemId?: string; checked?: boolean; name?: string }
     | null;
-  if (!body?.cardId?.trim() || !body?.itemId?.trim()) {
+  const cardId = body?.cardId?.trim();
+  const itemId = body?.itemId?.trim();
+  if (!cardId || !itemId) {
     return NextResponse.json({ error: "card_id_and_item_id_required" }, { status: 400 });
   }
 
   try {
-    const result = await updateTrelloChecklistItem(credentials.accessToken, body);
+    const result = await updateTrelloChecklistItem(credentials.accessToken, {
+      ...body,
+      cardId,
+      itemId,
+    });
     return NextResponse.json(result.output, { status: 200 });
   } catch {
     return NextResponse.json({ error: "trello_request_failed" }, { status: 502 });
