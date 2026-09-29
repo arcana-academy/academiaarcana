@@ -111,6 +111,50 @@ export {
   verifyDropboxConnection,
 } from "./dropbox";
 
+
+export {
+  TODOIST_API_BASE_URL,
+  TODOIST_CREDENTIALS_COOKIE,
+  TODOIST_INTEGRATION_DEFINITION,
+  TODOIST_OAUTH_AUTHORIZE_URL,
+  TODOIST_OAUTH_PKCE_COOKIE,
+  TODOIST_OAUTH_REVOKE_URL,
+  TODOIST_OAUTH_SCOPE,
+  TODOIST_OAUTH_STATE_COOKIE,
+  TODOIST_OAUTH_TOKEN_URL,
+  TODOIST_PLUGIN_NAME,
+  TODOIST_PROVIDER_ID,
+  TodoistConnectionError,
+  buildTodoistAuthorizationUrl,
+  closeTodoistTask,
+  createOAuthState,
+  createOAuthVerifier,
+  createPkceChallenge,
+  createTodoistTask,
+  decryptTodoistCredentials,
+  encryptTodoistCredentials,
+  exchangeTodoistAuthorizationCode,
+  getTodoistClientId,
+  getTodoistClientSecret,
+  getTodoistProjects,
+  getTodoistRedirectUri,
+  getTodoistTasks,
+  refreshTodoistCredentials,
+  revokeTodoistAccessToken,
+  searchTodoistTasks,
+  shouldRefreshTodoistCredentials,
+  verifyTodoistConnection,
+} from "./todoist";
+export type {
+  TodoistConnectionStatus,
+  TodoistConnectionVerification,
+  TodoistCredentials,
+  TodoistProject,
+  TodoistTask,
+  TodoistTokenSet,
+  TodoistUser,
+} from "./todoist";
+
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,

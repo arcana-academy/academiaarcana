@@ -21,6 +21,11 @@ export const ARCANA_TOOL_TRACKS: readonly ArcanaToolTrack[] = [
     tools: ["Consensus", "Elicit", "SciSpace", "Scite", "Wiley Scholar Gateway", "Readwise", "Notion"],
   },
   {
+    title: "Planejamento e execução",
+    description: "Cronograma, tarefas, prazos e execução do estudo.",
+    tools: ["Todoist", "Microsoft Outlook Calendar"],
+  },
+  {
     title: "Aprendizagem e avaliação",
     description: "Cursos, exercícios, quizzes, prática e planejamento pedagógico.",
     tools: ["DataCamp", "Quizlet", "Ace Quiz Maker", "Brisk Teaching", "Course Studio", "Assessment Generator", "Learning Commons"],

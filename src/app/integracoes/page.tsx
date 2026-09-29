@@ -40,7 +40,9 @@ function statusDescription(
     case "error":
       return "A conexão externa falhou na última verificação.";
     default:
-      return "O nome está no catálogo, mas nenhuma conexão externa foi verificada.";
+      return executionMode === "runtime"
+        ? "O adapter de runtime existe; a conexão de conta é verificada no contexto autenticado."
+        : "O nome está no catálogo, mas nenhuma conexão externa foi verificada.";
   }
 }
 
@@ -136,6 +138,36 @@ export default async function IntegracoesPage() {
           >
             Abrir OpenAI Agents
           </a>
+        </article>
+      </section>
+
+      <section
+        aria-labelledby="todoist-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Produtividade · Planejamento
+          </p>
+          <h2 id="todoist-title" style={{ marginTop: 0 }}>
+            Todoist
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Conecte sua conta para levar tarefas, prazos e execução do cronograma
+            para o Todoist. A autenticação acontece no servidor e a Academia Arcana
+            mantém o controle do progresso educacional.
+          </p>
+          <Link className="aa-button aa-button-primary" href="/integracoes/todoist">
+            Gerenciar conexão do Todoist
+          </Link>
         </article>
       </section>
 

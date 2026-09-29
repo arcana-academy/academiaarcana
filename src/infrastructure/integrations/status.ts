@@ -243,8 +243,16 @@ export async function getIntegrationStatusSnapshot({
       executionMode:
         isAgenticCourseRedesign || isTarteel
           ? ("chatgpt-hosted" as const)
-          : ("catalog-only" as const),
+          : plugin.name === "Todoist"
+            ? ("runtime" as const)
+            : ("catalog-only" as const),
       ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
+      ...(plugin.name === "Todoist"
+        ? {
+            providerId: "todoist",
+            capabilities: ["read", "write", "search", "calendar"],
+          }
+        : {}),
       ...(isAgenticCourseRedesign
         ? {
             capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,
