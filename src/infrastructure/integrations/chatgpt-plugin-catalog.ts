@@ -16,6 +16,7 @@ export const CHATGPT_PLUGIN_CATALOG = [
   { name: "AI4F Japanese Study", source: "chatgpt-catalog" as const },
   { name: "All Tide Times", source: "chatgpt-catalog" as const },
   { name: "All your Horoscopes", source: "chatgpt-catalog" as const },
+  { name: "Airtable", source: "runtime" as const },
   { name: "Amass", source: "chatgpt-catalog" as const },
   { name: "AnyLessonPlan for Teachers", source: "chatgpt-catalog" as const },
   { name: "Ask Tarot Cards", source: "chatgpt-catalog" as const },
