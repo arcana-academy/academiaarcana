@@ -16,6 +16,16 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: mocks.createClient,
 }));
 
+function chain(data: unknown) {
+  const builder: any = {
+    select: () => builder,
+    eq: () => builder,
+    maybeSingle: async () => ({ data, error: null }),
+  };
+  builder.then = (resolve: any, reject: any) => Promise.resolve({ data, error: null }).then(resolve, reject);
+  return builder;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireAuthenticatedUser.mockResolvedValue({ sub: "user-1" });
@@ -23,20 +33,8 @@ beforeEach(() => {
     from(table: string) {
       const data = table === "gamification_profiles"
         ? { xp: 100, streak_days: 7 }
-        : table === "study_tasks"
-          ? [{ id: "t1" }]
-          : [{ id: "p1" }];
-      return {
-        select() {
-          return {
-            eq() {
-              return {
-                maybeSingle: async () => ({ data, error: null }),
-              };
-            },
-          };
-        },
-      };
+        : [{ id: "t1" }];
+      return chain(data);
     },
   });
 });
@@ -46,6 +44,6 @@ describe("ConquistasPage", () => {
     render(await ConquistasPage());
 
     expect(screen.getByRole("heading", { name: "Conquistas", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("Desbloqueada")).toHaveLength(3);
+    expect(screen.getAllByText("Desbloqueada")).toHaveLength(3);
   });
 });
