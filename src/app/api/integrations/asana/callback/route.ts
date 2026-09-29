@@ -1,0 +1,54 @@
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import {
+  ASANA_CREDENTIALS_COOKIE,
+  ASANA_OAUTH_PKCE_COOKIE,
+  ASANA_OAUTH_STATE_COOKIE,
+  encryptAsanaCredentials,
+  exchangeAsanaAuthorizationCode,
+  verifyAsanaConnection,
+} from "@/infrastructure/integrations/asana";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+
+export const dynamic = "force-dynamic";
+
+function redirectError(request: Request, code: string) {
+  return NextResponse.redirect(new URL(`/integracoes/asana?error=${encodeURIComponent(code)}`, request.url));
+}
+
+export async function GET(request: Request) {
+  const claims = await requireAuthenticatedUser();
+  const params = new URL(request.url).searchParams;
+  const code = params.get("code");
+  const state = params.get("state");
+  const error = params.get("error");
+  const cookieStore = await cookies();
+  const storedState = cookieStore.get(ASANA_OAUTH_STATE_COOKIE)?.value;
+  const verifier = cookieStore.get(ASANA_OAUTH_PKCE_COOKIE)?.value;
+
+  cookieStore.delete(ASANA_OAUTH_STATE_COOKIE);
+  cookieStore.delete(ASANA_OAUTH_PKCE_COOKIE);
+
+  if (error) return redirectError(request, error);
+  if (!code || !state || !storedState || state !== storedState || !verifier) {
+    return redirectError(request, "invalid_state");
+  }
+
+  try {
+    const tokenSet = await exchangeAsanaAuthorizationCode({
+      code, codeVerifier: verifier, requestUrl: request.url,
+    });
+    await verifyAsanaConnection(tokenSet.accessToken);
+
+    cookieStore.set(ASANA_CREDENTIALS_COOKIE, await encryptAsanaCredentials({
+      subjectId: claims.sub, ...tokenSet,
+    }), {
+      httpOnly: true, maxAge: 365 * 24 * 60 * 60, path: "/",
+      sameSite: "lax", secure: true,
+    });
+
+    return NextResponse.redirect(new URL("/integracoes/asana?connected=1", request.url));
+  } catch {
+    return redirectError(request, "authorization_failed");
+  }
+}
