@@ -18,6 +18,10 @@ test.describe("integration hub", () => {
     await expect(
       page.getByRole("link", { name: "Gerenciar conexão do Todoist" }),
     ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Notion", exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Gerenciar conexão do Notion" }),
+    ).toBeVisible();
 
     const dictionaryCard = page
       .getByRole("listitem")
@@ -83,6 +87,19 @@ test.describe("integration hub", () => {
       executionMode: "runtime",
       providerId: "todoist",
       capabilities: ["read", "write", "search", "calendar"],
+      verification: null,
+    });
+
+    const notion = body.entries.find(
+      (entry: { name: string }) => entry.name === "Notion",
+    );
+
+    expect(notion).toMatchObject({
+      name: "Notion",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "notion",
+      capabilities: ["read", "write", "search", "files", "metadata"],
       verification: null,
     });
 
