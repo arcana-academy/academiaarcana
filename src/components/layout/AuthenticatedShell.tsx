@@ -8,7 +8,10 @@ type AuthenticatedShellProps = {
   children: React.ReactNode;
 };
 
-export function AuthenticatedShell({ currentPath, children }: AuthenticatedShellProps) {
+export function AuthenticatedShell({
+  currentPath,
+  children,
+}: AuthenticatedShellProps) {
   return (
     <div className="aa-shell">
       <Sidebar currentPath={currentPath} />
@@ -36,7 +39,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
           </form>
         </header>
 
-        <div className="aa-main-content">{children}</div>
+        <main className="aa-main-content">{children}</main>
       </div>
     </div>
   );
