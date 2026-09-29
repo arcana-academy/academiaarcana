@@ -38,10 +38,10 @@ describe("route error boundary", () => {
     render(<ErrorBoundary error={new Error("failure")} reset={reset} />);
 
     expect(
-      screen.getByRole("heading", { name: "Something went wrong!" }),
+      screen.getByRole("heading", { name: "Não foi possível carregar esta página" }),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(reset).toHaveBeenCalledOnce();
   });
 
