@@ -192,7 +192,7 @@ describe("integration status snapshot", () => {
     });
   });
 
-  it("fails closed for provider errors without exposing provider details", async () =>
+  it("fails closed for provider errors without exposing provider details", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
       githubVerifier: async () => {
         throw new Error("secret network diagnostics");
