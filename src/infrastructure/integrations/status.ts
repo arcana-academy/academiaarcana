@@ -21,6 +21,7 @@ import {
   verifyAirtableConnection,
   type AirtableConnectionVerification,
 } from "./airtable";
+import { ASANA_PROVIDER_ID } from "./asana";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
