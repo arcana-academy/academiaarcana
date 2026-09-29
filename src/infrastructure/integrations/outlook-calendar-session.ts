@@ -144,7 +144,6 @@ async function refreshAccessToken(ownerId: string, refreshToken: string) {
     client_secret: clientSecret,
     grant_type: "refresh_token",
     refresh_token: refreshToken,
-    redirect_uri: redirectUri,
     scope: "offline_access Calendars.ReadWrite",
   });
 
