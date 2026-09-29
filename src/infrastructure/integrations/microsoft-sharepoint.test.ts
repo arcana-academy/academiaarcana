@@ -70,7 +70,6 @@ describe("Microsoft SharePoint integration", () => {
 
     fetchMock.mockRestore();
   });
-});
 
   it("discovers SharePoint sites through Microsoft Graph", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
