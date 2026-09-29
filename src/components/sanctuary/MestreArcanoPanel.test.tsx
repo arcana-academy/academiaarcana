@@ -15,7 +15,7 @@ describe("MestreArcanoPanel", () => {
   });
 
   it("consulta o agente e apresenta a resposta", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(
         JSON.stringify({
           output: "Comece pelo próximo capítulo pendente e faça uma sessão curta.",
@@ -47,6 +47,38 @@ describe("MestreArcanoPanel", () => {
         body: JSON.stringify({ input: "O que estudo agora?" }),
       }),
     );
+
+    fetchMock.mockRestore();
+  });
+
+  it("remove a resposta anterior quando uma nova consulta falha", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ output: "Resposta anterior.", responseId: "resp_1", model: "gpt-5.6-sol" }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: "Falha temporária." }), {
+          status: 502,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+    render(<MestreArcanoPanel />);
+    const textbox = screen.getByRole("textbox", { name: "Mensagem para o Mestre Arcano" });
+
+    fireEvent.change(textbox, { target: { value: "Primeira pergunta" } });
+    fireEvent.click(screen.getByRole("button", { name: "Consultar Mestre Arcano" }));
+
+    expect(await screen.findByText("Resposta anterior.")).toBeInTheDocument();
+
+    fireEvent.change(textbox, { target: { value: "Segunda pergunta" } });
+    fireEvent.click(screen.getByRole("button", { name: "Consultar Mestre Arcano" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Falha temporária.");
+    expect(screen.queryByText("Resposta anterior.")).not.toBeInTheDocument();
 
     fetchMock.mockRestore();
   });
