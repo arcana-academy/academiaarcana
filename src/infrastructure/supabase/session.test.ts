@@ -30,16 +30,14 @@ vi.mock("next/server", async () => {
   }
 
   class MockCookies {
-    private readonly values: Array<Record<string, unknown>> = [];
+    calls: unknown[][] = [];
 
     getAll() {
-      return this.values;
+      return [];
     }
 
     set(...args: unknown[]) {
-      this.values.push({
-        args,
-      });
+      this.calls.push(args);
     }
   }
 
@@ -97,7 +95,7 @@ describe("updateSupabaseSession", () => {
     expect(mocks.getClaims).toHaveBeenCalledTimes(1);
   });
 
-  it("propagates cookie options and cache headers during refresh", async () => {
+  it("propagates request cookies, response cookie options, and cache headers during refresh", async () => {
     let setAll:
       | ((cookies: Array<{ name: string; value: string; options?: Record<string, unknown> }>,
           headers: Record<string, string>) => void)
@@ -150,11 +148,17 @@ describe("updateSupabaseSession", () => {
     expect(requestCookies[0]?.args).toEqual([
       "sb-test-auth-token",
       "refreshed",
-      {
-        httpOnly: false,
-        secure: true,
-        sameSite: "lax",
-      },
+    ]);
+    expect(response.cookies.calls).toEqual([
+      [
+        "sb-test-auth-token",
+        "refreshed",
+        {
+          httpOnly: false,
+          secure: true,
+          sameSite: "lax",
+        },
+      ],
     ]);
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   });
