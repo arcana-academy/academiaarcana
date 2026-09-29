@@ -26,8 +26,10 @@ describe("StudyTaskBoard", () => {
     render(
       <StudyTaskBoard
         tasks={[task]}
+        outlookConnected={false}
         onCreate={onCreate}
         onComplete={vi.fn().mockResolvedValue(task)}
+        onScheduleInOutlook={vi.fn()}
       />,
     );
 
@@ -55,8 +57,10 @@ describe("StudyTaskBoard", () => {
     render(
       <StudyTaskBoard
         tasks={[task]}
+        outlookConnected={false}
         onCreate={vi.fn()}
         onComplete={onComplete}
+        onScheduleInOutlook={vi.fn()}
       />,
     );
 
