@@ -94,4 +94,39 @@ describe("StudyTaskBoard", () => {
     );
   });
 
+  it("sends a study task to Asana without mutating the native task state", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ task: { id: "asana-task-1", name: task.title } }), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Enviar ao Asana" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/integrations/asana/tasks",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          name: task.title,
+          notes: "Enviada a partir do Cronograma da Academia Arcana.",
+          dueOn: "2026-09-25",
+        }),
+      }),
+    ));
+    expect(screen.getByRole("button", { name: "Enviado ao Asana" })).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
 });

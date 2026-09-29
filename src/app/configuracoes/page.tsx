@@ -31,6 +31,12 @@ export default async function ConfiguracoesPage() {
               Gerenciar Todoist
             </Link>
           </FeatureCard>
+          <FeatureCard title="Asana" description="Envie tarefas do Cronograma para o Asana sem substituir a fonte de verdade educacional." icon={<PlugZap size={22} />}>
+            <p className="aa-state-copy">A integração usa OAuth no servidor e mantém as credenciais fora do navegador.</p>
+            <Link className="aa-button aa-button-secondary aa-button-sm" href="/integracoes/asana">
+              Gerenciar Asana
+            </Link>
+          </FeatureCard>
         </ArcanaFeatureGrid>
       </ArcanaPage>
     </AuthenticatedShell>
