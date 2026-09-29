@@ -20,7 +20,7 @@ function redirectError(request: Request, code: string) {
 }
 
 export async function GET(request: Request) {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
@@ -40,13 +40,18 @@ export async function GET(request: Request) {
   }
 
   try {
-    const credentials = await exchangeTodoistAuthorizationCode({
+    const tokenSet = await exchangeTodoistAuthorizationCode({
       code,
       codeVerifier: verifier,
       requestUrl: request.url,
     });
 
-    await verifyTodoistConnection(credentials.accessToken);
+    await verifyTodoistConnection(tokenSet.accessToken);
+
+    const credentials = {
+      subjectId: claims.sub,
+      ...tokenSet,
+    };
 
     cookieStore.set(
       TODOIST_CREDENTIALS_COOKIE,
