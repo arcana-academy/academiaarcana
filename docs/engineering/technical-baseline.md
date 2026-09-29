@@ -147,3 +147,8 @@ Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` a
 - Do not disable lint/type rules to obtain a green build.
 - Do not introduce product functionality during infrastructure reconciliation.
 - Do not mutate production solely to make documentation or migration history appear green; reconcile from observed state and preserve evidence.
+
+
+## Adaptive recommendations
+
+The adaptive domain now exposes bounded, evidence-based recommendations to the Sanctuary application layer. Recommendations consume authorized learning, planning, and gamification signals and remain a projection; they do not become a parallel source of persisted truth.
