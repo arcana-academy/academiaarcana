@@ -4,6 +4,7 @@ export type PublicRuntimeConfig = {
 };
 
 const PREVIEW_SUPABASE_URL = "https://fichnalpbcfjywwhixid.supabase.co";
+const PREVIEW_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0yFN7N7ikHBDY6m6P3FICw_u1lL6ppI";
 
 function requireValue(name: string, value: string | undefined): string {
   if (!value) {
