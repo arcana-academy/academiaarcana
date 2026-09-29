@@ -134,6 +134,7 @@ export {
   getMicrosoftSharePointClientId,
   getMicrosoftSharePointClientSecret,
   getMicrosoftSharePointMetadata,
+  getMicrosoftSharePointSiteItemMetadata,
   getMicrosoftSharePointRedirectUri,
   listMicrosoftSharePointFolder,
   listMicrosoftSharePointRoot,
