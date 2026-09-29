@@ -120,6 +120,8 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Gerenciar SharePoint");
     expect(html).toContain("Notion");
     expect(html).toContain("Gerenciar conexão do Notion");
+    expect(html).toContain("Asana");
+    expect(html).toContain("Gerenciar conexão do Asana");
     expect(html).toContain("Trello");
     expect(html).toContain("Gerenciar conexão do Trello");
 
