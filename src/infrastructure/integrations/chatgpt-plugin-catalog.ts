@@ -120,7 +120,6 @@ export const CHATGPT_PLUGIN_CATALOG = [
   { name: "ZZAIM", source: "chatgpt-catalog" as const },
   { name: "エスキスクン", source: "chatgpt-catalog" as const },
   { name: "상식이", source: "chatgpt-catalog" as const },
-  { name: "Microsoft SharePoint", source: "runtime" as const },
 ] as const;
 
 export type ChatGPTPluginCatalogEntry = (typeof CHATGPT_PLUGIN_CATALOG)[number];
