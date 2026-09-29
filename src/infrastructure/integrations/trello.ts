@@ -18,7 +18,7 @@ export const TRELLO_OAUTH_SCOPE = [
   "read:board:trello",
   "write:board:trello",
   "offline_access",
-].join(" ") as const;
+].join(" ");
 
 export const TRELLO_INTEGRATION_DEFINITION = {
   id: TRELLO_PROVIDER_ID,
