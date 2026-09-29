@@ -11,7 +11,7 @@ export const MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION = {
   capabilities: ["read", "search", "files", "versions", "metadata"],
   userConnectionRequired: true,
   serverSideOnly: true,
-  scopes: ["Files.Read", "Sites.Read.All"],
+  scopes: ["Files.Read"],
   documentationUrl: "https://learn.microsoft.com/graph/api/resources/drive",
 } satisfies IntegrationDefinition;
 
