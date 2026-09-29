@@ -238,7 +238,7 @@ export async function getIntegrationStatusSnapshot({
         status: "catalogued" as const,
         executionMode: "runtime" as const,
         providerId: "notion",
-        capabilities: ["read", "write", "search", "files", "metadata"],
+        capabilities: ["read", "write", "search", "metadata"],
         verification: null,
       };
     }
