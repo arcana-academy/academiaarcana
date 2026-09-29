@@ -61,6 +61,24 @@ export {
 export type { TrueSkyGateway, TrueSkyOperation, TrueSkyRequest } from "./true-sky";
 
 export {
+  AIRTABLE_API_BASE_URL,
+  AIRTABLE_INTEGRATION_DEFINITION,
+  AIRTABLE_META_API_BASE_URL,
+  AIRTABLE_PLUGIN_NAME,
+  AIRTABLE_PROVIDER_ID,
+  AirtableConnectionError,
+  createAirtableRecords,
+  getAirtableApiKey,
+  getAirtableBaseId,
+  listAirtableRecords,
+  verifyAirtableConnection,
+} from "./airtable";
+export type {
+  AirtableConnectionVerification,
+  AirtableRecord,
+} from "./airtable";
+
+export {
   DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
   GITHUB_INTEGRATION_DEFINITION,
   GITHUB_PLUGIN_NAME,
