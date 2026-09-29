@@ -210,6 +210,26 @@ export async function decryptMicrosoftSharePointCredentials(
   }
 }
 
+export type MicrosoftSharePointOperation =
+  | "list-root"
+  | "list-folder"
+  | "search"
+  | "search-site-drive"
+  | "get-metadata"
+  | "get-site-item-metadata"
+  | "list-versions"
+  | "list-sites"
+  | "list-site-drives";
+
+export type MicrosoftSharePointConnectionVerification = {
+  readonly providerId: typeof MICROSOFT_SHAREPOINT_PROVIDER_ID;
+  readonly pluginName: typeof MICROSOFT_SHAREPOINT_PLUGIN_NAME;
+  readonly status: Extract<IntegrationConnectionStatus, "connected" | "error">;
+  readonly driveId: string;
+  readonly verifiedAt: string;
+};
+
+
 export function shouldRefreshMicrosoftSharePointCredentials(
   credentials: MicrosoftSharePointCredentials,
   now = Date.now(),
@@ -303,25 +323,6 @@ export async function listMicrosoftSharePointSiteDrives(
     token,
   );
 }
-
-export type MicrosoftSharePointOperation =
-  | "list-root"
-  | "list-folder"
-  | "search"
-  | "search-site-drive"
-  | "get-metadata"
-  | "get-site-item-metadata"
-  | "list-versions"
-  | "list-sites"
-  | "list-site-drives";
-
-export type MicrosoftSharePointConnectionVerification = {
-  readonly providerId: typeof MICROSOFT_SHAREPOINT_PROVIDER_ID;
-  readonly pluginName: typeof MICROSOFT_SHAREPOINT_PLUGIN_NAME;
-  readonly status: Extract<IntegrationConnectionStatus, "connected" | "error">;
-  readonly driveId: string;
-  readonly verifiedAt: string;
-};
 
 export class MicrosoftSharePointConnectionError extends Error {
   constructor(message = "Microsoft SharePoint não está configurado ou autorizado.") {
