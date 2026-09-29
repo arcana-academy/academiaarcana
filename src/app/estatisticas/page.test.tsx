@@ -9,20 +9,27 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({})),
 }));
 
-vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => ({
-  SupabaseGamificationRepository: vi.fn(() => ({
-    getProfile: vi.fn(async () => ({
-      ownerId: "user-1",
-      xp: 900,
-      streakDays: 7,
-      lastActiveOn: "2026-09-29",
-      updatedAt: "2026-09-29T10:00:00.000Z",
-    })),
-    listDailyMissions: vi.fn(async () => [
-      { id: "m1", ownerId: "user-1", code: "a", title: "A", rewardXp: 10, targetDate: "2026-09-29", status: "completed", completedAt: "2026-09-29T09:00:00.000Z" },
-    ]),
-  })),
-}));
+vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => {
+  class MockSupabaseGamificationRepository {
+    async getProfile() {
+      return {
+        ownerId: "user-1",
+        xp: 900,
+        streakDays: 7,
+        lastActiveOn: "2026-09-29",
+        updatedAt: "2026-09-29T10:00:00.000Z",
+      };
+    }
+
+    async listDailyMissions() {
+      return [
+        { id: "m1", ownerId: "user-1", code: "a", title: "A", rewardXp: 10, targetDate: "2026-09-29", status: "completed", completedAt: "2026-09-29T09:00:00.000Z" },
+      ];
+    }
+  }
+
+  return { SupabaseGamificationRepository: MockSupabaseGamificationRepository };
+});
 
 vi.mock("@/components/layout/AuthenticatedShell", () => ({
   AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
