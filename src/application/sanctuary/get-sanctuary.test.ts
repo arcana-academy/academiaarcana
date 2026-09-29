@@ -246,7 +246,7 @@ describe("getSanctuary", () => {
         },
       ],
     });
-    expect(result.adaptiveRecommendation).toEqual(expect.objectContaining({ title: "Siga o próximo horário", href: "/cronograma" }));
+    expect(result.adaptiveRecommendation).toEqual(expect.objectContaining({ title: "Retome uma missão", href: "/missoes" }));
     expect(result.schedule).toEqual({
       status: "ready",
       data: [
