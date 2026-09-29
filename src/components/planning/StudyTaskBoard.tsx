@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
 
 type StudyTaskBoardProps = {
@@ -20,6 +21,8 @@ export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardPr
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sentIds, setSentIds] = useState<Set<string>>(() => new Set());
 
   const submit = async () => {
     setError(null);
@@ -34,6 +37,40 @@ export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardPr
       setError("Não foi possível criar a tarefa.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const sendToTodoist = async (task: StudyTask) => {
+    setError(null);
+    setSendingId(task.id);
+
+    try {
+      const response = await fetch("/api/integrations/todoist/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: task.title,
+          description: "Enviada a partir do Cronograma da Academia Arcana.",
+          dueDateTime: task.dueAt,
+        }),
+      });
+
+      if (response.status === 409 || response.status === 401) {
+        setError("Conecte o Todoist em Integrações antes de enviar esta tarefa.");
+        return;
+      }
+
+      if (!response.ok) throw new Error();
+
+      setSentIds((current) => {
+        const next = new Set(current);
+        next.add(task.id);
+        return next;
+      });
+    } catch {
+      setError("Não foi possível enviar a tarefa para o Todoist.");
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -91,7 +128,19 @@ export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardPr
             {items.map((task) => (
               <li className="aa-list-item" key={task.id}>
                 <div><strong>{task.title}</strong><small>{formatDueAt(task.dueAt)}</small></div>
-                <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => complete(task.id)}>Concluir</button>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                  <button
+                    className="aa-button aa-button-secondary aa-button-sm"
+                    type="button"
+                    onClick={() => void sendToTodoist(task)}
+                    disabled={sendingId === task.id || sentIds.has(task.id)}
+                    title={sentIds.has(task.id) ? "Tarefa já enviada para o Todoist nesta sessão" : "Enviar uma cópia para o Todoist"}
+                  >
+                    <Send size={16} aria-hidden="true" />
+                    {sendingId === task.id ? "Enviando…" : sentIds.has(task.id) ? "Enviado" : "Enviar ao Todoist"}
+                  </button>
+                  <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void complete(task.id)}>Concluir</button>
+                </div>
               </li>
             ))}
           </ul>
