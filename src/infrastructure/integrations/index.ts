@@ -196,6 +196,41 @@ export type {
   TodoistUser,
 } from "./todoist";
 
+export {
+  NOTION_API_BASE_URL,
+  NOTION_API_VERSION,
+  NOTION_CREDENTIALS_COOKIE,
+  NOTION_INTEGRATION_DEFINITION,
+  NOTION_OAUTH_AUTHORIZE_URL,
+  NOTION_OAUTH_REVOKE_URL,
+  NOTION_OAUTH_STATE_COOKIE,
+  NOTION_OAUTH_TOKEN_URL,
+  NOTION_PLUGIN_NAME,
+  NOTION_PROVIDER_ID,
+  NotionConnectionError,
+  buildNotionAuthorizationUrl,
+  createNotionOAuthState,
+  createNotionPage,
+  decryptNotionCredentials,
+  encryptNotionCredentials,
+  exchangeNotionAuthorizationCode,
+  getNotionClientId,
+  getNotionClientSecret,
+  getNotionRedirectUri,
+  refreshNotionCredentials,
+  revokeNotionAccessToken,
+  searchNotion,
+  verifyNotionConnection,
+} from "./notion";
+export type {
+  NotionConnectionVerification,
+  NotionCredentials,
+  NotionPageResult,
+  NotionSearchResult,
+  NotionTokenSet,
+  NotionUser,
+} from "./notion";
+
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
