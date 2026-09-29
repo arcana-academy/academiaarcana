@@ -1,7 +1,17 @@
 /**
- * Public contracts for the trust domain.
- *
- * Domain behavior will be introduced incrementally.
+ * Contracts for user feedback submission and ownership.
  */
+export type FeedbackInput = {
+  name: string | null;
+  email: string;
+  feedback: string;
+};
 
-export {};
+export type FeedbackRecord = {
+  id: string;
+  userId: string | null;
+  name: string | null;
+  email: string;
+  feedback: string;
+  createdAt: string;
+};
