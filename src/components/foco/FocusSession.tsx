@@ -77,8 +77,15 @@ export function FocusSession() {
           <button
             className="aa-button aa-button-primary"
             type="button"
-            onClick={() => setRunning((current) => !current)}
-            aria-label={running ? "Pausar sessão" : "Iniciar sessão"}
+            onClick={() => {
+              if (completed) {
+                reset();
+                setRunning(true);
+                return;
+              }
+              setRunning((current) => !current);
+            }}
+            aria-label={running ? "Pausar sessão" : completed ? "Reiniciar sessão" : "Iniciar sessão"}
           >
             {running ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
             {running ? "Pausar" : completed ? "Reiniciar" : "Iniciar"}
