@@ -11,7 +11,7 @@ export const TODOIST_OAUTH_AUTHORIZE_URL = "https://app.todoist.com/oauth/author
 export const TODOIST_OAUTH_TOKEN_URL = "https://api.todoist.com/oauth/access_token" as const;
 export const TODOIST_OAUTH_REVOKE_URL = "https://api.todoist.com/api/v1/revoke" as const;
 
-export const TODOIST_ACCESS_TOKEN_COOKIE = "__Host-aa-todoist-access" as const;
+export const TODOIST_CREDENTIALS_COOKIE = "__Host-aa-todoist-credentials" as const;
 export const TODOIST_OAUTH_STATE_COOKIE = "__Host-aa-todoist-state" as const;
 export const TODOIST_OAUTH_PKCE_COOKIE = "__Host-aa-todoist-pkce" as const;
 
@@ -61,6 +61,12 @@ export type TodoistProject = {
   readonly name: string;
   readonly color?: string;
   readonly is_favorite?: boolean;
+};
+
+export type TodoistCredentials = {
+  readonly accessToken: string;
+  readonly refreshToken: string | null;
+  readonly accessTokenExpiresAt: number | null;
 };
 
 export type TodoistConnectionVerification = {
@@ -120,6 +126,98 @@ function toBase64Url(bytes: Uint8Array): string {
     .replaceAll("+", "-")
     .replaceAll("/", "_")
     .replaceAll("=", "");
+}
+
+function fromBase64Url(value: string): Uint8Array {
+  const padded = value.replaceAll("-", "+").replaceAll("_", "/") + "===".slice(
+    (value.length + 3) % 4,
+  );
+  const binary = globalThis.atob(padded);
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+
+async function getCookieKey(): Promise<CryptoKey> {
+  const digest = await globalThis.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(getTodoistClientSecret()),
+  );
+
+  return globalThis.crypto.subtle.importKey(
+    "raw",
+    digest,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+export async function encryptTodoistCredentials(
+  credentials: TodoistCredentials,
+): Promise<string> {
+  const iv = new Uint8Array(12);
+  globalThis.crypto.getRandomValues(iv);
+
+  const plaintext = new TextEncoder().encode(JSON.stringify(credentials));
+  const ciphertext = new Uint8Array(
+    await globalThis.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      await getCookieKey(),
+      plaintext,
+    ),
+  );
+
+  const payload = new Uint8Array(iv.length + ciphertext.length);
+  payload.set(iv);
+  payload.set(ciphertext, iv.length);
+  return toBase64Url(payload);
+}
+
+export async function decryptTodoistCredentials(
+  value?: string | null,
+): Promise<TodoistCredentials | null> {
+  if (!value) return null;
+
+  try {
+    const payload = fromBase64Url(value);
+    const iv = payload.slice(0, 12);
+    const ciphertext = payload.slice(12);
+    if (iv.length !== 12 || ciphertext.length === 0) return null;
+
+    const plaintext = await globalThis.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      await getCookieKey(),
+      ciphertext,
+    );
+
+    const parsed = JSON.parse(new TextDecoder().decode(plaintext)) as Partial<TodoistCredentials>;
+    if (
+      typeof parsed.accessToken !== "string" ||
+      !parsed.accessToken ||
+      (parsed.refreshToken !== null && typeof parsed.refreshToken !== "string") ||
+      (parsed.accessTokenExpiresAt !== null && typeof parsed.accessTokenExpiresAt !== "number")
+    ) {
+      return null;
+    }
+
+    return {
+      accessToken: parsed.accessToken,
+      refreshToken: parsed.refreshToken ?? null,
+      accessTokenExpiresAt: parsed.accessTokenExpiresAt ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function shouldRefreshTodoistCredentials(
+  credentials: TodoistCredentials,
+  now = Date.now(),
+): boolean {
+  return Boolean(
+    credentials.refreshToken &&
+      credentials.accessTokenExpiresAt !== null &&
+      credentials.accessTokenExpiresAt - now <= 60_000,
+  );
 }
 
 export function createOAuthVerifier(): string {
@@ -199,7 +297,8 @@ async function todoistRequest<T>(
 export async function exchangeTodoistAuthorizationCode(input: {
   readonly code: string;
   readonly codeVerifier: string;
-}): Promise<{ readonly accessToken: string; readonly tokenType: string }> {
+  readonly requestUrl?: string;
+}): Promise<TodoistCredentials> {
   const response = await fetch(TODOIST_OAUTH_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -208,7 +307,7 @@ export async function exchangeTodoistAuthorizationCode(input: {
       client_id: getTodoistClientId(),
       client_secret: getTodoistClientSecret(),
       code: input.code,
-      redirect_uri: getTodoistRedirectUri(),
+      redirect_uri: getTodoistRedirectUri(input.requestUrl),
       grant_type: "authorization_code",
       code_verifier: input.codeVerifier,
     }),
@@ -223,6 +322,8 @@ export async function exchangeTodoistAuthorizationCode(input: {
   const payload = (await response.json()) as {
     access_token?: string;
     token_type?: string;
+    expires_in?: number;
+    refresh_token?: string;
   };
 
   if (!payload.access_token) {
@@ -233,7 +334,60 @@ export async function exchangeTodoistAuthorizationCode(input: {
 
   return {
     accessToken: payload.access_token,
-    tokenType: payload.token_type ?? "Bearer",
+    refreshToken: payload.refresh_token ?? null,
+    accessTokenExpiresAt:
+      typeof payload.expires_in === "number"
+        ? Date.now() + payload.expires_in * 1000
+        : null,
+  };
+}
+
+export async function refreshTodoistCredentials(
+  credentials: TodoistCredentials,
+): Promise<TodoistCredentials> {
+  if (!credentials.refreshToken) {
+    throw new TodoistConnectionError(
+      "A autorização do Todoist não possui refresh token. Reconecte a conta.",
+    );
+  }
+
+  const response = await fetch(TODOIST_OAUTH_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    cache: "no-store",
+    body: new URLSearchParams({
+      client_id: getTodoistClientId(),
+      client_secret: getTodoistClientSecret(),
+      grant_type: "refresh_token",
+      refresh_token: credentials.refreshToken,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new TodoistConnectionError(
+      "Não foi possível renovar a autorização do Todoist.",
+    );
+  }
+
+  const payload = (await response.json()) as {
+    access_token?: string;
+    expires_in?: number;
+    refresh_token?: string;
+  };
+
+  if (!payload.access_token) {
+    throw new TodoistConnectionError(
+      "O Todoist não devolveu um token renovado válido.",
+    );
+  }
+
+  return {
+    accessToken: payload.access_token,
+    refreshToken: payload.refresh_token ?? credentials.refreshToken,
+    accessTokenExpiresAt:
+      typeof payload.expires_in === "number"
+        ? Date.now() + payload.expires_in * 1000
+        : null,
   };
 }
 
@@ -268,6 +422,27 @@ export async function getTodoistTasks(token: string): Promise<IntegrationToolRes
   };
 }
 
+export async function searchTodoistTasks(
+  token: string,
+  query: string,
+): Promise<IntegrationToolResult> {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) {
+    throw new Error("A busca do Todoist não pode estar vazia.");
+  }
+
+  const output = await todoistRequest<{
+    results?: TodoistTask[];
+    next_cursor?: string | null;
+  }>(`/tasks/filter?query=${encodeURIComponent(normalizedQuery)}&limit=50`, token);
+
+  return {
+    providerId: TODOIST_PROVIDER_ID,
+    tool: "search_tasks",
+    output: output.results ?? [],
+  };
+}
+
 export async function getTodoistProjects(token: string): Promise<IntegrationToolResult> {
   const output = await todoistRequest<{
     results?: TodoistProject[];
@@ -287,6 +462,10 @@ export async function createTodoistTask(
     readonly content: string;
     readonly description?: string;
     readonly dueDateTime?: string | null;
+    readonly projectId?: string | null;
+    readonly priority?: 1 | 2 | 3 | 4;
+    readonly labels?: readonly string[];
+    readonly durationMinutes?: number | null;
   },
 ): Promise<IntegrationToolResult> {
   const content = input.content.trim();
@@ -294,8 +473,13 @@ export async function createTodoistTask(
 
   const body: Record<string, unknown> = { content };
   if (input.description?.trim()) body.description = input.description.trim();
-  if (input.dueDateTime) {
-    body.due_datetime = input.dueDateTime;
+  if (input.dueDateTime) body.due_datetime = input.dueDateTime;
+  if (input.projectId?.trim()) body.project_id = input.projectId.trim();
+  if (input.priority) body.priority = input.priority;
+  if (input.labels?.length) body.labels = [...input.labels];
+  if (input.durationMinutes && input.durationMinutes > 0) {
+    body.duration = Math.round(input.durationMinutes);
+    body.duration_unit = "minute";
   }
 
   const output = await todoistRequest<TodoistTask>("/tasks", token, {
@@ -317,9 +501,11 @@ export async function closeTodoistTask(
   const normalizedId = taskId.trim();
   if (!normalizedId) throw new Error("O ID da tarefa do Todoist é obrigatório.");
 
-  await todoistRequest<undefined>(`/tasks/${encodeURIComponent(normalizedId)}/close`, token, {
-    method: "POST",
-  });
+  await todoistRequest<undefined>(
+    `/tasks/${encodeURIComponent(normalizedId)}/close`,
+    token,
+    { method: "POST" },
+  );
 
   return {
     providerId: TODOIST_PROVIDER_ID,
@@ -347,6 +533,8 @@ export async function revokeTodoistAccessToken(token: string): Promise<void> {
   });
 
   if (!response.ok && response.status !== 400) {
-    throw new TodoistConnectionError("Não foi possível revogar a autorização do Todoist.");
+    throw new TodoistConnectionError(
+      "Não foi possível revogar a autorização do Todoist.",
+    );
   }
 }
