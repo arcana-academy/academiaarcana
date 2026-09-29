@@ -53,7 +53,12 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const result = await updateTrelloChecklistItem(credentials.accessToken, body);
+    const result = await updateTrelloChecklistItem(credentials.accessToken, {
+      cardId: body.cardId.trim(),
+      itemId: body.itemId.trim(),
+      checked: body.checked,
+      name: body.name,
+    });
     return NextResponse.json(result.output, { status: 200 });
   } catch {
     return NextResponse.json({ error: "trello_request_failed" }, { status: 502 });
