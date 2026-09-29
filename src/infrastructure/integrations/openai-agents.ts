@@ -5,7 +5,6 @@ import {
 } from "@/infrastructure/openai/mestre-arcano";
 
 export const OPENAI_AGENTS_PROVIDER_ID = "openai-agents" as const;
-export const EXA_WEB_RESEARCH_PROVIDER_ID = "exa-web-research" as const;
 export const OPENAI_AGENTS_INTEGRATION_DEFINITION = {
   id: OPENAI_AGENTS_PROVIDER_ID,
   displayName: "OpenAI Agents — Mestre Arcano",
@@ -17,16 +16,6 @@ export const OPENAI_AGENTS_INTEGRATION_DEFINITION = {
   documentationUrl: "https://platform.openai.com/agents",
 } satisfies IntegrationDefinition;
 
-export const EXA_WEB_RESEARCH_INTEGRATION_DEFINITION = {
-  id: EXA_WEB_RESEARCH_PROVIDER_ID,
-  displayName: "Exa — Web Research do Mestre Arcano",
-  authMode: "api_key",
-  capabilities: ["search"],
-  userConnectionRequired: false,
-  serverSideOnly: true,
-  scopes: [],
-  documentationUrl: "https://exa.ai/docs/reference/search",
-} satisfies IntegrationDefinition;
 
 export type OpenAIAgentsRuntimeStatus =
   | "connected"
