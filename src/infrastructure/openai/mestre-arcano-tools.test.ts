@@ -4,7 +4,7 @@ const { getMicrosoftSharePointDocumentContext } = vi.hoisted(() => ({
   getMicrosoftSharePointDocumentContext: vi.fn(),
 }));
 
-vi.mock("./microsoft-sharepoint-content", () => ({
+vi.mock("@/infrastructure/integrations/microsoft-sharepoint-content", () => ({
   getMicrosoftSharePointDocumentContext,
 }));
 
