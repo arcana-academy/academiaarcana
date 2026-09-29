@@ -129,11 +129,17 @@ describe("PageEditor", () => {
         name: "Confirmar exclusão da página",
       }),
     ).toBeTruthy();
+
+    const cancelButton = screen.getByRole("button", {
+      name: "Cancelar",
+    });
+
     expect(
       screen.getByText(
         'Excluir a página "Dor lombar"? Essa ação não pode ser desfeita.',
       ),
     ).toBeTruthy();
+    expect(document.activeElement).toBe(cancelButton);
     expect(onDelete).not.toHaveBeenCalled();
   });
 
