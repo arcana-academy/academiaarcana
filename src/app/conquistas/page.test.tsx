@@ -16,13 +16,20 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: mocks.createClient,
 }));
 
-function chain(data: unknown) {
-  const builder: any = {
-    select: () => builder,
-    eq: () => builder,
-    maybeSingle: async () => ({ data, error: null }),
-  };
-  builder.then = (resolve: any, reject: any) => Promise.resolve({ data, error: null }).then(resolve, reject);
+type QueryResult = { data: unknown; error: null };
+type QueryBuilder = {
+  select: () => QueryBuilder;
+  eq: () => QueryBuilder;
+  maybeSingle: () => Promise<QueryResult>;
+  then: Promise<QueryResult>["then"];
+};
+
+function chain(data: unknown): QueryBuilder {
+  const builder = {} as QueryBuilder;
+  builder.select = () => builder;
+  builder.eq = () => builder;
+  builder.maybeSingle = async () => ({ data, error: null });
+  builder.then = (resolve, reject) => Promise.resolve({ data, error: null }).then(resolve, reject);
   return builder;
 }
 
