@@ -10,13 +10,9 @@ The browser never receives Microsoft access or refresh tokens.
 
 ## Permissions
 
-The integration requests:
+The integration requests only:
 
-- `openid`
-- `profile`
-- `email`
 - `offline_access`
-- `User.Read`
 - `Calendars.ReadWrite`
 
 Microsoft Graph documents `Calendars.ReadWrite` as the delegated permission
@@ -26,9 +22,9 @@ for creating events in a user's calendar.
 
 The connection uses Microsoft Entra's authorization-code flow with PKCE. The persistent token record is owned by the authenticated Academia Arcana user and protected by Supabase RLS.
 
-- OAuth state and the PKCE verifier are HttpOnly cookies.
+- OAuth state and the PKCE verifier are short-lived HttpOnly cookies.
 - Access and refresh tokens are encrypted with AES-256-GCM before being stored in
-  HttpOnly cookies.
+  the per-user Supabase `integration_credentials` record.
 - The Microsoft client secret and encryption secret are server-side only.
 - Protected routes require an authenticated Academia Arcana user.
 - Refresh failures clear the local connection and require explicit reconnection.
