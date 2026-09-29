@@ -162,7 +162,7 @@ function dropboxCatalogEntry(): IntegrationStatusEntry {
   };
 }
 
-function dropboxErrorEntry(): IntegrationStatusEntry {
+function airtableVerificationEntry(verification: AirtableConnectionVerification): IntegrationStatusEntry {\n  return { name: "Airtable", source: "runtime", status: "connected", executionMode: "runtime", providerId: verification.providerId, capabilities: ["read", "write", "search", "metadata", "analytics"], verification: { providerId: verification.providerId, baseId: verification.baseId, tableCount: verification.tableCount, verifiedAt: verification.verifiedAt } };\n}\n\nfunction airtableCatalogEntry(): IntegrationStatusEntry {\n  return { name: "Airtable", source: "runtime", status: "catalogued", executionMode: "runtime", providerId: "airtable", capabilities: ["read", "write", "search", "metadata", "analytics"], verification: null };\n}\n\nfunction airtableErrorEntry(): IntegrationStatusEntry {\n  return { name: "Airtable", source: "runtime", status: "error", executionMode: "runtime", providerId: "airtable", capabilities: ["read", "write", "search", "metadata", "analytics"], verification: null };\n}\n\nfunction dropboxErrorEntry(): IntegrationStatusEntry {
   return {
     name: "Dropbox",
     source: "chatgpt-catalog",
@@ -227,10 +227,10 @@ export async function getIntegrationStatusSnapshot({
     }
   }
 
-  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
+  let airtableEntry = airtableCatalogEntry();\n  if (airtableToken?.trim() && airtableBaseId?.trim()) {\n    try { airtableEntry = airtableVerificationEntry(await airtableVerifier()); } catch { airtableEntry = airtableErrorEntry(); }\n  }\n\n  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
-    if (plugin.name === "Dropbox") return dropboxEntry;
+    if (plugin.name === "Dropbox") return dropboxEntry;\n    if (plugin.name === "Airtable") return airtableEntry;
     if (plugin.name === "Microsoft SharePoint") {
       return {
         name: "Microsoft SharePoint",
