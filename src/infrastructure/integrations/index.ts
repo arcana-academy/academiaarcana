@@ -183,6 +183,34 @@ export type {
 } from "./microsoft-sharepoint-content";
 
 export {
+  MICROSOFT_GRAPH_BASE_URL,
+  OUTLOOK_CALENDAR_INTEGRATION_DEFINITION,
+  OUTLOOK_CALENDAR_PLUGIN_NAME,
+  OUTLOOK_CALENDAR_PROVIDER_ID,
+  OUTLOOK_CALENDAR_SCOPES,
+  OutlookCalendarClient,
+  OutlookCalendarError,
+} from "./outlook-calendar";
+export type {
+  OutlookAvailableSlot,
+  OutlookCalendar,
+  OutlookCalendarOperation,
+  OutlookEvent,
+} from "./outlook-calendar";
+
+export {
+  createOutlookAuthorizationUrl,
+  redeemOutlookAuthorizationCode,
+} from "./outlook-calendar-oauth";
+
+export {
+  clearOutlookTokens,
+  getOutlookAccessToken,
+  isOutlookCalendarConnected,
+  storeOutlookTokens,
+} from "./outlook-calendar-session";
+
+export {
   TODOIST_API_BASE_URL,
   TODOIST_CREDENTIALS_COOKIE,
   TODOIST_INTEGRATION_DEFINITION,
