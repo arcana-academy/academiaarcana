@@ -6,7 +6,7 @@ Only services that are part of the application's runtime or delivery path belong
 
 ## ChatGPT catalog
 
-The repository contains the 115 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
+The repository contains the 115 plugin names supplied for the project as a catalog. Runtime application integrations are tracked separately from that fixed catalog, and catalog presence is deliberately different from a live provider connection.
 
 The application exposes `/integracoes` and `GET /api/integrations/status` so the current state is inspectable at runtime:
 
