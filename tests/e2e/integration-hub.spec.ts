@@ -13,7 +13,9 @@ test.describe("integration hub", () => {
     await expect(page.getByRole("heading", { name: "Ferramentas aplicadas ao ciclo de criação" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
     await expect(page.getByText("NVIDIA · Physical AI", { exact: true })).toBeVisible();
-    await expect(page.getByText("GitHub", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("article").filter({ hasText: "Construção e publicação" }).getByText("GitHub", { exact: true }),
+    ).toBeVisible();
 
     const dictionaryCard = page
       .getByRole("listitem")
