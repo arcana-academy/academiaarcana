@@ -2,16 +2,10 @@
 create table if not exists public.feedback_responses (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  name text,
-  email text not null,
-  feedback text not null,
-  created_at timestamptz not null default now(),
-  constraint feedback_responses_name_length
-    check (name is null or char_length(trim(name)) between 1 and 120),
-  constraint feedback_responses_email_length
-    check (char_length(trim(email)) between 3 and 320),
-  constraint feedback_responses_feedback_length
-    check (char_length(trim(feedback)) between 1 and 2000)
+  name text check (name is null or char_length(trim(name)) between 1 and 120),
+  email text not null check (char_length(trim(email)) between 3 and 320),
+  feedback text not null check (char_length(trim(feedback)) between 1 and 2000),
+  created_at timestamptz not null default now()
 );
 
 create index if not exists idx_feedback_responses_user_created
