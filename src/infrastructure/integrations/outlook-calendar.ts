@@ -39,6 +39,22 @@ export class OutlookCalendarError extends Error {
 
 type GraphError = { error?: { message?: string } };
 
+function toGraphUtcDateTime(value: string): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) {
+    throw new OutlookCalendarError("Data/hora inválida.");
+  }
+  return date.toISOString().replace(".000Z", "");
+}
+
+function parseGraphUtcDateTime(value: string, timeZone: string): number {
+  const normalized =
+    timeZone === "UTC" && !/[zZ]|[+-]\d{2}:\d{2}$/.test(value)
+      ? `${value}Z`
+      : value;
+  return new Date(normalized).getTime();
+}
+
 async function graphRequest<T>(
   accessToken: string,
   path: string,
@@ -147,8 +163,14 @@ export class OutlookCalendarClient {
         method: "POST",
         body: JSON.stringify({
           schedules: ["me"],
-          startTime: { dateTime: start, timeZone: "UTC" },
-          endTime: { dateTime: end, timeZone: "UTC" },
+          startTime: {
+            dateTime: toGraphUtcDateTime(start),
+            timeZone: "UTC",
+          },
+          endTime: {
+            dateTime: toGraphUtcDateTime(end),
+            timeZone: "UTC",
+          },
           availabilityViewInterval: durationMinutes,
         }),
       });
@@ -233,8 +255,11 @@ export class OutlookCalendarClient {
           event.showAs !== "workingElsewhere",
       )
       .map((event) => ({
-        start: new Date(event.start.dateTime).getTime(),
-        end: new Date(event.end.dateTime).getTime(),
+        start: parseGraphUtcDateTime(
+          event.start.dateTime,
+          event.start.timeZone,
+        ),
+        end: parseGraphUtcDateTime(event.end.dateTime, event.end.timeZone),
       }))
       .filter(
         (event) =>
@@ -293,8 +318,14 @@ export class OutlookCalendarClient {
       body: JSON.stringify({
         subject: input.subject,
         body: { contentType: "Text", content: input.body ?? "" },
-        start: { dateTime: input.start, timeZone: "UTC" },
-        end: { dateTime: input.end, timeZone: "UTC" },
+        start: {
+          dateTime: toGraphUtcDateTime(input.start),
+          timeZone: "UTC",
+        },
+        end: {
+          dateTime: toGraphUtcDateTime(input.end),
+          timeZone: "UTC",
+        },
         isReminderOn: true,
         reminderMinutesBeforeStart:
           input.reminderMinutesBeforeStart ?? 15,
