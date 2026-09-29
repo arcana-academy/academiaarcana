@@ -382,7 +382,7 @@ export function Workspace({
           ) : (
             <p>Selecione uma página para começar.</p>
           )}
-        </main>
+        </div>
         <aside aria-label="Contexto">
           {selectedPage ? (
             <p>Página selecionada: {selectedPage.title}</p>
