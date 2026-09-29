@@ -1,6 +1,8 @@
 import type { IntegrationConnectionStatus, IntegrationDefinition, IntegrationToolResult } from "./contracts";
 
 export const MICROSOFT_SHAREPOINT_PROVIDER_ID = "microsoft-sharepoint" as const;
+export const MICROSOFT_SHAREPOINT_OAUTH_SCOPE =
+  "openid profile email offline_access User.Read Files.Read Sites.Read.All" as const;
 export const MICROSOFT_SHAREPOINT_PLUGIN_NAME = "Microsoft SharePoint" as const;
 export const MICROSOFT_GRAPH_API_BASE_URL = "https://graph.microsoft.com/v1.0" as const;
 
@@ -26,8 +28,6 @@ export const MICROSOFT_SHAREPOINT_OAUTH_STATE_COOKIE =
   "__Host-aa-microsoft-sharepoint-state" as const;
 export const MICROSOFT_SHAREPOINT_OAUTH_PKCE_COOKIE =
   "__Host-aa-microsoft-sharepoint-pkce" as const;
-export const MICROSOFT_SHAREPOINT_OAUTH_SCOPE =
-  "openid profile email offline_access User.Read Files.Read Sites.Read.All" as const;
 
 export type MicrosoftSharePointCredentials = {
   readonly subjectId: string;
