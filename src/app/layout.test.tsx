@@ -32,7 +32,12 @@ describe("RootLayout", () => {
 
     expect(element.type).toBe("html");
 
-    const body = element.props.children;
+    const htmlChildren = Array.isArray(element.props.children)
+      ? element.props.children
+      : [element.props.children];
+    const body = htmlChildren.find(
+      (child: { type?: unknown }) => child?.type === "body",
+    );
     const applicationProviders = body.props.children;
 
     expect(applicationProviders.type).toBe(applicationProvidersMock);
