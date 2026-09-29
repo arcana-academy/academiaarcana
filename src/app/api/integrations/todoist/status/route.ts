@@ -14,14 +14,15 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
   const cookieStore = await cookies();
   let credentials = await decryptTodoistCredentials(
     cookieStore.get(TODOIST_CREDENTIALS_COOKIE)?.value,
   );
 
-  if (!credentials) {
+  if (!credentials || credentials.subjectId !== claims.sub) {
+    cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
     return NextResponse.json(
       { providerId: "todoist", status: "disconnected" },
       { status: 200, headers: { "Cache-Control": "private, no-store" } },
