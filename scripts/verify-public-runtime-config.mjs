@@ -4,6 +4,7 @@ import { parseEnv } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const PREVIEW_SUPABASE_URL = "https://fichnalpbcfjywwhixid.supabase.co";
+const PREVIEW_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0yFN7N7ikHBDY6m6P3FICw_u1lL6ppI";
 
 const BUILD_ENV_FILES = [
   ".env.production.local",
@@ -80,7 +81,7 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
   const supabaseUrl =
     environment.NEXT_PUBLIC_SUPABASE_URL ||
     (isPreview ? PREVIEW_SUPABASE_URL : undefined);
-  const publishableKey = environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const publishableKey =\n    environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||\n    (isPreview ? PREVIEW_SUPABASE_PUBLISHABLE_KEY : undefined);
 
   if (!supabaseUrl) {
     throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
