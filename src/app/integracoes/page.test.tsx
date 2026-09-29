@@ -108,7 +108,7 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("A conexão externa foi verificada em runtime.");
     expect(html).toContain("Mestre Arcano");
     expect(html).toContain("SharePoint / OneDrive");
-    expect(html).toContain("Conectar Microsoft");
+    expect(html).toContain("Gerenciar SharePoint");
     expect(html).toContain("OpenAI Agents");
     expect(html).toContain("gpt-5.6-sol");
     expect(html).toContain("Abrir OpenAI Agents");
