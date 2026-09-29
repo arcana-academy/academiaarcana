@@ -172,6 +172,36 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="outlook-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Microsoft · Planejamento
+          </p>
+          <h2 id="outlook-title" style={{ marginTop: 0 }}>
+            Outlook Calendar
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Conecte seu calendário para consultar os próximos eventos e transformar
+            tarefas do Cronograma em compromissos reais, com autorização OAuth no
+            servidor e permissões dedicadas de calendário.
+          </p>
+          <Link className="aa-button aa-button-primary" href="/cronograma">
+            Gerenciar no Cronograma
+          </Link>
+        </article>
+      </section>
+
+      <section
         aria-labelledby="notion-title"
         style={{ marginTop: "var(--aa-spacing-lg)" }}
       >
