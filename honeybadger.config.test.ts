@@ -142,14 +142,20 @@ describe("Honeybadger runtime configuration", () => {
     const { default: nextConfig } = await import("./next.config");
 
     expect(mocks.setupHoneybadger).toHaveBeenCalledOnce();
-    expect(mocks.setupHoneybadger).toHaveBeenCalledWith({
-      reactStrictMode: true,
-      headers: expect.any(Function),
-    });
-    expect(nextConfig).toEqual({
-      reactStrictMode: true,
-      headers: expect.any(Function),
-      honeybadger: true,
-    });
+    expect(mocks.setupHoneybadger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reactStrictMode: true,
+        poweredByHeader: false,
+        headers: expect.any(Function),
+      }),
+    );
+    expect(nextConfig).toEqual(
+      expect.objectContaining({
+        reactStrictMode: true,
+        poweredByHeader: false,
+        headers: expect.any(Function),
+        honeybadger: true,
+      }),
+    );
   });
 });
