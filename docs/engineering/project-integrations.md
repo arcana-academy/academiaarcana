@@ -27,7 +27,7 @@ A future direct Adobe provider belongs behind `src/infrastructure/integrations/a
 
 ## ChatGPT catalog
 
-The repository contains the 115 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
+The repository contains the 116 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
 
 The application exposes `/integracoes` and `GET /api/integrations/status` so the current state is inspectable at runtime:
 
@@ -129,6 +129,14 @@ Current state:
 
 A future direct integration belongs behind `src/infrastructure/integrations` and requires a documented provider contract, server-side authorization model, least-privilege credentials when applicable, provider health and representative-operation checks, failure isolation, security tests, and deployed E2E verification before becoming `connected`.
 
+## Trello
+
+Trello is a runtime application integration for operational planning and project execution. The website uses Atlassian's documented OAuth 2.0 transport and keeps credentials server-side in an encrypted, HTTP-only cookie bound to the authenticated user.
+
+Supported runtime operations include connection verification, board/list/card/checklist reads and writes, and search. The integration does not replace Supabase as the transactional source of truth for study progress.
+
+The provider remains separate from the ChatGPT connector layer: the web runtime calls Trello's application API directly through the server-side adapter.
+
 ## OpenAI Agents — Mestre Arcano\n\nA Academia Arcana agora possui um adapter server-side para o OpenAI Responses API, usado como runtime do **Mestre Arcano**. O endpoint autenticado `POST /api/agent/mestre-arcano` executa o agente sem expor `OPENAI_API_KEY` ao navegador.\n\nA configuração usa:\n\n- `OPENAI_API_KEY` — segredo obrigatório, somente em ambiente server-side/Vercel.\n- `OPENAI_AGENT_MODEL` — opcional; o padrão do projeto é `gpt-5.6-sol`.\n\nA integração é marcada como `connected` no hub somente quando a chave existe e o modelo configurado passa por uma verificação real contra a OpenAI. Sem a chave, o estado é `not_configured`; falhas de autenticação/rede/modelo resultam em `error`.\n\nO agente segue uma regra de segurança de produto: não inventa progresso, notas, tarefas, dados pessoais ou estado de integrações. Dados do aluno deverão ser fornecidos posteriormente por ferramentas autorizadas do próprio domínio da Academia Arcana.\n\nO SDK oficial de Agents pode evoluir separadamente; o adapter atual usa a Responses API diretamente para manter o runtime sem dependência adicional e com superfície mínima. A documentação atual do Agents SDK descreve Agents como modelos equipados com instruções e ferramentas e suporta function tools, MCP, handoffs e tracing.\n\n## Notion
 
 Notion is a runtime application integration for knowledge and documentation workflows. The web runtime keeps the OAuth credentials server-side and binds the encrypted credential payload to the authenticated Academia Arcana subject.
@@ -152,6 +160,7 @@ The current adapter intentionally does not treat the ChatGPT connector as a web 
 | Adobe | Visual production + web typography | Adobe configuration boundary, asset contract, optional Fonts kit loader | `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID` when a published kit exists | Configuration-ready; direct creative API not connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
 | Todoist | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, task/project reads, task creation and completion | Todoist OAuth Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
+| Trello | Operational workflow and project execution | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, board/list/card/checklist/search operations | Trello OAuth 2.0 Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Microsoft SharePoint | External document knowledge source | Server-side OAuth 2.0 adapter, encrypted credentials, site/drive/search/context routes | Microsoft OAuth client credentials and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Notion | Knowledge + documentation | Server-side OAuth 2.0 adapter, encrypted user-bound credentials, page search and child-page creation | Notion Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 
