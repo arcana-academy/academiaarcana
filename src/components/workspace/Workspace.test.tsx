@@ -48,6 +48,6 @@ describe("Workspace", () => {
     expect(
       screen.getByRole("navigation", { name: "Navegação do workspace" }),
     ).toBeTruthy();
-    expect(screen.getByRole("main")).toBeTruthy();
+    expect(screen.queryByRole("main")).toBeNull();
   });
 });

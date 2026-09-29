@@ -290,7 +290,7 @@ export function Workspace({
   onSetPageProgress = async () => undefined,
 }: WorkspaceProps) {
   return (
-    <section aria-label="Workspace" className="workspace-shell">
+    <div className="workspace-shell">
       <WorkspaceHeader title={title} />
       <div className="workspace-regions">
         <WorkspaceTree
@@ -301,7 +301,7 @@ export function Workspace({
           onOpenChapter={onOpenChapter}
           onOpenPage={onOpenPage}
         />
-        <main aria-label="Área de trabalho">
+        <div aria-label="Área de trabalho">
           <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
 
           {state.grimoireId && !state.notebookId && !state.chapterId ? (
@@ -382,7 +382,7 @@ export function Workspace({
           ) : (
             <p>Selecione uma página para começar.</p>
           )}
-        </main>
+        </div>
         <aside aria-label="Contexto">
           {selectedPage ? (
             <p>Página selecionada: {selectedPage.title}</p>
@@ -391,6 +391,6 @@ export function Workspace({
           )}
         </aside>
       </div>
-    </section>
+    </div>
   );
 }
