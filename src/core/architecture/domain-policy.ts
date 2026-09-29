@@ -166,7 +166,7 @@ export const DOMAIN_POLICIES: Record<CoreDomain, DomainPolicy> = {
     excludes: ["learning progress ownership", "educational content ownership", "planning policy", "authorization policy", "UI rendering"],
     entities: ["SanctuarySnapshot", "ContinueLearning", "SanctuaryViewModel"],
     useCases: ["resolve sanctuary snapshot", "resolve continue learning", "assemble sanctuary view model"],
-    allowedDependencies: ["identity", "context", "authorization", "learning", "education", "planning", "gamification"],
+    allowedDependencies: ["identity", "context", "authorization", "learning", "education", "planning", "gamification", "adaptive"],
     prohibitedDependencies: ["React", "Next.js UI", "Supabase client", "direct database access", "duplicated domain invariants"],
     events: ["continue learning resolved", "sanctuary snapshot refreshed"],
     infrastructure: sharedInfrastructure,
