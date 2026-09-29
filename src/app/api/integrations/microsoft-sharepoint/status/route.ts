@@ -23,7 +23,17 @@ export async function GET() {
   }
 
   try {
-    const validCredentials = await getValidMicrosoftSharePointCredentials(credentials);\n    if (validCredentials.accessToken !== credentials.accessToken) {\n      cookieStore.set(MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE, await encryptMicrosoftSharePointCredentials(validCredentials), {\n        httpOnly: true,\n        maxAge: 30 * 24 * 60 * 60,\n        path: "/",\n        sameSite: "lax",\n        secure: process.env.NODE_ENV === "production",\n      });\n    }\n    const verification = await verifyMicrosoftSharePointConnection(validCredentials.accessToken);
+    const validCredentials = await getValidMicrosoftSharePointCredentials(credentials);
+    if (validCredentials.accessToken !== credentials.accessToken) {
+      cookieStore.set(MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE, await encryptMicrosoftSharePointCredentials(validCredentials), {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60,
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
+    const verification = await verifyMicrosoftSharePointConnection(validCredentials.accessToken);
     return NextResponse.json({
       status: verification.status,
       providerId: verification.providerId,
