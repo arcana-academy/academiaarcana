@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 
 import {
   decryptMicrosoftSharePointCredentials,
+  encryptMicrosoftSharePointCredentials,
+  getValidMicrosoftSharePointCredentials,
   MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE,
   verifyMicrosoftSharePointConnection,
 } from "@/infrastructure/integrations/microsoft-sharepoint";
@@ -21,7 +23,7 @@ export async function GET() {
   }
 
   try {
-    const verification = await verifyMicrosoftSharePointConnection(credentials.accessToken);
+    const validCredentials = await getValidMicrosoftSharePointCredentials(credentials);\n    if (validCredentials.accessToken !== credentials.accessToken) {\n      cookieStore.set(MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE, await encryptMicrosoftSharePointCredentials(validCredentials), {\n        httpOnly: true,\n        maxAge: 30 * 24 * 60 * 60,\n        path: "/",\n        sameSite: "lax",\n        secure: process.env.NODE_ENV === "production",\n      });\n    }\n    const verification = await verifyMicrosoftSharePointConnection(validCredentials.accessToken);
     return NextResponse.json({
       status: verification.status,
       providerId: verification.providerId,
