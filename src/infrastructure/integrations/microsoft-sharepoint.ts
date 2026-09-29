@@ -215,6 +215,7 @@ export type MicrosoftSharePointOperation =
   | "list-folder"
   | "search"
   | "get-metadata"
+  | "get-site-item-metadata"
   | "list-versions";
 
 export type MicrosoftSharePointConnectionVerification = {
@@ -293,6 +294,25 @@ export async function searchMicrosoftSharePoint(
   return executeMicrosoftSharePointOperation("search", { query: normalizedQuery }, token);
 }
 
+export async function getMicrosoftSharePointSiteItemMetadata(
+  siteId: string,
+  driveId: string,
+  itemId: string,
+  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+): Promise<IntegrationToolResult> {
+  const normalizedSiteId = siteId.trim();
+  const normalizedDriveId = driveId.trim();
+  const normalizedItemId = itemId.trim();
+  if (!normalizedSiteId || !normalizedDriveId || !normalizedItemId) {
+    throw new Error("Site ID, drive ID e item ID são obrigatórios.");
+  }
+  return executeMicrosoftSharePointOperation(
+    "get-site-item-metadata",
+    { siteId: normalizedSiteId, driveId: normalizedDriveId, itemId: normalizedItemId },
+    token,
+  );
+}
+
 export async function getMicrosoftSharePointMetadata(
   itemId: string,
   token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
@@ -331,6 +351,9 @@ export async function executeMicrosoftSharePointOperation(
       break;
     case "get-metadata":
       path = `/me/drive/items/${encodeURIComponent(String(input.itemId))}`;
+      break;
+    case "get-site-item-metadata":
+      path = `/sites/${encodeURIComponent(String(input.siteId))}/drives/${encodeURIComponent(String(input.driveId))}/items/${encodeURIComponent(String(input.itemId))}`;
       break;
     case "list-versions":
       path = `/me/drive/items/${encodeURIComponent(String(input.itemId))}/versions`;
