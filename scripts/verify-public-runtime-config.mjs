@@ -52,7 +52,7 @@ export function validateSupabaseProductionConfiguration(
     );
   }
 
-  const projectRef = parsedUrl.hostname.replace(/\\.supabase\\.co$/, "");
+  const projectRef = parsedUrl.hostname.replace(/\.supabase\.co$/, "");
 
   if (
     parsedUrl.protocol !== "https:" ||
