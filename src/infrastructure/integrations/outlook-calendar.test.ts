@@ -33,12 +33,16 @@ describe("Outlook Calendar integration", () => {
       subject: "Academia Arcana · Revisar",
       start: "2026-09-30T15:00:00.000Z",
       end: "2026-09-30T15:50:00.000Z",
+      transactionId: "task-1",
     });
 
     expect(event.id).toBe("event-1");
     expect(fetchMock).toHaveBeenCalledWith(
       "https://graph.microsoft.com/v1.0/me/calendar/events",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining('"transactionId":"task-1"'),
+      }),
     );
 
     fetchMock.mockRestore();
