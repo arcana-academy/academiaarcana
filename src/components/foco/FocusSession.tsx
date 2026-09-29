@@ -18,17 +18,16 @@ export function FocusSession() {
   useEffect(() => {
     if (!running) return;
 
-    const interval = window.setInterval(() => {
-      setRemaining((current) => {
-        if (current <= 1) {
-          window.clearInterval(interval);
-          setRunning(false);
-          return 0;
-        }
-        return current - 1;
-      });
-    }, 1000);
+    const deadline = Date.now() + remaining * 1000;
 
+    const tick = () => {
+      const nextRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setRemaining(nextRemaining);
+      if (nextRemaining === 0) setRunning(false);
+    };
+
+    tick();
+    const interval = window.setInterval(tick, 250);
     return () => window.clearInterval(interval);
   }, [running]);
 
@@ -36,13 +35,14 @@ export function FocusSession() {
     () => ((DEFAULT_SECONDS - remaining) / DEFAULT_SECONDS) * 100,
     [remaining],
   );
-
   const completed = remaining === 0;
 
   function reset() {
     setRunning(false);
     setRemaining(DEFAULT_SECONDS);
   }
+
+  const status = completed ? "Concluída" : running ? "Em andamento" : "Pausada";
 
   return (
     <section className="aa-focus-session" aria-labelledby="focus-session-title">
@@ -53,15 +53,11 @@ export function FocusSession() {
             <h2 id="focus-session-title">25 minutos de foco</h2>
             <p>Um temporizador local, previsível e sem pressão artificial.</p>
           </div>
-          <span className="aa-badge aa-badge-info" aria-live="polite">
-            {completed ? "Concluída" : running ? "Em andamento" : "Pausada"}
-          </span>
+          <span className="aa-badge aa-badge-info" aria-live="polite">{status}</span>
         </div>
-
-        <div className="aa-focus-timer" aria-live="polite">
+        <div className="aa-focus-timer">
           <span>{formatTime(remaining)}</span>
         </div>
-
         <div
           className="aa-progress-track"
           role="progressbar"
@@ -72,14 +68,13 @@ export function FocusSession() {
         >
           <div className="aa-progress-value" style={{ width: `${progress}%` }} />
         </div>
-
         <div className="aa-focus-session-actions">
           <button
             className="aa-button aa-button-primary"
             type="button"
             onClick={() => {
               if (completed) {
-                reset();
+                setRemaining(DEFAULT_SECONDS);
                 setRunning(true);
                 return;
               }
