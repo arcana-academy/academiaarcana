@@ -52,7 +52,7 @@ export function validateSupabaseProductionConfiguration(
     );
   }
 
-  const projectRef = parsedUrl.hostname.replace(/\.supabase\.co$/, "");
+  const projectRef = parsedUrl.hostname.replace(/\\.supabase\\.co$/, "");
 
   if (
     parsedUrl.protocol !== "https:" ||
@@ -81,7 +81,9 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
   const supabaseUrl =
     environment.NEXT_PUBLIC_SUPABASE_URL ||
     (isPreview ? PREVIEW_SUPABASE_URL : undefined);
-  const publishableKey =\n    environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||\n    (isPreview ? PREVIEW_SUPABASE_PUBLISHABLE_KEY : undefined);
+  const publishableKey =
+    environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    (isPreview ? PREVIEW_SUPABASE_PUBLISHABLE_KEY : undefined);
 
   if (!supabaseUrl) {
     throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
