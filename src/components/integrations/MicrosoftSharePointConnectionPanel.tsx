@@ -191,7 +191,6 @@ export function MicrosoftSharePointConnectionPanel() {
       );
       setItems(itemsFromEnvelope(body).map(normalizeSearchItem).filter((item) => item.id));
       setSelectedSource(null);
-      setSavedSources([]);
     } catch {
       setError("Não foi possível pesquisar nesta biblioteca.");
     } finally {
@@ -233,6 +232,7 @@ export function MicrosoftSharePointConnectionPanel() {
       setSelectedSite("");
       setSelectedDrive("");
       setSelectedSource(null);
+      setSavedSources([]);
     } catch {
       setError("Não foi possível desconectar a conta Microsoft.");
     } finally {
