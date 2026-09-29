@@ -177,3 +177,12 @@ Current state:
 - Direct production invocation: disabled until a documented, stable provider transport and authorization contract is verified.
 
 Astrology results should be presented as interpretive content rather than as medical, legal, financial, or other high-stakes advice. Personalized birth data should only be collected when the user explicitly requests a personalized calculation and should follow minimum-necessary retention and server-side authorization.
+
+
+## Airtable
+
+Airtable is the operational/editorial layer for Academia Arcana. It is not the source of truth for authentication, user identity, learning progress, gamification, social relationships, or other security-sensitive transactional state; those remain in Supabase.
+
+The initial `Academia Arcana — Operations` base contains Content, Exercises, Missions, Feedback, Roadmap, UX Research, and Review Queue tables, plus operational interfaces for content, product, and quality workflows.
+
+The application integration is server-side only and uses `AIRTABLE_PERSONAL_ACCESS_TOKEN` and `AIRTABLE_BASE_ID`. The credential must never use a `NEXT_PUBLIC_*` variable or be returned to the browser. The integration provides metadata verification, record listing, and controlled record creation, with automated tests for configuration and authorization boundaries.
