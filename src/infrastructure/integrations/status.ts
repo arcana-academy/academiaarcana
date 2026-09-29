@@ -37,7 +37,7 @@ export type IntegrationExecutionMode =
 
 export type IntegrationStatusEntry = {
   readonly name: string;
-  readonly source: "chatgpt-catalog";
+  readonly source: "chatgpt-catalog" | "runtime";
   readonly status: IntegrationCatalogStatus;
   readonly chatgptAppUrl?: string;
   readonly executionMode: IntegrationExecutionMode;
@@ -231,6 +231,17 @@ export async function getIntegrationStatusSnapshot({
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
     if (plugin.name === "Dropbox") return dropboxEntry;
+    if (plugin.name === "Microsoft SharePoint") {
+      return {
+        name: "Microsoft SharePoint",
+        source: "runtime" as const,
+        status: "catalogued" as const,
+        executionMode: "runtime" as const,
+        providerId: "microsoft-sharepoint",
+        capabilities: ["read", "search", "files", "versions", "metadata"],
+        verification: null,
+      };
+    }
 
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
     const isAgenticCourseRedesign = plugin.name === "Agentic Course Redesign";
