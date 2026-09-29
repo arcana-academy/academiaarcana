@@ -172,6 +172,39 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="microsoft-sharepoint-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Microsoft · Documentos
+          </p>
+          <h2 id="microsoft-sharepoint-title" style={{ marginTop: 0 }}>
+            SharePoint / OneDrive
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Conecte sua conta Microsoft para pesquisar e consultar documentos,
+            metadados, pastas e versões como fonte externa dos Grimórios e do
+            Mestre Arcano. A integração é somente leitura nesta primeira etapa.
+          </p>
+          <a
+            className="aa-button aa-button-primary"
+            href="/api/integrations/microsoft-sharepoint/connect"
+          >
+            Conectar Microsoft
+          </a>
+        </article>
+      </section>
+
+      <section
         aria-labelledby="integrations-summary-title"
         style={{
           display: "grid",
