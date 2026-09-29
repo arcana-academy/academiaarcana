@@ -145,6 +145,12 @@ Airtable is a server-side operations and content-management integration. The run
 Supported runtime operations currently include base-access verification, bounded record listing, and batched record creation. The implementation enforces a maximum of 10 records per create batch and preserves Supabase as the product's transactional source of truth.
 
 The current integration does not create a browser-side Airtable client and does not claim OAuth account connection. Production activation requires the Airtable PAT and base ID to be configured in the final deployment environment.
+## Asana
+
+Asana is a runtime application integration for study-task planning. The website uses a server-side OAuth 2.0/PKCE adapter and keeps provider credentials encrypted and bound to the authenticated Academia Arcana subject.
+
+Supported runtime operations include connection verification, project listing, task creation and task completion. The integration is an external planning projection; Supabase remains the source of truth for study state.
+
 ## Trello
 
 Trello is a runtime application integration for operational planning and project execution. The website uses Atlassian's documented OAuth 2.0 transport and keeps credentials server-side in an encrypted, HTTP-only cookie bound to the authenticated user.
