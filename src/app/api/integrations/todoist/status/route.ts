@@ -2,7 +2,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import {
-  TODOIST_ACCESS_TOKEN_COOKIE,
+  TODOIST_CREDENTIALS_COOKIE,
+  decryptTodoistCredentials,
+  encryptTodoistCredentials,
+  refreshTodoistCredentials,
+  shouldRefreshTodoistCredentials,
   verifyTodoistConnection,
 } from "@/infrastructure/integrations/todoist";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
@@ -12,9 +16,12 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   await requireAuthenticatedUser();
 
-  const token = (await cookies()).get(TODOIST_ACCESS_TOKEN_COOKIE)?.value;
+  const cookieStore = await cookies();
+  let credentials = await decryptTodoistCredentials(
+    cookieStore.get(TODOIST_CREDENTIALS_COOKIE)?.value,
+  );
 
-  if (!token) {
+  if (!credentials) {
     return NextResponse.json(
       { providerId: "todoist", status: "disconnected" },
       { status: 200, headers: { "Cache-Control": "private, no-store" } },
@@ -22,7 +29,22 @@ export async function GET() {
   }
 
   try {
-    const verification = await verifyTodoistConnection(token);
+    if (shouldRefreshTodoistCredentials(credentials)) {
+      credentials = await refreshTodoistCredentials(credentials);
+      cookieStore.set(
+        TODOIST_CREDENTIALS_COOKIE,
+        await encryptTodoistCredentials(credentials),
+        {
+          httpOnly: true,
+          maxAge: 365 * 24 * 60 * 60,
+          path: "/",
+          sameSite: "lax",
+          secure: true,
+        },
+      );
+    }
+
+    const verification = await verifyTodoistConnection(credentials.accessToken);
 
     return NextResponse.json(
       {
