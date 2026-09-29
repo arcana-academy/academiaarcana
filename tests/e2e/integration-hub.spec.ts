@@ -103,6 +103,19 @@ test.describe("integration hub", () => {
       verification: null,
     });
 
+    const trello = body.entries.find(
+      (entry: { name: string }) => entry.name === "Trello",
+    );
+
+    expect(trello).toMatchObject({
+      name: "Trello",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "trello",
+      capabilities: ["read", "write", "search", "metadata"],
+      verification: null,
+    });
+
     const spotify = body.entries?.find(
       (entry: { name: string }) => entry.name === "Spotify",
     );
