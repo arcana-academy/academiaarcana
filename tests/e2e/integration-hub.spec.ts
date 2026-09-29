@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("integration hub", () => {
-  test("shows the real integration status and live GitHub verification", async ({
+  test("shows the real integration status with resilient GitHub verification", async ({
     page,
   }) => {
     const response = await page.goto("/integracoes");
@@ -41,9 +41,8 @@ test.describe("integration hub", () => {
     await expect(dictionaryCard).toBeVisible();
     await expect(dictionaryCard.getByText("A-Z Dictionary", { exact: true })).toBeVisible();
     const githubCard = page
-      .getByRole("listitem")
-      .filter({ hasText: "GitHub" })
-      .first();
+      .getByRole("heading", { name: "GitHub", exact: true })
+      .locator("xpath=ancestor::li[1]");
 
     await expect(githubCard).toBeVisible();
     await expect(githubCard.getByText(/Verificado|Erro na verificação/)).toBeVisible();
