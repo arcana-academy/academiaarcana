@@ -54,7 +54,13 @@ export function TodoistConnectionPanel() {
     }
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const disconnect = async () => {
     setBusy(true);
