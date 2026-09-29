@@ -234,11 +234,11 @@ export async function getIntegrationStatusSnapshot({
     if (plugin.name === "Outlook Calendar") {
       return {
         name: "Outlook Calendar",
-        source: "chatgpt-catalog",
-        status: "catalogued",
-        executionMode: "runtime",
+        source: "chatgpt-catalog" as const,
+        status: "catalogued" as const,
+        executionMode: "runtime" as const,
         providerId: "outlook-calendar",
-        capabilities: ["read", "write", "search", "calendar"],
+        capabilities: ["read", "write", "search", "calendar"] as const,
         verification: null,
       };
     }
