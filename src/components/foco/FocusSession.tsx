@@ -11,10 +11,18 @@ function formatTime(totalSeconds: number) {
   return `${minutes}:${seconds}`;
 }
 
-export function FocusSession() {
+type FocusSessionProps = {
+  startSession: (durationSeconds: number) => Promise<string>;
+  completeSession: (sessionId: string) => Promise<void>;
+};
+
+export function FocusSession({ startSession, completeSession }: FocusSessionProps) {
   const [remaining, setRemaining] = useState(DEFAULT_SECONDS);
   const [running, setRunning] = useState(false);
   const [deadline, setDeadline] = useState<number | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!running) return;
@@ -27,13 +35,22 @@ export function FocusSession() {
       if (nextRemaining === 0) {
         setRunning(false);
         setDeadline(null);
+        if (sessionId) {
+          setSaving(true);
+          void completeSession(sessionId)
+            .then(() => setSessionId(null))
+            .catch((completionError) => {
+              setError(completionError instanceof Error ? completionError.message : "Não foi possível registrar a sessão.");
+            })
+            .finally(() => setSaving(false));
+        }
       }
     };
 
     tick();
     const interval = window.setInterval(tick, 250);
     return () => window.clearInterval(interval);
-  }, [deadline, running]);
+  }, [completeSession, deadline, running, sessionId]);
 
   const progress = useMemo(
     () => ((DEFAULT_SECONDS - remaining) / DEFAULT_SECONDS) * 100,
@@ -45,6 +62,23 @@ export function FocusSession() {
     setRunning(false);
     setDeadline(null);
     setRemaining(DEFAULT_SECONDS);
+    setSessionId(null);
+    setError(null);
+  }
+
+  async function begin() {
+    setError(null);
+    setSaving(true);
+    try {
+      const id = await startSession(DEFAULT_SECONDS);
+      setSessionId(id);
+      setDeadline(Date.now() + DEFAULT_SECONDS * 1000);
+      setRunning(true);
+    } catch (startError) {
+      setError(startError instanceof Error ? startError.message : "Não foi possível iniciar a sessão.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const status = completed ? "Concluída" : running ? "Em andamento" : "Pausada";
@@ -73,15 +107,15 @@ export function FocusSession() {
         >
           <div className="aa-progress-value" style={{ width: `${progress}%` }} />
         </div>
+        {error ? <p className="aa-field-error" role="alert">{error}</p> : null}
         <div className="aa-focus-session-actions">
           <button
             className="aa-button aa-button-primary"
             type="button"
             onClick={() => {
+              if (saving) return;
               if (completed) {
-                setRemaining(DEFAULT_SECONDS);
-                setDeadline(Date.now() + DEFAULT_SECONDS * 1000);
-                setRunning(true);
+                void begin();
                 return;
               }
               if (running) {
@@ -89,9 +123,14 @@ export function FocusSession() {
                 setDeadline(null);
                 return;
               }
-              setDeadline(Date.now() + remaining * 1000);
-              setRunning(true);
+              if (sessionId) {
+                setDeadline(Date.now() + remaining * 1000);
+                setRunning(true);
+                return;
+              }
+              void begin();
             }}
+            disabled={saving}
             aria-label={running ? "Pausar sessão" : completed ? "Reiniciar sessão" : "Iniciar sessão"}
           >
             {running ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
