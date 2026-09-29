@@ -28,15 +28,11 @@ describe("verify-public-runtime-config", () => {
       );
 
       const environment = loadBuildEnvironment(
-        {
-          NEXT_PUBLIC_SUPABASE_URL: "https://existing.supabase.co",
-        },
+        { NEXT_PUBLIC_SUPABASE_URL: "https://existing.supabase.co" },
         directory,
       );
 
-      expect(environment.NEXT_PUBLIC_SUPABASE_URL).toBe(
-        "https://existing.supabase.co",
-      );
+      expect(environment.NEXT_PUBLIC_SUPABASE_URL).toBe("https://existing.supabase.co");
       expect(environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY).toBe(validKey);
       expect(environment.LOCAL_ONLY).toBe("value-from-file");
     } finally {
@@ -52,28 +48,19 @@ describe("verify-public-runtime-config", () => {
 
   it("rejects a malformed Supabase production URL", () => {
     expect(() =>
-      validateSupabaseProductionConfiguration(
-        "https://.supabase.co",
-        validKey,
-      ),
+      validateSupabaseProductionConfiguration("https://.supabase.co", validKey),
     ).toThrow(/valid HTTPS Supabase project URL/);
   });
 
   it("rejects a non-production-length project reference", () => {
     expect(() =>
-      validateSupabaseProductionConfiguration(
-        "https://example.supabase.co",
-        validKey,
-      ),
+      validateSupabaseProductionConfiguration("https://example.supabase.co", validKey),
     ).toThrow(/valid HTTPS Supabase project URL/);
   });
 
   it("rejects an empty or malformed publishable key", () => {
     expect(() =>
-      validateSupabaseProductionConfiguration(
-        validUrl,
-        "sb_publishable_",
-      ),
+      validateSupabaseProductionConfiguration(validUrl, "sb_publishable_"),
     ).toThrow(/expected sb_publishable/);
 
     expect(() =>
@@ -97,10 +84,18 @@ describe("verify-public-runtime-config", () => {
     });
   });
 
-  it("rejects a preview without the required publishable key", () => {
+  it("uses preview fallbacks when both public Supabase values are absent", () => {
+    expect(verifyPublicRuntimeConfig({ VERCEL_ENV: "preview" })).toEqual({
+      integration: "supabase-public-runtime",
+      verified: true,
+      environment: "preview",
+    });
+  });
+
+  it("rejects a non-preview environment without the required publishable key", () => {
     expect(() =>
       verifyPublicRuntimeConfig({
-        VERCEL_ENV: "preview",
+        VERCEL_ENV: "development",
         NEXT_PUBLIC_SUPABASE_URL: validUrl,
       }),
     ).toThrow(
