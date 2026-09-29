@@ -100,6 +100,11 @@ export {
 export type { OpenAIAgentsRuntimeSnapshot, OpenAIAgentsRuntimeStatus } from "./openai-agents";
 
 export {
+  EXA_WEB_RESEARCH_INTEGRATION_DEFINITION,
+  EXA_WEB_RESEARCH_PROVIDER_ID,
+} from "./exa-web-research";
+
+export {
   DATACAMP_CATALOG_API_BASE_URL,
   DATACAMP_INTEGRATION_DEFINITION,
   DATACAMP_OPERATIONS,
