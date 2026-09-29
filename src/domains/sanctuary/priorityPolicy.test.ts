@@ -72,7 +72,7 @@ describe("Sanctuary Priority Policy (Task 5)", () => {
     expect(continueWithEmpty?.reason).toBe("no-learning-context");
   });
 
-  it("should assign supporting priority to missions because gamification is not configured", () => {
+  it("should keep missions supporting even when gamification is available", () => {
     const decisions = decideSanctuaryPriority();
     const missionsDecision = decisions.find(
       (d) => d.section === "missions"
@@ -80,10 +80,10 @@ describe("Sanctuary Priority Policy (Task 5)", () => {
 
     expect(missionsDecision).toBeDefined();
     expect(missionsDecision?.priority).toBe("supporting");
-    expect(missionsDecision?.reason).toBe("gamification-not-configured");
+    expect(missionsDecision?.reason).toBe("gamification-supporting");
   });
 
-  it("should assign supporting priority to schedule because planning is not configured", () => {
+  it("should keep schedule supporting even when planning is available", () => {
     const decisions = decideSanctuaryPriority();
     const scheduleDecision = decisions.find(
       (d) => d.section === "schedule"
@@ -91,7 +91,7 @@ describe("Sanctuary Priority Policy (Task 5)", () => {
 
     expect(scheduleDecision).toBeDefined();
     expect(scheduleDecision?.priority).toBe("supporting");
-    expect(scheduleDecision?.reason).toBe("planning-not-configured");
+    expect(scheduleDecision?.reason).toBe("planning-supporting");
   });
 
   it("should assign supporting priority to progress and quickActions", () => {
