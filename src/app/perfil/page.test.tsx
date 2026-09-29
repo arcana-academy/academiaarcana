@@ -32,7 +32,7 @@ describe("PerfilPage", () => {
 
     expect(html).toContain("Perfil");
     expect(html).toContain("taynara@example.test");
-    expect(html).toContain("15 de janeiro de 2026");
+    expect(html).toContain("15 de jan. de 2026");
     expect(html).toContain('href="/configuracoes"');
   });
 });
