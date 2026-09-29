@@ -198,8 +198,7 @@ export async function runMestreArcano(
             {
               supabase,
               ownerId,
-              microsoftSharePointCredentials:
-                arguments.microsoftSharePointCredentials ?? null,
+              microsoftSharePointCredentials,
             },
           );
 
