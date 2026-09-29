@@ -4,6 +4,26 @@
 
 Only services that are part of the application's runtime or delivery path belong in the repository integration contract. ChatGPT connectors and development assistants are not runtime dependencies and must not be embedded as secrets or opaque client-side integrations.
 
+## Adobe Creative Layer
+
+Adobe is the project's visual-production layer for brand assets, illustrations, vector artwork, typography, educational documents, PDFs and promotional media.
+
+The repository now exposes a vendor-neutral Adobe configuration boundary:
+
+- optional public configuration: `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID`;
+- when configured, the root layout loads the published Adobe Fonts stylesheet from `use.typekit.net`;
+- no Adobe OAuth token, Creative Cloud credential or connector credential is stored in Git or browser state;
+- approved web assets have a documented `public/assets/` structure;
+- the Adobe ChatGPT connector is not falsely represented as a web-runtime API.
+
+Runtime state:
+
+- Adobe creative tooling: available in the connected assistant environment.
+- Adobe Fonts web runtime: **configuration-ready**, activated only when a valid published kit identifier is supplied.
+- Firefly/Photoshop/Illustrator/Express direct web-runtime adapter: **not connected** because no verified application-facing API/OAuth contract has been established for this repository.
+
+A future direct Adobe provider belongs behind `src/infrastructure/integrations/adobe.ts` and requires provider health, authorization, representative-operation, security and E2E verification before it can be marked `connected`.
+
 ## ChatGPT catalog
 
 The repository contains the 115 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
@@ -13,8 +33,6 @@ The application exposes `/integracoes` and `GET /api/integrations/status` so the
 - `catalogued`: the supplied plugin name exists in the catalog, but no live external connection has been verified.
 - `connected`: a provider-specific runtime verification has succeeded.
 - `error`: the provider-specific verification was attempted but failed.
-
-The first implemented provider verification is GitHub. It is a public, read-only API verification of `arcana-academy/academiaarcana`; it does **not** represent a user's GitHub account OAuth authorization.
 
 A provider may move from `catalogued` to a real authenticated integration only after its documented API/OAuth/MCP mechanism, scopes, credentials and server-side adapter have been implemented and verified.
 
@@ -34,93 +52,6 @@ Current state:
 
 If the provider later exposes a documented, stable API or MCP contract that the Academia Arcana runtime is authorized to consume, that contract can be implemented behind `src/infrastructure/integrations` and promoted to `connected` only after health, authorization, representative-operation and E2E verification pass.
 
-## Ace Knowledge Graph
-
-The Academia Arcana catalog includes **Ace Knowledge Graph**. The app is available as an authenticated ChatGPT-side capability and can render non-hierarchical knowledge graphs, but the current project runtime does not have a provider API, OAuth contract, or MCP endpoint verified for direct web-server invocation.
-
-The website integration hub therefore keeps this provider in `catalogued` state. It is not marked `connected`, and the repository does not invent an app URL or hard-code an unverified endpoint. Promotion to `connected` requires a documented provider contract, a server-side adapter, authorization/scopes when applicable, health and representative-operation checks, automated failure/security tests, and deployed E2E verification.
-
-Until those conditions are met, `catalogued` is the correct observable state rather than a simulated connection.
-
-## 1 Billion Brain Cells
-
-The Academia Arcana catalog includes **1 Billion Brain Cells** and the integration hub exposes its official ChatGPT app entry as an explicit external bridge.
-
-The current public app listing identifies the app as a ChatGPT app by Spheric Admin Ltd and provides its official ChatGPT installation surface. The website does **not** claim that the ChatGPT app itself is a web-runtime dependency.
-
-A public directory currently reports an MCP endpoint for the app, but its live verification is not healthy. Therefore the repository does not hard-code that endpoint or mark the provider as runtime-connected. A direct website integration requires a stable, documented provider contract that can be verified from the application runtime.
-
-This gives the project a complete and honest state:
-
-- ChatGPT app catalog entry: available.
-- Official ChatGPT launch bridge: available.
-- Academia Arcana web-runtime adapter: not enabled until an external provider contract is verified.
-- Credentials: none required or stored for the bridge.
-
-## Astrologic
-
-The Academia Arcana catalog includes **Astrologic**, a ChatGPT-side astrology capability that exposes personalized natal charts, daily horoscopes, transit charts, and compatibility reports through its connector tools.
-
-The current project runtime registers the provider identity in the integration boundary, but it does not mark Astrologic as a live web-runtime connection. The connector is callable from this assistant environment, while the website still requires a documented server-side API/OAuth/MCP transport before it can invoke those capabilities directly.
-
-Current state:
-
-- ChatGPT-side connector: available in the current assistant environment.
-- Academia Arcana catalog entry: available.
-- Web-runtime provider adapter: not yet verified.
-- Public ChatGPT launch URL: not hard-coded without a verified official app URL.
-- Runtime status: `catalogued`.
-
-Supported capabilities exposed by the connector are birth/natal chart generation, personalized daily horoscope generation, current transit-chart generation, and compatibility reports. The website must preserve provider-specific authorization and must not copy connector credentials into browser code.
-
-## Spotify
-
-The Academia Arcana catalog includes **Spotify**. The integration hub now provides
-an explicit bridge to Spotify's official ChatGPT app:
-
-- ChatGPT app bridge: available.
-- Official app: https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c
-- Web-runtime Spotify Web API adapter: not connected.
-- Credentials stored by Academia Arcana: none.
-- Runtime status: `catalogued`.
-
-The bridge is navigation-only. It does not import, proxy, or iframe the Spotify
-ChatGPT app into the Next.js runtime. A future direct Spotify account
-integration must implement the documented Spotify authorization flow,
-server-side credential storage, least-privilege scopes, authorization checks,
-provider health/representative-operation checks, failure isolation, and E2E
-verification before the state can become `connected`.
-
-
-## Tarteel
-
-The Academia Arcana catalog includes **Tarteel**. The current ChatGPT-side connector provides Quran study capabilities such as ayah search, translations, tafsir, repeated-phrase exploration, recitation playback and prayer times.
-
-The web application keeps Tarteel in **catalogued** state. The repository does not claim that the ChatGPT connector is a web-runtime dependency, and it does not invent a public app URL or provider API endpoint.
-
-Current state:
-
-- ChatGPT catalog entry: available.
-- ChatGPT-side Tarteel capability: available in the connected assistant environment.
-- Official ChatGPT launch bridge: not configured because no verified public launch URL is available to this repository.
-- Web-runtime Tarteel adapter: not connected.
-- Credentials stored by Academia Arcana: none.
-
-A future direct integration belongs behind `src/infrastructure/integrations` and requires a documented provider contract, server-side authorization model, least-privilege credentials when applicable, provider health and representative-operation checks, failure isolation, security tests, and deployed E2E verification before becoming `connected`.
-
-## OpenAI Agents — Mestre Arcano\n\nA Academia Arcana agora possui um adapter server-side para o OpenAI Responses API, usado como runtime do **Mestre Arcano**. O endpoint autenticado `POST /api/agent/mestre-arcano` executa o agente sem expor `OPENAI_API_KEY` ao navegador.\n\nA configuração usa:\n\n- `OPENAI_API_KEY` — segredo obrigatório, somente em ambiente server-side/Vercel.\n- `OPENAI_AGENT_MODEL` — opcional; o padrão do projeto é `gpt-5.6-sol`.\n\nA integração é marcada como `connected` no hub somente quando a chave existe e o modelo configurado passa por uma verificação real contra a OpenAI. Sem a chave, o estado é `not_configured`; falhas de autenticação/rede/modelo resultam em `error`.\n\nO agente segue uma regra de segurança de produto: não inventa progresso, notas, tarefas, dados pessoais ou estado de integrações. Dados do aluno deverão ser fornecidos posteriormente por ferramentas autorizadas do próprio domínio da Academia Arcana.\n\nO SDK oficial de Agents pode evoluir separadamente; o adapter atual usa a Responses API diretamente para manter o runtime sem dependência adicional e com superfície mínima. A documentação atual do Agents SDK descreve Agents como modelos equipados com instruções e ferramentas e suporta function tools, MCP, handoffs e tracing.\n\n## Notion
-
-Notion is a runtime application integration for knowledge and documentation workflows. The web runtime keeps the OAuth credentials server-side and binds the encrypted credential payload to the authenticated Academia Arcana subject.
-
-Supported runtime operations:
-
-- connect and verify the authorized user;
-- search authorized pages;
-- create a child page under an authorized parent page;
-- disconnect and revoke the access token.
-
-The current adapter intentionally does not treat the ChatGPT connector as a web dependency. It uses Notion's documented public OAuth/API transport and keeps the provider separate from the product's transactional source of truth.
-
 ## Runtime / delivery integrations
 
 | Service | Role | Repository integration | External configuration | State |
@@ -128,6 +59,7 @@ The current adapter intentionally does not treat the ChatGPT connector as a web 
 | GitHub | Source control + CI + verified provider reachability | Repository, branches, pull requests, Actions workflow, read-only public verification endpoint | Repository visibility / permissions for project operations | Connected for public read-only verification; account OAuth not configured |
 | Vercel | Hosting + deployment | Next.js deployment target | Project configuration, aliases, environment variables | Connected / external configuration pending |
 | Supabase | Auth + PostgreSQL persistence | Browser/server clients, session refresh, repositories, RLS-backed schema | Project URL + publishable key; Auth settings | Connected |
+| Adobe | Visual production + web typography | Adobe configuration boundary, asset contract, optional Fonts kit loader | `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID` when a published kit exists | Configuration-ready; direct creative API not connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
 | Todoist | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, task/project reads, task creation and completion | Todoist OAuth Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Microsoft SharePoint | External document knowledge source | Server-side OAuth 2.0 adapter, encrypted credentials, site/drive/search/context routes | Microsoft OAuth client credentials and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
@@ -140,7 +72,9 @@ The application requires:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-In local and non-Vercel environments, builds fail early when either value is missing. On Vercel preview/production, the application uses the built-in public Supabase fallback when either value is absent, while any explicitly configured production values are validated as HTTPS Supabase configuration and a modern `sb_publishable_` key.
+Optional Adobe web typography:
+
+- `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID`
 
 Optional Honeybadger variables:
 
@@ -148,7 +82,7 @@ Optional Honeybadger variables:
 - `NEXT_PUBLIC_HONEYBADGER_ASSETS_URL`
 - `NEXT_PUBLIC_HONEYBADGER_REVISION`
 
-Honeybadger remains optional from the build perspective.
+No Adobe secret is required by the web runtime for the Fonts kit loader.
 
 ## Services deliberately kept outside the runtime
 
@@ -168,27 +102,12 @@ The integration baseline is considered operational only when all of these are tr
 6. Honeybadger is configured when production error monitoring is required.
 7. Runtime smoke checks return the expected application behavior.
 8. Every application-facing provider marked `connected` has a provider-specific runtime check and an E2E test.
+9. If Adobe Fonts is enabled, the published kit identifier is valid and the stylesheet loads under the production CSP.
 
 ## Security rules
 
 - Never commit real Supabase keys, Honeybadger keys, database credentials, service-role keys, OAuth client secrets, or connector credentials.
-- Browser code may use only the Supabase publishable key.
+- Browser code may use only public configuration intended for the browser, including an Adobe Fonts kit identifier.
 - Server and edge code must continue using the established SSR/session adapters.
 - RLS remains mandatory for protected data.
 - Public integration endpoints must expose only the minimum verification metadata required for observability.
-
-## True Sky
-
-The Academia Arcana catalog includes **True Sky**. True Sky provides astrology capabilities through the connected ChatGPT host, including natal-chart data, transits, personalized horoscopes, natal readings, synastry, composite charts, and solar/lunar returns.
-
-The repository now exposes a vendor-neutral True Sky integration boundary in `src/infrastructure/integrations/true-sky.ts`. It defines the seven supported operations without importing provider SDKs or exposing credentials to the browser.
-
-Current state:
-
-- ChatGPT-side capability: available in the host.
-- Web-runtime provider adapter: not connected.
-- Credentials stored by Academia Arcana: none.
-- Runtime status: `catalogued`.
-- Direct production invocation: disabled until a documented, stable provider transport and authorization contract is verified.
-
-Astrology results should be presented as interpretive content rather than as medical, legal, financial, or other high-stakes advice. Personalized birth data should only be collected when the user explicitly requests a personalized calculation and should follow minimum-necessary retention and server-side authorization.
