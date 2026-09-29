@@ -10,8 +10,11 @@ describe("Outlook Calendar integration", () => {
   it("declares least-privilege calendar scopes and server-side execution", () => {
     expect(OUTLOOK_CALENDAR_INTEGRATION_DEFINITION.authMode).toBe("oauth2");
     expect(OUTLOOK_CALENDAR_INTEGRATION_DEFINITION.serverSideOnly).toBe(true);
-    expect(OUTLOOK_CALENDAR_SCOPES).toContain("Calendars.ReadWrite");
-    expect(OUTLOOK_CALENDAR_SCOPES).toContain("offline_access");
+    expect(OUTLOOK_CALENDAR_SCOPES).toEqual([
+      "offline_access",
+      "Calendars.ReadWrite",
+    ]);
+    expect(OUTLOOK_CALENDAR_SCOPES).not.toContain("User.Read");
   });
 
   it("creates an Outlook event through Microsoft Graph", async () => {
