@@ -24,7 +24,8 @@ describe("verify-public-runtime-config", () => {
           `NEXT_PUBLIC_SUPABASE_URL=${validUrl}`,
           `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${validKey}`,
           "LOCAL_ONLY=value-from-file",
-        ].join("\n"),
+        ].join("
+"),
       );
 
       const environment = loadBuildEnvironment(
@@ -111,7 +112,20 @@ describe("verify-public-runtime-config", () => {
     });
   });
 
-  it("uses production fallbacks when both public Supabase values are absent", () => {\n    expect(\n      verifyPublicRuntimeConfig({\n        VERCEL_ENV: "production",\n      }),\n    ).toEqual({\n      integration: "supabase-public-runtime",\n      verified: true,\n      environment: "production",\n      configuration: "safe-vercel-fallback",\n    });\n  });\n\n  it("rejects a non-preview environment without the required publishable key", () => {
+  it("uses production fallbacks when both public Supabase values are absent", () => {
+    expect(
+      verifyPublicRuntimeConfig({
+        VERCEL_ENV: "production",
+      }),
+    ).toEqual({
+      integration: "supabase-public-runtime",
+      verified: true,
+      environment: "production",
+      configuration: "safe-vercel-fallback",
+    });
+  });
+
+  it("rejects a non-preview environment without the required publishable key", () => {
     expect(() =>
       verifyPublicRuntimeConfig({
         VERCEL_ENV: "development",
@@ -131,7 +145,8 @@ describe("verify-public-runtime-config", () => {
         [
           `NEXT_PUBLIC_SUPABASE_URL=${validUrl}`,
           `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${validKey}`,
-        ].join("\n"),
+        ].join("
+"),
       );
 
       const environment = loadBuildEnvironment(
