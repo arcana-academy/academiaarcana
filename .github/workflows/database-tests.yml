@@ -45,6 +45,11 @@ jobs:
       - name: Run workspace page movement database tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/move_workspace_page_test.sql
 
-      - name: Run focus and social privilege database tests\n        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/focus_social_privileges.test.sql\n\n      - name: Stop local Supabase
+      - name: Run focus and social privilege database tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/focus_social_privileges.test.sql
+
+      - name: Run integration credential security tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/integration_credentials_security.test.sql
+\n      - name: Stop local Supabase
         if: always()
         run: supabase stop
