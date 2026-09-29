@@ -203,6 +203,36 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="trello-title"
+        style={{ marginTop: "var(--aa-spacing-lg)" }}
+      >
+        <article className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Atlassian · Planejamento
+          </p>
+          <h2 id="trello-title" style={{ marginTop: 0 }}>
+            Trello
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)" }}>
+            Conecte sua conta para organizar quadros, listas, cartões e checklists
+            do fluxo operacional. A autenticação ocorre no servidor e a Academia
+            Arcana continua sendo a fonte de verdade educacional.
+          </p>
+          <Link className="aa-button aa-button-primary" href="/integracoes/trello">
+            Gerenciar conexão do Trello
+          </Link>
+        </article>
+      </section>
+
+      <section
         aria-labelledby="microsoft-sharepoint-title"
         style={{ marginTop: "var(--aa-spacing-lg)" }}
       >
