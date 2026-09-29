@@ -25,7 +25,7 @@ test("application root serves the public entrypoint for unauthenticated users", 
   ).toBeVisible();
 
   await expect(
-    page.getByRole("link", { name: "Recursos" }),
+    page.getByRole("link", { name: "Recursos", exact: true }),
   ).toHaveAttribute("href", "#recursos");
 
   await expect(
