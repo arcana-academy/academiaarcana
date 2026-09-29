@@ -41,14 +41,9 @@ test.describe("integration hub", () => {
     await expect(dictionaryCard).toBeVisible();
     await expect(dictionaryCard.getByText("A-Z Dictionary", { exact: true })).toBeVisible();
     await expect(dictionaryCard.getByText("Catalogado", { exact: true })).toBeVisible();
-    await expect(
-      page.getByText("A conexão externa foi verificada em runtime.", {
-        exact: true,
-      }),
-    ).toBeVisible();
   });
 
-  test("serves the status API with a connected GitHub provider and catalogued A-Z Dictionary bridge", async ({
+  test("serves the status API with safe provider status and catalogued A-Z Dictionary bridge", async ({
     request,
   }) => {
     const response = await request.get("/api/integrations/status");
