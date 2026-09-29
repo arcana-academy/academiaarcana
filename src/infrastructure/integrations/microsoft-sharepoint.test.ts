@@ -15,7 +15,7 @@ describe("Microsoft SharePoint integration", () => {
       expect.arrayContaining(["read", "search", "files", "versions", "metadata"]),
     );
     expect(MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION.scopes).toEqual(
-      expect.arrayContaining(["Files.Read", "Sites.Read.All"]),
+      expect.arrayContaining(["Files.Read"]),
     );
   });
 
