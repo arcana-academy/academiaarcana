@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const { setupHoneybadger, wrappedConfig } = vi.hoisted(() => ({
   setupHoneybadger: vi.fn(),
-  wrappedConfig: { honeybadger: true, reactStrictMode: true },
+  wrappedConfig: { honeybadger: true, reactStrictMode: true, poweredByHeader: false },
 }));
 
 vi.mock("@honeybadger-io/nextjs", () => ({
@@ -14,10 +14,13 @@ describe("Next.js configuration", () => {
     const { default: nextConfig } = await import("./next.config");
 
     expect(setupHoneybadger).toHaveBeenCalledOnce();
-    expect(setupHoneybadger).toHaveBeenCalledWith({
-      reactStrictMode: true,
-      headers: expect.any(Function),
-    });
+    expect(setupHoneybadger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reactStrictMode: true,
+        poweredByHeader: false,
+        headers: expect.any(Function),
+      }),
+    );
     expect(nextConfig).toBe(wrappedConfig);
   });
 });
