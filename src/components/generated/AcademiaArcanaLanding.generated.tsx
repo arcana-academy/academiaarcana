@@ -26,7 +26,7 @@ export const AcademiaArcanaLanding = () => {
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}><Wand2 size={14} /> Um novo jeito de estudar</p>
-          <h1 className={styles.heroTitle}>Transforme seu estudo em <span>uma jornada.</span></h1>
+          <h1 id="home-title" className={styles.heroTitle}>Transforme seu estudo em <span>uma jornada.</span></h1>
           <p className={styles.lead}>A Academia Arcana une planejamento, foco, conhecimento e gamificação em uma experiência feita para você aprender com mais clareza — e continuar avançando.</p>
           <div className={styles.actions}><Link href="/cadastro" className={styles.primary}>Descobrir a Academia <ArrowRight size={18} /></Link><a href="#recursos" className={styles.secondary}>Explorar recursos</a></div>
           <div className={styles.trust} aria-label="Princípios do produto"><span><Check size={14} /> Acessível</span><span><Check size={14} /> Personalizável</span><span><Check size={14} /> Feito para aprender</span></div>
