@@ -1,8 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  getMicrosoftSharePointDocumentContext,
+  type MicrosoftSharePointCredentials,
+} from "@/infrastructure/integrations/microsoft-sharepoint-content";
+
 type ToolContext = {
   readonly supabase: SupabaseClient;
   readonly ownerId: string;
+  readonly microsoftSharePointCredentials: MicrosoftSharePointCredentials | null;
 };
 
 export const MESTRE_ARCANO_TOOLS = [
@@ -47,6 +53,37 @@ export const MESTRE_ARCANO_TOOLS = [
         },
       },
       required: ["limit"],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "get_connected_sharepoint_sources",
+    description:
+      "Lista as fontes textuais de Microsoft SharePoint que o aluno autenticado conectou à Academia Arcana. Use antes de consultar um documento do SharePoint quando a pergunta depender de uma fonte conectada.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "get_sharepoint_document_context",
+    description:
+      "Recupera o conteúdo textual de uma fonte Microsoft SharePoint conectada pelo aluno atual, validando a propriedade da fonte e buscando o arquivo novamente no Microsoft Graph. Use somente quando o aluno pedir análise, resumo, explicação ou outra tarefa baseada naquele documento.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        sourceId: {
+          type: "string",
+          minLength: 1,
+          description: "ID da fonte persistida pela Academia Arcana.",
+        },
+      },
+      required: ["sourceId"],
       additionalProperties: false,
     },
   },
@@ -101,6 +138,63 @@ async function getTodayMissions(context: ToolContext) {
   }));
 }
 
+async function getConnectedSharePointSources(context: ToolContext) {
+  if (
+    !context.microsoftSharePointCredentials ||
+    context.microsoftSharePointCredentials.subjectId !== context.ownerId
+  ) {
+    return {
+      connected: false,
+      sources: [],
+    };
+  }
+
+  const { data, error } = await context.supabase
+    .from("external_document_sources")
+    .select(
+      "id, name, mime_type, web_url, last_modified_at, size_bytes, status",
+    )
+    .eq("owner_id", context.ownerId)
+    .eq("provider_id", "microsoft-sharepoint")
+    .eq("source_type", "external_document")
+    .eq("status", "active")
+    .order("updated_at", { ascending: false })
+    .limit(5);
+
+  if (error) {
+    throw new Error("Não foi possível ler as fontes conectadas do SharePoint.");
+  }
+
+  return {
+    connected: true,
+    sources: (data ?? []).map((source) => ({
+      sourceId: source.id,
+      name: source.name,
+      mimeType: source.mime_type,
+      webUrl: source.web_url,
+      lastModifiedAt: source.last_modified_at,
+      sizeBytes: source.size_bytes,
+      status: source.status,
+    })),
+  };
+}
+
+async function getSharePointDocumentContext(
+  context: ToolContext,
+  sourceId: string,
+) {
+  const credentials = context.microsoftSharePointCredentials;
+  if (!credentials || credentials.subjectId !== context.ownerId) {
+    throw new Error("Microsoft SharePoint não está conectado para este usuário.");
+  }
+
+  return getMicrosoftSharePointDocumentContext(sourceId, {
+    supabase: context.supabase,
+    ownerId: context.ownerId,
+    credentials,
+  });
+}
+
 async function getUpcomingStudyTasks(
   context: ToolContext,
   limit: number,
@@ -143,6 +237,15 @@ export async function executeMestreArcanoTool(
           context,
           typeof args.limit === "number" ? args.limit : 5,
         ),
+      );
+    case "get_connected_sharepoint_sources":
+      return jsonResult(await getConnectedSharePointSources(context));
+    case "get_sharepoint_document_context":
+      if (typeof args.sourceId !== "string") {
+        throw new Error("ID da fonte do SharePoint inválido.");
+      }
+      return jsonResult(
+        await getSharePointDocumentContext(context, args.sourceId),
       );
     default:
       throw new Error("Ferramenta do Mestre Arcano não autorizada.");
