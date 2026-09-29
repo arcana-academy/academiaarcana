@@ -17,6 +17,10 @@ import {
   verifyGitHubConnection,
   type GitHubConnectionVerification,
 } from "./github/public-github";
+import {
+  verifyAirtableConnection,
+  type AirtableConnectionVerification,
+} from "./airtable";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
@@ -57,6 +61,12 @@ export type IntegrationStatusEntry = {
     | {
         readonly providerId: "dropbox";
         readonly accountId: string;
+        readonly verifiedAt: string;
+      }
+    | {
+        readonly providerId: "airtable";
+        readonly baseId: string;
+        readonly tableCount: number;
         readonly verifiedAt: string;
       }
     | null;
@@ -174,6 +184,49 @@ function dropboxErrorEntry(): IntegrationStatusEntry {
   };
 }
 
+function airtableVerificationEntry(
+  verification: AirtableConnectionVerification,
+): IntegrationStatusEntry {
+  return {
+    name: "Airtable",
+    source: "runtime",
+    status: "connected",
+    executionMode: "runtime",
+    providerId: verification.providerId,
+    capabilities: ["read", "write", "search", "metadata", "analytics"],
+    verification: {
+      providerId: verification.providerId,
+      baseId: verification.baseId,
+      tableCount: verification.tableCount,
+      verifiedAt: verification.verifiedAt,
+    },
+  };
+}
+
+function airtableCatalogEntry(): IntegrationStatusEntry {
+  return {
+    name: "Airtable",
+    source: "runtime",
+    status: "catalogued",
+    executionMode: "runtime",
+    providerId: "airtable",
+    capabilities: ["read", "write", "search", "metadata", "analytics"],
+    verification: null,
+  };
+}
+
+function airtableErrorEntry(): IntegrationStatusEntry {
+  return {
+    name: "Airtable",
+    source: "runtime",
+    status: "error",
+    executionMode: "runtime",
+    providerId: "airtable",
+    capabilities: ["read", "write", "search", "metadata", "analytics"],
+    verification: null,
+  };
+}
+
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
@@ -186,14 +239,20 @@ export async function getIntegrationStatusSnapshot({
   dropboxVerifier = verifyDropboxConnection,
   dataCampApiKey = process.env.DATACAMP_API_KEY,
   dropboxToken = process.env.DROPBOX_RUNTIME_TOKEN,
+  airtableVerifier = verifyAirtableConnection,
+  airtableToken = process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN,
+  airtableBaseId = process.env.AIRTABLE_BASE_ID,
 }: {
   readonly githubVerifier?: () => Promise<GitHubConnectionVerification>;
   readonly dataCampVerifier?: () => Promise<DataCampConnectionVerification>;
   readonly dropboxVerifier?: (
     token?: string,
   ) => Promise<DropboxConnectionVerification>;
+  readonly airtableVerifier?: () => Promise<AirtableConnectionVerification>;
   readonly dataCampApiKey?: string;
   readonly dropboxToken?: string;
+  readonly airtableToken?: string;
+  readonly airtableBaseId?: string;
 } = {}): Promise<IntegrationStatusSnapshot> {
   let githubEntry: IntegrationStatusEntry = {
     name: "GitHub",
@@ -227,6 +286,16 @@ export async function getIntegrationStatusSnapshot({
     }
   }
 
+  let airtableEntry = airtableCatalogEntry();
+  if (airtableToken?.trim() && airtableBaseId?.trim()) {
+    try {
+      airtableEntry = airtableVerificationEntry(await airtableVerifier());
+    } catch {
+      airtableEntry = airtableErrorEntry();
+    }
+  }
+
+
   const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
@@ -242,6 +311,8 @@ export async function getIntegrationStatusSnapshot({
         verification: null,
       };
     }
+    if (plugin.name === "Airtable") return airtableEntry;
+
     if (plugin.name === "Trello") {
       return {
         name: "Trello",
