@@ -3,9 +3,19 @@
 import { useState } from "react";
 import type { StudyTask } from "@/domains/planning";
 
+type OutlookEvent = {
+  id: string;
+  subject: string | null;
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  webLink?: string | null;
+  isCancelled?: boolean | null;
+};
+
 type StudyTaskBoardProps = {
   tasks: StudyTask[];
   outlookConnected: boolean;
+  outlookEvents: OutlookEvent[];
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
   onComplete: (id: string) => Promise<StudyTask>;
   onScheduleInOutlook: (id: string) => Promise<{ webLink?: string | null }>;
@@ -22,6 +32,7 @@ function formatDueAt(value: string | null): string {
 export function StudyTaskBoard({
   tasks,
   outlookConnected,
+  outlookEvents,
   onCreate,
   onComplete,
   onScheduleInOutlook,
@@ -124,6 +135,52 @@ export function StudyTaskBoard({
           </a>
         )}
       </section>
+
+      {outlookConnected ? (
+        <section
+          className="aa-surface aa-sanctuary-section"
+          aria-labelledby="outlook-events-title"
+        >
+          <div className="aa-surface-header">
+            <div>
+              <p className="aa-eyebrow">Agenda externa · próximos 7 dias</p>
+              <h2 id="outlook-events-title">Eventos do Outlook</h2>
+            </div>
+            <span className="aa-badge aa-badge-neutral">
+              {outlookEvents.length}
+            </span>
+          </div>
+          {outlookEvents.length === 0 ? (
+            <div className="aa-empty">
+              <p>Nenhum evento encontrado no Outlook neste período.</p>
+            </div>
+          ) : (
+            <ul className="aa-list aa-planning-list">
+              {outlookEvents.slice(0, 10).map((event) => (
+                <li className="aa-list-item" key={event.id}>
+                  <div>
+                    <strong>{event.subject || "Evento sem título"}</strong>
+                    <small>
+                      {formatDueAt(event.start.dateTime)} · até{" "}
+                      {formatDueAt(event.end.dateTime)}
+                    </small>
+                  </div>
+                  {event.webLink ? (
+                    <a
+                      className="aa-button aa-button-secondary aa-button-sm"
+                      href={event.webLink}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      Abrir Outlook
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
         <div className="aa-surface-header">
