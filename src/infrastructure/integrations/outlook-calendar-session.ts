@@ -90,7 +90,7 @@ async function refreshAccessToken(refreshToken: string) {
     grant_type: "refresh_token",
     refresh_token: refreshToken,
     redirect_uri: redirectUri,
-    scope: "openid profile email offline_access User.Read Calendars.ReadWrite",
+    scope: "offline_access Calendars.ReadWrite",
   });
 
   const response = await fetch(
@@ -148,9 +148,17 @@ export async function getOutlookAccessToken(
 
 export async function isOutlookCalendarConnected(): Promise<boolean> {
   const jar = await cookies();
-  return Boolean(
-    jar.get(ACCESS_COOKIE)?.value &&
-      jar.get(REFRESH_COOKIE)?.value &&
-      jar.get(EXPIRY_COOKIE)?.value,
-  );
+  const access = jar.get(ACCESS_COOKIE)?.value;
+  const refresh = jar.get(REFRESH_COOKIE)?.value;
+  const expiresAt = jar.get(EXPIRY_COOKIE)?.value;
+
+  if (!access || !refresh || !expiresAt) return false;
+
+  try {
+    decrypt(access);
+    decrypt(refresh);
+    return Boolean(process.env.OUTLOOK_CALENDAR_SESSION_SECRET);
+  } catch {
+    return false;
+  }
 }
