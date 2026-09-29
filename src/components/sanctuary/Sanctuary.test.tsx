@@ -145,6 +145,10 @@ describe("Sanctuary", () => {
             />,
         );
 
-        expect(screen.getByText(/começar|explorar/i)).toBeTruthy();
+        expect(
+            screen.getByText(
+                "Nenhum estudo recente para retomar ainda. Começar a explorar um novo capítulo quando estiver pronto.",
+            ),
+        ).toBeTruthy();
     });
 });
