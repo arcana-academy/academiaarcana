@@ -23,6 +23,10 @@ test.describe("integration hub", () => {
       page.getByRole("link", { name: "Gerenciar conexão do Notion" }),
     ).toBeVisible();
     await expect(
+      page.getByRole("link", { name: "Gerenciar no Cronograma" }),
+    ).toBeVisible();
+
+    await expect(
       page.getByRole("link", { name: "Gerenciar conexão do Trello" }),
     ).toBeVisible();
 
