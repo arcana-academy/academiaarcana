@@ -86,6 +86,8 @@ export type SpacingTokens = {
   sm: string;
   md: string;
   lg: string;
+  xl: string;
+  "2xl": string;
 };
 
 export type TypographyTokens = {
@@ -113,6 +115,14 @@ export type EffectsTokens = {
   texture: string;
 };
 
+export type ZIndexTokens = {
+  base: string;
+  sticky: string;
+  overlay: string;
+  modal: string;
+  toast: string;
+};
+
 export type ThemeTokens = {
   surfaces: SurfaceTokens;
   text: TextTokens;
@@ -127,6 +137,7 @@ export type ThemeTokens = {
   motion: MotionTokens;
   density: DensityTokens;
   effects: EffectsTokens;
+  zIndex: ZIndexTokens;
 };
 
 export type ThemePreset = ThemeTokens & {
