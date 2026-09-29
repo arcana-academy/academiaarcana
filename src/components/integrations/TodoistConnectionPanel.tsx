@@ -84,7 +84,7 @@ export function TodoistConnectionPanel() {
         body: JSON.stringify({ content, dueDateTime: newDueAt ? new Date(newDueAt).toISOString() : null }),
       });
       const body = (await response.json().catch(() => null)) as TodoistTask | { error?: string } | null;
-      if (response.status === 409) {
+      if (response.status === 401 || response.status === 409) {
         setStatus({ status: "reauthorization_required" });
         setError("Conecte o Todoist novamente para criar tarefas.");
         return;
