@@ -131,6 +131,46 @@ export {
 
 
 export {
+  ASANA_API_BASE_URL,
+  ASANA_CREDENTIALS_COOKIE,
+  ASANA_INTEGRATION_DEFINITION,
+  ASANA_OAUTH_AUTHORIZE_URL,
+  ASANA_OAUTH_PKCE_COOKIE,
+  ASANA_OAUTH_REVOKE_URL,
+  ASANA_OAUTH_SCOPES,
+  ASANA_OAUTH_STATE_COOKIE,
+  ASANA_OAUTH_TOKEN_URL,
+  ASANA_PLUGIN_NAME,
+  ASANA_PROVIDER_ID,
+  AsanaConnectionError,
+  buildAsanaAuthorizationUrl,
+  closeAsanaTask,
+  createAsanaOAuthState,
+  createAsanaOAuthVerifier,
+  createAsanaPkceChallenge,
+  createAsanaTask,
+  decryptAsanaCredentials,
+  encryptAsanaCredentials,
+  exchangeAsanaAuthorizationCode,
+  getAsanaClientId,
+  getAsanaClientSecret,
+  getAsanaProjects,
+  getAsanaRedirectUri,
+  getAsanaTasks,
+  refreshAsanaCredentials,
+  revokeAsanaAccessToken,
+  shouldRefreshAsanaCredentials,
+  verifyAsanaConnection,
+} from "./asana";
+export type {
+  AsanaCredentials,
+  AsanaProject,
+  AsanaTask,
+  AsanaTokenSet,
+  AsanaUser,
+} from "./asana";
+
+export {
   MICROSOFT_GRAPH_API_BASE_URL,
   MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE,
   MICROSOFT_SHAREPOINT_INTEGRATION_DEFINITION,

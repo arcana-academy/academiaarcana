@@ -22,6 +22,10 @@ test.describe("integration hub", () => {
     await expect(
       page.getByRole("link", { name: "Gerenciar conexão do Notion" }),
     ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Asana", exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Gerenciar conexão do Asana" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Gerenciar no Cronograma" }),
     ).toBeVisible();
