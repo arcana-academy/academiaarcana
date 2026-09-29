@@ -27,6 +27,7 @@ describe("StudyTaskBoard", () => {
       <StudyTaskBoard
         tasks={[task]}
         outlookConnected={false}
+        outlookEvents={[]}
         onCreate={onCreate}
         onComplete={vi.fn().mockResolvedValue(task)}
         onScheduleInOutlook={vi.fn()}
@@ -58,6 +59,7 @@ describe("StudyTaskBoard", () => {
       <StudyTaskBoard
         tasks={[task]}
         outlookConnected={false}
+        outlookEvents={[]}
         onCreate={vi.fn()}
         onComplete={onComplete}
         onScheduleInOutlook={vi.fn()}
@@ -70,4 +72,33 @@ describe("StudyTaskBoard", () => {
     expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
     expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
   });
+
+  it("renders upcoming Outlook events when the integration is connected", () => {
+    render(
+      <StudyTaskBoard
+        tasks={[]}
+        outlookConnected={true}
+        outlookEvents={[
+          {
+            id: "outlook-1",
+            subject: "Aula de revisão",
+            start: { dateTime: "2026-09-30T15:00:00.000Z", timeZone: "UTC" },
+            end: { dateTime: "2026-09-30T16:00:00.000Z", timeZone: "UTC" },
+            webLink: "https://outlook.office.com/calendar/item/outlook-1",
+          },
+        ]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+        onScheduleInOutlook={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Eventos do Outlook" })).toBeInTheDocument();
+    expect(screen.getByText("Aula de revisão")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir Outlook" })).toHaveAttribute(
+      "href",
+      "https://outlook.office.com/calendar/item/outlook-1",
+    );
+  });
+
 });
