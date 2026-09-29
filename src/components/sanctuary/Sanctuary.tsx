@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
 import { SanctuaryContinueLearning } from "./SanctuaryContinueLearning";
 import { SanctuaryHeader } from "./SanctuaryHeader";
@@ -30,6 +31,16 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
           <h2>Seu progresso</h2>
           <SanctuaryProgress progress={viewModel.progress} />
         </div>
+      </section>
+
+      <section className="aa-surface aa-sanctuary-section" aria-labelledby="adaptive-recommendation-title">
+        <p className="aa-eyebrow">Adaptação · evidência</p>
+        <h2 id="adaptive-recommendation-title">{viewModel.adaptiveRecommendation.title}</h2>
+        <p>{viewModel.adaptiveRecommendation.message}</p>
+        <p className="aa-state-copy">{viewModel.adaptiveRecommendation.reason}</p>
+        <Link className="aa-button aa-button-secondary aa-button-sm" href={viewModel.adaptiveRecommendation.href}>
+          Seguir recomendação
+        </Link>
       </section>
 
       <MestreArcanoPanel />
