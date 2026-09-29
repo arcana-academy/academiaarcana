@@ -1,10 +1,12 @@
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { Accessibility, Palette, ShieldCheck } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 
-export default function ConfiguracoesPage() {
+export default async function ConfiguracoesPage() {
+  await requireAuthenticatedUser();
   return (
     <AuthenticatedShell currentPath="/configuracoes">
       <ArcanaPage
