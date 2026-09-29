@@ -11,9 +11,7 @@ describe("AuthenticatedShell", () => {
   it("renders the application identity, navigation and sign-out action", () => {
     render(
       <AuthenticatedShell currentPath="/santuario">
-        <main>
-          <h1>Seu Santuário de aprendizagem</h1>
-        </main>
+        <h1>Seu Santuário de aprendizagem</h1>
       </AuthenticatedShell>,
     );
 
