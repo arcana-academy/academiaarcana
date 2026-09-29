@@ -98,7 +98,7 @@ describe("verify-public-runtime-config", () => {
         VERCEL_ENV: "development",
         NEXT_PUBLIC_SUPABASE_URL: validUrl,
       }),
-    ).toThrow(
+    ).toThrowError(
       "Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     );
   });
