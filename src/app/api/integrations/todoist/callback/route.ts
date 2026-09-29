@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 import {
   exchangeTodoistAuthorizationCode,
-  TODOIST_ACCESS_TOKEN_COOKIE,
+  TODOIST_CREDENTIALS_COOKIE,
+  encryptTodoistCredentials,
   TODOIST_OAUTH_PKCE_COOKIE,
   TODOIST_OAUTH_STATE_COOKIE,
   verifyTodoistConnection,
@@ -39,20 +40,25 @@ export async function GET(request: Request) {
   }
 
   try {
-    const token = await exchangeTodoistAuthorizationCode({
+    const credentials = await exchangeTodoistAuthorizationCode({
       code,
       codeVerifier: verifier,
+      requestUrl: request.url,
     });
 
-    await verifyTodoistConnection(token.accessToken);
+    await verifyTodoistConnection(credentials.accessToken);
 
-    cookieStore.set(TODOIST_ACCESS_TOKEN_COOKIE, token.accessToken, {
-      httpOnly: true,
-      maxAge: 10 * 365 * 24 * 60 * 60,
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
+    cookieStore.set(
+      TODOIST_CREDENTIALS_COOKIE,
+      await encryptTodoistCredentials(credentials),
+      {
+        httpOnly: true,
+        maxAge: 365 * 24 * 60 * 60,
+        path: "/",
+        sameSite: "lax",
+        secure: true,
+      },
+    );
 
     return NextResponse.redirect(
       new URL("/integracoes/todoist?connected=1", request.url),
