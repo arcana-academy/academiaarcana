@@ -42,7 +42,9 @@ The authenticated integration workspace is available at `/integracoes/microsoft-
 3. Select a site and discover its document libraries.
 4. Search within the selected library.
 5. Resolve a selected document into a sanitized external-source descriptor.
-6. Open the original document in Microsoft 365 when desired.
+6. Persist the selected source for the authenticated user.
+7. Open the original document in Microsoft 365 when desired.
+8. The Mestre Arcano can discover active connected sources and retrieve supported text content on demand.
 
 The browser receives only the sanitized source descriptor. Microsoft access tokens remain server-side. Selected sources are persisted in `public.external_document_sources` under the authenticated user, protected by RLS ownership policies.
 
