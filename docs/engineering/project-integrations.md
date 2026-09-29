@@ -189,12 +189,12 @@ Optional Adobe web typography:
 - `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID`
 
 
-The application requires:
+The application requires the following public runtime variables in every environment, including Vercel Preview and Production:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-In local and non-Vercel environments, builds fail early when either value is missing. On Vercel preview/production, the application uses the built-in public Supabase fallback when either value is absent, while any explicitly configured production values are validated as HTTPS Supabase configuration and a modern `sb_publishable_` key.
+There is no hard-coded Supabase fallback. The build-time verification and runtime client configuration fail closed when either value is missing. Both values are validated as HTTPS Supabase configuration and a modern `sb_publishable_` publishable key.
 
 Optional Honeybadger variables:
 

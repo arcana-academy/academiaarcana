@@ -44,13 +44,13 @@ describe("verify-public-runtime-config", () => {
     }
   });
 
-  it("accepts a valid production URL and publishable key", () => {
+  it("accepts a valid Supabase URL and publishable key", () => {
     expect(() =>
       validateSupabaseProductionConfiguration(validUrl, validKey),
     ).not.toThrow();
   });
 
-  it("rejects a malformed Supabase production URL", () => {
+  it("rejects a malformed Supabase URL", () => {
     expect(() =>
       validateSupabaseProductionConfiguration(
         "https://.supabase.co",
@@ -84,82 +84,63 @@ describe("verify-public-runtime-config", () => {
     ).toThrow(/expected sb_publishable/);
   });
 
-  it("uses the preview URL fallback when only the publishable key is configured", () => {
+  it.each(["preview", "production", "development"])(
+    "requires both public Supabase values in %s",
+    (vercelEnvironment) => {
+      expect(() =>
+        verifyPublicRuntimeConfig({
+          VERCEL_ENV: vercelEnvironment,
+        }),
+      ).toThrow("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
+    },
+  );
+
+  it("rejects preview configuration with only one public Supabase value", () => {
+    expect(() =>
+      verifyPublicRuntimeConfig({
+        VERCEL_ENV: "preview",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }),
+    ).toThrow("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
+  });
+
+  it("rejects production configuration with malformed public values", () => {
+    expect(() =>
+      verifyPublicRuntimeConfig({
+        VERCEL_ENV: "production",
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }),
+    ).toThrow(/valid HTTPS Supabase project URL/);
+  });
+
+  it("accepts a complete preview configuration", () => {
     expect(
       verifyPublicRuntimeConfig({
         VERCEL_ENV: "preview",
+        NEXT_PUBLIC_SUPABASE_URL: validUrl,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
       }),
     ).toEqual({
       integration: "supabase-public-runtime",
       verified: true,
       environment: "preview",
-      configuration: "safe-vercel-fallback",
+      configuration: "environment",
     });
   });
 
-  it("uses preview fallbacks when both public Supabase values are absent", () => {
-    expect(
-      verifyPublicRuntimeConfig({
-        VERCEL_ENV: "preview",
-      }),
-    ).toEqual({
-      integration: "supabase-public-runtime",
-      verified: true,
-      environment: "preview",
-      configuration: "safe-vercel-fallback",
-    });
-  });
-
-  it("uses production fallbacks when both public Supabase values are absent", () => {
+  it("accepts a complete production configuration", () => {
     expect(
       verifyPublicRuntimeConfig({
         VERCEL_ENV: "production",
+        NEXT_PUBLIC_SUPABASE_URL: validUrl,
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
       }),
     ).toEqual({
       integration: "supabase-public-runtime",
       verified: true,
       environment: "production",
-      configuration: "safe-vercel-fallback",
+      configuration: "environment",
     });
-  });
-
-  it("rejects a non-preview environment without the required publishable key", () => {
-    expect(() =>
-      verifyPublicRuntimeConfig({
-        VERCEL_ENV: "development",
-        NEXT_PUBLIC_SUPABASE_URL: validUrl,
-      }),
-    ).toThrow(
-      "Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-    );
-  });
-
-  it("uses loaded local configuration for a production verification", () => {
-    const directory = mkdtempSync(join(tmpdir(), "academia-arcana-env-"));
-
-    try {
-      writeFileSync(
-        join(directory, ".env.local"),
-        [
-          `NEXT_PUBLIC_SUPABASE_URL=${validUrl}`,
-          `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${validKey}`,
-        ].join("\n"),
-      );
-
-      const environment = loadBuildEnvironment(
-        { VERCEL_ENV: "production" },
-        directory,
-      );
-
-      expect(verifyPublicRuntimeConfig(environment)).toEqual({
-        integration: "supabase-public-runtime",
-        verified: true,
-        environment: "production",
-        configuration: "environment",
-      });
-    } finally {
-      rmSync(directory, { recursive: true, force: true });
-    }
   });
 });
