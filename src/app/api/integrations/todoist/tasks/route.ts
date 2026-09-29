@@ -81,7 +81,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { credentials } = await getCredentialsOrUnauthorized();
+  const { credentials, status } = await getCredentialsOrUnauthorized();
 
   if (!credentials) {
     return NextResponse.json(
@@ -123,7 +123,10 @@ export async function PATCH(request: Request) {
   const { credentials } = await getCredentialsOrUnauthorized();
 
   if (!credentials) {
-    return NextResponse.json({ error: "todoist_not_connected" }, { status: 409 });
+    return NextResponse.json(
+      { error: status },
+      { status: status === "reauthorization_required" ? 401 : 409 },
+    );
   }
 
   const body = (await request.json().catch(() => null)) as
