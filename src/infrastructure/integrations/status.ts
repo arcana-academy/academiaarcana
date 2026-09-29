@@ -311,7 +311,7 @@ export async function getIntegrationStatusSnapshot({
         verification: null,
       };
     }
-    if (plugin.name === "Airtable") return airtableEntry;
+    if (plugin.name === "Airtable") return airtableEntry;\n    if (plugin.name === "Asana") {\n      return {\n        name: "Asana",\n        source: "runtime" as const,\n        status: "catalogued" as const,\n        executionMode: "runtime" as const,\n        providerId: ASANA_PROVIDER_ID,\n        capabilities: ["read", "write", "search"],\n        verification: null,\n      };\n    }
 
     if (plugin.name === "Trello") {
       return {
