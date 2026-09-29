@@ -127,7 +127,9 @@ async function refreshAccessToken(refreshToken: string) {
   return payload.access_token;
 }
 
-export async function getOutlookAccessToken(): Promise<string | null> {
+export async function getOutlookAccessToken(
+  options: { refresh?: boolean } = {},
+): Promise<string | null> {
   const jar = await cookies();
   const access = jar.get(ACCESS_COOKIE)?.value;
   const refresh = jar.get(REFRESH_COOKIE)?.value;
@@ -140,6 +142,7 @@ export async function getOutlookAccessToken(): Promise<string | null> {
     return decrypt(access);
   }
 
+  if (!options.refresh) return null;
   return refreshAccessToken(decrypt(refresh));
 }
 
