@@ -15,8 +15,7 @@ function requireValue(name: string, value: string | undefined): string {
 
 export function getPublicRuntimeConfig(): PublicRuntimeConfig {
   const vercelEnvironment = process.env.VERCEL_ENV;
-  const isVercelRuntime = process.env.VERCEL === "1" || Boolean(vercelEnvironment);
-  const useSafeVercelFallback = isVercelRuntime;
+  const useSafeVercelFallback = vercelEnvironment === "preview" || vercelEnvironment === "production";
 
   return {
     supabaseUrl:
