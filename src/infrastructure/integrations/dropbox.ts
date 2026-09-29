@@ -1,6 +1,7 @@
 import type {
   IntegrationDefinition,
   IntegrationToolResult,
+  IntegrationConnectionStatus,
 } from "./contracts";
 
 export const DROPBOX_PROVIDER_ID = "dropbox" as const;
@@ -20,6 +21,14 @@ export const DROPBOX_INTEGRATION_DEFINITION = {
 
 export type DropboxOperation = "list_folder" | "search" | "get_metadata";
 
+export type DropboxConnectionVerification = {
+  readonly providerId: typeof DROPBOX_PROVIDER_ID;
+  readonly pluginName: typeof DROPBOX_PLUGIN_NAME;
+  readonly status: Extract<IntegrationConnectionStatus, "connected" | "error">;
+  readonly accountId: string;
+  readonly verifiedAt: string;
+};
+
 export class DropboxConnectionError extends Error {
   constructor(message = "Dropbox não está configurado ou autorizado.") {
     super(message);
@@ -32,7 +41,11 @@ function getServerToken(token = process.env.DROPBOX_RUNTIME_TOKEN): string {
   return token.trim();
 }
 
-async function request<T>(path: string, input: Record<string, unknown>, token: string): Promise<T> {
+async function request<T>(
+  path: string,
+  input: Record<string, unknown>,
+  token: string,
+): Promise<T> {
   const response = await fetch(`${DROPBOX_API_BASE_URL}${path}`, {
     method: "POST",
     headers: {
@@ -44,7 +57,9 @@ async function request<T>(path: string, input: Record<string, unknown>, token: s
   });
 
   if (!response.ok) {
-    throw new DropboxConnectionError(`Dropbox API respondeu com HTTP ${response.status}.`);
+    throw new DropboxConnectionError(
+      `Dropbox API respondeu com HTTP ${response.status}.`,
+    );
   }
 
   return (await response.json()) as T;
@@ -52,7 +67,7 @@ async function request<T>(path: string, input: Record<string, unknown>, token: s
 
 export async function verifyDropboxConnection(
   token = process.env.DROPBOX_RUNTIME_TOKEN,
-): Promise<{ providerId: typeof DROPBOX_PROVIDER_ID; accountId: string; verifiedAt: string }> {
+): Promise<DropboxConnectionVerification> {
   const account = await request<{ account_id: string }>(
     "/users/get_current_account",
     {},
@@ -61,6 +76,8 @@ export async function verifyDropboxConnection(
 
   return {
     providerId: DROPBOX_PROVIDER_ID,
+    pluginName: DROPBOX_PLUGIN_NAME,
+    status: "connected",
     accountId: account.account_id,
     verifiedAt: new Date().toISOString(),
   };
@@ -80,12 +97,20 @@ export async function executeDropboxRequest(
   return { providerId: DROPBOX_PROVIDER_ID, tool: operation, output };
 }
 
-export async function listDropboxFolder(path = "", token = process.env.DROPBOX_RUNTIME_TOKEN) {
+export async function listDropboxFolder(
+  path = "",
+  token = process.env.DROPBOX_RUNTIME_TOKEN,
+) {
   return executeDropboxRequest("list_folder", { path, recursive: false }, token);
 }
 
-export async function searchDropbox(query: string, token = process.env.DROPBOX_RUNTIME_TOKEN) {
+export async function searchDropbox(
+  query: string,
+  token = process.env.DROPBOX_RUNTIME_TOKEN,
+) {
   const normalizedQuery = query.trim();
-  if (!normalizedQuery) throw new Error("A busca do Dropbox não pode estar vazia.");
+  if (!normalizedQuery) {
+    throw new Error("A busca do Dropbox não pode estar vazia.");
+  }
   return executeDropboxRequest("search", { query: normalizedQuery }, token);
 }
