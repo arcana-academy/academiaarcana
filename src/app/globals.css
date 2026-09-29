@@ -1086,3 +1086,36 @@ p {
     display: none;
   }
 }
+
+.aa-focus-session {
+  display: grid;
+  gap: 1rem;
+}
+
+.aa-focus-session-card {
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.aa-focus-timer {
+  display: grid;
+  place-items: center;
+  min-height: 12rem;
+  margin-block: 1rem;
+  border: 1px solid var(--aa-line-highlight);
+  border-radius: var(--aa-radius-xl);
+  background: radial-gradient(circle, rgb(155 120 208 / 0.14), rgb(8 7 12 / 0.32) 65%);
+}
+
+.aa-focus-timer span {
+  font-family: var(--aa-typography-heading);
+  font-size: clamp(3.5rem, 10vw, 6.5rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.aa-focus-session-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
