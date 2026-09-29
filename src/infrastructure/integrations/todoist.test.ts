@@ -177,7 +177,7 @@ describe("Todoist integration", () => {
       expect.objectContaining({ method: "POST" }),
     );
 
-    const requestInit = fetchMock.mock.calls[0]?.[1];
+    const requestInit = (fetchMock.mock.calls as unknown as Array<[string, RequestInit]>)[0]?.[1];
     expect(requestInit).toBeDefined();
     expect(JSON.parse(String(requestInit?.body))).toEqual({
       content: "Estudar",
