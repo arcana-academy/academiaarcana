@@ -16,11 +16,13 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: mocks.createClient,
 }));
 
-function queryResult(data: unknown) { return { data, error: null }; }
-
 function chain(data: unknown) {
-  const builder: any = { select: () => builder, eq: () => builder, maybeSingle: async () => queryResult(data) };
-  builder.then = (resolve: any, reject: any) => Promise.resolve(queryResult(data)).then(resolve, reject);
+  const builder: any = {
+    select: () => builder,
+    eq: () => builder,
+    maybeSingle: async () => ({ data, error: null }),
+  };
+  builder.then = (resolve: any, reject: any) => Promise.resolve({ data, error: null }).then(resolve, reject);
   return builder;
 }
 
@@ -36,18 +38,7 @@ beforeEach(() => {
           : table === "focus_sessions"
             ? [{ duration_seconds: 1500, completed_at: "2026-09-29T12:00:00Z" }]
             : { xp: 120, streak_days: 4 };
-      return {
-        select() {
-          return {
-            eq() {
-              return {
-                maybeSingle: async () => queryResult(data),
-                then: undefined,
-              };
-            },
-          };
-        },
-      };
+      return chain(data);
     },
   });
 });
