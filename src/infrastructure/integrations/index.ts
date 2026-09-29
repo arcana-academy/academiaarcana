@@ -81,6 +81,24 @@ export {
 } from "./openai-agents";
 export type { OpenAIAgentsRuntimeSnapshot, OpenAIAgentsRuntimeStatus } from "./openai-agents";
 
+export {
+  DATACAMP_CATALOG_API_BASE_URL,
+  DATACAMP_INTEGRATION_DEFINITION,
+  DATACAMP_OPERATIONS,
+  DATACAMP_PLUGIN_NAME,
+  DATACAMP_PROVIDER_ID,
+  DataCampConnectionError,
+  toDataCampIntegrationToolRequest,
+  verifyDataCampConnection,
+} from "./datacamp";
+export type {
+  DataCampConnectionVerification,
+  DataCampFetch,
+  DataCampGateway,
+  DataCampOperation,
+  DataCampRequest,
+} from "./datacamp";
+
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
