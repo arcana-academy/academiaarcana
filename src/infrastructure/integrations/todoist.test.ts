@@ -174,18 +174,19 @@ describe("Todoist integration", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.todoist.com/api/v1/tasks",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({
-          content: "Estudar",
-          due_datetime: "2026-09-30T14:00:00.000Z",
-          duration: 30,
-          duration_unit: "minute",
-          priority: 2,
-          project_id: "project-1",
-          labels: ["academia-arcana"],
-        }),
-      }),
+      expect.objectContaining({ method: "POST" }),
     );
+
+    const requestInit = fetchMock.mock.calls[0]?.[1];
+    expect(requestInit).toBeDefined();
+    expect(JSON.parse(String(requestInit?.body))).toEqual({
+      content: "Estudar",
+      due_datetime: "2026-09-30T14:00:00.000Z",
+      project_id: "project-1",
+      priority: 2,
+      labels: ["academia-arcana"],
+      duration: 30,
+      duration_unit: "minute",
+    });
   });
 });
