@@ -33,7 +33,3 @@ The route associates the Relewise request with the authenticated Academia Arcana
 Missing credentials, provider errors, and network failures do not expose provider secrets. The route returns a generic recoverable error to the browser while logging only the generic operation failure.
 
 The Santuário search component remains optional and does not replace the core learning hierarchy or Supabase transactional state.
-
-## Provider documentation
-
-The implementation follows Relewise's official TypeScript/JavaScript SDK and product-search documentation.
