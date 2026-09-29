@@ -8,7 +8,7 @@ test.describe("integration hub", () => {
 
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { name: "Hub de integrações da Academia Arcana" })).toBeVisible();
-    await expect(page.getByText("116 plugins registrados")).toBeVisible();
+    await expect(page.getByText("117 plugins registrados")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ferramentas aplicadas ao ciclo de criação" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
@@ -50,7 +50,7 @@ test.describe("integration hub", () => {
     const body = await response.json();
 
     expect(body).toMatchObject({
-      catalogSize: 116,
+      catalogSize: 117,
       connectedCount: 1,
       errorCount: 0,
     });
@@ -90,6 +90,19 @@ test.describe("integration hub", () => {
       executionMode: "runtime",
       providerId: "todoist",
       capabilities: ["read", "write", "search", "calendar"],
+      verification: null,
+    });
+
+    const airtable = body.entries.find(
+      (entry: { name: string }) => entry.name === "Airtable",
+    );
+
+    expect(airtable).toMatchObject({
+      name: "Airtable",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "airtable",
+      capabilities: ["read", "write", "search", "metadata", "analytics"],
       verification: null,
     });
 
