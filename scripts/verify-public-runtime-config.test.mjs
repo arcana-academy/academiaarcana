@@ -94,7 +94,7 @@ describe("verify-public-runtime-config", () => {
       integration: "supabase-public-runtime",
       verified: true,
       environment: "preview",
-      configuration: "environment",
+      configuration: "safe-vercel-fallback",
     });
   });
 
