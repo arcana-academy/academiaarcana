@@ -8,11 +8,7 @@ export const OUTLOOK_CALENDAR_PLUGIN_NAME = "Outlook Calendar" as const;
 export const MICROSOFT_GRAPH_BASE_URL = "https://graph.microsoft.com/v1.0" as const;
 
 export const OUTLOOK_CALENDAR_SCOPES = [
-  "openid",
-  "profile",
-  "email",
   "offline_access",
-  "User.Read",
   "Calendars.ReadWrite",
 ] as const;
 
