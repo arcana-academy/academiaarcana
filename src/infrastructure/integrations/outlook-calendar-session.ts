@@ -144,5 +144,10 @@ export async function getOutlookAccessToken(): Promise<string | null> {
 }
 
 export async function isOutlookCalendarConnected(): Promise<boolean> {
-  return Boolean(await getOutlookAccessToken());
+  const jar = await cookies();
+  return Boolean(
+    jar.get(ACCESS_COOKIE)?.value &&
+      jar.get(REFRESH_COOKIE)?.value &&
+      jar.get(EXPIRY_COOKIE)?.value,
+  );
 }
