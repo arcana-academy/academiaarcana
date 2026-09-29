@@ -53,17 +53,25 @@ const nextConfig: NextConfig = {
   },
 };
 
+const honeybadgerApiKey = process.env.NEXT_PUBLIC_HONEYBADGER_API_KEY;
+const honeybadgerAssetsUrl = process.env.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL;
+const honeybadgerConfigured = Boolean(honeybadgerApiKey && honeybadgerAssetsUrl);
+
 const honeybadgerConfig = {
-  disableSourceMapUpload: false,
+  disableSourceMapUpload: !honeybadgerConfigured,
   webpackPluginOptions: {
-    apiKey: String(process.env.NEXT_PUBLIC_HONEYBADGER_API_KEY ?? ""),
-    assetsUrl: String(process.env.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL ?? ""),
-    revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
+    ...(honeybadgerConfigured
+      ? {
+          apiKey: honeybadgerApiKey,
+          assetsUrl: honeybadgerAssetsUrl,
+          revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
+        }
+      : {}),
   },
 };
 
 const honeybadgerArgs =
-  process.env.NODE_ENV === "test"
+  process.env.NODE_ENV === "test" || !honeybadgerConfigured
     ? [nextConfig]
     : [nextConfig, honeybadgerConfig];
 
