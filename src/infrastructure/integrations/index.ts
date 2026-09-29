@@ -111,6 +111,22 @@ export {
   verifyDropboxConnection,
 } from "./dropbox";
 
+export {
+  MICROSOFT_GRAPH_BASE_URL,
+  OUTLOOK_CALENDAR_INTEGRATION_DEFINITION,
+  OUTLOOK_CALENDAR_PLUGIN_NAME,
+  OUTLOOK_CALENDAR_PROVIDER_ID,
+  OUTLOOK_CALENDAR_SCOPES,
+  OutlookCalendarClient,
+  OutlookCalendarError,
+} from "./outlook-calendar";
+export type {
+  OutlookAvailableSlot,
+  OutlookCalendar,
+  OutlookCalendarOperation,
+  OutlookEvent,
+} from "./outlook-calendar";
+
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
