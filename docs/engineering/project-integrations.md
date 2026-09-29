@@ -27,7 +27,7 @@ A future direct Adobe provider belongs behind `src/infrastructure/integrations/a
 
 ## ChatGPT catalog
 
-The repository contains the 117 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
+The repository contains the 118 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
 
 The application exposes `/integracoes` and `GET /api/integrations/status` so the current state is inspectable at runtime:
 
