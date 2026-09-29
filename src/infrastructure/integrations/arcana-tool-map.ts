@@ -23,7 +23,7 @@ export const ARCANA_TOOL_TRACKS: readonly ArcanaToolTrack[] = [
   {
     title: "Planejamento e execução",
     description: "Cronograma, tarefas, prazos e execução do estudo.",
-    tools: ["Todoist", "Microsoft Outlook Calendar"],
+    tools: ["Todoist", "Trello", "Microsoft Outlook Calendar"],
   },
   {
     title: "Aprendizagem e avaliação",
