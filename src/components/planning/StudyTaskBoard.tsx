@@ -42,6 +42,7 @@ export function StudyTaskBoard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [sentIds, setSentIds] = useState<Set<string>>(() => new Set());
+  const [asanaSentIds, setAsanaSentIds] = useState<Set<string>>(() => new Set());
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
 
   const submit = async () => {
@@ -89,6 +90,40 @@ export function StudyTaskBoard({
       });
     } catch {
       setError("Não foi possível enviar a tarefa para o Todoist.");
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  const sendToAsana = async (task: StudyTask) => {
+    setError(null);
+    setSendingId(task.id);
+
+    try {
+      const response = await fetch("/api/integrations/asana/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: task.title,
+          notes: "Enviada a partir do Cronograma da Academia Arcana.",
+          dueOn: task.dueAt ? task.dueAt.slice(0, 10) : undefined,
+        }),
+      });
+
+      if (response.status === 409 || response.status === 401) {
+        setError("Conecte o Asana em Integrações antes de enviar esta tarefa.");
+        return;
+      }
+
+      if (!response.ok) throw new Error();
+
+      setAsanaSentIds((current) => {
+        const next = new Set(current);
+        next.add(task.id);
+        return next;
+      });
+    } catch {
+      setError("Não foi possível enviar a tarefa para o Asana.");
     } finally {
       setSendingId(null);
     }
@@ -254,6 +289,24 @@ export function StudyTaskBoard({
                   >
                     <Send size={16} aria-hidden="true" />
                     {sendingId === task.id ? "Enviando…" : sentIds.has(task.id) ? "Enviado" : "Enviar ao Todoist"}
+                  </button>
+                  <button
+                    className="aa-button aa-button-secondary aa-button-sm"
+                    type="button"
+                    onClick={() => void sendToAsana(task)}
+                    disabled={sendingId === task.id || asanaSentIds.has(task.id)}
+                    title={
+                      asanaSentIds.has(task.id)
+                        ? "Tarefa já enviada para o Asana nesta sessão"
+                        : "Enviar uma cópia para o Asana"
+                    }
+                  >
+                    <Send size={16} aria-hidden="true" />
+                    {sendingId === task.id
+                      ? "Enviando…"
+                      : asanaSentIds.has(task.id)
+                        ? "Enviado ao Asana"
+                        : "Enviar ao Asana"}
                   </button>
                   {outlookConnected && task.dueAt && onScheduleInOutlook ? (
                     <button
