@@ -8,21 +8,29 @@ test("application root serves the public entrypoint for unauthenticated users", 
   await expect(page).toHaveTitle(/Academia Arcana/i);
   await expect(
     page.getByRole("heading", {
-      name: "Transforme estudo em uma jornada.",
+      name: "Transforme seu estudo em uma jornada.",
     }),
   ).toBeVisible();
+
   await expect(
-    page.getByRole("link", { name: "Já tenho uma conta" }),
-  ).toHaveAttribute("href", "/login");
-  await expect(
-    page.getByRole("link", { name: "Começar minha jornada" }),
+    page.getByRole("link", { name: "Descobrir a Academia" }),
   ).toHaveAttribute("href", "/cadastro");
 
-  await expect(page.locator("footer")).toBeVisible();
   await expect(
-    page.getByRole("navigation", { name: "Navegação da página" }),
+    page.getByRole("link", { name: "Explorar recursos" }),
+  ).toHaveAttribute("href", "#recursos");
+
+  await expect(
+    page.getByRole("navigation", { name: "Navegação principal" }),
   ).toBeVisible();
+
   await expect(
-    page.getByRole("link", { name: "Pilares" }),
-  ).toHaveAttribute("href", "#pilares");
+    page.getByRole("link", { name: "Recursos", exact: true }),
+  ).toHaveAttribute("href", "#recursos");
+
+  await expect(
+    page.getByRole("link", { name: "Como funciona" }),
+  ).toHaveAttribute("href", "#como-funciona");
+
+  await expect(page.locator("footer")).toBeVisible();
 });
