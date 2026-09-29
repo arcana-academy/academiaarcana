@@ -60,5 +60,6 @@ export function buildSanctuaryViewModel(
     missions: snapshot.missions,
     schedule: snapshot.schedule,
     quickActions,
+    adaptiveRecommendation: snapshot.adaptiveRecommendation,
   };
 }
