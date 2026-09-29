@@ -99,7 +99,7 @@ test.describe("integration hub", () => {
       status: "catalogued",
       executionMode: "runtime",
       providerId: "notion",
-      capabilities: ["read", "write", "search", "files", "metadata"],
+      capabilities: ["read", "write", "search", "metadata"],
       verification: null,
     });
 
