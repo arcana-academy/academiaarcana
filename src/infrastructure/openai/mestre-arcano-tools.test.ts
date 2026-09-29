@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { getMicrosoftSharePointDocumentContext } = vi.hoisted(() => ({
+const { getMicrosoftSharePointDocumentContext, searchWebWithExa } = vi.hoisted(() => ({
   getMicrosoftSharePointDocumentContext: vi.fn(),
+  searchWebWithExa: vi.fn(),
 }));
 
 vi.mock("@/infrastructure/integrations/microsoft-sharepoint-content", () => ({
   getMicrosoftSharePointDocumentContext,
+}));
+
+vi.mock("@/infrastructure/exa/search", () => ({
+  searchWebWithExa,
 }));
 
 import {
@@ -14,6 +19,70 @@ import {
 } from "./mestre-arcano-tools";
 
 describe("Mestre Arcano SharePoint tools", () => {
+
+  it("declares web search as a strict, bounded tool", () => {
+    const tool = MESTRE_ARCANO_TOOLS.find((item) => item.name === "search_web");
+
+    expect(tool).toMatchObject({
+      type: "function",
+      strict: true,
+      parameters: {
+        required: ["query", "numResults"],
+      },
+    });
+  });
+
+  it("routes web search through the Exa adapter without touching application data", async () => {
+    searchWebWithExa.mockResolvedValue([
+      {
+        title: "Fonte",
+        url: "https://example.test/source",
+        publishedDate: "2026-09-29",
+        author: null,
+        highlights: ["Evidência"],
+      },
+    ]);
+
+    const output = await executeMestreArcanoTool(
+      {
+        name: "search_web",
+        arguments: JSON.stringify({ query: "fotossíntese", numResults: 3 }),
+      },
+      {
+        supabase: {} as never,
+        ownerId: "user-1",
+        microsoftSharePointCredentials: null,
+      },
+    );
+
+    expect(JSON.parse(output)).toEqual([
+      {
+        title: "Fonte",
+        url: "https://example.test/source",
+        publishedDate: "2026-09-29",
+        author: null,
+        highlights: ["Evidência"],
+      },
+    ]);
+    expect(searchWebWithExa).toHaveBeenCalledWith({
+      query: "fotossíntese",
+      numResults: 3,
+    });
+  });
+
+  it("rejects malformed web search arguments", async () => {
+    await expect(
+      executeMestreArcanoTool(
+        { name: "search_web", arguments: JSON.stringify({ query: 123, numResults: 3 }) },
+        {
+          supabase: {} as never,
+          ownerId: "user-1",
+          microsoftSharePointCredentials: null,
+        },
+      ),
+    ).rejects.toThrow("Parâmetros de pesquisa web inválidos.");
+  });
+
   it("declares the SharePoint source discovery and context tools as strict functions", () => {
     const sourceTool = MESTRE_ARCANO_TOOLS.find(
       (tool) => tool.name === "get_connected_sharepoint_sources",
