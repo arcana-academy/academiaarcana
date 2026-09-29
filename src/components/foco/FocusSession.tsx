@@ -14,22 +14,26 @@ function formatTime(totalSeconds: number) {
 export function FocusSession() {
   const [remaining, setRemaining] = useState(DEFAULT_SECONDS);
   const [running, setRunning] = useState(false);
+  const [deadline, setDeadline] = useState<number | null>(null);
 
   useEffect(() => {
     if (!running) return;
 
-    const deadline = Date.now() + remaining * 1000;
+    if (deadline === null) return;
 
     const tick = () => {
       const nextRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       setRemaining(nextRemaining);
-      if (nextRemaining === 0) setRunning(false);
+      if (nextRemaining === 0) {
+        setRunning(false);
+        setDeadline(null);
+      }
     };
 
     tick();
     const interval = window.setInterval(tick, 250);
     return () => window.clearInterval(interval);
-  }, [running]);
+  }, [deadline, running]);
 
   const progress = useMemo(
     () => ((DEFAULT_SECONDS - remaining) / DEFAULT_SECONDS) * 100,
@@ -39,6 +43,7 @@ export function FocusSession() {
 
   function reset() {
     setRunning(false);
+    setDeadline(null);
     setRemaining(DEFAULT_SECONDS);
   }
 
@@ -75,10 +80,17 @@ export function FocusSession() {
             onClick={() => {
               if (completed) {
                 setRemaining(DEFAULT_SECONDS);
+                setDeadline(Date.now() + DEFAULT_SECONDS * 1000);
                 setRunning(true);
                 return;
               }
-              setRunning((current) => !current);
+              if (running) {
+                setRunning(false);
+                setDeadline(null);
+                return;
+              }
+              setDeadline(Date.now() + remaining * 1000);
+              setRunning(true);
             }}
             aria-label={running ? "Pausar sessão" : completed ? "Reiniciar sessão" : "Iniciar sessão"}
           >

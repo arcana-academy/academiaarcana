@@ -15,9 +15,11 @@ vi.mock("@/lib/supabase/server", () => ({
 const getProfileMock = vi.fn();
 
 vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => ({
-  SupabaseGamificationRepository: vi.fn(() => ({
-    getProfile: getProfileMock,
-  })),
+  SupabaseGamificationRepository: vi.fn(function SupabaseGamificationRepository() {
+    return {
+      getProfile: getProfileMock,
+    };
+  }),
 }));
 
 const requireAuthenticatedUserMock = vi.mocked(requireAuthenticatedUser);
@@ -52,6 +54,6 @@ describe("StreakPage", () => {
 
     render(await StreakPage());
 
-    expect(screen.getByText("Nenhuma atividade registrada ainda.")).toBeInTheDocument();
+    expect(screen.getAllByText("Nenhuma atividade registrada ainda.")).toHaveLength(2);
   });
 });

@@ -28,6 +28,15 @@ describe("integration status snapshot", () => {
     );
     expect(snapshot.errorCount).toBe(0);
 
+    expect(snapshot.runtimeIntegrations).toMatchObject([
+      {
+        providerId: "openai-agents",
+        name: "OpenAI Agents — Mestre Arcano",
+        status: "not_configured",
+        executionMode: "runtime",
+      },
+    ]);
+
     const brainCells = snapshot.entries.find(
       (entry) => entry.name === "1 Billion Brain Cells",
     );
