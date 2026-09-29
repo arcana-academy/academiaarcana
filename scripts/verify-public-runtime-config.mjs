@@ -70,7 +70,7 @@ export function validateSupabaseProductionConfiguration(
 }
 
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
-  const isVercel = ["preview", "production"].includes(environment.VERCEL_ENV);
+  const isVercel = environment.VERCEL === "1" || ["preview", "production"].includes(environment.VERCEL_ENV);
   const hasConfiguredPublicValues =
     Boolean(environment.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
