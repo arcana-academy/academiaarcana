@@ -1,9 +1,25 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MestreArcanoPanel } from "./MestreArcanoPanel";
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("MestreArcanoPanel", () => {
+  it("bloqueia o envio de uma mensagem vazia", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    render(<MestreArcanoPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Consultar Mestre Arcano" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Escreva uma mensagem para consultar o Mestre Arcano.",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("preenche uma sugestão sem enviar automaticamente", () => {
     render(<MestreArcanoPanel />);
 
@@ -48,7 +64,6 @@ describe("MestreArcanoPanel", () => {
       }),
     );
 
-    fetchMock.mockRestore();
   });
 
   it("remove a resposta anterior quando uma nova consulta falha", async () => {
