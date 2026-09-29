@@ -30,18 +30,9 @@ const viewModel: SanctuaryViewModel = {
         pageTitle: "Página inicial",
         href: "/workspace?view=tree#current",
     },
-    progress: {
-        status: "not-configured",
-        data: null,
-    },
-    missions: {
-        status: "not-configured",
-        data: null,
-    },
-    schedule: {
-        status: "not-configured",
-        data: null,
-    },
+    progress: { status: "not-configured", data: null },
+    missions: { status: "not-configured", data: null },
+    schedule: { status: "not-configured", data: null },
     quickActions: [
         {
             id: "open-workspace",
@@ -55,80 +46,38 @@ const viewModel: SanctuaryViewModel = {
 describe("Sanctuary", () => {
     it("renders the sanctuary shell from a view model", () => {
         render(<Sanctuary viewModel={viewModel} />);
-
-        expect(
-            screen.getByRole("heading", {
-                name: "Seu Santuário de aprendizagem",
-            }),
-        ).toBeTruthy();
-
-        expect(
-            screen.getByRole("link", {
-                name: "Continuar aprendendo",
-            }),
-        ).toBeTruthy();
+        expect(screen.getByRole("heading", { name: "Seu Santuário de aprendizagem" })).toBeTruthy();
+        expect(screen.getByRole("link", { name: "Continuar aprendendo" })).toBeTruthy();
     });
 
     it("delegates the identity header to SanctuaryHeader", () => {
         render(<Sanctuary viewModel={viewModel} />);
-
-        const heading = screen.getByRole("heading", {
-            level: 1,
-            name: "Seu Santuário de aprendizagem",
-        });
-
+        const heading = screen.getByRole("heading", { level: 1, name: "Seu Santuário de aprendizagem" });
         expect(heading).toHaveAttribute("id", "sanctuary-title");
-        expect(screen.getByTestId("sanctuary-user-name")).toHaveTextContent(
-            "Taynara",
-        );
+        expect(screen.getByTestId("sanctuary-user-name")).toHaveTextContent("Taynara");
     });
 
     it("does not require Supabase or repository access", () => {
         render(<Sanctuary viewModel={viewModel} />);
-
         expect(screen.getByRole("main")).toBeTruthy();
     });
 
     it("delegates the missions section to SanctuaryMissions", () => {
         render(<Sanctuary viewModel={viewModel} />);
-
-        expect(
-            screen.getByRole("heading", { level: 2, name: "Missões" }),
-        ).toBeTruthy();
-        expect(
-            screen.getByText(/recurso de miss.es ainda n.o est. configurado/i),
-        ).toBeTruthy();
+        expect(screen.getByRole("heading", { level: 2, name: "Missões" })).toBeTruthy();
+        expect(screen.getByText(/recurso de miss.es ainda n.o est. configurado/i)).toBeTruthy();
         expect(screen.queryByRole("list")).toBeNull();
     });
 
     it("delegates the schedule section to SanctuarySchedule", () => {
         render(<Sanctuary viewModel={viewModel} />);
-
-        expect(
-            screen.getByRole("heading", { level: 2, name: "Agenda" }),
-        ).toBeTruthy();
-        expect(
-            screen.getByText(/recurso de agenda ainda n.o est. configurado/i),
-        ).toBeTruthy();
+        expect(screen.getByRole("heading", { level: 2, name: "Agenda" })).toBeTruthy();
+        expect(screen.getByText(/recurso de agenda ainda n.o est. configurado/i)).toBeTruthy();
         expect(screen.queryByRole("list")).toBeNull();
     });
 
     it("renders an explicit empty state when there is no learning continuation", () => {
-        render(
-            <Sanctuary
-                viewModel={{
-                    ...viewModel,
-                    primaryAction: {
-                        id: "open-workspace",
-                        label: "Abrir Workspace",
-                        href: "/workspace?view=tree#current",
-                        priority: "supporting",
-                    },
-                    continueLearning: null,
-                }}
-            />,
-        );
-
-        expect(screen.getByText(/começar|explorar/i)).toBeTruthy();
+        render(<Sanctuary viewModel={{ ...viewModel, primaryAction: { id: "open-workspace", label: "Abrir Workspace", href: "/workspace?view=tree#current", priority: "supporting" }, continueLearning: null }} />);
+        expect(screen.getByText("Nenhum estudo recente para retomar ainda. Começar a explorar um novo capítulo quando estiver pronto.")).toBeTruthy();
     });
 });
