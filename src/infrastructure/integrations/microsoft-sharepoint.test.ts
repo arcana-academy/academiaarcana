@@ -71,21 +71,15 @@ describe("Microsoft SharePoint integration", () => {
   });
 });
 
-
   it("discovers SharePoint sites through Microsoft Graph", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ value: [{ id: "site-1" }] }), { status: 200 }),
     );
-
     await listMicrosoftSharePointSites("token");
-
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/sites?search=*"),
-      expect.objectContaining({
-        headers: expect.objectContaining({ Authorization: "Bearer token" }),
-      }),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer token" }) }),
     );
-
     fetchMock.mockRestore();
   });
 
@@ -93,30 +87,15 @@ describe("Microsoft SharePoint integration", () => {
     vi.stubEnv("MICROSOFT_CLIENT_ID", "client-id");
     vi.stubEnv("MICROSOFT_CLIENT_SECRET", "client-secret");
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          access_token: "new-access-token",
-          refresh_token: "new-refresh-token",
-          expires_in: 3600,
-        }),
-        { status: 200 },
-      ),
+      new Response(JSON.stringify({ access_token: "new-access-token", refresh_token: "new-refresh-token", expires_in: 3600 }), { status: 200 }),
     );
-
     const credentials = await refreshMicrosoftSharePointCredentials({
-      subjectId: "user-1",
-      accessToken: "old-access-token",
-      refreshToken: "old-refresh-token",
-      accessTokenExpiresAt: Date.now() - 1,
+      subjectId: "user-1", accessToken: "old-access-token", refreshToken: "old-refresh-token", accessTokenExpiresAt: Date.now() - 1,
     });
-
     expect(credentials.accessToken).toBe("new-access-token");
     expect(credentials.refreshToken).toBe("new-refresh-token");
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("/oauth2/v2.0/token"),
-      expect.objectContaining({ method: "POST" }),
-    );
-
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/oauth2/v2.0/token"), expect.objectContaining({ method: "POST" }));
     fetchMock.mockRestore();
     vi.unstubAllEnvs();
   });
+});
