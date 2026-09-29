@@ -66,4 +66,32 @@ describe("StudyTaskBoard", () => {
     expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
     expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
   });
+  it("shows Outlook scheduling for tasks with a due time and calls the server action", async () => {
+    const onScheduleInOutlook = vi.fn().mockResolvedValue({
+      webLink: null,
+    });
+
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        onScheduleInOutlook={onScheduleInOutlook}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Agendar no Outlook" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Agendar no Outlook" }),
+    );
+
+    await waitFor(() =>
+      expect(onScheduleInOutlook).toHaveBeenCalledWith("task-1"),
+    );
+  });
+
 });

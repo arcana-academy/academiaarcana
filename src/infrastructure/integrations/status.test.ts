@@ -122,6 +122,17 @@ describe("integration status snapshot", () => {
       verification: null,
     });
 
+    const outlook = snapshot.entries.find((entry) => entry.name === "Outlook Calendar");
+    expect(outlook).toMatchObject({
+      name: "Outlook Calendar",
+      source: "runtime",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "outlook-calendar",
+      capabilities: ["read", "write", "search", "calendar"],
+      verification: null,
+    });
+
     const airtable = snapshot.entries.find((entry) => entry.name === "Airtable");
     expect(airtable).toMatchObject({
       name: "Airtable",

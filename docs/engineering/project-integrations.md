@@ -129,6 +129,15 @@ Current state:
 
 A future direct integration belongs behind `src/infrastructure/integrations` and requires a documented provider contract, server-side authorization model, least-privilege credentials when applicable, provider health and representative-operation checks, failure isolation, security tests, and deployed E2E verification before becoming `connected`.
 
+## Outlook Calendar
+
+Outlook Calendar is the scheduling layer for the Cronograma. The web runtime uses Microsoft Graph through a server-side authorization-code OAuth flow with PKCE and requests only offline access plus the delegated Calendars.ReadWrite permission.
+
+Credentials are stored encrypted in the application database and scoped to the authenticated Academia Arcana subject. The runtime can read the user's upcoming events, derive available study slots, create calendar events for scheduled StudyTask records, refresh access tokens and disconnect the account.
+
+Supabase remains the product source of truth for StudyTask and learning state. Outlook is an external calendar projection and must remain optional: provider failures are isolated from the core Cronograma experience.
+
+Production activation requires the Microsoft Entra client ID/secret, redirect URI and the server-side session encryption secret to be configured in the final environment.
 ## Airtable
 
 Airtable is a server-side operations and content-management integration. The runtime uses a Personal Access Token and a configured base identifier; neither value is exposed through NEXT_PUBLIC_* variables or returned in integration status payloads.
@@ -171,6 +180,7 @@ The current adapter intentionally does not treat the ChatGPT connector as a web 
 | Airtable | Operations and structured content management | Server-side PAT adapter, base verification, bounded record reads and batched record creation | Airtable Personal Access Token and Base ID | Runtime adapter implemented; external credentials remain deployment configuration |
 | Microsoft SharePoint | External document knowledge source | Server-side OAuth 2.0 adapter, encrypted credentials, site/drive/search/context routes | Microsoft OAuth client credentials and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Notion | Knowledge + documentation | Server-side OAuth 2.0 adapter, encrypted user-bound credentials, page search and child-page creation | Notion Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
+| Outlook Calendar | Scheduling for Cronograma | Server-side Microsoft Entra authorization-code + PKCE adapter, encrypted per-user credentials, event reads/availability/event creation | Microsoft Entra client ID, client secret, exact Redirect URI and session encryption secret | Runtime adapter implemented; per-user connection configured when authorized |
 
 ## Required production variables
 

@@ -311,6 +311,17 @@ export async function getIntegrationStatusSnapshot({
         verification: null,
       };
     }
+    if (plugin.name === "Outlook Calendar") {
+      return {
+        name: "Outlook Calendar",
+        source: "runtime" as const,
+        status: "catalogued" as const,
+        executionMode: "runtime" as const,
+        providerId: "outlook-calendar",
+        capabilities: ["read", "write", "search", "calendar"],
+        verification: null,
+      };
+    }
     if (plugin.name === "Airtable") return airtableEntry;
 
     if (plugin.name === "Trello") {

@@ -1,13 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Send } from "lucide-react";
+import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
+
+type OutlookEvent = {
+  id: string;
+  subject: string | null;
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  webLink?: string | null;
+  isCancelled?: boolean | null;
+};
 
 type StudyTaskBoardProps = {
   tasks: StudyTask[];
+  outlookConnected?: boolean;
+  outlookEvents?: OutlookEvent[];
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
   onComplete: (id: string) => Promise<StudyTask>;
+  onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
 };
 
 function formatDueAt(value: string | null): string {
@@ -15,7 +27,14 @@ function formatDueAt(value: string | null): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardProps) {
+export function StudyTaskBoard({
+  tasks,
+  outlookConnected = false,
+  outlookEvents = [],
+  onCreate,
+  onComplete,
+  onScheduleInOutlook,
+}: StudyTaskBoardProps) {
   const [items, setItems] = useState(tasks);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
@@ -23,6 +42,7 @@ export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [sentIds, setSentIds] = useState<Set<string>>(() => new Set());
+  const [schedulingId, setSchedulingId] = useState<string | null>(null);
 
   const submit = async () => {
     setError(null);
@@ -74,6 +94,25 @@ export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardPr
     }
   };
 
+  const scheduleInOutlook = async (id: string) => {
+    if (!onScheduleInOutlook) return;
+
+    setError(null);
+    setSchedulingId(id);
+    try {
+      const event = await onScheduleInOutlook(id);
+      if (event.webLink) window.open(event.webLink, "_blank", "noopener,noreferrer");
+    } catch (cause) {
+      setError(
+        cause instanceof Error && cause.message === "STUDY_TASK_WITHOUT_SCHEDULE"
+          ? "Defina um horário na tarefa antes de enviá-la ao Outlook."
+          : "Não foi possível criar o evento no Outlook.",
+      );
+    } finally {
+      setSchedulingId(null);
+    }
+  };
+
   const complete = async (id: string) => {
     setError(null);
     try {
@@ -93,6 +132,83 @@ export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardPr
           <p>Transforme intenção em próximos passos claros, sem sobrecarregar sua visão.</p>
         </div>
       </header>
+
+      <section className="aa-surface aa-sanctuary-section" aria-labelledby="outlook-title">
+        <div className="aa-surface-header">
+          <div>
+            <p className="aa-eyebrow">Integração de agenda</p>
+            <h2 id="outlook-title">Outlook Calendar</h2>
+          </div>
+          <span className="aa-badge aa-badge-neutral">
+            {outlookConnected ? "Conectado" : "Não conectado"}
+          </span>
+        </div>
+        <p>
+          {outlookConnected
+            ? "Tarefas com horário podem ser transformadas em eventos no seu calendário."
+            : "Conecte seu calendário para transformar tarefas do Cronograma em eventos reais."}
+        </p>
+        {outlookConnected ? (
+          <form action="/api/integrations/outlook/disconnect" method="post">
+            <button
+              className="aa-button aa-button-secondary aa-button-sm"
+              type="submit"
+            >
+              Desconectar Outlook
+            </button>
+          </form>
+        ) : (
+          <a
+            className="aa-button aa-button-secondary"
+            href="/api/integrations/outlook/authorize"
+          >
+            Conectar Outlook Calendar
+          </a>
+        )}
+      </section>
+
+      {outlookConnected ? (
+        <section
+          className="aa-surface aa-sanctuary-section"
+          aria-labelledby="outlook-events-title"
+        >
+          <div className="aa-surface-header">
+            <div>
+              <p className="aa-eyebrow">Agenda externa · próximos 7 dias</p>
+              <h2 id="outlook-events-title">Eventos do Outlook</h2>
+            </div>
+            <span className="aa-badge aa-badge-neutral">{outlookEvents.length}</span>
+          </div>
+          {outlookEvents.length === 0 ? (
+            <div className="aa-empty">
+              <p>Nenhum evento encontrado no Outlook neste período.</p>
+            </div>
+          ) : (
+            <ul className="aa-list aa-planning-list">
+              {outlookEvents.slice(0, 10).map((event) => (
+                <li className="aa-list-item" key={event.id}>
+                  <div>
+                    <strong>{event.subject || "Evento sem título"}</strong>
+                    <small>
+                      {formatDueAt(event.start.dateTime)} · até {formatDueAt(event.end.dateTime)}
+                    </small>
+                  </div>
+                  {event.webLink ? (
+                    <a
+                      className="aa-button aa-button-secondary aa-button-sm"
+                      href={event.webLink}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      Abrir Outlook
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
         <div className="aa-surface-header">
@@ -139,6 +255,18 @@ export function StudyTaskBoard({ tasks, onCreate, onComplete }: StudyTaskBoardPr
                     <Send size={16} aria-hidden="true" />
                     {sendingId === task.id ? "Enviando…" : sentIds.has(task.id) ? "Enviado" : "Enviar ao Todoist"}
                   </button>
+                  {outlookConnected && task.dueAt && onScheduleInOutlook ? (
+                    <button
+                      className="aa-button aa-button-secondary aa-button-sm"
+                      type="button"
+                      onClick={() => void scheduleInOutlook(task.id)}
+                      disabled={schedulingId === task.id}
+                      title="Criar um evento no Outlook para este horário"
+                    >
+                      <CalendarDays size={16} aria-hidden="true" />
+                      {schedulingId === task.id ? "Enviando…" : "Agendar no Outlook"}
+                    </button>
+                  ) : null}
                   <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void complete(task.id)}>Concluir</button>
                 </div>
               </li>
