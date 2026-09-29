@@ -187,6 +187,7 @@ async function downloadMicrosoftSharePointSiteItemContent(
       },
       cache: "no-store",
       redirect: "follow",
+      signal: AbortSignal.timeout(15_000),
     });
   } catch {
     throw new Error("microsoft_sharepoint_document_unavailable");
@@ -255,6 +256,10 @@ export async function getMicrosoftSharePointDocumentContext(
   sourceId: string,
   dependencies: SharePointDocumentContextDependencies,
 ): Promise<MicrosoftSharePointDocumentContext> {
+  if (dependencies.credentials.subjectId !== dependencies.ownerId) {
+    throw new Error("microsoft_sharepoint_not_connected");
+  }
+
   const source = await loadOwnedSource(dependencies, sourceId);
 
   const currentMetadata = await getMicrosoftSharePointSiteItemMetadata(
