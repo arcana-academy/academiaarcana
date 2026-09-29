@@ -1,3 +1,4 @@
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { Brain, Clock3, Focus } from "lucide-react";
 import Link from "next/link";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
@@ -6,7 +7,8 @@ import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { FocusSession } from "@/components/foco/FocusSession";
 
-export default function FocoPage() {
+export default async function FocoPage() {
+  await requireAuthenticatedUser();
   return (
     <AuthenticatedShell currentPath="/foco">
       <ArcanaPage
