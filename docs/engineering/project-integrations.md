@@ -108,7 +108,20 @@ Current state:
 
 A future direct integration belongs behind `src/infrastructure/integrations` and requires a documented provider contract, server-side authorization model, least-privilege credentials when applicable, provider health and representative-operation checks, failure isolation, security tests, and deployed E2E verification before becoming `connected`.
 
-## OpenAI Agents — Mestre Arcano\n\nA Academia Arcana agora possui um adapter server-side para o OpenAI Responses API, usado como runtime do **Mestre Arcano**. O endpoint autenticado `POST /api/agent/mestre-arcano` executa o agente sem expor `OPENAI_API_KEY` ao navegador.\n\nA configuração usa:\n\n- `OPENAI_API_KEY` — segredo obrigatório, somente em ambiente server-side/Vercel.\n- `OPENAI_AGENT_MODEL` — opcional; o padrão do projeto é `gpt-5.6-sol`.\n\nA integração é marcada como `connected` no hub somente quando a chave existe e o modelo configurado passa por uma verificação real contra a OpenAI. Sem a chave, o estado é `not_configured`; falhas de autenticação/rede/modelo resultam em `error`.\n\nO agente segue uma regra de segurança de produto: não inventa progresso, notas, tarefas, dados pessoais ou estado de integrações. Dados do aluno deverão ser fornecidos posteriormente por ferramentas autorizadas do próprio domínio da Academia Arcana.\n\nO SDK oficial de Agents pode evoluir separadamente; o adapter atual usa a Responses API diretamente para manter o runtime sem dependência adicional e com superfície mínima. A documentação atual do Agents SDK descreve Agents como modelos equipados com instruções e ferramentas e suporta function tools, MCP, handoffs e tracing.\n\n## Runtime / delivery integrations
+## OpenAI Agents — Mestre Arcano\n\nA Academia Arcana agora possui um adapter server-side para o OpenAI Responses API, usado como runtime do **Mestre Arcano**. O endpoint autenticado `POST /api/agent/mestre-arcano` executa o agente sem expor `OPENAI_API_KEY` ao navegador.\n\nA configuração usa:\n\n- `OPENAI_API_KEY` — segredo obrigatório, somente em ambiente server-side/Vercel.\n- `OPENAI_AGENT_MODEL` — opcional; o padrão do projeto é `gpt-5.6-sol`.\n\nA integração é marcada como `connected` no hub somente quando a chave existe e o modelo configurado passa por uma verificação real contra a OpenAI. Sem a chave, o estado é `not_configured`; falhas de autenticação/rede/modelo resultam em `error`.\n\nO agente segue uma regra de segurança de produto: não inventa progresso, notas, tarefas, dados pessoais ou estado de integrações. Dados do aluno deverão ser fornecidos posteriormente por ferramentas autorizadas do próprio domínio da Academia Arcana.\n\nO SDK oficial de Agents pode evoluir separadamente; o adapter atual usa a Responses API diretamente para manter o runtime sem dependência adicional e com superfície mínima. A documentação atual do Agents SDK descreve Agents como modelos equipados com instruções e ferramentas e suporta function tools, MCP, handoffs e tracing.\n\n## Notion
+
+Notion is a runtime application integration for knowledge and documentation workflows. The web runtime keeps the OAuth credentials server-side and binds the encrypted credential payload to the authenticated Academia Arcana subject.
+
+Supported runtime operations:
+
+- connect and verify the authorized user;
+- search authorized pages;
+- create a child page under an authorized parent page;
+- disconnect and revoke the access token.
+
+The current adapter intentionally does not treat the ChatGPT connector as a web dependency. It uses Notion's documented public OAuth/API transport and keeps the provider separate from the product's transactional source of truth.
+
+## Runtime / delivery integrations
 
 | Service | Role | Repository integration | External configuration | State |
 | --- | --- | --- | --- | --- |
@@ -117,6 +130,8 @@ A future direct integration belongs behind `src/infrastructure/integrations` and
 | Supabase | Auth + PostgreSQL persistence | Browser/server clients, session refresh, repositories, RLS-backed schema | Project URL + publishable key; Auth settings | Connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
 | Todoist | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, task/project reads, task creation and completion | Todoist OAuth Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
+| Microsoft SharePoint | External document knowledge source | Server-side OAuth 2.0 adapter, encrypted credentials, site/drive/search/context routes | Microsoft OAuth client credentials and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
+| Notion | Knowledge + documentation | Server-side OAuth 2.0 adapter, encrypted user-bound credentials, page search and child-page creation | Notion Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 
 ## Required production variables
 
@@ -137,7 +152,7 @@ Honeybadger remains optional from the build perspective.
 
 ## Services deliberately kept outside the runtime
 
-Canva, Figma, Notion, Dropbox, Slack, Vercel connector actions, Supabase connector actions, and other ChatGPT-side tools are not automatically imported into the web runtime. They become application integrations only through a provider-specific API/OAuth/MCP adapter.
+Canva, Figma, Dropbox, Slack, Vercel connector actions, Supabase connector actions, and other ChatGPT-side tools are not automatically imported into the web runtime. They become application integrations only through a provider-specific API/OAuth/MCP adapter.
 
 This prevents accidental exposure of connector credentials, unnecessary client dependencies, and coupling between the web application and the assistant tool layer.
 
