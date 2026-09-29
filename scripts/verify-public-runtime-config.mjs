@@ -75,11 +75,11 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
     Boolean(environment.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
-  if (!hasConfiguredPublicValues && !isVercel) {
+  if (!isVercel && !environment.NEXT_PUBLIC_SUPABASE_URL) {
     throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
   }
 
-  if (!environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !isVercel) {
+  if (!isVercel && !environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
     throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
   }
 
