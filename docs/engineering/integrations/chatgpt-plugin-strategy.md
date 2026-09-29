@@ -99,6 +99,18 @@ A provider adapter is not complete until:
 - production has the required environment configuration;
 - the integration can be disabled without breaking core product functionality.
 
+## Outlook Calendar runtime adapter
+
+Outlook Calendar is now implemented as a real application integration for the
+Cronograma. The adapter uses Microsoft Entra authorization-code + PKCE and
+Microsoft Graph behind the vendor-neutral integration boundary.
+
+The implementation supports calendar listing, event reads, availability
+lookup with a Graph availability path plus an events-based fallback, and study
+event creation. The provider remains optional and is considered connected only
+for a specific authenticated user's active connection; the global catalog
+does not treat mere adapter presence as a connected user account.
+
 ## Consequence
 
 The product can support a large and evolving set of external services without
