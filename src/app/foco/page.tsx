@@ -20,7 +20,7 @@ export default function FocoPage() {
 
       <ArcanaFeatureGrid>
           <FeatureCard title="Sessão de foco" description="Base visual para uma experiência de foco sem sobrecarga." icon={<Focus size={22} />}>
-            <p className="aa-state-copy">O temporizador persistente ainda não está configurado. A interface não simula uma sessão inexistente.</p>
+            <p className="aa-state-copy">Cada sessão iniciada e concluída é registrada com segurança para apoiar seu histórico de estudo.</p>
           </FeatureCard>
           <FeatureCard title="Ritmo" description="Estruture blocos de trabalho e pausas de acordo com sua preferência." icon={<Clock3 size={22} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">Ver cronograma</Link>
