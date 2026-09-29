@@ -3,9 +3,6 @@ import { resolve } from "node:path";
 import { parseEnv } from "node:util";
 import { fileURLToPath } from "node:url";
 
-const PREVIEW_SUPABASE_URL = "https://fichnalpbcfjywwhixid.supabase.co";
-const PREVIEW_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_0yFN7N7ikHBDY6m6P3FICw_u1lL6ppI";
-
 const BUILD_ENV_FILES = [
   ".env.production.local",
   ".env.local",
@@ -22,16 +19,12 @@ export function loadBuildEnvironment(
   for (const filename of BUILD_ENV_FILES) {
     const path = resolve(cwd, filename);
 
-    if (!existsSync(path)) {
-      continue;
-    }
+    if (!existsSync(path)) continue;
 
     const parsed = parseEnv(readFileSync(path, "utf8"));
 
     for (const [name, value] of Object.entries(parsed)) {
-      if (!(name in environment)) {
-        environment[name] = value;
-      }
+      if (!(name in environment)) environment[name] = value;
     }
   }
 
@@ -77,32 +70,29 @@ export function validateSupabaseProductionConfiguration(
 }
 
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
-  const isPreview = environment.VERCEL_ENV === "preview";
-  const supabaseUrl =
-    environment.NEXT_PUBLIC_SUPABASE_URL ||
-    (isPreview ? PREVIEW_SUPABASE_URL : undefined);
-  const publishableKey =
-    environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    (isPreview ? PREVIEW_SUPABASE_PUBLISHABLE_KEY : undefined);
+  const isVercel = ["preview", "production"].includes(environment.VERCEL_ENV);
+  const hasConfiguredPublicValues =
+    Boolean(environment.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
-  if (!supabaseUrl) {
-    throw new Error("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
-  }
-
-  if (!publishableKey) {
+  if (!hasConfiguredPublicValues && !isVercel) {
     throw new Error(
-      "Missing required environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "Missing required Supabase public runtime configuration outside Vercel.",
     );
   }
 
-  if (environment.VERCEL_ENV === "production") {
-    validateSupabaseProductionConfiguration(supabaseUrl, publishableKey);
+  if (hasConfiguredPublicValues && environment.VERCEL_ENV === "production") {
+    validateSupabaseProductionConfiguration(
+      environment.NEXT_PUBLIC_SUPABASE_URL,
+      environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    );
   }
 
   return {
     integration: "supabase-public-runtime",
     verified: true,
     environment: environment.VERCEL_ENV ?? environment.NODE_ENV ?? "unknown",
+    configuration: hasConfiguredPublicValues ? "environment" : "safe-vercel-fallback",
   };
 }
 
