@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
-import { Accessibility, Palette, ShieldCheck } from "lucide-react";
+import { Accessibility, Palette, PlugZap, ShieldCheck } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -23,6 +24,12 @@ export default async function ConfiguracoesPage() {
           </FeatureCard>
           <FeatureCard title="Segurança" description="Autenticação e autorização devem permanecer separadas da apresentação." icon={<ShieldCheck size={22} />}>
             <p className="aa-state-copy">Configurações sensíveis devem usar os fluxos server-side e as políticas de segurança existentes.</p>
+          </FeatureCard>
+          <FeatureCard title="Integrações" description="Conecte ferramentas externas que complementam o estudo e o planejamento." icon={<PlugZap size={22} />}>
+            <p className="aa-state-copy">O Todoist pode receber tarefas e prazos do seu cronograma sem substituir a fonte de verdade educacional da Academia Arcana.</p>
+            <Link className="aa-button aa-button-secondary aa-button-sm" href="/integracoes/todoist">
+              Gerenciar Todoist
+            </Link>
           </FeatureCard>
         </ArcanaFeatureGrid>
       </ArcanaPage>
