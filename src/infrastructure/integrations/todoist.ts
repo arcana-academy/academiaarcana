@@ -63,11 +63,14 @@ export type TodoistProject = {
   readonly is_favorite?: boolean;
 };
 
-export type TodoistCredentials = {
-  readonly subjectId: string;
+export type TodoistTokenSet = {
   readonly accessToken: string;
   readonly refreshToken: string | null;
   readonly accessTokenExpiresAt: number | null;
+};
+
+export type TodoistCredentials = TodoistTokenSet & {
+  readonly subjectId: string;
 };
 
 export type TodoistConnectionVerification = {
@@ -302,7 +305,7 @@ export async function exchangeTodoistAuthorizationCode(input: {
   readonly code: string;
   readonly codeVerifier: string;
   readonly requestUrl?: string;
-}): Promise<TodoistCredentials> {
+}): Promise<TodoistTokenSet> {
   const response = await fetch(TODOIST_OAUTH_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
