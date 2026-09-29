@@ -116,6 +116,7 @@ A future direct integration belongs behind `src/infrastructure/integrations` and
 | Vercel | Hosting + deployment | Next.js deployment target | Project configuration, aliases, environment variables | Connected / external configuration pending |
 | Supabase | Auth + PostgreSQL persistence | Browser/server clients, session refresh, repositories, RLS-backed schema | Project URL + publishable key; Auth settings | Connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
+| Outlook Calendar | Study scheduling | Microsoft Graph adapter, Entra OAuth/PKCE routes, Cronograma actions | Microsoft Entra client ID/secret, exact redirect URI, encryption secret | Runtime adapter implemented; external Entra configuration pending |
 
 ## Required production variables
 
@@ -133,6 +134,21 @@ Optional Honeybadger variables:
 - `NEXT_PUBLIC_HONEYBADGER_REVISION`
 
 Honeybadger remains optional from the build perspective.
+
+Outlook Calendar server-side variables:
+
+- `MICROSOFT_ENTRA_CLIENT_ID`
+- `MICROSOFT_ENTRA_CLIENT_SECRET`
+- `MICROSOFT_ENTRA_REDIRECT_URI`
+- `OUTLOOK_CALENDAR_SESSION_SECRET`
+
+The exact callback URI must be registered in Microsoft Entra. The implementation
+uses the authorization-code flow with PKCE and Microsoft Graph delegated
+`Calendars.ReadWrite`. See:
+https://learn.microsoft.com/pt-br/entra/identity-platform/v2-oauth2-auth-code-flow
+and
+https://learn.microsoft.com/pt-br/graph/api/user-post-events?view=graph-rest-1.0
+
 
 ## Services deliberately kept outside the runtime
 
