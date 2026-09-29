@@ -45,6 +45,9 @@ jobs:
       - name: Run workspace page movement database tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/move_workspace_page_test.sql
 
+      - name: Run friend connection privilege database tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/friend_connections_privileges.test.sql
+
       - name: Stop local Supabase
         if: always()
         run: supabase stop
