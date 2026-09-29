@@ -13,6 +13,7 @@ async function hasAuthenticatedSession(): Promise<boolean> {
   }
 }
 
+/** Public entry point: unauthenticated users see the learning journey landing. */
 export default async function Page() {
   if (await hasAuthenticatedSession()) redirect("/santuario");
 
