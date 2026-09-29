@@ -97,10 +97,22 @@ describe("verify-public-runtime-config", () => {
     });
   });
 
-  it("rejects a preview without the required publishable key", () => {
-    expect(() =>
+  it("uses preview fallbacks when both public Supabase values are absent", () => {
+    expect(
       verifyPublicRuntimeConfig({
         VERCEL_ENV: "preview",
+      }),
+    ).toEqual({
+      integration: "supabase-public-runtime",
+      verified: true,
+      environment: "preview",
+    });
+  });
+
+  it("rejects a non-preview environment without the required publishable key", () => {
+    expect(() =>
+      verifyPublicRuntimeConfig({
+        VERCEL_ENV: "development",
         NEXT_PUBLIC_SUPABASE_URL: validUrl,
       }),
     ).toThrow(
