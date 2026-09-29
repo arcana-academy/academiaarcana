@@ -4,6 +4,7 @@ import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
+import { FocusSession } from "@/components/foco/FocusSession";
 
 export default function FocoPage() {
   return (
@@ -14,7 +15,9 @@ export default function FocoPage() {
         description="Um espaço para reduzir distrações e apoiar sessões de estudo previsíveis e confortáveis."
         actions={[{ href: "/cronograma", label: "Planejar sessão", variant: "primary" }]}
       >
-        <ArcanaFeatureGrid>
+        <FocusSession />
+
+      <ArcanaFeatureGrid>
           <FeatureCard title="Sessão de foco" description="Base visual para uma experiência de foco sem sobrecarga." icon={<Focus size={22} />}>
             <p className="aa-state-copy">O temporizador persistente ainda não está configurado. A interface não simula uma sessão inexistente.</p>
           </FeatureCard>
