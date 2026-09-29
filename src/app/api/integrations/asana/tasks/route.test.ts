@@ -1,11 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockCookies = vi.fn();
-const mockRequireAuthenticatedUser = vi.fn();
-const mockDecryptAsanaCredentials = vi.fn();
-const mockGetAsanaTasks = vi.fn();
-const mockCreateAsanaTask = vi.fn();
-const mockCloseAsanaTask = vi.fn();
+const {
+  mockCookies,
+  mockRequireAuthenticatedUser,
+  mockDecryptAsanaCredentials,
+  mockGetAsanaTasks,
+  mockCreateAsanaTask,
+  mockCloseAsanaTask,
+} = vi.hoisted(() => ({
+  mockCookies: vi.fn(),
+  mockRequireAuthenticatedUser: vi.fn(),
+  mockDecryptAsanaCredentials: vi.fn(),
+  mockGetAsanaTasks: vi.fn(),
+  mockCreateAsanaTask: vi.fn(),
+  mockCloseAsanaTask: vi.fn(),
+}));
 
 vi.mock("next/headers", () => ({
   cookies: mockCookies,
