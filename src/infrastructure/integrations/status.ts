@@ -231,18 +231,6 @@ export async function getIntegrationStatusSnapshot({
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
     if (plugin.name === "Dropbox") return dropboxEntry;
-    if (plugin.name === "Trello") {
-      return {
-        name: "Trello",
-        source: "runtime" as const,
-        status: "catalogued" as const,
-        executionMode: "runtime" as const,
-        providerId: "trello",
-        capabilities: ["read", "write", "search", "metadata"],
-        verification: null,
-      };
-    }
-
     if (plugin.name === "Notion") {
       return {
         name: "Notion",
