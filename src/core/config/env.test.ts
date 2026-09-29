@@ -16,14 +16,14 @@ describe("runtime configuration", () => {
     });
   });
 
-  it("uses the project URL as a Vercel preview fallback", () => {
+  it("uses the project URL and public key as Vercel preview fallbacks", () => {
     vi.stubEnv("VERCEL_ENV", "preview");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
-    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-key");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "");
 
     expect(getPublicRuntimeConfig()).toEqual({
       supabaseUrl: "https://fichnalpbcfjywwhixid.supabase.co",
-      supabasePublishableKey: "publishable-key",
+      supabasePublishableKey: "sb_publishable_0yFN7N7ikHBDY6m6P3FICw_u1lL6ppI",
     });
   });
 
