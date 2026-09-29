@@ -1,3 +1,4 @@
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { BookOpen, Shield, UserRound } from "lucide-react";
 import Link from "next/link";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
@@ -5,7 +6,8 @@ import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 
-export default function PerfilPage() {
+export default async function PerfilPage() {
+  await requireAuthenticatedUser();
   return (
     <AuthenticatedShell currentPath="/perfil">
       <ArcanaPage
