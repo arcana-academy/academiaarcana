@@ -10,12 +10,10 @@ describe("RelewiseSearch", () => {
 
   it("requires a search term", async () => {
     render(<RelewiseSearch />);
-
     fireEvent.submit(screen.getByRole("search"));
-
-    expect(
-      await screen.findByRole("alert"),
-    ).toHaveTextContent("Digite algo para pesquisar.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Digite algo para pesquisar.",
+    );
   });
 
   it("renders returned results", async () => {
@@ -24,9 +22,7 @@ describe("RelewiseSearch", () => {
       vi.fn().mockResolvedValue(
         new Response(
           JSON.stringify({
-            results: [
-              { productId: "p-1", displayName: "Produto Arcano" },
-            ],
+            results: [{ productId: "p-1", displayName: "Produto Arcano" }],
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
