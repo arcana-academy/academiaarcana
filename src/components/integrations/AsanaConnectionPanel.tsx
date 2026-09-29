@@ -49,7 +49,39 @@ export function AsanaConnectionPanel() {
   };
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+
+    const loadInitial = async () => {
+      try {
+        const response = await fetch("/api/integrations/asana/status", { cache: "no-store" });
+        if (!response.ok) throw new Error();
+        const next = (await response.json()) as AsanaStatus;
+
+        if (next.status === "connected") {
+          const tasksResponse = await fetch("/api/integrations/asana/tasks", { cache: "no-store" });
+          if (!tasksResponse.ok) throw new Error();
+          const data = (await tasksResponse.json()) as { tasks?: AsanaTask[] };
+
+          if (!cancelled) {
+            setStatus(next);
+            setTasks(data.tasks?.filter((task) => !task.completed).slice(0, 8) ?? []);
+          }
+        } else if (!cancelled) {
+          setStatus(next);
+          setTasks([]);
+        }
+      } catch {
+        if (!cancelled) setError("Não foi possível consultar o estado do Asana.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void loadInitial();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const disconnect = async () => {
