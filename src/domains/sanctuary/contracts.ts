@@ -3,6 +3,7 @@
  * Following the canonical hierarchy and domain-driven design principles.
  */
 import type { Grimoire, Notebook, Chapter, Page } from "@/domains/learning";
+import type { AdaptiveRecommendation } from "@/domains/adaptive";
 
 export type SanctuaryPage = Pick<Page, "id" | "chapterId" | "title" | "position">;
 
@@ -95,6 +96,7 @@ export type SanctuarySnapshot = {
   missions: SectionState<SanctuaryMission[]>;
   schedule: SectionState<ScheduleItem[]>;
   quickActions: QuickAction[];
+  adaptiveRecommendation: AdaptiveRecommendation;
 };
 
 export type SanctuaryViewModel = {
@@ -108,4 +110,5 @@ export type SanctuaryViewModel = {
   missions: SectionState<SanctuaryMission[]>;
   schedule: SectionState<ScheduleItem[]>;
   quickActions: QuickAction[];
+  adaptiveRecommendation: AdaptiveRecommendation;
 };
