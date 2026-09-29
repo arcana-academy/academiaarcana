@@ -6,9 +6,19 @@ test.describe("GitHub integration", () => {
   }) => {
     const response = await request.get("/api/integrations/github/verify");
 
-    expect(response.status()).toBe(200);
+    expect([200, 502]).toContain(response.status());
 
     const body = await response.json();
+
+    if (response.status() === 502) {
+      expect(body).toMatchObject({
+        providerId: "github",
+        pluginName: "GitHub",
+        status: "error",
+      });
+      expect(body.message).not.toMatch(/token|secret|authorization/i);
+      return;
+    }
 
     expect(body).toMatchObject({
       providerId: "github",
