@@ -1,4 +1,5 @@
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { createClient } from "@/lib/supabase/server";
 import { BookOpen, Shield, UserRound } from "lucide-react";
 import Link from "next/link";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
@@ -7,7 +8,14 @@ import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 
 export default async function PerfilPage() {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const email = data.user?.email ?? ("ID: " + claims.sub);
+  const createdAt = data.user?.created_at
+    ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(data.user.created_at))
+    : null;
+
   return (
     <AuthenticatedShell currentPath="/perfil">
       <ArcanaPage
@@ -18,7 +26,7 @@ export default async function PerfilPage() {
       >
         <ArcanaFeatureGrid>
           <FeatureCard title="Identidade" description="Informações básicas devem vir da sessão e dos dados de perfil autorizados." icon={<UserRound size={22} />}>
-            <p className="aa-state-copy">O perfil detalhado será preenchido a partir das fontes de identidade existentes.</p>
+            <p className="aa-state-copy">Conta: {email}</p>{createdAt ? <p className="aa-state-copy">Conta criada em {createdAt}.</p> : null}
           </FeatureCard>
           <FeatureCard title="Jornada" description="A aprendizagem continua pertencendo ao domínio Learning." icon={<BookOpen size={22} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/grimorios">Abrir grimórios</Link>
