@@ -17,6 +17,7 @@ import {
   verifyGitHubConnection,
   type GitHubConnectionVerification,
 } from "./github/public-github";
+import { isOutlookCalendarConnected } from "./outlook-calendar-session";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
@@ -174,6 +175,20 @@ function dropboxErrorEntry(): IntegrationStatusEntry {
   };
 }
 
+function outlookCatalogEntry(
+  connected: boolean,
+): IntegrationStatusEntry {
+  return {
+    name: "Outlook Calendar",
+    source: "chatgpt-catalog",
+    status: connected ? "connected" : "catalogued",
+    executionMode: "runtime",
+    providerId: "outlook-calendar",
+    capabilities: ["read", "write", "search", "calendar"],
+    verification: null,
+  };
+}
+
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
@@ -186,6 +201,7 @@ export async function getIntegrationStatusSnapshot({
   dropboxVerifier = verifyDropboxConnection,
   dataCampApiKey = process.env.DATACAMP_API_KEY,
   dropboxToken = process.env.DROPBOX_RUNTIME_TOKEN,
+  outlookConnectionVerifier = isOutlookCalendarConnected,
 }: {
   readonly githubVerifier?: () => Promise<GitHubConnectionVerification>;
   readonly dataCampVerifier?: () => Promise<DataCampConnectionVerification>;
@@ -194,6 +210,7 @@ export async function getIntegrationStatusSnapshot({
   ) => Promise<DropboxConnectionVerification>;
   readonly dataCampApiKey?: string;
   readonly dropboxToken?: string;
+  readonly outlookConnectionVerifier?: () => Promise<boolean>;
 } = {}): Promise<IntegrationStatusSnapshot> {
   let githubEntry: IntegrationStatusEntry = {
     name: "GitHub",
@@ -227,10 +244,18 @@ export async function getIntegrationStatusSnapshot({
     }
   }
 
+  let outlookConnected = false;
+  try {
+    outlookConnected = await outlookConnectionVerifier();
+  } catch {
+    outlookConnected = false;
+  }
+
   const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
     if (plugin.name === "Dropbox") return dropboxEntry;
+    if (plugin.name === "Outlook Calendar") return outlookCatalogEntry(outlookConnected);
 
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
     const isAgenticCourseRedesign = plugin.name === "Agentic Course Redesign";
