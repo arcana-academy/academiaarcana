@@ -16,7 +16,6 @@ export const OPENAI_AGENTS_INTEGRATION_DEFINITION = {
   documentationUrl: "https://platform.openai.com/agents",
 } satisfies IntegrationDefinition;
 
-
 export type OpenAIAgentsRuntimeStatus =
   | "connected"
   | "not_configured"
