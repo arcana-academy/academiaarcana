@@ -1,6 +1,13 @@
 import Link from "next/link";
 
 import { getIntegrationStatusSnapshot } from "@/infrastructure/integrations/status";
+import {
+  ARCANA_TOOL_TRACKS,
+} from "@/infrastructure/integrations/arcana-tool-map";
+import {
+  NVIDIA_PHYSICAL_AI_SKILLS,
+  NVIDIA_PHYSICAL_AI_TRACKS,
+} from "@/infrastructure/integrations/nvidia-physical-ai";
 
 type IntegrationExecutionMode =
   | "runtime"
@@ -35,6 +42,10 @@ function statusDescription(
   }
 }
 
+const nvidiaSkillById = new Map(
+  NVIDIA_PHYSICAL_AI_SKILLS.map((skill) => [skill.id, skill]),
+);
+
 export default async function IntegracoesPage() {
   const snapshot = await getIntegrationStatusSnapshot();
 
@@ -66,8 +77,8 @@ export default async function IntegracoesPage() {
           Hub de integrações da Academia Arcana
         </h1>
         <p style={{ margin: 0, color: "var(--aa-text-secondary)" }}>
-          Este painel separa claramente o que foi catalogado do que tem uma
-          conexão externa realmente verificada.
+          Um centro único para descobrir capacidades do ecossistema, distinguir
+          conexões reais de catálogo e transformar ferramentas em fluxos do produto.
         </p>
       </header>
 
@@ -99,15 +110,181 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="tool-tracks-title"
+        style={{
+          display: "grid",
+          gap: "var(--aa-spacing-md)",
+          marginTop: "var(--aa-spacing-xl)",
+        }}
+      >
+        <div>
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Orquestração
+          </p>
+          <h2 id="tool-tracks-title" style={{ marginTop: 0 }}>
+            Ferramentas aplicadas ao ciclo de criação
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)", maxWidth: "55rem" }}>
+            As capacidades abaixo funcionam como trilhas de engenharia e produto.
+            O mapa não transforma automaticamente plugins do ChatGPT em APIs do site;
+            ele documenta onde cada ferramenta agrega valor no processo de construção.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "var(--aa-spacing-md)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(18rem, 1fr))",
+          }}
+        >
+          {ARCANA_TOOL_TRACKS.map((track) => (
+            <article key={track.title} className="aa-card aa-card-default">
+              <h3 style={{ marginTop: 0 }}>{track.title}</h3>
+              <p style={{ color: "var(--aa-text-secondary)" }}>
+                {track.description}
+              </p>
+              <ul
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "0.5rem",
+                  listStyle: "none",
+                  margin: 0,
+                  padding: 0,
+                }}
+              >
+                {track.tools.map((tool) => (
+                  <li
+                    key={tool}
+                    style={{
+                      border: "1px solid var(--aa-border-default)",
+                      borderRadius: 999,
+                      padding: "0.35rem 0.6rem",
+                    }}
+                  >
+                    {tool}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="nvidia-title"
+        style={{
+          display: "grid",
+          gap: "var(--aa-spacing-md)",
+          marginTop: "var(--aa-spacing-xl)",
+        }}
+      >
+        <div className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            NVIDIA · Physical AI
+          </p>
+          <h2 id="nvidia-title" style={{ marginTop: 0 }}>
+            Laboratório de simulação e robótica
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)", maxWidth: "58rem" }}>
+            O catálogo oficial da NVIDIA reúne skills para simulação robótica,
+            dados sintéticos, treinamento, validação, OpenUSD e infraestrutura.
+            Nesta etapa a Academia Arcana registra essas capacidades como uma
+            trilha de desenvolvimento; nenhuma integração de hardware ou API é
+            declarada como ativa sem uma conexão verificável.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+            <a
+              className="aa-button aa-button-secondary"
+              href="https://github.com/NVIDIA/skills"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Catálogo NVIDIA Skills
+            </a>
+            <a
+              className="aa-button aa-button-secondary"
+              href="https://github.com/isaac-sim/IsaacSim"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Isaac Sim
+            </a>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "var(--aa-spacing-md)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(18rem, 1fr))",
+          }}
+        >
+          {NVIDIA_PHYSICAL_AI_TRACKS.map((track) => (
+            <article key={track.title} className="aa-card aa-card-default">
+              <h3 style={{ marginTop: 0 }}>{track.title}</h3>
+              <p style={{ color: "var(--aa-text-secondary)" }}>
+                {track.description}
+              </p>
+              <ul style={{ marginBottom: 0 }}>
+                {track.skills.map((skillId) => {
+                  const skill = nvidiaSkillById.get(skillId);
+                  if (!skill) return null;
+
+                  return (
+                    <li key={skill.id} style={{ marginBottom: "0.7rem" }}>
+                      <a
+                        href={skill.catalogUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {skill.name}
+                      </a>
+                      <span
+                        style={{
+                          color: "var(--aa-text-secondary)",
+                          display: "block",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        {skill.workflow}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section
         aria-labelledby="integrations-list-title"
         style={{
           display: "grid",
           gap: "var(--aa-spacing-sm)",
-          marginTop: "var(--aa-spacing-lg)",
+          marginTop: "var(--aa-spacing-xl)",
         }}
       >
         <div>
-          <h2 id="integrations-list-title">Plugins</h2>
+          <h2 id="integrations-list-title">Plugins do catálogo</h2>
           <p style={{ color: "var(--aa-text-secondary)" }}>
             Última verificação: {snapshot.generatedAt}
           </p>
