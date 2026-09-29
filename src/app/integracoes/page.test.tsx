@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/infrastructure/integrations/status", () => ({
   getIntegrationStatusSnapshot: vi.fn(async () => ({
     generatedAt: "2026-09-27T00:00:00.000Z",
-    catalogSize: 115,
+    catalogSize: 116,
     connectedCount: 1,
-    cataloguedCount: 114,
+    cataloguedCount: 115,
     errorCount: 0,
     runtimeIntegrations: [
       {
@@ -97,7 +97,7 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Conexões verificadas");
     expect(html).toContain("1");
     expect(html).toContain("Ainda catalogados");
-    expect(html).toContain("114");
+    expect(html).toContain("115");
     expect(html).toContain("Agentic Course Redesign");
     expect(html).toContain("Hospedado no ChatGPT");
     expect(html).toContain(
@@ -111,6 +111,8 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Gerenciar SharePoint");
     expect(html).toContain("Notion");
     expect(html).toContain("Gerenciar conexão do Notion");
+    expect(html).toContain("Trello");
+    expect(html).toContain("Gerenciar conexão do Trello");
 
     expect(html).toContain("OpenAI Agents");
     expect(html).toContain("gpt-5.6-sol");
