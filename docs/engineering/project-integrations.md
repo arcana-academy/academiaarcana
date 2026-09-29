@@ -152,6 +152,16 @@ Optional Honeybadger variables:
 
 Honeybadger remains optional from the build perspective.
 
+## Trello
+
+The Academia Arcana runtime includes a server-side Trello integration for operational study workflows.
+
+Supported web-runtime operations include OAuth connection/disconnection, board discovery and creation, list discovery and creation, card discovery/search/creation/update/completion, checklist creation, checklist-item updates, and protected runtime status inspection.
+
+Credentials remain server-side in encrypted HTTP-only storage bound to the authenticated Academia Arcana subject. The integration is separate from the Supabase transactional source of truth.
+
+The integration page is available at `/integracoes/trello`.
+
 ## Services deliberately kept outside the runtime
 
 Canva, Figma, Dropbox, Slack, Vercel connector actions, Supabase connector actions, and other ChatGPT-side tools are not automatically imported into the web runtime. They become application integrations only through a provider-specific API/OAuth/MCP adapter.
