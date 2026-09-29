@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { executeMestreArcano } from "@/application/intelligence/execute-mestre-arcano";
 import { createClient } from "@/lib/supabase/server";
-
 import { runMestreArcano } from "@/infrastructure/openai/mestre-arcano";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
@@ -35,10 +35,16 @@ export async function POST(request: Request) {
 
   try {
     const supabase = await createClient();
-    const result = await runMestreArcano(body.input, {
-      supabase,
-      ownerId: claims.sub,
-    });
+    const result = await executeMestreArcano(
+      {
+        execute: (input) =>
+          runMestreArcano(input, {
+            supabase,
+            ownerId: claims.sub,
+          }),
+      },
+      body.input,
+    );
     return NextResponse.json(result, {
       status: 200,
       headers: { "Cache-Control": "no-store" },
