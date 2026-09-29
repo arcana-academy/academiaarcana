@@ -242,17 +242,6 @@ export async function getIntegrationStatusSnapshot({
         verification: null,
       };
     }
-    if (plugin.name === "Microsoft SharePoint") {
-      return {
-        name: "Microsoft SharePoint",
-        source: "runtime" as const,
-        status: "catalogued" as const,
-        executionMode: "runtime" as const,
-        providerId: "microsoft-sharepoint",
-        capabilities: ["read", "search", "files", "versions", "metadata"],
-        verification: null,
-      };
-    }
 
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
     const isAgenticCourseRedesign = plugin.name === "Agentic Course Redesign";
