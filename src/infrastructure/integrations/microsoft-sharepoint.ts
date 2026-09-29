@@ -330,13 +330,6 @@ export class MicrosoftSharePointConnectionError extends Error {
   }
 }
 
-
-  constructor(message = "Microsoft SharePoint não está configurado ou autorizado.") {
-    super(message);
-    this.name = "MicrosoftSharePointConnectionError";
-  }
-}
-
 function getAccessToken(token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN): string {
   if (!token?.trim()) throw new MicrosoftSharePointConnectionError();
   return token.trim();
