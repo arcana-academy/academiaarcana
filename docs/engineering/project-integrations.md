@@ -27,7 +27,7 @@ A future direct Adobe provider belongs behind `src/infrastructure/integrations/a
 
 ## ChatGPT catalog
 
-The repository contains the 116 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
+The repository contains the 117 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
 
 The application exposes `/integracoes` and `GET /api/integrations/status` so the current state is inspectable at runtime:
 
@@ -129,6 +129,13 @@ Current state:
 
 A future direct integration belongs behind `src/infrastructure/integrations` and requires a documented provider contract, server-side authorization model, least-privilege credentials when applicable, provider health and representative-operation checks, failure isolation, security tests, and deployed E2E verification before becoming `connected`.
 
+## Airtable
+
+Airtable is a server-side operations and content-management integration. The runtime uses a Personal Access Token and a configured base identifier; neither value is exposed through NEXT_PUBLIC_* variables or returned in integration status payloads.
+
+Supported runtime operations currently include base-access verification, bounded record listing, and batched record creation. The implementation enforces a maximum of 10 records per create batch and preserves Supabase as the product's transactional source of truth.
+
+The current integration does not create a browser-side Airtable client and does not claim OAuth account connection. Production activation requires the Airtable PAT and base ID to be configured in the final deployment environment.
 ## Trello
 
 Trello is a runtime application integration for operational planning and project execution. The website uses Atlassian's documented OAuth 2.0 transport and keeps credentials server-side in an encrypted, HTTP-only cookie bound to the authenticated user.
@@ -161,6 +168,7 @@ The current adapter intentionally does not treat the ChatGPT connector as a web 
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
 | Todoist | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, task/project reads, task creation and completion | Todoist OAuth Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Trello | Operational workflow and project execution | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, board/list/card/checklist/search operations | Trello OAuth 2.0 Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
+| Airtable | Operations and structured content management | Server-side PAT adapter, base verification, bounded record reads and batched record creation | Airtable Personal Access Token and Base ID | Runtime adapter implemented; external credentials remain deployment configuration |
 | Microsoft SharePoint | External document knowledge source | Server-side OAuth 2.0 adapter, encrypted credentials, site/drive/search/context routes | Microsoft OAuth client credentials and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Notion | Knowledge + documentation | Server-side OAuth 2.0 adapter, encrypted user-bound credentials, page search and child-page creation | Notion Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 
