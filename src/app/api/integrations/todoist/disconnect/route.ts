@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 import {
   revokeTodoistAccessToken,
-  TODOIST_ACCESS_TOKEN_COOKIE,
+  TODOIST_CREDENTIALS_COOKIE,
+  decryptTodoistCredentials,
 } from "@/infrastructure/integrations/todoist";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
@@ -13,13 +14,15 @@ export async function POST(request: Request) {
   await requireAuthenticatedUser();
 
   const cookieStore = await cookies();
-  const token = cookieStore.get(TODOIST_ACCESS_TOKEN_COOKIE)?.value;
+  const credentials = await decryptTodoistCredentials(
+    cookieStore.get(TODOIST_CREDENTIALS_COOKIE)?.value,
+  );
 
-  cookieStore.delete(TODOIST_ACCESS_TOKEN_COOKIE);
+  cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
 
-  if (token) {
+  if (credentials?.accessToken) {
     try {
-      await revokeTodoistAccessToken(token);
+      await revokeTodoistAccessToken(credentials.accessToken);
     } catch {
       // Local disconnect still succeeds even if the remote revocation endpoint is unavailable.
     }
