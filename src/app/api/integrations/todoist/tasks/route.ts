@@ -53,7 +53,7 @@ async function getCredentialsOrUnauthorized() {
 }
 
 export async function GET() {
-  const { credentials } = await getCredentialsOrUnauthorized();
+  const { credentials, status } = await getCredentialsOrUnauthorized();
 
   if (!credentials) {
     return NextResponse.json(
