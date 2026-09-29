@@ -75,6 +75,14 @@ vi.mock("@/infrastructure/integrations/status", () => ({
         },
       },
       {
+        name: "Notion",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        providerId: "notion",
+        verification: null,
+      },
+      {
         name: "Spotify",
         source: "chatgpt-catalog",
         status: "catalogued",
@@ -116,6 +124,8 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("A-Z Daily Word");
     expect(html).toContain("A-Z Dictionary");
     expect(html).toContain("A-Z Holy Bible");
+    expect(html).toContain("Notion");
+    expect(html).toContain("Gerenciar conexão do Notion");
     expect(html).toContain("Spotify");
     expect(html).toContain(
       "plugin_asdk_app_68de829bf7648191acd70a907364c67c",
