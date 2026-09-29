@@ -42,6 +42,11 @@ export const QUIZLET_APP_ID = "quizlet" as const;
 export const QUIZLET_CHATGPT_APP_URL =
   "https://chatgpt.com/plugins/plugin_asdk_app_694336f3c5088191bcdfe35bb532ad83" as const;
 
+export const TAROT_APP_ID = "tarot" as const;
+
+export const TAROT_CHATGPT_APP_URL =
+  "https://chatgpt.com/plugins/plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b" as const;
+
 /**
  * Tarteel is intentionally catalogued without a guessed ChatGPT app URL.
  * The assistant-side Tarteel capability is not proof of a public
@@ -104,6 +109,11 @@ export const CHATGPT_APP_BRIDGES = {
     providerId: QUIZLET_APP_ID,
     displayName: "Quizlet",
     appUrl: QUIZLET_CHATGPT_APP_URL,
+  },
+  [TAROT_APP_ID]: {
+    providerId: TAROT_APP_ID,
+    displayName: "Tarot",
+    appUrl: TAROT_CHATGPT_APP_URL,
   },
   [ASTROLOGIC_APP_ID]: {
     providerId: ASTROLOGIC_APP_ID,
