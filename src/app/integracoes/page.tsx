@@ -195,12 +195,9 @@ export default async function IntegracoesPage() {
             metadados, pastas e versões como fonte externa dos Grimórios e do
             Mestre Arcano. A integração é somente leitura nesta primeira etapa.
           </p>
-          <a
-            className="aa-button aa-button-primary"
-            href="/api/integrations/microsoft-sharepoint/connect"
-          >
-            Conectar Microsoft
-          </a>
+          <Link className="aa-button aa-button-primary" href="/integracoes/microsoft-sharepoint">
+            Gerenciar SharePoint
+          </Link>
         </article>
       </section>
 
