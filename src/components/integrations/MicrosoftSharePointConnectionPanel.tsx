@@ -40,6 +40,7 @@ type Source = {
   siteId: string;
   driveId: string;
   itemId: string;
+  id?: string;
 };
 
 type GraphEnvelope = { output?: { value?: unknown[] } };
@@ -196,10 +197,14 @@ export function MicrosoftSharePointConnectionPanel() {
     setBusy(true);
     setError(null);
     try {
-      const response = await getJson<{ source: Source }>(
-        `/api/integrations/microsoft-sharepoint/context?siteId=${encodeURIComponent(selectedSite)}&driveId=${encodeURIComponent(selectedDrive)}&itemId=${encodeURIComponent(item.id)}`,
-      );
-      setSelectedSource(response.source);
+      const response = await fetch("/api/integrations/microsoft-sharepoint/context", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId: selectedSite, driveId: selectedDrive, itemId: item.id }),
+      });
+      const body = (await response.json().catch(() => null)) as { source?: Source & { id?: string }; error?: string } | null;
+      if (!response.ok || !body?.source) throw new Error(body?.error ?? "source_save_failed");
+      setSelectedSource(body.source);
     } catch {
       setError("Não foi possível preparar este documento como fonte.");
     } finally {
@@ -363,8 +368,9 @@ export function MicrosoftSharePointConnectionPanel() {
               <p className="aa-eyebrow">Fonte selecionada</p>
               <h3 id="sharepoint-source-title">{selectedSource.name ?? "Documento Microsoft"}</h3>
               <p style={{ color: "var(--aa-text-secondary)" }}>
-                A fonte foi resolvida com segurança para esta sessão. O navegador recebe apenas metadados e o endereço do documento; o token Microsoft permanece no servidor.
+                Esta fonte foi registrada no seu workspace com RLS. O navegador recebe apenas metadados; o token Microsoft permanece no servidor.
               </p>
+              {selectedSource.id ? <p className="aa-state-copy">Fonte registrada: {selectedSource.id}</p> : null}
               <dl style={{ display: "grid", gap: "0.5rem" }}>
                 <div><dt><strong>Tipo</strong></dt><dd>{selectedSource.mimeType ?? "não informado"}</dd></div>
                 <div><dt><strong>Tamanho</strong></dt><dd>{formatSize(selectedSource.size ?? undefined) ?? "não informado"}</dd></div>
