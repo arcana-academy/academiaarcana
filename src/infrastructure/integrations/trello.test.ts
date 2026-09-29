@@ -65,7 +65,7 @@ describe("Trello integration", () => {
       "https://example.com/api/integrations/trello/callback",
     );
 
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
           access_token: "access-token",
