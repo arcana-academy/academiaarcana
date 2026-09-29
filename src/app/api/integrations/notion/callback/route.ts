@@ -43,7 +43,10 @@ export async function GET(request: Request) {
       requestUrl: request.url,
     });
 
-    await verifyNotionConnection(tokenSet.accessToken);
+    await verifyNotionConnection(tokenSet.accessToken, {
+      id: tokenSet.workspaceId,
+      name: tokenSet.workspaceName,
+    });
 
     const credentials = {
       subjectId: claims.sub,
