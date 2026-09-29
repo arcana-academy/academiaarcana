@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import {
+  NOTION_CREDENTIALS_COOKIE,
   NotionConnectionError,
   verifyNotionConnection,
 } from "@/infrastructure/integrations/notion";
@@ -23,7 +24,10 @@ export async function GET() {
   }
 
   try {
-    const verification = await verifyNotionConnection(credentials.accessToken);
+    const verification = await verifyNotionConnection(credentials.accessToken, {
+      id: credentials.workspaceId,
+      name: credentials.workspaceName,
+    });
 
     return NextResponse.json(
       {
@@ -48,6 +52,10 @@ export async function GET() {
         );
         const verification = await verifyNotionConnection(
           refreshed.accessToken,
+          {
+            id: refreshed.workspaceId,
+            name: refreshed.workspaceName,
+          },
         );
         return NextResponse.json(
           {
@@ -60,10 +68,10 @@ export async function GET() {
           { status: 200, headers: { "Cache-Control": "private, no-store" } },
         );
       } catch {
-        cookieStore.delete("aa-notion-credentials");
+        cookieStore.delete(NOTION_CREDENTIALS_COOKIE);
       }
     } else {
-      cookieStore.delete("aa-notion-credentials");
+      cookieStore.delete(NOTION_CREDENTIALS_COOKIE);
     }
 
     return NextResponse.json(
