@@ -34,6 +34,21 @@ O Santuário já compõe:
 - recomendação adaptativa;
 - Mestre Arcano.
 
+## Integrações externas concluídas
+
+### Relewise Search
+- Busca server-side autenticada integrada ao Santuário.
+- `@relewise/client` e endpoint `/api/search/relewise`.
+- Credenciais permanecem exclusivamente no runtime server-side.
+- Supabase continua como fonte de verdade transacional.
+
+### Asana
+- OAuth 2.0 + PKCE server-side.
+- Credenciais criptografadas e vinculadas ao usuário.
+- Projetos e tarefas com leitura, criação e conclusão.
+- Página de gerenciamento em `/integracoes/asana`.
+- Sem publicação ou alteração de infraestrutura da Vercel nesta etapa.
+
 ## CI
 O GitHub já possui workflows separados para:
 - Quality Gate;
