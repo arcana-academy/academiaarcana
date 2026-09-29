@@ -151,7 +151,10 @@ describe("Microsoft SharePoint document context", () => {
     });
 
     expect(JSON.stringify(result.source)).not.toContain("secret-access-token");
-    expect(result.content).toContain("secret-access-token");
+    expect(JSON.stringify(result.currentDocument)).not.toContain(
+      "secret-access-token",
+    );
+    expect(result.content).toBe("token: secret-access-token");
   });
 
   it("rejects unsupported binary document types", async () => {
