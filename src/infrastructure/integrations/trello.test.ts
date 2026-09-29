@@ -75,8 +75,8 @@ describe("Trello integration", () => {
           expires_in: 3600,
         }),
         { status: 200 },
-      ),
       );
+
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -184,8 +184,10 @@ describe("Trello integration", () => {
   });
 
   it("lists boards through the Trello API", async () => {
-    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
-      new Response(
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      void input;
+      void init;
+      return new Response(
         JSON.stringify([
           {
             id: "board-1",
@@ -222,8 +224,8 @@ describe("Trello integration", () => {
           url: "https://trello.com/c/card-1/validar-acessibilidade",
         }),
         { status: 200 },
-      ),
-    );
+      );
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     await createTrelloCard("secret-token", {
