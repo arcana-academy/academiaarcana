@@ -44,7 +44,7 @@ The authenticated integration workspace is available at `/integracoes/microsoft-
 5. Resolve a selected document into a sanitized external-source descriptor.
 6. Open the original document in Microsoft 365 when desired.
 
-The browser receives only the sanitized source descriptor. Microsoft access tokens remain server-side.
+The browser receives only the sanitized source descriptor. Microsoft access tokens remain server-side. Selected sources are persisted in `public.external_document_sources` under the authenticated user, protected by RLS ownership policies.
 
 ## Current boundary
 
