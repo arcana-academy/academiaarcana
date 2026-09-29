@@ -139,6 +139,7 @@ describe("Mestre Arcano SharePoint tools", () => {
   });
 
   it("rejects document-context calls without a matching current-user connection", async () => {
+    getMicrosoftSharePointDocumentContext.mockClear();
     await expect(
       executeMestreArcanoTool(
         {
