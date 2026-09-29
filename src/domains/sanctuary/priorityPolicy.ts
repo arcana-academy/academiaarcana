@@ -24,8 +24,8 @@ export type PriorityPolicyContext = {
  * Current repository state:
  * - A valid Continue Learning context is primary.
  * - Without a valid Continue Learning context, it is supporting.
- * - Planning and Gamification are currently not configured,
- *   so schedule and missions remain supporting.
+ * - Planning and Gamification are available but remain supporting
+ *   sections rather than displacing a valid Continue Learning context.
  * - Progress and quick actions remain supporting.
  * - Sections are always returned in SECTION_ORDER.
  */
@@ -54,12 +54,12 @@ export function decideSanctuaryPriority(
     missions: {
       section: "missions",
       priority: "supporting",
-      reason: "gamification-not-configured",
+      reason: "gamification-supporting",
     },
     schedule: {
       section: "schedule",
       priority: "supporting",
-      reason: "planning-not-configured",
+      reason: "planning-supporting",
     },
     quickActions: {
       section: "quickActions",
