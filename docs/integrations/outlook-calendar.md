@@ -24,7 +24,7 @@ for creating events in a user's calendar.
 
 ## Authentication and security
 
-The connection uses Microsoft Entra's authorization-code flow with PKCE.
+The connection uses Microsoft Entra's authorization-code flow with PKCE. The persistent token record is owned by the authenticated Academia Arcana user and protected by Supabase RLS.
 
 - OAuth state and the PKCE verifier are HttpOnly cookies.
 - Access and refresh tokens are encrypted with AES-256-GCM before being stored in
