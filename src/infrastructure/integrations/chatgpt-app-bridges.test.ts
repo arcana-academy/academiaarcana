@@ -17,6 +17,8 @@ import {
   QUIZLET_CHATGPT_APP_URL,
   SPOTIFY_APP_ID,
   SPOTIFY_CHATGPT_APP_URL,
+  TAROT_APP_ID,
+  TAROT_CHATGPT_APP_URL,
   TARTEEL_APP_ID,
   TARTEEL_CHATGPT_APP_URL,
 } from "./chatgpt-app-bridges";
@@ -67,6 +69,18 @@ describe("ChatGPT app bridges", () => {
 
     expect(ACADEMIC_WRITING_TOOLKIT_CHATGPT_APP_URL).toBe(
       "https://chatgpt.com/plugins/plugin_asdk_app_6a04f88a5fbc8191b8679c1ae31f2779",
+    );
+  });
+
+  it("defines the official Tarot ChatGPT bridge without credentials", () => {
+    expect(CHATGPT_APP_BRIDGES[TAROT_APP_ID]).toEqual({
+      providerId: TAROT_APP_ID,
+      displayName: "Tarot",
+      appUrl: TAROT_CHATGPT_APP_URL,
+    });
+
+    expect(TAROT_CHATGPT_APP_URL).toBe(
+      "https://chatgpt.com/plugins/plugin_asdk_app_6943a2c078b0819188de39e4fe168d9b",
     );
   });
 
