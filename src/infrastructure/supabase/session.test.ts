@@ -149,7 +149,9 @@ describe("updateSupabaseSession", () => {
       "sb-test-auth-token",
       "refreshed",
     ]);
-    expect(response.cookies.calls).toEqual([
+    expect(
+      (response.cookies as unknown as { calls: unknown[][] }).calls,
+    ).toEqual([
       [
         "sb-test-auth-token",
         "refreshed",
