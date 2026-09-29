@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react";
 import type { QuickAction, SanctuaryViewModel } from "@/domains/sanctuary";
 
 type SanctuaryHeaderProps = {
@@ -9,29 +10,25 @@ export function SanctuaryHeader({ header, primaryAction }: SanctuaryHeaderProps)
   const displayName = header.user.displayName?.trim();
 
   return (
-    <header className="aa-sanctuary-hero">
+    <header className="aa-card aa-card-elevated aa-sanctuary-hero">
       <div className="aa-sanctuary-hero-copy">
-        <p className="aa-eyebrow">Santuário · sua jornada</p>
+        <div className="aa-card-icon" aria-hidden="true">
+          <Sparkles size={20} strokeWidth={1.8} />
+        </div>
+        <p className="aa-eyebrow">Santuário</p>
         <h1 id="sanctuary-title">{header.greeting}</h1>
         {displayName ? (
-          <p className="aa-sanctuary-hero-lede" data-testid="sanctuary-user-name">
-            {displayName}, retome o fio da sua jornada com clareza, presença e um próximo passo de cada vez.
+          <p className="aa-sanctuary-identity" data-testid="sanctuary-user-name">
+            {displayName}
           </p>
-        ) : (
-          <p className="aa-sanctuary-hero-lede">
-            Retome o fio da sua jornada com clareza, presença e um próximo passo de cada vez.
-          </p>
-        )}
-        <div className="aa-sanctuary-hero-action">
-          <a className="aa-button aa-button-primary aa-button-lg" href={primaryAction.href}>
-            {primaryAction.label}
-          </a>
-        </div>
+        ) : null}
       </div>
-
-      <div className="aa-sanctuary-hero-atmosphere" aria-hidden="true">
-        <div className="aa-sanctuary-sigil">✦</div>
-      </div>
+      <a
+        className="aa-button aa-button-primary aa-button-lg aa-sanctuary-hero-action"
+        href={primaryAction.href}
+      >
+        {primaryAction.label}
+      </a>
     </header>
   );
 }
