@@ -5,6 +5,14 @@ import {
   AGENTIC_COURSE_REDESIGN_APP_ID,
   AGENTIC_COURSE_REDESIGN_CAPABILITIES,
 } from "./agentic-course-redesign";
+import {
+  verifyDataCampConnection,
+  type DataCampConnectionVerification,
+} from "./datacamp";
+import {
+  verifyGitHubConnection,
+  type GitHubConnectionVerification,
+} from "./github/public-github";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
@@ -16,10 +24,6 @@ const TARTEEL_CAPABILITIES = [
   "recitation",
   "prayer-times",
 ] as const;
-import {
-  verifyGitHubConnection,
-  type GitHubConnectionVerification,
-} from "./github/public-github";
 
 export type IntegrationCatalogStatus = "catalogued" | "connected" | "error";
 export type IntegrationExecutionMode =
@@ -39,6 +43,11 @@ export type IntegrationStatusEntry = {
     | {
         readonly providerId: "github";
         readonly repository: string;
+        readonly verifiedAt: string;
+      }
+    | {
+        readonly providerId: "datacamp";
+        readonly endpoint: string;
         readonly verifiedAt: string;
       }
     | null;
@@ -72,6 +81,48 @@ function githubVerificationEntry(
   };
 }
 
+function dataCampVerificationEntry(
+  verification: DataCampConnectionVerification,
+): IntegrationStatusEntry {
+  return {
+    name: "DataCamp",
+    source: "chatgpt-catalog",
+    status: "connected",
+    executionMode: "runtime",
+    providerId: verification.providerId,
+    capabilities: ["read", "search", "analytics"],
+    verification: {
+      providerId: verification.providerId,
+      endpoint: verification.endpoint,
+      verifiedAt: verification.verifiedAt,
+    },
+  };
+}
+
+function dataCampErrorEntry(): IntegrationStatusEntry {
+  return {
+    name: "DataCamp",
+    source: "chatgpt-catalog",
+    status: "error",
+    executionMode: "runtime",
+    providerId: "datacamp",
+    capabilities: ["read", "search", "analytics"],
+    verification: null,
+  };
+}
+
+function dataCampCatalogEntry(): IntegrationStatusEntry {
+  return {
+    name: "DataCamp",
+    source: "chatgpt-catalog",
+    status: "catalogued",
+    executionMode: "catalog-only",
+    providerId: "datacamp",
+    capabilities: ["read", "search", "analytics"],
+    verification: null,
+  };
+}
+
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
@@ -80,8 +131,12 @@ function chatgptBridgeUrl(pluginName: string): string | undefined {
 
 export async function getIntegrationStatusSnapshot({
   githubVerifier = verifyGitHubConnection,
+  dataCampVerifier = verifyDataCampConnection,
+  dataCampApiKey = process.env.DATACAMP_API_KEY,
 }: {
   readonly githubVerifier?: () => Promise<GitHubConnectionVerification>;
+  readonly dataCampVerifier?: () => Promise<DataCampConnectionVerification>;
+  readonly dataCampApiKey?: string;
 } = {}): Promise<IntegrationStatusSnapshot> {
   let githubEntry: IntegrationStatusEntry = {
     name: "GitHub",
@@ -98,9 +153,23 @@ export async function getIntegrationStatusSnapshot({
     // network, authentication, or infrastructure details.
   }
 
+  let dataCampEntry = dataCampCatalogEntry();
+
+  if (dataCampApiKey?.trim()) {
+    try {
+      dataCampEntry = dataCampVerificationEntry(await dataCampVerifier());
+    } catch {
+      dataCampEntry = dataCampErrorEntry();
+    }
+  }
+
   const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
     if (plugin.name === "GitHub") {
       return githubEntry;
+    }
+
+    if (plugin.name === "DataCamp") {
+      return dataCampEntry;
     }
 
     const bridgeUrl = chatgptBridgeUrl(plugin.name);
