@@ -43,8 +43,6 @@ describe("Outlook Calendar integration", () => {
 
     fetchMock.mockRestore();
   });
-});
-
 
   it("falls back to calendar events when Graph availability is unsupported", async () => {
     const fetchMock = vi
@@ -88,3 +86,4 @@ describe("Outlook Calendar integration", () => {
 
     fetchMock.mockRestore();
   });
+});
