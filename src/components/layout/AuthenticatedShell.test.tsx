@@ -11,9 +11,7 @@ describe("AuthenticatedShell", () => {
   it("renders the application identity, navigation and sign-out action", () => {
     render(
       <AuthenticatedShell currentPath="/santuario">
-        <main>
-          <h1>Seu Santuário de aprendizagem</h1>
-        </main>
+        <h1>Seu Santuário de aprendizagem</h1>
       </AuthenticatedShell>,
     );
 
@@ -28,5 +26,19 @@ describe("AuthenticatedShell", () => {
         name: "Seu Santuário de aprendizagem",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("exposes authenticated page content through the main landmark", () => {
+    render(
+      <AuthenticatedShell currentPath="/santuario">
+        <h1>Seu Santuário de aprendizagem</h1>
+      </AuthenticatedShell>,
+    );
+
+    expect(screen.getByRole("main")).toContainElement(
+      screen.getByRole("heading", {
+        name: "Seu Santuário de aprendizagem",
+      }),
+    );
   });
 });
