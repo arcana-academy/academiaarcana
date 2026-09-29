@@ -21,10 +21,7 @@ async function resolveSource(request: Request) {
   const itemId = params.get("itemId")?.trim();
 
   if (!siteId || !driveId || !itemId) {
-    return NextResponse.json(
-      { error: "site_id_drive_id_and_item_id_required" },
-      { status: 400 },
-    );
+    throw new Error("site_id_drive_id_and_item_id_required");
   }
 
   const cookieStore = await cookies();
@@ -32,7 +29,7 @@ async function resolveSource(request: Request) {
   const credentials = await decryptMicrosoftSharePointCredentials(raw);
 
   if (!credentials || credentials.subjectId !== user.id) {
-    return NextResponse.json({ error: "microsoft_sharepoint_not_connected" }, { status: 401 });
+    throw new Error("microsoft_sharepoint_not_connected");
   }
 
   try {
@@ -63,9 +60,10 @@ async function resolveSource(request: Request) {
       providerId: result.providerId,
       type: "external_document" as const,
       name: output.name ?? null,
-      mimeType: output.file && typeof output.file === "object"
-        ? (output.file as Record<string, unknown>).mimeType ?? null
-        : null,
+      mimeType:
+        output.file && typeof output.file === "object"
+          ? (output.file as Record<string, unknown>).mimeType ?? null
+          : null,
       webUrl: output.webUrl ?? null,
       lastModifiedDateTime: output.lastModifiedDateTime ?? null,
       size: output.size ?? null,
