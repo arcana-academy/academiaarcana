@@ -113,7 +113,7 @@ describe("getSanctuary", () => {
       status: "not-configured",
       data: null,
     });
-    expect(result.adaptiveRecommendation).toEqual(expect.objectContaining({ title: "Comece pequeno", href: "/workspace" }));
+    expect(result.adaptiveRecommendation).toEqual(expect.objectContaining({ title: "Explore no seu ritmo", href: "/grimorios" }));
     expect(result.quickActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
