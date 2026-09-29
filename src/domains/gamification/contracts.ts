@@ -28,5 +28,6 @@ export type Mission = {
 };
 
 export interface GamificationRepository {
+  getProfile(ownerId: string): Promise<GamificationProfile | null>;
   listDailyMissions(ownerId: string, targetDate: string): Promise<Mission[]>;
 }

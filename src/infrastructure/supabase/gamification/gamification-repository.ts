@@ -1,9 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type {
+  GamificationProfile,
   GamificationRepository,
   Mission,
 } from "@/domains/gamification";
+
+type ProfileRow = {
+  owner_id: string;
+  xp: number | string;
+  streak_days: number;
+  last_active_on: string | null;
+  updated_at: string;
+};
 
 type MissionRow = {
   id: string;
@@ -14,6 +23,16 @@ type MissionRow = {
   target_date: string;
   completed_at: string | null;
 };
+
+function toProfile(row: ProfileRow): GamificationProfile {
+  return {
+    ownerId: row.owner_id,
+    xp: Number(row.xp),
+    streakDays: row.streak_days,
+    lastActiveOn: row.last_active_on,
+    updatedAt: row.updated_at,
+  };
+}
 
 function toMission(row: MissionRow): Mission {
   return {
@@ -30,6 +49,17 @@ function toMission(row: MissionRow): Mission {
 
 export class SupabaseGamificationRepository implements GamificationRepository {
   constructor(private readonly supabase: SupabaseClient) {}
+
+  async getProfile(ownerId: string): Promise<GamificationProfile | null> {
+    const { data, error } = await this.supabase
+      .from("gamification_profiles")
+      .select("owner_id, xp, streak_days, last_active_on, updated_at")
+      .eq("owner_id", ownerId)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    return data ? toProfile(data as ProfileRow) : null;
+  }
 
   async listDailyMissions(
     ownerId: string,

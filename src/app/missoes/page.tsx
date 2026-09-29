@@ -1,39 +1,56 @@
 import { Flag, Sparkles, Target } from "lucide-react";
-import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
-import { ArcanaPage } from "@/components/layout/ArcanaPage";
-import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
-import { FeatureCard } from "@/components/ui/feature-card";
 
-export default function MissoesPage() {
+import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
+import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
+import { ArcanaPage } from "@/components/layout/ArcanaPage";
+import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
+import { FeatureCard } from "@/components/ui/feature-card";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { createClient } from "@/lib/supabase/server";
+
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default async function MissoesPage() {
+  const claims = await requireAuthenticatedUser();
+  const supabase = await createClient();
+  const missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
+    claims.sub,
+    todayUtc(),
+  );
+  const completed = missions.filter((mission) => mission.status === "completed").length;
+
   return (
     <AuthenticatedShell currentPath="/missoes">
       <ArcanaPage
         eyebrow="Gamificação"
         title="Missões"
-        description="Transforme objetivos de aprendizagem em passos claros, sem pressão artificial ou punição."
+        description="Objetivos derivados de eventos reais de estudo, sem pressão artificial ou dados fictícios."
         actions={[{ href: "/cronograma", label: "Abrir cronograma", variant: "secondary" }]}
       >
         <ArcanaFeatureGrid>
-          <FeatureCard
-            title="Missões conscientes"
-            description="A estrutura visual está pronta para receber missões reais do domínio de gamificação."
-            icon={<Flag size={22} />}
-          >
-            <p className="aa-state-copy">Nenhuma missão persistida está disponível para exibição neste momento.</p>
+          <FeatureCard title="Hoje" description="Missões registradas para o dia atual." icon={<Flag size={22} />}>
+            <p className="aa-state-copy">{missions.length ? `${completed}/${missions.length} concluídas` : "Nenhuma missão registrada hoje."}</p>
           </FeatureCard>
-          <FeatureCard
-            title="Objetivos"
-            description="Conecte metas de estudo a ações observáveis e significativas."
-            icon={<Target size={22} />}
-          >
-            <p className="aa-state-copy">Os contratos de domínio podem alimentar esta área sem criar dados fictícios.</p>
+          <FeatureCard title="Objetivos" description="Metas de estudo que nasceram de eventos persistidos." icon={<Target size={22} />}>
+            {missions.length ? (
+              <ul className="aa-list" aria-label="Missões de hoje">
+                {missions.map((mission) => (
+                  <li className="aa-list-item aa-surface" key={mission.id}>
+                    <div>
+                      <strong>{mission.title}</strong>
+                      <p>{mission.rewardXp} XP · {mission.status === "completed" ? "concluída" : "em aberto"}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="aa-state-copy">Conclua uma tarefa no Cronograma para gerar uma missão real.</p>
+            )}
           </FeatureCard>
-          <FeatureCard
-            title="Progresso significativo"
-            description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial."
-            icon={<Sparkles size={22} />}
-          >
-            <p className="aa-state-copy">A camada de apresentação está preparada para estados vazios, disponíveis e indisponíveis.</p>
+          <FeatureCard title="Progresso significativo" description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial." icon={<Sparkles size={22} />}>
+            <p className="aa-state-copy">As recompensas são calculadas pela operação atômica de conclusão de tarefa.</p>
           </FeatureCard>
         </ArcanaFeatureGrid>
       </ArcanaPage>
