@@ -63,7 +63,7 @@ jobs:
       - name: Production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBB
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
         run: npm run build
 
       - name: Install Playwright browser
@@ -72,5 +72,5 @@ jobs:
       - name: End-to-end tests
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBB
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
         run: npm run test:e2e

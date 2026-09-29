@@ -11,7 +11,8 @@ import {
 
 const validUrl = "https://abcdefghijklmnopqrst.supabase.co";
 const publishablePrefix = ["sb", "publishable"].join("_") + "_";
-const validKey = publishablePrefix + "A".repeat(22) + "_" + "B".repeat(7);
+const validKey =
+  publishablePrefix + "A".repeat(10) + "_" + "B".repeat(11) + "_" + "C".repeat(8);
 
 describe("verify-public-runtime-config", () => {
   it("loads missing runtime values from .env.local without overriding process env", () => {
@@ -80,6 +81,15 @@ describe("verify-public-runtime-config", () => {
       validateSupabaseProductionConfiguration(
         validUrl,
         "sb_publishable_valid-but-wrong-shape",
+      ),
+    ).toThrow(/expected sb_publishable/);
+  });
+
+  it("rejects a 7-character checksum publishable key", () => {
+    expect(() =>
+      validateSupabaseProductionConfiguration(
+        validUrl,
+        publishablePrefix + "A".repeat(22) + "_" + "B".repeat(7),
       ),
     ).toThrow(/expected sb_publishable/);
   });
