@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-const getMicrosoftSharePointDocumentContext = vi.fn();
+const { getMicrosoftSharePointDocumentContext } = vi.hoisted(() => ({
+  getMicrosoftSharePointDocumentContext: vi.fn(),
+}));
 
 vi.mock("./microsoft-sharepoint-content", () => ({
   getMicrosoftSharePointDocumentContext,
