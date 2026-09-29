@@ -1,11 +1,10 @@
-import Link from "next/link";
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
 import { SanctuaryContinueLearning } from "./SanctuaryContinueLearning";
 import { SanctuaryHeader } from "./SanctuaryHeader";
 import { SanctuaryMissions } from "./SanctuaryMissions";
 import { SanctuaryProgress } from "./SanctuaryProgress";
 import { SanctuarySchedule } from "./SanctuarySchedule";
-import { MestreArcanoPanel } from "./MestreArcanoPanel";
+import { RelewiseSearch } from "@/components/search/RelewiseSearch";
 
 type SanctuaryProps = {
   viewModel: SanctuaryViewModel;
@@ -18,6 +17,8 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
         header={viewModel.header}
         primaryAction={viewModel.primaryAction}
       />
+
+      <RelewiseSearch />
 
       <section className="aa-sanctuary-command" aria-label="Comando da jornada">
         <div className="aa-sanctuary-command-primary">
@@ -32,18 +33,6 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
           <SanctuaryProgress progress={viewModel.progress} />
         </div>
       </section>
-
-      <section className="aa-surface aa-sanctuary-section" aria-labelledby="adaptive-recommendation-title">
-        <p className="aa-eyebrow">Adaptação · evidência</p>
-        <h2 id="adaptive-recommendation-title">{viewModel.adaptiveRecommendation.title}</h2>
-        <p>{viewModel.adaptiveRecommendation.message}</p>
-        <p className="aa-state-copy">{viewModel.adaptiveRecommendation.reason}</p>
-        <Link className="aa-button aa-button-secondary aa-button-sm" href={viewModel.adaptiveRecommendation.href}>
-          Seguir recomendação
-        </Link>
-      </section>
-
-      <MestreArcanoPanel />
 
       <div className="aa-sanctuary-grid">
         <SanctuaryMissions missions={viewModel.missions} />
