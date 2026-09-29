@@ -32,7 +32,7 @@ export default async function CronogramaPage() {
 
   if (outlookConnected) {
     try {
-      const accessToken = await getOutlookAccessToken();
+      const accessToken = await getOutlookAccessToken({ refresh: true });
       if (accessToken) {
         const start = new Date();
         const end = new Date(start);
