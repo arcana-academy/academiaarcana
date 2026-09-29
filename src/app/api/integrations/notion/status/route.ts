@@ -7,7 +7,6 @@ import {
 } from "@/infrastructure/integrations/notion";
 import {
   getNotionCredentialsContext,
-  persistNotionCredentials,
   refreshAndPersistNotionCredentials,
 } from "../_lib";
 
