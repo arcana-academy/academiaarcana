@@ -93,6 +93,12 @@ describe("SanctuaryPage", () => {
         data: null,
       },
       quickActions: [],
+      adaptiveRecommendation: {
+        title: "Explore no seu ritmo",
+        message: "Escolha um conteúdo e avance no seu ritmo.",
+        reason: "Não há sinais suficientes para uma recomendação mais específica.",
+        href: "/grimorios",
+      },
     });
 
     render(await SanctuaryPage());
@@ -138,6 +144,12 @@ describe("SanctuaryPage", () => {
         data: null,
       },
       quickActions: [],
+      adaptiveRecommendation: {
+        title: "Explore no seu ritmo",
+        message: "Escolha um conteúdo e avance no seu ritmo.",
+        reason: "Não há sinais suficientes para uma recomendação mais específica.",
+        href: "/grimorios",
+      },
     });
 
     render(await SanctuaryPage());
@@ -188,6 +200,12 @@ describe("SanctuaryPage", () => {
         data: null,
       },
       quickActions: [],
+      adaptiveRecommendation: {
+        title: "Explore no seu ritmo",
+        message: "Escolha um conteúdo e avance no seu ritmo.",
+        reason: "Não há sinais suficientes para uma recomendação mais específica.",
+        href: "/grimorios",
+      },
     });
 
     render(await SanctuaryPage());
