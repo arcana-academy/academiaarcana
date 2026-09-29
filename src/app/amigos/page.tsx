@@ -1,10 +1,12 @@
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { HeartHandshake, MessageCircle, Users } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
 
-export default function AmigosPage() {
+export default async function AmigosPage() {
+  await requireAuthenticatedUser();
   return (
     <AuthenticatedShell currentPath="/amigos">
       <ArcanaPage
