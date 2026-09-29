@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function createOutlookEventForTask(taskId: string) {
   const claims = await requireAuthenticatedUser();
-  const accessToken = await getOutlookAccessToken();
+  const accessToken = await getOutlookAccessToken({ refresh: true });
   if (!accessToken) throw new Error("OUTLOOK_NOT_CONNECTED");
 
   const supabase = await createClient();
