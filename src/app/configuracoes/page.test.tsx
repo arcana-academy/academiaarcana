@@ -14,5 +14,6 @@ describe("ConfiguracoesPage", () => {
     expect(screen.getByText(/Acessibilidade/)).toBeInTheDocument();
     expect(screen.getByText(/Aparência/)).toBeInTheDocument();
     expect(screen.getByText(/Segurança/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Gerenciar Asana" })).toHaveAttribute("href", "/integracoes/asana");
   });
 });
