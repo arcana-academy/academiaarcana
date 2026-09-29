@@ -1,5 +1,7 @@
 import { Brain, Clock3, Focus } from "lucide-react";
 import Link from "next/link";
+
+import { startFocusSession, completeFocusSession } from "./actions";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -15,11 +17,14 @@ export default function FocoPage() {
         description="Um espaço para reduzir distrações e apoiar sessões de estudo previsíveis e confortáveis."
         actions={[{ href: "/cronograma", label: "Planejar sessão", variant: "primary" }]}
       >
-        <FocusSession />
+        <FocusSession
+          onStart={startFocusSession}
+          onComplete={completeFocusSession}
+        />
 
-      <ArcanaFeatureGrid>
-          <FeatureCard title="Sessão de foco" description="Base visual para uma experiência de foco sem sobrecarga." icon={<Focus size={22} />}>
-            <p className="aa-state-copy">O temporizador persistente ainda não está configurado. A interface não simula uma sessão inexistente.</p>
+        <ArcanaFeatureGrid>
+          <FeatureCard title="Sessão registrada" description="Inícios e conclusões podem alimentar métricas reais da sua jornada." icon={<Focus size={22} />}>
+            <p className="aa-state-copy">Uma sessão só é contabilizada como concluída quando o temporizador chega ao fim.</p>
           </FeatureCard>
           <FeatureCard title="Ritmo" description="Estruture blocos de trabalho e pausas de acordo com sua preferência." icon={<Clock3 size={22} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">Ver cronograma</Link>
