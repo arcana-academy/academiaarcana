@@ -6,6 +6,7 @@ import { ApplicationProviders } from "@/application/providers/ApplicationProvide
 import { createIdentityResolver } from "@/application/identity/IdentityResolver";
 import type { ApplicationIdentityState } from "@/application/identity/contracts";
 import { createResolveSubjectIdServer } from "@/lib/identity/resolve-subject-id-server";
+import { getAdobeFontsStylesheetUrl } from "@/infrastructure/integrations/adobe";
 
 export const metadata: Metadata = {
   title: "Academia Arcana",
@@ -24,9 +25,15 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const identity = await resolveApplicationIdentity();
+  const adobeFontsStylesheetUrl = getAdobeFontsStylesheetUrl();
 
   return (
     <html lang="pt-BR">
+      <head>
+        {adobeFontsStylesheetUrl ? (
+          <link rel="stylesheet" href={adobeFontsStylesheetUrl} />
+        ) : null}
+      </head>
       <body>
         <ApplicationProviders identity={identity}>
           {children}

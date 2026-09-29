@@ -4,6 +4,27 @@
 
 Only services that are part of the application's runtime or delivery path belong in the repository integration contract. ChatGPT connectors and development assistants are not runtime dependencies and must not be embedded as secrets or opaque client-side integrations.
 
+
+## Adobe Creative Layer
+
+Adobe is the project's visual-production layer for brand assets, illustrations, vector artwork, typography, educational documents, PDFs and promotional media.
+
+The repository now exposes a vendor-neutral Adobe configuration boundary:
+
+- optional public configuration: `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID`;
+- when configured, the root layout loads the published Adobe Fonts stylesheet from `use.typekit.net`;
+- no Adobe OAuth token, Creative Cloud credential or connector credential is stored in Git or browser state;
+- approved web assets have a documented `public/assets/` structure;
+- the Adobe ChatGPT connector is not falsely represented as a web-runtime API.
+
+Runtime state:
+
+- Adobe creative tooling: available in the connected assistant environment.
+- Adobe Fonts web runtime: configuration-ready, activated only when a valid published kit identifier is supplied.
+- Firefly/Photoshop/Illustrator/Express direct web-runtime adapter: not connected because no verified application-facing API/OAuth contract has been established for this repository.
+
+A future direct Adobe provider belongs behind `src/infrastructure/integrations/adobe.ts` and requires provider health, authorization, representative-operation, security and E2E verification before it can be marked `connected`.
+
 ## ChatGPT catalog
 
 The repository contains the 115 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
@@ -128,12 +149,18 @@ The current adapter intentionally does not treat the ChatGPT connector as a web 
 | GitHub | Source control + CI + verified provider reachability | Repository, branches, pull requests, Actions workflow, read-only public verification endpoint | Repository visibility / permissions for project operations | Connected for public read-only verification; account OAuth not configured |
 | Vercel | Hosting + deployment | Next.js deployment target | Project configuration, aliases, environment variables | Connected / external configuration pending |
 | Supabase | Auth + PostgreSQL persistence | Browser/server clients, session refresh, repositories, RLS-backed schema | Project URL + publishable key; Auth settings | Connected |
+| Adobe | Visual production + web typography | Adobe configuration boundary, asset contract, optional Fonts kit loader | `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID` when a published kit exists | Configuration-ready; direct creative API not connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
 | Todoist | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, task/project reads, task creation and completion | Todoist OAuth Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Microsoft SharePoint | External document knowledge source | Server-side OAuth 2.0 adapter, encrypted credentials, site/drive/search/context routes | Microsoft OAuth client credentials and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Notion | Knowledge + documentation | Server-side OAuth 2.0 adapter, encrypted user-bound credentials, page search and child-page creation | Notion Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 
 ## Required production variables
+
+Optional Adobe web typography:
+
+- `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID`
+
 
 The application requires:
 
