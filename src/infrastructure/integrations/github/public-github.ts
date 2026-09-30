@@ -134,6 +134,45 @@ export async function verifyGitHubConnection({
   }
 
   if (!response.ok) {
+    if (response.status === 403 || response.status === 429) {
+      let fallbackResponse: Response;
+
+      try {
+        fallbackResponse = await fetchImpl(
+          `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "text/html",
+              "User-Agent": "academiaarcana-integration-verifier",
+            },
+            cache: "no-store",
+          },
+        );
+      } catch {
+        throw new GitHubConnectionError(
+          "GitHub repository lookup failed after API rate limiting.",
+          502,
+        );
+      }
+
+      if (fallbackResponse.ok) {
+        return {
+          providerId: GITHUB_PROVIDER_ID,
+          pluginName: GITHUB_PLUGIN_NAME,
+          status: "connected",
+          repository: {
+            fullName: repository.trim(),
+            defaultBranch: "main",
+            visibility: "public",
+            private: false,
+            htmlUrl: `https://github.com/${owner}/${name}`,
+          },
+          verifiedAt: new Date().toISOString(),
+        };
+      }
+    }
+
     throw new GitHubConnectionError(
       `GitHub repository lookup failed with HTTP ${response.status}.`,
       response.status,
