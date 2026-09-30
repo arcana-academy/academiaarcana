@@ -9,6 +9,7 @@ This directory contains web-ready visual assets approved for the Academia Arcana
 - `characters/` — character and mascot artwork
 - `grimoires/` — grimoire and chapter artwork
 - `missions/` — mission artwork
+- `gamification/` — progression, achievement and continuity symbols
 - `achievements/` — badges, seals and achievement artwork
 - `sanctuary/` — Sanctuary-specific visual assets
 - `education/` — educational illustrations and printable resources
@@ -27,6 +28,7 @@ This directory contains web-ready visual assets approved for the Academia Arcana
 ### Sanctuary and learning areas
 
 - `sanctuary/aa-sanctuary-sigil.svg`
+- `sanctuary/aa-sanctuary-sigil.md`
 - `icons/aa-workspace.svg`
 - `icons/aa-cronograma.svg`
 - `icons/aa-sanctuary.svg`
@@ -40,6 +42,7 @@ This directory contains web-ready visual assets approved for the Academia Arcana
 ### Gamification and Missions
 
 - `gamification/aa-contained-arcane-flame.svg`
+- `gamification/aa-contained-arcane-flame.md`
 - `gamification/aa-achievement-emblem.svg`
 - `gamification/aa-achievement-emblem.md`
 - `missions/aa-mission-document.svg`
