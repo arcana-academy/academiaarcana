@@ -96,10 +96,10 @@ describe("verify-public-runtime-config", () => {
 
   it.each(["preview", "production", "development"])(
     "requires both public Supabase values in %s",
-    (vercelEnvironment) => {
+    (environmentName) => {
       expect(() =>
         verifyPublicRuntimeConfig({
-          VERCEL_ENV: vercelEnvironment,
+          NODE_ENV: environmentName,
         }),
       ).toThrow("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
     },
@@ -108,7 +108,7 @@ describe("verify-public-runtime-config", () => {
   it("rejects preview configuration with only one public Supabase value", () => {
     expect(() =>
       verifyPublicRuntimeConfig({
-        VERCEL_ENV: "preview",
+        NODE_ENV: "preview",
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
       }),
     ).toThrow("Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL");
@@ -117,17 +117,33 @@ describe("verify-public-runtime-config", () => {
   it("rejects production configuration with malformed public values", () => {
     expect(() =>
       verifyPublicRuntimeConfig({
-        VERCEL_ENV: "production",
+        NODE_ENV: "production",
         NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
       }),
     ).toThrow(/valid HTTPS Supabase project URL/);
   });
 
+  it("uses NODE_ENV even when legacy Vercel metadata is present", () => {
+    expect(
+      verifyPublicRuntimeConfig({
+        NODE_ENV: "production",
+        VERCEL_ENV: "preview",
+        NEXT_PUBLIC_SUPABASE_URL: validUrl,
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }),
+    ).toEqual({
+      integration: "supabase-public-runtime",
+      verified: true,
+      environment: "production",
+      configuration: "environment",
+    });
+  });
+
   it("accepts a complete preview configuration", () => {
     expect(
       verifyPublicRuntimeConfig({
-        VERCEL_ENV: "preview",
+        NODE_ENV: "preview",
         NEXT_PUBLIC_SUPABASE_URL: validUrl,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
       }),
@@ -142,7 +158,7 @@ describe("verify-public-runtime-config", () => {
   it("accepts a complete production configuration", () => {
     expect(
       verifyPublicRuntimeConfig({
-        VERCEL_ENV: "production",
+        NODE_ENV: "production",
         NEXT_PUBLIC_SUPABASE_URL: validUrl,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
       }),
