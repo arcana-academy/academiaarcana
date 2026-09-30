@@ -38,7 +38,7 @@ export default async function ConquistasPage() {
             {unlocked.length ? (
               <ul className="aa-list" aria-label="Conquistas desbloqueadas">
                 {unlocked.map((achievement) => (
-                  <li className="aa-list-item" key={achievement.code}>
+                  <li className="aa-list-item aa-achievement-list-item" key={achievement.code}>
                     <div className="aa-achievement-item-visual" aria-hidden="true">
                       <Image className="aa-achievement-item-emblem" src={achievementEmblem} alt="" width={40} height={40} />
                     </div>
@@ -57,7 +57,7 @@ export default async function ConquistasPage() {
           <FeatureCard title="Próximos marcos" description="Regras transparentes para você saber o que cada conquista exige." icon={<Crown size={22} />}>
             <ul className="aa-list" aria-label="Próximas conquistas">
               {achievements.filter((achievement) => !achievement.unlocked).map((achievement) => (
-                <li className="aa-list-item" key={achievement.code}>
+                <li className="aa-list-item aa-achievement-list-item" key={achievement.code}>
                   <div className="aa-achievement-item-visual" aria-hidden="true">
                     <Image className="aa-achievement-item-emblem" src={achievementEmblem} alt="" width={40} height={40} />
                   </div>
