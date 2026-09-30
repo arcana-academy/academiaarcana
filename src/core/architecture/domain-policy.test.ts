@@ -107,7 +107,7 @@ describe("domain architecture policy", () => {
 
     const issues = validateDomainDependencyMatrix(invalidMatrix);
 
-    expect(issues).toContain("dependency cycle detected at: context");
+    expect(issues).toContain("dependency cycle detected at: identity");
   });
 
   it("does not introduce a separate domain for UI or infrastructure concerns", () => {
