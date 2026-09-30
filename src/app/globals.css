@@ -143,9 +143,6 @@ a { color: inherit; }
 .aa-progress-track { height: 0.625rem; overflow: hidden; border-radius: 999px; background: var(--aa-surfaces-inset); border: 1px solid var(--aa-border-default); }
 .aa-progress-value { height: 100%; border-radius: inherit; background: var(--aa-accent-primary); transition: width var(--aa-motion-duration) ease; }
 
-/* Authenticated navigation. The active section is never indicated by color
-   alone: this rule only adds non-color reinforcement (weight plus a thicker,
-   offset underline) on top of the button colors and geometry it inherits. */
 .aa-nav-link-active {
   font-weight: 750;
   text-decoration: underline;
@@ -705,6 +702,39 @@ p {
   color: var(--aa-text-muted);
 }
 
+.aa-achievement-item-visual {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 2.75rem;
+  border: 1px solid var(--aa-line-subtle);
+  border-radius: 0.7rem;
+  background: linear-gradient(145deg, rgb(200 168 106 / 0.07), rgb(155 120 208 / 0.08));
+}
+
+.aa-achievement-item-emblem {
+  display: block;
+  width: 2.4rem;
+  height: 2.4rem;
+  object-fit: contain;
+}
+
+.aa-achievement-item-copy {
+  min-width: 0;
+}
+
+.aa-achievement-item-copy p {
+  margin: 0.22rem 0 0;
+  color: var(--aa-text-secondary);
+  font-size: 0.82rem;
+}
+
+.aa-achievement-item-status {
+  justify-self: end;
+  color: var(--aa-status-success);
+}
+
 .aa-status {
   justify-self: end;
   color: var(--aa-accent-gold-soft);
@@ -1033,6 +1063,20 @@ p {
 
   .aa-sanctuary-hero-atmosphere {
     display: none;
+  }
+
+  .aa-list-item {
+    gap: 0.75rem;
+  }
+
+  .aa-achievement-item-visual {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .aa-achievement-item-emblem {
+    width: 2.1rem;
+    height: 2.1rem;
   }
 }
 
