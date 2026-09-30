@@ -23,3 +23,18 @@ export interface StudyTaskRepository {
   listUpcoming(ownerId: string, now: string, limit?: number): Promise<StudyTask[]>;
   getById(id: string): Promise<StudyTask | null>;
 }
+
+export type FocusSession = {
+  id: string;
+  ownerId: string;
+  durationSeconds: number;
+  startedAt: string;
+  completedAt: string | null;
+  createdAt: string;
+};
+
+export interface FocusSessionRepository {
+  start(session: FocusSession): Promise<string>;
+  complete(ownerId: string, sessionId: string, completedAt: string): Promise<void>;
+}
+
