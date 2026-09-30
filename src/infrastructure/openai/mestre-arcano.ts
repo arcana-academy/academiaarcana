@@ -189,9 +189,7 @@ export async function runMestreArcano(
         try {
           const toolOutput = await executeMestreArcanoTool(
             { name: call.name, arguments: call.arguments },
-            {
-              toolContext,
-            },
+            toolContext,
           );
 
           return {
