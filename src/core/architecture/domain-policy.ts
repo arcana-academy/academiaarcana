@@ -1,4 +1,4 @@
-import type { CoreDomain } from "./domains";
+import { CORE_DOMAINS, type CoreDomain } from "./domains";
 
 export type ArchitectureLayer = "ui" | "application" | "domain" | "ports" | "infrastructure";
 
@@ -172,6 +172,74 @@ export const DOMAIN_POLICIES: Record<CoreDomain, DomainPolicy> = {
     infrastructure: sharedInfrastructure,
   },
 };
+
+export type DomainDependencyMatrix = Readonly<Record<CoreDomain, readonly CoreDomain[]>>;
+
+const dependencyMatrix = {} as Record<CoreDomain, readonly CoreDomain[]>;
+for (const domain of CORE_DOMAINS) {
+  dependencyMatrix[domain] = [...DOMAIN_POLICIES[domain].allowedDependencies];
+}
+
+export const DOMAIN_DEPENDENCY_MATRIX: DomainDependencyMatrix = Object.freeze(
+  dependencyMatrix,
+);
+
+export function validateDomainDependencyMatrix(
+  matrix: DomainDependencyMatrix = DOMAIN_DEPENDENCY_MATRIX,
+): readonly string[] {
+  const issues: string[] = [];
+  const knownDomains = new Set<CoreDomain>(CORE_DOMAINS);
+
+  for (const domain of CORE_DOMAINS) {
+    const dependencies = matrix[domain] ?? [];
+    const uniqueDependencies = new Set(dependencies);
+
+    if (dependencies.length !== uniqueDependencies.size) {
+      issues.push(`duplicate dependency: ${domain}`);
+    }
+
+    for (const dependency of dependencies) {
+      if (!knownDomains.has(dependency)) {
+        issues.push(`unknown dependency: ${domain} -> ${dependency}`);
+      }
+
+      if (dependency === domain) {
+        issues.push(`self dependency: ${domain}`);
+      }
+    }
+  }
+
+  const state = new Map<CoreDomain, "visiting" | "visited">();
+
+  const visit = (domain: CoreDomain): void => {
+    const currentState = state.get(domain);
+
+    if (currentState === "visiting") {
+      issues.push(`dependency cycle detected at: ${domain}`);
+      return;
+    }
+
+    if (currentState === "visited") {
+      return;
+    }
+
+    state.set(domain, "visiting");
+
+    for (const dependency of matrix[domain] ?? []) {
+      if (knownDomains.has(dependency)) {
+        visit(dependency);
+      }
+    }
+
+    state.set(domain, "visited");
+  };
+
+  for (const domain of CORE_DOMAINS) {
+    visit(domain);
+  }
+
+  return issues;
+}
 
 export const ARCHITECTURE_LAYERS: readonly ArchitectureLayer[] = [
   "ui",
