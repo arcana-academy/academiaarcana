@@ -710,7 +710,7 @@ Every new architecture change must preserve:
 7. No silent replacement of prior decisions.
 8. Product-driven complexity.
 9. Accessibility and privacy as cross-cutting properties.
-10. Vercel remains final infrastructure/deployment work and requires explicit approval for production mutation.
+10. Production delivery uses GitHub + GitHub Actions + Supabase + Render; Vercel is not an active runtime or deployment target.
 
 ---
 
@@ -740,4 +740,4 @@ VALIDAR
 CONSOLIDAR
 ```
 
-The architecture remains a living system, but changes must be explicit and traceable.
+The architecture remains a living system, but changes must be explicit and traceable.\n---\n\n## 25. Production delivery architecture\n\nThe production delivery path is:\n\n```text\nGitHub\n  ↓\nGitHub Actions\n  ↓\nQuality Gate\n  ↓\nRender Web Service\n  ↓\nSupabase\n```\n\nCanonical responsibilities:\n\n| Component | Responsibility |\n|---|---|\n| GitHub | Source control, branches, pull requests and repository history |\n| GitHub Actions | lint, typecheck, tests, accessibility, production build and delivery checks |\n| Supabase | authentication, PostgreSQL persistence, RLS, RPCs and application data |\n| Render | Next.js production Web Service and public HTTP runtime |\n\nThe application repository does not treat Vercel as an active hosting or deployment dependency.\n\nThe Render production service is the single application runtime. Supabase remains the application's database/authentication platform; no duplicate Render database is required.\n\nState: **CANÔNICO + IMPLEMENTADO PARCIALMENTE + EM VALIDAÇÃO OPERACIONAL**.
