@@ -1,6 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-import type { MicrosoftSharePointCredentials } from "@/infrastructure/integrations/microsoft-sharepoint";
 import {
   executeMestreArcanoTool,
   MESTRE_ARCANO_TOOLS,
@@ -114,14 +111,10 @@ export async function runMestreArcano(
   input: string,
   {
     fetchImpl = fetch,
-    supabase,
-    ownerId,
-    microsoftSharePointCredentials = null,
+    toolContext,
   }: {
     readonly fetchImpl?: OpenAIFetch;
-    readonly supabase: SupabaseClient;
-    readonly ownerId: string;
-    readonly microsoftSharePointCredentials?: MicrosoftSharePointCredentials | null;
+    readonly toolContext: import("@/domains/intelligence").MestreArcanoToolContext;
   },
 ): Promise<MestreArcanoResult> {
   const normalizedInput = input.trim();
@@ -197,9 +190,7 @@ export async function runMestreArcano(
           const toolOutput = await executeMestreArcanoTool(
             { name: call.name, arguments: call.arguments },
             {
-              supabase,
-              ownerId,
-              microsoftSharePointCredentials,
+              toolContext,
             },
           );
 
