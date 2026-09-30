@@ -12,6 +12,9 @@ describe("MestreArcanoPanel", () => {
     expect(
       screen.getByRole("textbox", { name: "Mensagem para o Mestre Arcano" }),
     ).toHaveValue("O que devo estudar agora?");
+    expect(
+      document.querySelector('img[src="/assets/intelligence/aa-arcane-core.svg"]'),
+    ).toBeInTheDocument();
   });
 
   it("consulta o agente e apresenta a resposta", async () => {
