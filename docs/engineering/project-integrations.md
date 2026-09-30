@@ -189,7 +189,7 @@ Optional Adobe web typography:
 - `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID`
 
 
-The application requires the following public runtime variables in every environment, including Vercel Preview and Production:
+The application requires the following public runtime variables in every environment, including Render Preview and Production:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
@@ -206,7 +206,7 @@ Honeybadger remains optional from the build perspective.
 
 ## Services deliberately kept outside the runtime
 
-Canva, Figma, Dropbox, Slack, Vercel connector actions, Supabase connector actions, and other ChatGPT-side tools are not automatically imported into the web runtime. They become application integrations only through a provider-specific API/OAuth/MCP adapter.
+Canva, Figma, Dropbox, Slack, Render connector actions, Supabase connector actions, and other ChatGPT-side tools are not automatically imported into the web runtime. They become application integrations only through a provider-specific API/OAuth/MCP adapter.
 
 This prevents accidental exposure of connector credentials, unnecessary client dependencies, and coupling between the web application and the assistant tool layer.
 
@@ -215,10 +215,10 @@ This prevents accidental exposure of connector credentials, unnecessary client d
 The integration baseline is considered operational only when all of these are true:
 
 1. GitHub Quality Gate is green for the exact commit being released.
-2. Vercel has a READY deployment for that same commit.
+2. Render has a READY deployment for that same commit.
 3. The public production alias serves that deployment.
 4. Supabase project state is healthy and the expected RLS policies are present.
-5. Production environment variables are configured in Vercel.
+5. Production environment variables are configured in Render.
 6. Honeybadger is configured when production error monitoring is required.
 7. Runtime smoke checks return the expected application behavior.
 8. Every application-facing provider marked `connected` has a provider-specific runtime check and an E2E test.
