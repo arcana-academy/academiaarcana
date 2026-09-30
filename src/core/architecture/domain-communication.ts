@@ -57,10 +57,6 @@ export function validateDomainCommunication(
 ): readonly string[] {
   const issues: string[] = [];
 
-  if (!communication.contractName?.trim() && communication.kind !== "event") {
-    issues.push("direct communication requires a contract name");
-  }
-
   if (communication.kind === "event") {
     if (!communication.eventName.trim()) {
       issues.push("event communication requires an event name");
@@ -83,6 +79,10 @@ export function validateDomainCommunication(
     }
 
     return issues;
+  }
+
+  if (!communication.contractName.trim()) {
+    issues.push("direct communication requires a contract name");
   }
 
   if (!CORE_DOMAINS.includes(communication.source)) {
