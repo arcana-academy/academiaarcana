@@ -239,7 +239,7 @@ Define only server-side variables required by the OAuth app:
 - `ASANA_CLIENT_SECRET`
 - `ASANA_REDIRECT_URI`
 
-No production/Vercel environment mutation is part of this change.
+No production/Render environment mutation is part of this change.
 
 ## Deliberate non-goals
 
@@ -253,7 +253,7 @@ Not included in v1:
 - portfolio/goal synchronization;
 - direct embedding of Asana's web UI;
 - dependence on the ChatGPT Asana connector from the website runtime;
-- Vercel deployment or production configuration.
+- Render deployment or production configuration.
 
 ## Acceptance criteria
 
@@ -267,4 +267,4 @@ The integration work is ready to move to the final validation stage when:
 6. the integration hub reports an honest state;
 7. lint, typecheck, unit, accessibility, build and E2E checks pass for the exact commit;
 8. documentation matches the real runtime behavior;
-9. Vercel is the only intentionally remaining deployment/infrastructure step.
+9. Render is the only intentionally remaining deployment/infrastructure step.
