@@ -95,7 +95,40 @@ For the validated baseline snapshot (`c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`)
 
 The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Render for each resulting production deployment.
 
-## Render\n\nThe active production runtime is the Render Web Service `academiaarcana`.\n\n| Item | Current/target value |\n|---|---|\n| Provider | Render |\n| Service | `academiaarcana` |\n| Service ID | `srv-dauor697lnhs739cicag` |\n| Repository | `arcana-academy/academiaarcana` |\n| Branch | `main` |\n| Region | `ohio` |\n| Runtime | Node.js 24 |\n| Plan | `free` |\n| Public URL | `https://academiaarcana.onrender.com` |\n| Canonical build | `npm ci && npm run build` |\n| Canonical start | `npm start` |\n| Health check | `/` |\n| Deployment gate | GitHub checks pass before Render deployment |\n\nThe repository declaration for this target is `render.yaml`. It deliberately does not provision a database or cache because Supabase remains the application's database/authentication platform.\n\nThe live Render service was initially created with `npm install; npm run build`, no configured health-check path, and commit-triggered auto deploys. Those dashboard values are treated as **migration drift** and must be reconciled with `render.yaml` before the infrastructure migration is considered operationally complete.\n\nRender also requires the application public Supabase variables:\n\n- `NEXT_PUBLIC_SUPABASE_URL`\n- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`\n\nThese values are environment-managed; no real publishable key is stored in Git.\n\nState: **CONFIGURED + REPOSITORY-DEFINED + LIVE-SERVICE RECONCILIATION PENDING**.\n## Historical Vercel validation
+## Render
+
+The active production runtime is the Render Web Service `academiaarcana`.
+
+| Item | Current/target value |
+|---|---|
+| Provider | Render |
+| Service | `academiaarcana` |
+| Service ID | `srv-dauor697lnhs739cicag` |
+| Repository | `arcana-academy/academiaarcana` |
+| Branch | `main` |
+| Region | `ohio` |
+| Runtime | Node.js 24 |
+| Plan | `free` |
+| Public URL | `https://academiaarcana.onrender.com` |
+| Canonical build | `npm ci && npm run build` |
+| Canonical start | `npm start` |
+| Health check | `/` |
+| Deployment gate | GitHub checks pass before Render deployment |
+
+The repository declaration for this target is `render.yaml`. It deliberately does not provision a database or cache because Supabase remains the application's database/authentication platform.
+
+The live Render service was initially created with `npm install; npm run build`, no configured health-check path, and commit-triggered auto deploys. Those dashboard values are treated as **migration drift** and must be reconciled with `render.yaml` before the infrastructure migration is considered operationally complete.
+
+Render also requires the application public Supabase variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+
+These values are environment-managed; no real publishable key is stored in Git.
+
+State: **CONFIGURED + REPOSITORY-DEFINED + LIVE-SERVICE RECONCILIATION PENDING**.
+
+## Historical Vercel validation
 
 This retained historical record documents the Vercel production snapshot associated with an earlier baseline; it is not the active deployment path.
 
