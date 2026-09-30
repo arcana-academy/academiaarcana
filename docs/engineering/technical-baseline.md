@@ -148,7 +148,7 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 ### Migration history reconciliation
 
-The repository contains the seven application migrations represented by the current production migration history:
+The versioned migration files currently present in the repository are:
 
 - `20260915181306_remote_schema`
 - `20260921174822_revoke_excess_authenticated_table_privileges`
@@ -157,11 +157,36 @@ The repository contains the seven application migrations represented by the curr
 - `20260927213158_product_rpc_security`
 - `20260928003542_atomic_move_workspace_page`
 - `20260928005837_20260928005514_tighten_product_rpc_execute_grants`
+- `20260928190328_grimoire_covers_storage`
+- `20260929153000_focus_social_foundation`
+- `20260929155423_outlook_calendar_credentials`
+- `20260929172005_create_external_document_sources`
+- `20260929202000_feedback_hub`
+- `20260929210000_feedback_hub_require_authenticated_owner`
+- `20260929220739_revoke_excess_external_document_source_privileges`
 
-The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
+The live Supabase migration ledger currently reports these 16 applied versions:
 
-The production migration history was freshly verified. Supabase registered the least-privilege grant migration with version `20260928005837` and migration name `20260928005514_tighten_product_rpc_execute_grants`; the repository filename matches that recorded history. The public reward wrapper is `SECURITY INVOKER`, has an empty `search_path`, and is executable by `authenticated` but not by `anon` or `service_role`. The workspace page movement RPC is also `VOLATILE`, `SECURITY INVOKER`, uses an empty `search_path`, and is executable only by `authenticated` among the application-facing roles.
+- `20260915181306_remote_schema`
+- `20260921174822_revoke_excess_authenticated_table_privileges`
+- `20260924003140_rename_notebooks_grimoire_index_reconcile`
+- `20260927205154_product_domain_v1`
+- `20260927213158_product_rpc_security`
+- `20260928003542_atomic_move_workspace_page`
+- `20260928005837_20260928005514_tighten_product_rpc_execute_grants`
+- `20260928190328_grimoire_covers_storage`
+- `20260929124554_product_social_focus`
+- `20260929142350_harden_friend_connection_updates`
+- `20260929155423_outlook_calendar_credentials`
+- `20260929172005_create_external_document_sources`
+- `20260929201711_feedback_hub`
+- `20260929201757_feedback_hub_permissions`
+- `20260929202937_feedback_hub_require_authenticated_owner`
+- `20260929220739_revoke_excess_external_document_source_privileges`
 
+The repository and live ledger therefore differ in the Focus/Social and Feedback Hub migration families: the live database records four additional intermediate versions while the repository contains later forward definitions under different version/name combinations. This is treated as **observed migration-history drift**, not as evidence that the live schema is incorrect.
+
+No remote migration history is deleted, renamed or force-repaired as part of the Render migration. Before any future `db push` or migration repair, the affected SQL and resulting live schema must be reconciled explicitly. A forward-only migration is preferred over rewriting historical versions.
 ## Known security state
 
 Current Supabase Security Advisor evidence reports one warning: leaked-password protection is disabled. This feature is plan-gated by Supabase and is intentionally not enabled while the project remains on the current no-cost setup. The Performance Advisor reports unused-index INFO findings; these are not treated as defects because the product tables are currently empty and the indexes are part of the intended query paths.
