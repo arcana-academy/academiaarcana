@@ -15,7 +15,6 @@ vi.mock('@honeybadger-io/react', () => ({
 
 vi.mock('@honeybadger-io/js', () => ({
   default: {
-    beforeNotify: mocks.beforeNotify,
     configure: mocks.configure,
     logger: { debug: mocks.debug },
   },
@@ -32,18 +31,18 @@ describe('Honeybadger runtime configuration', () => {
     vi.unstubAllEnvs()
   })
 
-  it('configures the browser runtime with public deployment metadata', async () => {
+  it('uses NODE_ENV for browser deployment metadata', async () => {
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_API_KEY', 'browser-key')
-    vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', 'browser-revision')
     vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', 'preview')
-    vi.stubEnv('VERCEL_ENV', 'production')
-    vi.stubEnv('NODE_ENV', 'test')
+    vi.stubEnv('VERCEL_ENV', 'staging')
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', 'browser-revision')
 
     const { config } = await import('./honeybadger.browser.config.js')
 
     expect(config).toEqual({
       apiKey: 'browser-key',
-      environment: 'preview',
+      environment: 'production',
       projectRoot: 'webpack://_N_E/./',
       revision: 'browser-revision',
     })
@@ -54,22 +53,46 @@ describe('Honeybadger runtime configuration', () => {
     )
   })
 
-  it('falls back through server deployment and Node environments at the edge', async () => {
-    vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', '')
+  it('uses NODE_ENV for edge deployment metadata', async () => {
+    vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', 'preview')
     vi.stubEnv('VERCEL_ENV', 'staging')
-    vi.stubEnv('NODE_ENV', 'test')
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', 'edge-revision')
 
-    let imported = await import('./honeybadger.edge.config.js')
-    expect(imported.config.environment).toBe('staging')
+    const imported = await import('./honeybadger.edge.config.js')
 
-    vi.resetModules()
-    vi.clearAllMocks()
-    vi.stubEnv('VERCEL_ENV', '')
-
-    imported = await import('./honeybadger.edge.config.js')
-    expect(imported.config.environment).toBe('test')
+    expect(imported.config.environment).toBe('production')
     expect(mocks.configure).toHaveBeenCalledWith(imported.config)
     expect(mocks.debug).toHaveBeenCalledWith('Honeybadger configured for edge')
+  })
+
+  it('uses NODE_ENV for server deployment metadata', async () => {
+    vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', 'preview')
+    vi.stubEnv('VERCEL_ENV', 'production')
+    vi.stubEnv('NODE_ENV', 'test')
+
+    const { config } = await import('./honeybadger.server.config.js')
+
+    expect(config.environment).toBe('test')
+    expect(mocks.configure).toHaveBeenCalledWith(config)
+  })
+
+  it('falls back to the Render commit for server revision when no public revision is set', async () => {
+    vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', '')
+    vi.stubEnv('RENDER_GIT_COMMIT', 'render-commit')
+
+    const { config } = await import('./honeybadger.server.config.js')
+
+    expect(config.revision).toBe('render-commit')
+  })
+
+  it('prefers the explicit public revision over the Render commit', async () => {
+    vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', 'explicit-revision')
+    vi.stubEnv('RENDER_GIT_COMMIT', 'render-commit')
+
+    const { config } = await import('./honeybadger.server.config.js')
+
+    expect(config.revision).toBe('explicit-revision')
   })
 
   it('rewrites server backtrace files to their hosted asset locations', async () => {
