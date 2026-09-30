@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { executeMestreArcano } from "@/application/intelligence/execute-mestre-arcano";
 import { createClient } from "@/lib/supabase/server";
+import { SupabaseMestreArcanoContextProvider } from "@/infrastructure/intelligence/supabase-mestre-arcano-context";
 import { runMestreArcano } from "@/infrastructure/openai/mestre-arcano";
 import {
   decryptMicrosoftSharePointCredentials,
@@ -80,14 +81,15 @@ export async function POST(request: Request) {
       }
     }
 
+    const context = new SupabaseMestreArcanoContextProvider(
+      supabase,
+      claims.sub,
+      microsoftSharePointCredentials,
+    );
+
     const result = await executeMestreArcano(
       {
-        execute: (input) =>
-          runMestreArcano(input, {
-            supabase,
-            ownerId: claims.sub,
-            microsoftSharePointCredentials,
-          }),
+        execute: (input) => runMestreArcano(input, { context }),
       },
       body.input,
     );
