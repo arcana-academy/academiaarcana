@@ -23,7 +23,7 @@ describe("AuthenticatedShell", () => {
     expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();
     const institutionalSeals = container.querySelectorAll('img[src="/assets/brand/aa-institutional-seal.svg"]');
     expect(institutionalSeals).toHaveLength(2);
-    expect(institutionalSeals.every((image) => image.getAttribute("src") === "/assets/brand/aa-institutional-seal.svg")).toBe(true);
+    expect(Array.from(institutionalSeals).every((image) => image.getAttribute("src") === "/assets/brand/aa-institutional-seal.svg")).toBe(true);
     expect(
       screen.getByRole("navigation", { name: "Navegação principal" }),
     ).toBeInTheDocument();
