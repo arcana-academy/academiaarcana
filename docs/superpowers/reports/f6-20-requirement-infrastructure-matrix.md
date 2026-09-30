@@ -215,11 +215,11 @@ Quando uma etapa não puder ser comprovada, marcar como PENDING ou EXTERNAL.
 | Schedule Preview | sanctuary/planning | SchedulePreview | planning data | authorization | loading/error | CI/deploy | DB/app recovery | DOCUMENTED |
 | Quick Actions | sanctuary | QuickActions | app routes | authorization | runtime errors | CI/deploy | redeploy | DOCUMENTED |
 | CI Quality Gate | delivery | GitHub Actions | GitHub | least privilege | workflow result | GitHub | rerun/revert | VERIFIED |
-| Production deployment | delivery | Next.js build | Vercel | project permissions | deployment state | Vercel | rollback/redeploy | EXTERNAL |
+| Production deployment | delivery | Next.js build | Render | project permissions | deployment state | Render | rollback/redeploy | EXTERNAL |
 | Database recovery | data/infra | runbook | Supabase | privileged access | recovery evidence | operational | restore | PENDING |
-| Disaster recovery | infra/trust | F6.17 runbook | GitHub/Vercel/Supabase | controlled recovery | evidence pack | rebuild | restore/rebuild | PENDING |
+| Disaster recovery | infra/trust | F6.17 runbook | GitHub/Render/Supabase | controlled recovery | evidence pack | rebuild | restore/rebuild | PENDING |
 | Incident response | trust/infra | F6.18 runbook | all providers | incident controls | timeline/metrics | operational | recovery | DOCUMENTED |
-| Change management | trust/infra | F6.19 runbook | GitHub/Vercel/Supabase | change controls | post-change | CI/CD | rollback/reconcile | DOCUMENTED |
+| Change management | trust/infra | F6.19 runbook | GitHub/Render/Supabase | change controls | post-change | CI/CD | rollback/reconcile | DOCUMENTED |
 
 ## 16. Critério de completude
 
