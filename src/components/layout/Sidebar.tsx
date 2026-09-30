@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { navigationItems, type AuthenticatedRouteHref } from "@/components/navigation/AuthenticatedNavigation";
 
@@ -8,12 +9,22 @@ type SidebarProps = {
 export function Sidebar({ currentPath }: SidebarProps) {
   return (
     <aside className="aa-sidebar" aria-label="Navegação principal">
-      <div className="aa-sidebar-heading">
-        <span className="aa-sidebar-mark" aria-hidden="true">✦</span>
-        <div>
-          <strong>Mapa Arcano</strong>
-          <span>Seções da academia</span>
-        </div>
+      <div className="aa-sidebar-brand">
+        <Link className="aa-brand-lockup" href="/santuario" aria-label="Academia Arcana — Santuário">
+          <span className="aa-brand-mark" aria-hidden="true">
+            <Image
+              src="/assets/brand/aa-institutional-seal.svg"
+              alt=""
+              width={40}
+              height={40}
+              priority
+            />
+          </span>
+          <span>
+            <span className="aa-brand-kicker">Academia Arcana</span>
+            <span className="aa-brand-name">Mapa Arcano</span>
+          </span>
+        </Link>
       </div>
 
       <nav aria-label="Navegação principal">
