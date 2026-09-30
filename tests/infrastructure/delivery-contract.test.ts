@@ -19,6 +19,13 @@ describe("delivery infrastructure contract", () => {
     ).toBe(false);
   });
 
+  it("does not keep Vercel as a local deployment toolchain", () => {
+    const gitignore = readRepoFile(".gitignore");
+
+    expect(gitignore).not.toMatch(/^# Vercel\s*$/m);
+    expect(gitignore).not.toMatch(/^\.vercel\/?$/m);
+  });
+
   it("targets the Render production service in the smoke workflow", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml");
 
