@@ -17,8 +17,13 @@ describe("AuthenticatedShell", () => {
       </AuthenticatedShell>,
     );
 
-    expect(\n      screen.getByRole("link", { name: "Academia Arcana — Santuário" }),\n    ).toBeInTheDocument();
-    expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();\n    const institutionalSeals = screen.getAllByRole("img", { name: "" });\n    expect(institutionalSeals).toHaveLength(2);\n    expect(institutionalSeals.every((image) => image.getAttribute("src") === "/assets/brand/aa-institutional-seal.svg")).toBe(true);
+    expect(
+      screen.getByRole("link", { name: "Academia Arcana — Santuário" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();
+    const institutionalSeals = screen.getAllByRole("img", { name: "" });
+    expect(institutionalSeals).toHaveLength(2);
+    expect(institutionalSeals.every((image) => image.getAttribute("src") === "/assets/brand/aa-institutional-seal.svg")).toBe(true);
     expect(
       screen.getByRole("navigation", { name: "Navegação principal" }),
     ).toBeInTheDocument();
