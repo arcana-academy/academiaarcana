@@ -47,8 +47,8 @@ describe("Honeybadger runtime configuration", () => {
 
   it("configures the browser with public deployment metadata", async () => {
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_API_KEY", "browser-key");
-    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "preview");
-    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_RENDER_ENV", "preview");
+    vi.stubEnv("RENDER_ENVIRONMENT", "production");
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "browser-revision");
 
     // @ts-expect-error The runtime config is intentionally authored as JavaScript.
@@ -68,8 +68,8 @@ describe("Honeybadger runtime configuration", () => {
 
   it("falls back to server deployment metadata in the edge runtime", async () => {
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_API_KEY", "edge-key");
-    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "");
-    vi.stubEnv("VERCEL_ENV", "staging");
+    vi.stubEnv("NEXT_PUBLIC_RENDER_ENV", "");
+    vi.stubEnv("RENDER_ENVIRONMENT", "staging");
     vi.stubEnv("NODE_ENV", "test");
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "edge-revision");
 
@@ -84,8 +84,8 @@ describe("Honeybadger runtime configuration", () => {
   });
 
   it("falls back to NODE_ENV when deployment metadata is unavailable", async () => {
-    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "");
-    vi.stubEnv("VERCEL_ENV", "");
+    vi.stubEnv("NEXT_PUBLIC_RENDER_ENV", "");
+    vi.stubEnv("RENDER_ENVIRONMENT", "");
     vi.stubEnv("NODE_ENV", "test");
 
     // @ts-expect-error The runtime config is intentionally authored as JavaScript.
