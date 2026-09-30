@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: academiaarcana
+    runtime: node
+    plan: free
+    region: ohio
+    branch: main
+    autoDeployTrigger: commit
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_HONEYBADGER_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_HONEYBADGER_ASSETS_URL
+        value: https://assets.honeybadger.io
+      - key: NEXT_PUBLIC_HONEYBADGER_REVISION
+        value: render-release
+      - key: NEXT_PUBLIC_RENDER_ENV
+        value: production
+      - key: RENDER_ENVIRONMENT
+        value: production
