@@ -740,4 +740,33 @@ VALIDAR
 CONSOLIDAR
 ```
 
-The architecture remains a living system, but changes must be explicit and traceable.\n---\n\n## 25. Production delivery architecture\n\nThe production delivery path is:\n\n```text\nGitHub\n  ↓\nGitHub Actions\n  ↓\nQuality Gate\n  ↓\nRender Web Service\n  ↓\nSupabase\n```\n\nCanonical responsibilities:\n\n| Component | Responsibility |\n|---|---|\n| GitHub | Source control, branches, pull requests and repository history |\n| GitHub Actions | lint, typecheck, tests, accessibility, production build and delivery checks |\n| Supabase | authentication, PostgreSQL persistence, RLS, RPCs and application data |\n| Render | Next.js production Web Service and public HTTP runtime |\n\nThe application repository does not treat Vercel as an active hosting or deployment dependency.\n\nThe Render production service is the single application runtime. Supabase remains the application's database/authentication platform; no duplicate Render database is required.\n\nState: **CANÔNICO + IMPLEMENTADO PARCIALMENTE + EM VALIDAÇÃO OPERACIONAL**.
+The architecture remains a living system, but changes must be explicit and traceable. The canonical production delivery stack is GitHub + GitHub Actions + Supabase + Render.\n---\n\n## 25. Production delivery architecture
+
+The production delivery path is:
+
+```text
+GitHub
+  ↓
+GitHub Actions
+  ↓
+Quality Gate
+  ↓
+Render Web Service
+  ↓
+Supabase
+```
+
+Canonical responsibilities:
+
+| Component | Responsibility |
+|---|---|
+| GitHub | Source control, branches, pull requests and repository history |
+| GitHub Actions | lint, typecheck, tests, accessibility, production build and delivery checks |
+| Supabase | authentication, PostgreSQL persistence, RLS, RPCs and application data |
+| Render | Next.js production Web Service and public HTTP runtime |
+
+The application repository does not treat Vercel as an active hosting or deployment dependency.
+
+The Render production service is the single application runtime. Supabase remains the application's database/authentication platform; no duplicate Render database is required.
+
+State: **CANÔNICO + IMPLEMENTADO PARCIALMENTE + EM VALIDAÇÃO OPERACIONAL**.
