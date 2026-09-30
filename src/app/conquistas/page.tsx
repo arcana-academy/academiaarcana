@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Award, CheckCircle2, Crown, Gem } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
@@ -11,6 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
 }
+
+const achievementEmblem = "/assets/gamification/aa-achievement-emblem.svg";
 
 export default async function ConquistasPage() {
   const claims = await requireAuthenticatedUser();
@@ -36,11 +39,14 @@ export default async function ConquistasPage() {
               <ul className="aa-list" aria-label="Conquistas desbloqueadas">
                 {unlocked.map((achievement) => (
                   <li className="aa-list-item" key={achievement.code}>
-                    <div>
+                    <div className="aa-achievement-item-visual" aria-hidden="true">
+                      <Image className="aa-achievement-item-emblem" src={achievementEmblem} alt="" width={40} height={40} />
+                    </div>
+                    <div className="aa-achievement-item-copy">
                       <strong>{achievement.title}</strong>
                       <p>{achievement.description}</p>
                     </div>
-                    <CheckCircle2 size={20} aria-label="Desbloqueada" />
+                    <CheckCircle2 className="aa-achievement-item-status" size={20} aria-label="Desbloqueada" />
                   </li>
                 ))}
               </ul>
@@ -52,7 +58,10 @@ export default async function ConquistasPage() {
             <ul className="aa-list" aria-label="Próximas conquistas">
               {achievements.filter((achievement) => !achievement.unlocked).map((achievement) => (
                 <li className="aa-list-item" key={achievement.code}>
-                  <div>
+                  <div className="aa-achievement-item-visual" aria-hidden="true">
+                    <Image className="aa-achievement-item-emblem" src={achievementEmblem} alt="" width={40} height={40} />
+                  </div>
+                  <div className="aa-achievement-item-copy">
                     <strong>{achievement.title}</strong>
                     <p>{achievement.description}</p>
                   </div>
