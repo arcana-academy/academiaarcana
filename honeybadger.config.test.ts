@@ -45,10 +45,11 @@ describe("Honeybadger runtime configuration", () => {
     vi.unstubAllEnvs();
   });
 
-  it("configures the browser with public deployment metadata", async () => {
+  it("uses NODE_ENV for browser deployment metadata", async () => {
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_API_KEY", "browser-key");
     vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "preview");
-    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "staging");
+    vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "browser-revision");
 
     // @ts-expect-error The runtime config is intentionally authored as JavaScript.
@@ -56,7 +57,7 @@ describe("Honeybadger runtime configuration", () => {
 
     expect(config).toEqual({
       apiKey: "browser-key",
-      environment: "preview",
+      environment: "production",
       revision: "browser-revision",
       projectRoot: "webpack://_N_E/./",
     });
@@ -66,26 +67,26 @@ describe("Honeybadger runtime configuration", () => {
     );
   });
 
-  it("falls back to server deployment metadata in the edge runtime", async () => {
+  it("uses NODE_ENV for edge deployment metadata", async () => {
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_API_KEY", "edge-key");
-    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "");
+    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "preview");
     vi.stubEnv("VERCEL_ENV", "staging");
-    vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "edge-revision");
 
     // @ts-expect-error The runtime config is intentionally authored as JavaScript.
     const { config } = await import("./honeybadger.edge.config.js");
 
-    expect(config.environment).toBe("staging");
+    expect(config.environment).toBe("production");
     expect(mocks.serverConfigure).toHaveBeenCalledWith(config);
     expect(mocks.serverDebug).toHaveBeenCalledWith(
       "Honeybadger configured for edge",
     );
   });
 
-  it("falls back to NODE_ENV when deployment metadata is unavailable", async () => {
-    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "");
-    vi.stubEnv("VERCEL_ENV", "");
+  it("uses NODE_ENV for server deployment metadata", async () => {
+    vi.stubEnv("NEXT_PUBLIC_VERCEL_ENV", "preview");
+    vi.stubEnv("VERCEL_ENV", "production");
     vi.stubEnv("NODE_ENV", "test");
 
     // @ts-expect-error The runtime config is intentionally authored as JavaScript.
@@ -94,6 +95,26 @@ describe("Honeybadger runtime configuration", () => {
     expect(config.environment).toBe("test");
     expect(mocks.serverConfigure).toHaveBeenCalledWith(config);
     expect(mocks.beforeNotify).toHaveBeenCalledOnce();
+  });
+
+  it("falls back to the Render commit for server revision when no public revision is set", async () => {
+    vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "");
+    vi.stubEnv("RENDER_GIT_COMMIT", "render-commit");
+
+    // @ts-expect-error The runtime config is intentionally authored as JavaScript.
+    const { config } = await import("./honeybadger.server.config.js");
+
+    expect(config.revision).toBe("render-commit");
+  });
+
+  it("prefers the explicit public revision over the Render commit", async () => {
+    vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "explicit-revision");
+    vi.stubEnv("RENDER_GIT_COMMIT", "render-commit");
+
+    // @ts-expect-error The runtime config is intentionally authored as JavaScript.
+    const { config } = await import("./honeybadger.server.config.js");
+
+    expect(config.revision).toBe("explicit-revision");
   });
 
   it("rewrites server build frames to their uploaded asset locations", async () => {
