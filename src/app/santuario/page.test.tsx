@@ -220,7 +220,7 @@ describe("SanctuaryPage", () => {
     ).toBe(true);
 
     const workspaceLinks = within(primaryNavigation).getAllByRole("link", { name: "Workspace" });
-    expect(workspaceLinks).toHaveLength(2);
+    expect(workspaceLinks).toHaveLength(1);
     expect(
       workspaceLinks.every(
         (link) => link.getAttribute("aria-current") === null,
