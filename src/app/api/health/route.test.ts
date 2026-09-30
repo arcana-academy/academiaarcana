@@ -1,27 +1,37 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-const { createSupabaseServerClient } = vi.hoisted(() => ({
-  createSupabaseServerClient: vi.fn(),
+const { getPublicRuntimeConfig } = vi.hoisted(() => ({
+  getPublicRuntimeConfig: vi.fn(),
 }));
 
-vi.mock("@/infrastructure/supabase/server", () => ({
-  createSupabaseServerClient,
+vi.mock("@/core/config", () => ({
+  getPublicRuntimeConfig,
 }));
 
 import { GET } from "./route";
 
-function createSupabaseQuery(result: { error: unknown }) {
-  const limit = vi.fn().mockResolvedValue(result);
-  const select = vi.fn().mockReturnValue({ limit });
-  const from = vi.fn().mockReturnValue({ select });
-
-  return { from };
-}
-
 describe("health route", () => {
-  it("returns 200 when the Render runtime can reach the Supabase schema", async () => {
-    createSupabaseServerClient.mockResolvedValue(
-      createSupabaseQuery({ error: null }),
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+    getPublicRuntimeConfig.mockReturnValue({
+      supabaseUrl: "https://example.supabase.co",
+      supabasePublishableKey: "sb_publishable_test_key",
+    });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it("returns 200 when the Render runtime can reach the Supabase Auth health endpoint", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ name: "GoTrue" }), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+        },
+      }),
     );
 
     const response = await GET();
@@ -35,17 +45,23 @@ describe("health route", () => {
         supabase: "ok",
       },
     });
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      "https://example.supabase.co/auth/v1/health",
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          apikey: "sb_publishable_test_key",
+        },
+        cache: "no-store",
+      },
+    );
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   it("returns 503 without leaking Supabase error details when the probe fails", async () => {
-    createSupabaseServerClient.mockResolvedValue(
-      createSupabaseQuery({
-        error: {
-          message: "sensitive database detail",
-          code: "42501",
-        },
-      }),
+    vi.mocked(fetch).mockRejectedValue(
+      new Error("sensitive Supabase connection detail"),
     );
 
     const response = await GET();
@@ -59,7 +75,21 @@ describe("health route", () => {
         supabase: "error",
       },
     });
-    expect(JSON.stringify(body)).not.toContain("sensitive database detail");
+    expect(JSON.stringify(body)).not.toContain(
+      "sensitive Supabase connection detail",
+    );
     expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("returns 503 when Supabase health responds with a non-success status", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(null, {
+        status: 503,
+      }),
+    );
+
+    const response = await GET();
+
+    expect(response.status).toBe(503);
   });
 });
