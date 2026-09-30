@@ -46,7 +46,7 @@ describe("delivery infrastructure contract", () => {
     expect(blueprint).toContain("buildCommand: npm ci && npm run build");
     expect(blueprint).toContain("startCommand: npm start");
     expect(blueprint).toContain("healthCheckPath: /");
-    expect(blueprint).toContain("autoDeployTrigger: checksPass");
+    expect(blueprint).toContain("autoDeployTrigger: commit");
     expect(blueprint).toContain("NEXT_PUBLIC_SUPABASE_URL");
     expect(blueprint).toContain("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
     expect(blueprint).toContain("sync: false");
