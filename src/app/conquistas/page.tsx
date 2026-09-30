@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Award, CheckCircle2, Crown, Gem } from "lucide-react";
+import { CheckCircle2, Gem } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -33,7 +33,7 @@ export default async function ConquistasPage() {
         description="Marcos derivados de progresso verificável, sem inventar conquistas para preencher a interface."
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Desbloqueadas" description="Conquistas que seu estado persistido já comprova." icon={<Award size={22} />}>
+          <FeatureCard title="Desbloqueadas" description="Conquistas que seu estado persistido já comprova." icon={<Image src={achievementEmblem} alt="" width={22} height={22} />}>
             <p className="aa-state-copy">{unlocked.length}/{achievements.length}</p>
             {unlocked.length ? (
               <ul className="aa-list" aria-label="Conquistas desbloqueadas">
@@ -54,7 +54,7 @@ export default async function ConquistasPage() {
               <p className="aa-state-copy">Seu próximo marco será calculado a partir do progresso real.</p>
             )}
           </FeatureCard>
-          <FeatureCard title="Próximos marcos" description="Regras transparentes para você saber o que cada conquista exige." icon={<Crown size={22} />}>
+          <FeatureCard title="Próximos marcos" description="Regras transparentes para você saber o que cada conquista exige." icon={<Image src={achievementEmblem} alt="" width={22} height={22} />}>
             <ul className="aa-list" aria-label="Próximas conquistas">
               {achievements.filter((achievement) => !achievement.unlocked).map((achievement) => (
                 <li className="aa-list-item" key={achievement.code}>
