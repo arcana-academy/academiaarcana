@@ -27,10 +27,20 @@ export default async function GrimoiresPage() {
     <AuthenticatedShell currentPath="/grimorios">
       <main className="aa-page" aria-labelledby="grimorios-title">
         <header className="aa-page-header">
-          <div className="aa-page-header-copy">
-            <p className="aa-eyebrow">Biblioteca · conhecimento</p>
+          <div className="aa-page-header-knowledge">
+            <Image
+              className="aa-knowledge-mark"
+              src="/assets/icons/aa-library-mark.svg"
+              alt=""
+              width={52}
+              height={52}
+              priority
+            />
+            <div className="aa-page-header-copy">
+              <p className="aa-eyebrow">Biblioteca · conhecimento</p>
             <h1 id="grimorios-title">Grimórios</h1>
-            <p>Sua biblioteca pessoal de estudos e conhecimentos, organizada para voltar ao que importa.</p>
+              <p>Sua biblioteca pessoal de estudos e conhecimentos, organizada para voltar ao que importa.</p>
+            </div>
           </div>
           <Link className="aa-button aa-button-primary" href="/workspace">Novo espaço</Link>
         </header>
