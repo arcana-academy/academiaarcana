@@ -18,7 +18,7 @@ describe("AuthenticatedShell", () => {
     );
 
     expect(\n      screen.getByRole("link", { name: "Academia Arcana — Santuário" }),\n    ).toBeInTheDocument();
-    expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();
+    expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();\n    expect(screen.getByRole("img", { name: "" })).toHaveAttribute("src", "/assets/brand/aa-institutional-seal.svg");
     expect(
       screen.getByRole("navigation", { name: "Navegação principal" }),
     ).toBeInTheDocument();
