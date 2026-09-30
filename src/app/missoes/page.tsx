@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Flag, Sparkles, Target } from "lucide-react";
+import { Sparkles, Target } from "lucide-react";
 
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
