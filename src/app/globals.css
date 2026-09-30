@@ -768,6 +768,7 @@ p {
 }
 
 .aa-sanctuary-sigil {
+  position: relative;
   display: grid;
   place-items: center;
   width: 9rem;
@@ -778,6 +779,13 @@ p {
   font-family: var(--aa-typography-heading);
   font-size: 3.6rem;
   background: radial-gradient(circle, rgb(155 120 208 / 0.18), rgb(11 9 16 / 0.1) 62%, transparent 63%);
+}
+
+.aa-sanctuary-sigil img {
+  width: 8rem;
+  height: 8rem;
+  object-fit: contain;
+}
   box-shadow: 0 0 45px rgb(155 120 208 / 0.12);
 }
 
