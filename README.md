@@ -7,7 +7,7 @@ Academia Arcana is a Next.js application organized as a modular monolith. The te
 - Next.js + App Router
 - React
 - TypeScript (strict)
-- Tailwind CSS (planned for the presentation layer)
+- Tailwind CSS
 - Lucide React
 - Supabase (authentication and data integration)
 - Vitest + Testing Library
@@ -16,11 +16,17 @@ Academia Arcana is a Next.js application organized as a modular monolith. The te
 
 ## Architecture
 
+Academia Arcana uses a modular-monolith architecture with explicit domain, application, port, and infrastructure boundaries.
+
 The approved domain boundaries are:
 
 `identity`, `context`, `authorization`, `learning`, `planning`, `gamification`, `education`, `social`, `adaptive`, `intelligence`, `flonts`, `trust`, `data`, `sanctuary`.
 
 The foundation keeps core contracts independent from presentation and infrastructure concerns.
+
+**Canonical operational architecture:** `docs/architecture/AA-ARCHITECTURE-1.0.md`
+
+The older design specification in `docs/superpowers/specs/2026-08-31-academia-arcana-architecture-design.md` remains the conceptual/strategic record; the operational baseline is authoritative for the current repository.
 
 ## Development
 
