@@ -43,6 +43,7 @@ describe("StudyTaskBoard", () => {
       }),
     );
     expect(await screen.findByText("Nova revisão")).toBeInTheDocument();
+    expect(document.querySelector('img[src="/assets/icons/aa-cronograma.svg"]')).toBeInTheDocument();
   });
 
   it("removes a completed task from the upcoming list", async () => {
