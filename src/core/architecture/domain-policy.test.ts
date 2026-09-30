@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import {\n  ARCHITECTURE_LAYERS,\n  DOMAIN_DEPENDENCY_DIRECTION,\n  DOMAIN_DEPENDENCY_MATRIX,\n  DOMAIN_POLICIES,\n  validateDomainDependencyMatrix,\n} from "./domain-policy";
+import {
+  ARCHITECTURE_LAYERS,
+  DOMAIN_DEPENDENCY_DIRECTION,
+  DOMAIN_DEPENDENCY_MATRIX,
+  DOMAIN_POLICIES,
+  validateDomainDependencyMatrix,
+} from "./domain-policy";
 import { CORE_DOMAINS } from "./domains";
 
 describe("domain architecture policy", () => {
@@ -64,7 +70,7 @@ describe("domain architecture policy", () => {
     expect(validateDomainDependencyMatrix()).toEqual([]);
   });
 
-  it("rejects an unknown dependency, duplicate dependency, and dependency cycle", () => {
+  it("rejects duplicate and self dependencies", () => {
     const invalidMatrix = {
       ...DOMAIN_DEPENDENCY_MATRIX,
       context: ["identity", "identity"],
@@ -79,6 +85,29 @@ describe("domain architecture policy", () => {
         "self dependency: identity",
       ]),
     );
+  });
+
+  it("rejects unknown dependencies", () => {
+    const invalidMatrix = {
+      ...DOMAIN_DEPENDENCY_MATRIX,
+      context: ["identity", "unknown-domain" as never],
+    } as typeof DOMAIN_DEPENDENCY_MATRIX;
+
+    const issues = validateDomainDependencyMatrix(invalidMatrix);
+
+    expect(issues).toContain("unknown dependency: context -> unknown-domain");
+  });
+
+  it("detects dependency cycles", () => {
+    const invalidMatrix = {
+      ...DOMAIN_DEPENDENCY_MATRIX,
+      context: ["identity"],
+      identity: ["context"],
+    } as typeof DOMAIN_DEPENDENCY_MATRIX;
+
+    const issues = validateDomainDependencyMatrix(invalidMatrix);
+
+    expect(issues).toContain("dependency cycle detected at: context");
   });
 
   it("does not introduce a separate domain for UI or infrastructure concerns", () => {
