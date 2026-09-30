@@ -19,8 +19,7 @@ describe("runtime configuration", () => {
   it.each([
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-  ])("fails on Vercel when %s is missing", (missingName) => {
-    vi.stubEnv("VERCEL_ENV", "preview");
+  ])("fails when %s is missing", (missingName) => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-key");
     vi.stubEnv(missingName, "");
@@ -34,7 +33,6 @@ describe("runtime configuration", () => {
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   ])("fails locally when %s is missing", (missingName) => {
-    vi.stubEnv("VERCEL_ENV", "development");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publishable-key");
     vi.stubEnv(missingName, "");
