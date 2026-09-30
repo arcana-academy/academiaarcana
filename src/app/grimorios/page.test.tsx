@@ -44,6 +44,7 @@ describe("GrimoriosPage", () => {
 
     expect(html).toContain('data-current-path="/grimorios"');
     expect(html).toContain("Fisiologia");
+    expect(html).toContain("/assets/icons/aa-library-mark.svg");
     expect(html).toContain("/assets/grimoires/aa-grimoire-cover-base.svg");
     expect(html).toContain("href=\"/workspace?grimoire=grimoire-1\"");
     expect(listByOwner).toHaveBeenCalledWith("user-1");
