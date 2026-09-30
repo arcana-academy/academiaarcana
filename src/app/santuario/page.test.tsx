@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
@@ -210,7 +210,7 @@ describe("SanctuaryPage", () => {
 
     render(await SanctuaryPage());
 
-    const sanctuaryLinks = screen.getAllByRole("link", { name: /santu/i });
+    const primaryNavigation = screen.getByRole("navigation", { name: "Navegação principal" });\n    const sanctuaryLinks = within(primaryNavigation).getAllByRole("link", { name: /santu/i });
     expect(sanctuaryLinks).toHaveLength(2);
     expect(
       sanctuaryLinks.every((link) =>
@@ -218,7 +218,7 @@ describe("SanctuaryPage", () => {
       ),
     ).toBe(true);
 
-    const workspaceLinks = screen.getAllByRole("link", { name: "Workspace" });
+    const workspaceLinks = within(primaryNavigation).getAllByRole("link", { name: "Workspace" });
     expect(workspaceLinks).toHaveLength(2);
     expect(
       workspaceLinks.every(
