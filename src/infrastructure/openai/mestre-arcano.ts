@@ -111,9 +111,7 @@ export async function runMestreArcano(
   input: string,
   {
     fetchImpl = fetch,
-    supabase,
-    ownerId,
-    microsoftSharePointCredentials = null,
+    toolContext,
   }: {
     readonly fetchImpl?: OpenAIFetch;
     readonly toolContext: import("@/domains/intelligence").MestreArcanoToolContext;
