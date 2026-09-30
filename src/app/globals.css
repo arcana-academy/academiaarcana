@@ -1305,3 +1305,44 @@ p {
     width: 100%;
   }
 }
+
+
+.aa-mestre-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.aa-mestre-core {
+  width: 5rem;
+  height: 5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--aa-line-highlight);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(155 120 208 / 0.15), rgb(8 7 12 / 0.28) 68%);
+  box-shadow: 0 0 32px rgb(155 120 208 / 0.12);
+}
+
+.aa-mestre-core img {
+  display: block;
+  width: 4.35rem;
+  height: 4.35rem;
+  object-fit: contain;
+}
+
+.aa-mestre-header-copy {
+  min-width: 0;
+}
+
+@media (max-width: 48rem) {
+  .aa-mestre-header {
+    grid-template-columns: 1fr;
+  }
+
+  .aa-mestre-core {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+}
