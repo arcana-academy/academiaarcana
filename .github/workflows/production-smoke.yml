@@ -3,6 +3,12 @@ name: Academia Arcana Production Smoke
 on:
   workflow_dispatch:
 
+  workflow_run:
+    workflows:
+      - Academia Arcana Quality Gate
+    types:
+      - completed
+
 permissions:
   contents: read
 
@@ -13,6 +19,7 @@ concurrency:
 jobs:
   smoke:
     name: Production Smoke
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -37,6 +44,38 @@ jobs:
           echo "Render production root smoke check failed."
           exit 1
 
+      - name: Check Render to Supabase readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="https://academiaarcana.onrender.com"
+
+          for attempt in {1..18}; do
+            status="$(curl -sS -o /tmp/health.json -w "%{http_code}" --max-time 20 "${base_url}/api/health" || true)"
+            if [ "$status" = "200" ]; then
+              node <<'NODE'
+          const fs = require("fs");
+          const body = JSON.parse(fs.readFileSync("/tmp/health.json", "utf8"));
+
+          if (
+            body.status !== "ok" ||
+            body.service !== "academiaarcana" ||
+            body.checks?.supabase !== "ok"
+          ) {
+            throw new Error("Render to Supabase readiness contract failed.");
+          }
+
+          console.log("Render to Supabase readiness contract is healthy.");
+          NODE
+              exit 0
+            fi
+
+            echo "Render to Supabase readiness not ready (attempt $attempt, HTTP $status); retrying..."
+            sleep 10
+          done
+
+          echo "Render to Supabase readiness check failed."
+          exit 1
       - name: Check public runtime routes
         shell: bash
         run: |
