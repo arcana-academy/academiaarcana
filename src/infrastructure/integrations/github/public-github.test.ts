@@ -76,7 +76,47 @@ describe("GitHub integration verifier", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  it("fails closed when GitHub returns a non-success response", async () => {
+  it("falls back to the public GitHub repository page when the API is rate-limited", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(null, { status: 403 }))
+      .mockResolvedValueOnce(
+        new Response("<html><title>academiaarcana</title></html>", {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        }),
+      );
+
+    const result = await verifyGitHubConnection({
+      repository: DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
+      fetchImpl,
+    });
+
+    expect(result).toMatchObject({
+      providerId: "github",
+      pluginName: "GitHub",
+      status: "connected",
+      repository: {
+        fullName: DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
+        defaultBranch: "main",
+        visibility: "public",
+        private: false,
+        htmlUrl:
+          "https://github.com/arcana-academy/academiaarcana",
+      },
+    });
+
+    expect(fetchImpl).toHaveBeenNthCalledWith(
+      2,
+      "https://github.com/arcana-academy/academiaarcana",
+      expect.objectContaining({
+        method: "GET",
+        cache: "no-store",
+      }),
+    );
+  });
+
+  it("fails closed when GitHub returns a non-success response that is not rate limiting", async () => {
     const fetchImpl = vi
       .fn()
       .mockResolvedValue(new Response(null, { status: 404 }));
