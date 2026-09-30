@@ -32,6 +32,6 @@ describe("AcademiaPage", () => {
     expect(html).toContain('href="/santuario"');
     expect(html).toContain("/assets/icons/aa-workspace.svg");
     expect(html).toContain("/assets/icons/aa-cronograma.svg");
-    expect(html).toContain("/assets/icons/aa-santuary.svg");
+    expect(html).toContain("/assets/icons/aa-sanctuary.svg");
   });
 });
