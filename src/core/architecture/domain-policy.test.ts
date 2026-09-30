@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ARCHITECTURE_LAYERS, DOMAIN_DEPENDENCY_DIRECTION, DOMAIN_POLICIES } from "./domain-policy";
+import {\n  ARCHITECTURE_LAYERS,\n  DOMAIN_DEPENDENCY_DIRECTION,\n  DOMAIN_DEPENDENCY_MATRIX,\n  DOMAIN_POLICIES,\n  validateDomainDependencyMatrix,\n} from "./domain-policy";
 import { CORE_DOMAINS } from "./domains";
 
 describe("domain architecture policy", () => {
@@ -47,6 +47,37 @@ describe("domain architecture policy", () => {
     );
     expect(DOMAIN_POLICIES.flonts.prohibitedDependencies).toEqual(
       expect.arrayContaining(["direct database access", "unscoped domain access"]),
+    );
+  });
+
+  it("keeps the declared dependency matrix aligned with domain policies and acyclic", () => {
+    for (const domain of CORE_DOMAINS) {
+      expect(DOMAIN_DEPENDENCY_MATRIX[domain]).toEqual(
+        DOMAIN_POLICIES[domain].allowedDependencies,
+      );
+      expect(new Set(DOMAIN_DEPENDENCY_MATRIX[domain]).size).toBe(
+        DOMAIN_DEPENDENCY_MATRIX[domain].length,
+      );
+      expect(DOMAIN_DEPENDENCY_MATRIX[domain]).not.toContain(domain);
+    }
+
+    expect(validateDomainDependencyMatrix()).toEqual([]);
+  });
+
+  it("rejects an unknown dependency, duplicate dependency, and dependency cycle", () => {
+    const invalidMatrix = {
+      ...DOMAIN_DEPENDENCY_MATRIX,
+      context: ["identity", "identity"],
+      identity: ["identity"],
+    } as typeof DOMAIN_DEPENDENCY_MATRIX;
+
+    const issues = validateDomainDependencyMatrix(invalidMatrix);
+
+    expect(issues).toEqual(
+      expect.arrayContaining([
+        "duplicate dependency: context",
+        "self dependency: identity",
+      ]),
     );
   });
 
