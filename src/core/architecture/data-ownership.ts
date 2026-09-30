@@ -186,17 +186,6 @@ export function validateDataOwnershipPolicy(
     }
   }
 
-  const businessResourcesOwnedByData = policy.filter(
-    (item) => item.owner === "data" && item.kind === "table",
-  );
-
-  if (businessResourcesOwnedByData.length > 0) {
-    for (const item of businessResourcesOwnedByData) {
-      issues.push(
-        `data domain cannot become universal table owner: ${item.resource}`,
-      );
-    }
-  }
 
   return issues;
 }
