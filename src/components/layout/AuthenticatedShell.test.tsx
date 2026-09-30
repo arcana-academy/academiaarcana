@@ -17,7 +17,7 @@ describe("AuthenticatedShell", () => {
       </AuthenticatedShell>,
     );
 
-    expect(screen.getByText("Academia Arcana")).toBeInTheDocument();
+    expect(\n      screen.getByRole("link", { name: "Academia Arcana — Santuário" }),\n    ).toBeInTheDocument();
     expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: "Navegação principal" }),
