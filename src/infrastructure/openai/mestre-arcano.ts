@@ -1,4 +1,3 @@
-import type { MestreArcanoContextProvider } from "@/domains/intelligence";
 import {
   executeMestreArcanoTool,
   MESTRE_ARCANO_TOOLS,
@@ -112,10 +111,10 @@ export async function runMestreArcano(
   input: string,
   {
     fetchImpl = fetch,
-    context,
+    toolContext,
   }: {
     readonly fetchImpl?: OpenAIFetch;
-    readonly context: MestreArcanoContextProvider;
+    readonly toolContext: import("@/domains/intelligence").MestreArcanoToolContext;
   },
 ): Promise<MestreArcanoResult> {
   const normalizedInput = input.trim();
@@ -191,7 +190,7 @@ export async function runMestreArcano(
           const toolOutput = await executeMestreArcanoTool(
             { name: call.name, arguments: call.arguments },
             {
-              context,
+              toolContext,
             },
           );
 
