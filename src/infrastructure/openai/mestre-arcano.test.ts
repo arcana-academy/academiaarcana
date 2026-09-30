@@ -12,7 +12,6 @@ describe("Mestre Arcano OpenAI integration", () => {
     vi.stubEnv("OPENAI_API_KEY", "test-secret");
     vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
 
-    const supabase = {} as never;
 
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(
@@ -25,7 +24,15 @@ describe("Mestre Arcano OpenAI integration", () => {
       ),
     );
 
-    const result = await runMestreArcano("Explique fotossíntese.", { fetchImpl, supabase, ownerId: "user-1" });
+    const context = {
+      getGamificationProfile: vi.fn(),
+      getTodayMissions: vi.fn(),
+      getUpcomingStudyTasks: vi.fn(),
+      getConnectedSharePointSources: vi.fn(),
+      getSharePointDocumentContext: vi.fn(),
+    };
+
+    const result = await runMestreArcano("Explique fotossíntese.", { fetchImpl, context });
 
     expect(result).toEqual({
       output: "Resposta do Mestre Arcano.",
@@ -56,7 +63,13 @@ describe("Mestre Arcano OpenAI integration", () => {
   it("fails closed when the server key is missing", async () => {
     vi.stubEnv("OPENAI_API_KEY", "");
 
-    await expect(runMestreArcano("Olá", { fetchImpl: vi.fn(), supabase: {} as never, ownerId: "user-1" })).rejects.toThrow(
+    await expect(runMestreArcano("Olá", { fetchImpl: vi.fn(), context: {
+      getGamificationProfile: vi.fn(),
+      getTodayMissions: vi.fn(),
+      getUpcomingStudyTasks: vi.fn(),
+      getConnectedSharePointSources: vi.fn(),
+      getSharePointDocumentContext: vi.fn(),
+    } })).rejects.toThrow(
       "OpenAI integration is not configured.",
     );
   });
