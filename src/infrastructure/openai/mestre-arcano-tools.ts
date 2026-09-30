@@ -4,7 +4,57 @@ type ToolContext = {
   readonly context: MestreArcanoContextProvider;
 };
 
-export const MESTRE_ARCANO_TOOLS = [];
+export const MESTRE_ARCANO_TOOLS = [
+  {
+    type: "function",
+    name: "get_gamification_profile",
+    description: "Lê o perfil de gamificação autenticado do aluno atual. Use quando a resposta depender de XP, sequência de dias ou última atividade.",
+    strict: true,
+    parameters: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    type: "function",
+    name: "get_today_missions",
+    description: "Lê as missões do dia do aluno autenticado. Use para orientar o aluno sobre missões e progresso de missões.",
+    strict: true,
+    parameters: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    type: "function",
+    name: "get_upcoming_study_tasks",
+    description: "Lê tarefas de estudo pendentes próximas do aluno autenticado.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        limit: { type: "integer", minimum: 1, maximum: 10, description: "Quantidade máxima de tarefas a retornar." },
+      },
+      required: ["limit"],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: "get_connected_sharepoint_sources",
+    description: "Lista as fontes de Microsoft SharePoint que o aluno autenticado conectou à Academia Arcana.",
+    strict: true,
+    parameters: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    type: "function",
+    name: "get_sharepoint_document_context",
+    description: "Recupera o conteúdo textual de uma fonte Microsoft SharePoint conectada pelo aluno atual.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        sourceId: { type: "string", minLength: 1, description: "ID da fonte persistida pela Academia Arcana." },
+      },
+      required: ["sourceId"],
+      additionalProperties: false,
+    },
+  },
+] as const;
 
 type ToolCall = {
   readonly name: string;
