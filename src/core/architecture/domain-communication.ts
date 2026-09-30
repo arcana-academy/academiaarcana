@@ -99,6 +99,7 @@ export function validateDomainCommunication(
 
   if (communication.source === communication.target) {
     issues.push(`self communication: ${communication.source}`);
+    return issues;
   }
 
   if (
