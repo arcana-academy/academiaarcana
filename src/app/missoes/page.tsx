@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Flag, Sparkles, Target } from "lucide-react";
 
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
@@ -11,6 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
 }
+
+const missionDocument = "/assets/missions/aa-mission-document.svg";
 
 export default async function MissoesPage() {
   const claims = await requireAuthenticatedUser();
@@ -30,7 +33,11 @@ export default async function MissoesPage() {
         actions={[{ href: "/cronograma", label: "Abrir cronograma", variant: "secondary" }]}
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Hoje" description="Missões registradas para o dia atual." icon={<Flag size={22} />}>
+          <FeatureCard
+            title="Hoje"
+            description="Missões registradas para o dia atual."
+            icon={<Image src={missionDocument} alt="" width={22} height={22} />}
+          >
             <p className="aa-state-copy">{missions.length ? `${completed}/${missions.length} concluídas` : "Nenhuma missão registrada hoje."}</p>
           </FeatureCard>
           <FeatureCard title="Objetivos" description="Metas de estudo que nasceram de eventos persistidos." icon={<Target size={22} />}>
