@@ -36,11 +36,11 @@
 | Error monitoring | `trust` / infraestrutura transversal | Honeybadger browser/server/edge | Honeybadger | API key somente por ambiente | Erros de runtime e contexto | Recovery é operacional, conforme provedor | **EXTERNO** |
 | Produção | Delivery | Render | Web Service `academiaarcana` | Configuração de ambiente externa | Deploy status + runtime logs disponíveis | Rollback suportado pela plataforma | **EXTERNO** |
 | Produção atual verificada | Delivery | GitHub → Render | Render | Configuração externa | Deployment state + smoke test + runtime logs | Serviço `academiaarcana` live; build e runtime confirmados em 2026-09-30 | **VERIFICADO / EXTERNO** |
-| Web Analytics | Observabilidade de produto | PR #245 mantém a implementação proposta | Vercel Analytics | Configuração depende do projeto Vercel | Page views / insights após ativação | Ativação deve ocorrer no dashboard | **EXTERNO / PENDENTE** |
+| Web Analytics | Observabilidade de produto | PR #245 mantém a implementação proposta | Render Analytics | Configuração depende do projeto Render | Page views / insights após ativação | Ativação deve ocorrer no dashboard | **EXTERNO / PENDENTE** |
 | Backups e recuperação | `data` / operação | Estratégia definida em F6, execução fora do app | Supabase / provedores operacionais | Retenção, acesso e restauração dependem da configuração externa | Restore deve ser validado por teste operacional | RTO/RPO exigem evidência externa | **PENDENTE** |
-| Resiliência e disponibilidade | Infraestrutura | Aplicação desenhada para estados parciais em algumas superfícies | Vercel + Supabase | Failures não devem ampliar autorização | Monitoring/alerts dependem dos provedores | Não declarar disponibilidade sem evidência de teste | **PENDENTE** |
-| Logs, métricas e tracing | Observabilidade | Hooks de monitoramento e logs da plataforma | Vercel + Honeybadger + demais serviços | Redação de dados sensíveis obrigatória | Runtime logs e error monitoring | Diagnóstico orientado por correlação | **EXTERNO / PENDENTE** |
-| Secrets e credenciais | `trust` / segurança | Environment variables e credenciais externas | Vercel / GitHub / Supabase | Nunca versionar secrets | Secret scanning | Rotação/revogação precisam de procedimento externo | **EXTERNO** |
+| Resiliência e disponibilidade | Infraestrutura | Aplicação desenhada para estados parciais em algumas superfícies | Render + Supabase | Failures não devem ampliar autorização | Monitoring/alerts dependem dos provedores | Não declarar disponibilidade sem evidência de teste | **PENDENTE** |
+| Logs, métricas e tracing | Observabilidade | Hooks de monitoramento e logs da plataforma | Render + Honeybadger + demais serviços | Redação de dados sensíveis obrigatória | Runtime logs e error monitoring | Diagnóstico orientado por correlação | **EXTERNO / PENDENTE** |
+| Secrets e credenciais | `trust` / segurança | Environment variables e credenciais externas | Render / GitHub / Supabase | Nunca versionar secrets | Secret scanning | Rotação/revogação precisam de procedimento externo | **EXTERNO** |
 | Dependency governance | Segurança / Supply Chain | npm lockfile + Dependency Review | GitHub Actions | Revisão de mudanças de dependência | Checks no PR | Atualização deve ser validada pelo Quality Gate | **VERIFICADO** |
 
 ## 3. Runtime e build
@@ -81,7 +81,7 @@ O `SECURITY.md` exige que vulnerabilidades sejam reportadas privadamente e orien
 
 ### Estado confirmado
 
-O deployment de produção anterior ao merge do PR #258 foi observado como `READY` no Vercel e apontava para o merge do PR #257 (`f24b72c…`).
+O deployment de produção anterior ao merge do PR #258 foi observado como `READY` no Render e apontava para o merge do PR #257 (`f24b72c…`).
 
 O merge do PR #258 criou o commit:
 
@@ -89,11 +89,11 @@ O merge do PR #258 criou o commit:
 6f2a51016b8337dbeb36ac686a6cf458384566f3
 ```
 
-A matriz original registrava o bloqueio `build-rate-limit` para uma versão anterior. Esse estado não deve ser usado como descrição da produção atual: posteriormente foi confirmado um deployment de produção `READY`, com smoke test do Santuário e ausência de runtime errors no período observado. O bloqueio de quota do Vercel continua sendo uma limitação operacional possível para novos deployments e não deve ser confundido com falha do código.
+A matriz original registrava o bloqueio `build-rate-limit` para uma versão anterior. Esse estado não deve ser usado como descrição da produção atual: posteriormente foi confirmado um deployment de produção `READY`, com smoke test do Santuário e ausência de runtime errors no período observado. O bloqueio de quota do Render continua sendo uma limitação operacional possível para novos deployments e não deve ser confundido com falha do código.
 
 ### Regra operacional
 
-Não declarar a produção atualizada somente porque o commit está em `main`. O estado de produção precisa ser confirmado pelo objeto de deployment do Vercel.
+Não declarar a produção atualizada somente porque o commit está em `main`. O estado de produção precisa ser confirmado pelo objeto de deployment do Render.
 
 A plataforma oferece mecanismos de:
 
@@ -101,7 +101,7 @@ A plataforma oferece mecanismos de:
 - promoção de deployment existente;
 - rollback para deployment anterior.
 
-Essas ações dependem de acesso operacional ao Vercel.
+Essas ações dependem de acesso operacional ao Render.
 
 ## 6. Quality Gates
 
