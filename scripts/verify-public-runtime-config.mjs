@@ -3,26 +3,16 @@ import { resolve } from "node:path";
 import { parseEnv } from "node:util";
 import { fileURLToPath } from "node:url";
 
-const BUILD_ENV_FILES = [
-  ".env.production.local",
-  ".env.local",
-  ".env.production",
-  ".env",
-];
+const BUILD_ENV_FILES = [".env.production.local", ".env.local", ".env.production", ".env"];
 
-export function loadBuildEnvironment(
-  baseEnvironment = process.env,
-  cwd = process.cwd(),
-) {
+export function loadBuildEnvironment(baseEnvironment = process.env, cwd = process.cwd()) {
   const environment = { ...baseEnvironment };
 
   for (const filename of BUILD_ENV_FILES) {
     const path = resolve(cwd, filename);
-
     if (!existsSync(path)) continue;
 
     const parsed = parseEnv(readFileSync(path, "utf8"));
-
     for (const [name, value] of Object.entries(parsed)) {
       if (!(name in environment)) environment[name] = value;
     }
@@ -31,22 +21,15 @@ export function loadBuildEnvironment(
   return environment;
 }
 
-export function validateSupabaseProductionConfiguration(
-  supabaseUrl,
-  publishableKey,
-) {
+export function validateSupabaseProductionConfiguration(supabaseUrl, publishableKey) {
   let parsedUrl;
-
   try {
     parsedUrl = new URL(supabaseUrl);
   } catch {
-    throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.",
-    );
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.");
   }
 
   const projectRef = parsedUrl.hostname.replace(/\.supabase\.co$/, "");
-
   if (
     parsedUrl.protocol !== "https:" ||
     parsedUrl.username ||
@@ -57,9 +40,7 @@ export function validateSupabaseProductionConfiguration(
     parsedUrl.hash ||
     !/^[a-z0-9]{20}$/.test(projectRef)
   ) {
-    throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.",
-    );
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.");
   }
 
   if (!/^sb_publishable_[A-Za-z0-9_-]{22}_[A-Za-z0-9_-]{8}$/.test(publishableKey)) {
@@ -70,10 +51,7 @@ export function validateSupabaseProductionConfiguration(
 }
 
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
-  for (const name of [
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-  ]) {
+  for (const name of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]) {
     if (!environment[name]?.trim()) {
       throw new Error(`Missing required environment variable: ${name}`);
     }
@@ -87,7 +65,12 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
   return {
     integration: "supabase-public-runtime",
     verified: true,
-    environment: environment.VERCEL_ENV ?? environment.NODE_ENV ?? "unknown",
+    environment:
+      environment.NEXT_PUBLIC_RENDER_ENV ??
+      environment.RENDER_ENVIRONMENT ??
+      environment.RENDER_GIT_BRANCH ??
+      environment.NODE_ENV ??
+      "unknown",
     configuration: "environment",
   };
 }
