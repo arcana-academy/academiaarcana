@@ -153,7 +153,7 @@ Supported runtime operations include connection verification, board/list/card/ch
 
 The provider remains separate from the ChatGPT connector layer: the web runtime calls Trello's application API directly through the server-side adapter.
 
-## OpenAI Agents — Mestre Arcano\n\nA Academia Arcana agora possui um adapter server-side para o OpenAI Responses API, usado como runtime do **Mestre Arcano**. O endpoint autenticado `POST /api/agent/mestre-arcano` executa o agente sem expor `OPENAI_API_KEY` ao navegador.\n\nA configuração usa:\n\n- `OPENAI_API_KEY` — segredo obrigatório, somente em ambiente server-side/Vercel.\n- `OPENAI_AGENT_MODEL` — opcional; o padrão do projeto é `gpt-5.6-sol`.\n\nA integração é marcada como `connected` no hub somente quando a chave existe e o modelo configurado passa por uma verificação real contra a OpenAI. Sem a chave, o estado é `not_configured`; falhas de autenticação/rede/modelo resultam em `error`.\n\nO agente segue uma regra de segurança de produto: não inventa progresso, notas, tarefas, dados pessoais ou estado de integrações. Dados do aluno deverão ser fornecidos posteriormente por ferramentas autorizadas do próprio domínio da Academia Arcana.\n\nO SDK oficial de Agents pode evoluir separadamente; o adapter atual usa a Responses API diretamente para manter o runtime sem dependência adicional e com superfície mínima. A documentação atual do Agents SDK descreve Agents como modelos equipados com instruções e ferramentas e suporta function tools, MCP, handoffs e tracing.\n\n## Notion
+## OpenAI Agents — Mestre Arcano\n\nA Academia Arcana agora possui um adapter server-side para o OpenAI Responses API, usado como runtime do **Mestre Arcano**. O endpoint autenticado `POST /api/agent/mestre-arcano` executa o agente sem expor `OPENAI_API_KEY` ao navegador.\n\nA configuração usa:\n\n- `OPENAI_API_KEY` — segredo obrigatório, somente em ambiente server-side/Render.\n- `OPENAI_AGENT_MODEL` — opcional; o padrão do projeto é `gpt-5.6-sol`.\n\nA integração é marcada como `connected` no hub somente quando a chave existe e o modelo configurado passa por uma verificação real contra a OpenAI. Sem a chave, o estado é `not_configured`; falhas de autenticação/rede/modelo resultam em `error`.\n\nO agente segue uma regra de segurança de produto: não inventa progresso, notas, tarefas, dados pessoais ou estado de integrações. Dados do aluno deverão ser fornecidos posteriormente por ferramentas autorizadas do próprio domínio da Academia Arcana.\n\nO SDK oficial de Agents pode evoluir separadamente; o adapter atual usa a Responses API diretamente para manter o runtime sem dependência adicional e com superfície mínima. A documentação atual do Agents SDK descreve Agents como modelos equipados com instruções e ferramentas e suporta function tools, MCP, handoffs e tracing.\n\n## Notion
 
 Notion is a runtime application integration for knowledge and documentation workflows. The web runtime keeps the OAuth credentials server-side and binds the encrypted credential payload to the authenticated Academia Arcana subject.
 
@@ -171,7 +171,7 @@ The current adapter intentionally does not treat the ChatGPT connector as a web 
 | Service | Role | Repository integration | External configuration | State |
 | --- | --- | --- | --- | --- |
 | GitHub | Source control + CI + verified provider reachability | Repository, branches, pull requests, Actions workflow, read-only public verification endpoint | Repository visibility / permissions for project operations | Connected for public read-only verification; account OAuth not configured |
-| Vercel | Hosting + deployment | Next.js deployment target | Project configuration, aliases, environment variables | Connected / external configuration pending |
+| Render | Hosting + deployment | Next.js production Web Service | Service configuration, environment variables, health checks and deploy lifecycle | Configured in repository; live environment reconciliation required |
 | Supabase | Auth + PostgreSQL persistence | Browser/server clients, session refresh, repositories, RLS-backed schema | Project URL + publishable key; Auth settings | Connected |
 | Adobe | Visual production + web typography | Adobe configuration boundary, asset contract, optional Fonts kit loader | `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID` when a published kit exists | Configuration-ready; direct creative API not connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
@@ -189,7 +189,7 @@ Optional Adobe web typography:
 - `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID`
 
 
-The application requires the following public runtime variables in every environment, including Vercel Preview and Production:
+The application requires the following public runtime variables in every application build/runtime environment, including Render production and GitHub Actions production-build validation:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
@@ -215,10 +215,10 @@ This prevents accidental exposure of connector credentials, unnecessary client d
 The integration baseline is considered operational only when all of these are true:
 
 1. GitHub Quality Gate is green for the exact commit being released.
-2. Vercel has a READY deployment for that same commit.
-3. The public production alias serves that deployment.
+2. Render has a successful production deployment for that same commit.
+3. The Render production service serves the expected application responses.
 4. Supabase project state is healthy and the expected RLS policies are present.
-5. Production environment variables are configured in Vercel.
+5. Production environment variables are configured in Render.
 6. Honeybadger is configured when production error monitoring is required.
 7. Runtime smoke checks return the expected application behavior.
 8. Every application-facing provider marked `connected` has a provider-specific runtime check and an E2E test.
