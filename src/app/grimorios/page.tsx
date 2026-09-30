@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -69,7 +70,15 @@ export default async function GrimoiresPage() {
           <section className="aa-list" aria-label="Seus grimórios">
             {grimoires.map((grimoire) => (
               <article className="aa-list-item aa-surface" key={grimoire.id}>
-                <div>
+                <div className="aa-grimoire-item-visual" aria-hidden="true">
+                  <Image
+                    src="/assets/grimoires/aa-grimoire-cover-base.svg"
+                    alt=""
+                    width={96}
+                    height={132}
+                  />
+                </div>
+                <div className="aa-grimoire-item-copy">
                   <p className="aa-eyebrow">Grimório</p>
                   <h2>{grimoire.title}</h2>
                   {grimoire.description ? <p>{grimoire.description}</p> : null}
