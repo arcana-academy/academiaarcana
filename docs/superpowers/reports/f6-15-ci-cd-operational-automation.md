@@ -213,7 +213,7 @@ GitHub Actions
 ```
 
 ```text
-Vercel / infrastructure
+Render / infrastructure
   = delivers artifact
 ```
 
@@ -289,7 +289,7 @@ Corrigir a causa antes de repetir indefinidamente.
 
 ### Falha de infraestrutura externa
 
-Registrar claramente como dependência externa, por exemplo o bloqueio atual do Vercel por `build-rate-limit`.
+Registrar claramente como dependência externa, por exemplo o bloqueio atual do Vercel por `legacy provider deployment limit`.
 
 Não mascarar uma falha do provedor como sucesso do deployment.
 
