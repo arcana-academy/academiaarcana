@@ -33,7 +33,7 @@ Um requisito não é operacionalmente completo apenas porque existe código. A m
 | Contract | contrato/interface/policy |
 | Implementation | arquivo/componente/use case |
 | Persistence | banco/Storage |
-| Infrastructure | Vercel/Supabase/GitHub etc. |
+| Infrastructure | Render/Supabase/GitHub etc. |
 | Configuration | variáveis/configuração |
 | Security | auth/RLS/ownership/secrets |
 | Observability | logs/erros/métricas/alertas |
@@ -153,7 +153,7 @@ Identificar dependências de:
 
 - variável pública;
 - variável secreta;
-- Vercel;
+- Render;
 - Supabase;
 - GitHub;
 - domínio;
