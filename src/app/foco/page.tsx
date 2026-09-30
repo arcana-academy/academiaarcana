@@ -1,4 +1,5 @@
-import { Brain, Clock3, Focus } from "lucide-react";
+import Image from "next/image";
+import { Brain, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
@@ -7,6 +8,8 @@ import { FeatureCard } from "@/components/ui/feature-card";
 import { FocusSession } from "@/components/foco/FocusSession";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { completeFocusSession, startFocusSession } from "./actions";
+
+const focusSigil = "/assets/focus/aa-focus-sigil.svg";
 
 export default async function FocoPage() {
   await requireAuthenticatedUser();
@@ -20,8 +23,12 @@ export default async function FocoPage() {
       >
         <FocusSession startSession={startFocusSession} completeSession={completeFocusSession} />
 
-      <ArcanaFeatureGrid>
-          <FeatureCard title="Sessão de foco" description="Base visual para uma experiência de foco sem sobrecarga." icon={<Focus size={22} />}>
+        <ArcanaFeatureGrid>
+          <FeatureCard
+            title="Sessão de foco"
+            description="Base visual para uma experiência de foco sem sobrecarga."
+            icon={<Image src={focusSigil} alt="" width={22} height={22} />}
+          >
             <p className="aa-state-copy">Cada sessão iniciada e concluída é registrada com segurança para apoiar seu histórico de estudo.</p>
           </FeatureCard>
           <FeatureCard title="Ritmo" description="Estruture blocos de trabalho e pausas de acordo com sua preferência." icon={<Clock3 size={22} />}>
