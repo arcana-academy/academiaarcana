@@ -164,3 +164,6 @@
 - [ ] **Step 5: Update production smoke to trigger after a successful main-branch Quality Gate and verify `/api/health` before the existing integration checks.**
 - [ ] **Step 6: Run the repository Quality Gate and the health-route tests through GitHub Actions and record the results.**
 - [ ] **Step 7: Commit:** `feat(health): add Render to Supabase readiness probe`
+
+
+**Ruling — delivery gating:** Keep Render `autoDeployTrigger` at `commit` while the legacy Netlify integration is frozen. This preserves continuous GitHub → Render delivery without allowing an unrelated legacy check to block production. GitHub Actions remains the validation layer, and the production smoke workflow runs after a successful main-branch Quality Gate. Cost if wrong: production can deploy before the post-deploy smoke result; switching to `checksPass` later provides stricter pre-deploy gating once the legacy check path is no longer active.
