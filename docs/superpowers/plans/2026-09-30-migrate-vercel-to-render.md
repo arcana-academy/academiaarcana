@@ -140,3 +140,27 @@
 - Vercel Git integration has been disconnected from the `academiaarcana` project; the Vercel project itself was not deleted.
 - Netlify still has an external GitHub check path associated with this repository, but its dashboard cannot be modified until an authenticated Netlify session is available. This must be removed before enabling Render `checksPass`, otherwise that failing check can block a Render auto-deploy.
 - Supabase production is healthy; its live migration ledger contains 16 applied versions while the repository has 14 migration files. This mismatch is documented as historical/live ledger drift and has not been force-repaired.
+
+
+### Task 6: End-to-end delivery handshake
+
+**Goal:** Make the active stack observable as one delivery chain: GitHub source → GitHub Actions validation → Render runtime → Supabase backend.
+
+**Files:**
+- Create: `src/app/api/health/route.ts`
+- Create: `src/app/api/health/route.test.ts`
+- Modify: `.github/workflows/production-smoke.yml`
+- Modify: `docs/superpowers/plans/2026-09-30-migrate-vercel-to-render.md`
+
+**Interfaces:**
+- `GET /api/health` returns HTTP 200 with `status: "ok"` only when the Render runtime can successfully reach the Supabase schema through the existing publishable runtime client.
+- The production smoke workflow runs after the main-branch Quality Gate completes successfully and validates `/api/health` plus the existing public routes and integration-status contract.
+- No Vercel or Netlify runtime dependency is introduced.
+
+- [ ] **Step 1: Write the failing health-route tests** for a successful Supabase schema probe and a failed probe returning HTTP 503.
+- [ ] **Step 2: Run the focused health-route test and confirm it fails because the route does not exist yet.**
+- [ ] **Step 3: Implement `GET /api/health` using `createSupabaseServerClient()` and a zero-data-leak schema probe against `public.grimoires`.**
+- [ ] **Step 4: Run the focused health-route test and confirm both success and failure cases pass.**
+- [ ] **Step 5: Update production smoke to trigger after a successful main-branch Quality Gate and verify `/api/health` before the existing integration checks.**
+- [ ] **Step 6: Run the repository Quality Gate and the health-route tests through GitHub Actions and record the results.**
+- [ ] **Step 7: Commit:** `feat(health): add Render to Supabase readiness probe`
