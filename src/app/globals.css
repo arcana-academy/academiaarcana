@@ -356,6 +356,24 @@ p {
   padding: 0.25rem 0.4rem;
 }
 
+.aa-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 0.8rem;
+}
+
+.aa-brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.18rem;
+}
+
 .aa-brand-mark {
   display: grid;
   place-items: center;
