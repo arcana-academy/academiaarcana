@@ -89,8 +89,8 @@
 - [x] **Step 3: Replace production smoke URL/labels with the Render service URL and keep its existing application contract assertions.
 - [x] **Step 4: Delete `.github/workflows/nextjs.yml` because it is an unrelated GitHub Pages deployment path using Node 20.
 - [x] **Step 5: Add `render.yaml` describing the single `academiaarcana` web service, with `npm ci && npm run build`, `npm start`, Node runtime 24, main branch, and environment-managed Supabase variables.
-- [ ] **Step 6: Run the configuration contract check and confirm it passes.
-- [ ] **Step 7: Commit:** `chore(deploy): migrate delivery contract to Render`
+- [x] **Step 6: Run the configuration contract check and confirm it passes.
+- [x] **Step 7: Commit:** `chore(deploy): migrate delivery contract to Render`
 
 ### Task 4: Canonical documentation/tool map reconciliation
 
@@ -153,17 +153,20 @@
 - Modify: `docs/superpowers/plans/2026-09-30-migrate-vercel-to-render.md`
 
 **Interfaces:**
-- `GET /api/health` returns HTTP 200 with `status: "ok"` only when the Render runtime can successfully reach the Supabase schema through the existing publishable runtime client.
+- `GET /api/health` returns HTTP 200 with `status: "ok"` only when the Render runtime can successfully reach the Supabase Auth health endpoint using the existing publishable runtime configuration.
 - The production smoke workflow runs after the main-branch Quality Gate completes successfully and validates `/api/health` plus the existing public routes and integration-status contract.
 - No Vercel or Netlify runtime dependency is introduced.
 
-- [ ] **Step 1: Write the failing health-route tests** for a successful Supabase schema probe and a failed probe returning HTTP 503.
-- [ ] **Step 2: Run the focused health-route test and confirm it fails because the route does not exist yet.**
-- [ ] **Step 3: Implement `GET /api/health` using `createSupabaseServerClient()` and a zero-data-leak schema probe against `public.grimoires`.**
-- [ ] **Step 4: Run the focused health-route test and confirm both success and failure cases pass.**
-- [ ] **Step 5: Update production smoke to trigger after a successful main-branch Quality Gate and verify `/api/health` before the existing integration checks.**
-- [ ] **Step 6: Run the repository Quality Gate and the health-route tests through GitHub Actions and record the results.**
-- [ ] **Step 7: Commit:** `feat(health): add Render to Supabase readiness probe`
+- [x] **Step 1: Write the failing health-route tests** for a successful Supabase Auth health probe and a failed/non-success probe returning HTTP 503.
+- [x] **Step 2: Run the focused health-route test and confirm it fails because the route does not exist yet.**
+- [x] **Step 3: Implement `GET /api/health` with the existing public runtime configuration and a zero-data-leak Supabase Auth health probe.**
+- [x] **Step 4: Run the focused health-route test and confirm success, network-failure, and non-success-response cases pass.**
+- [x] **Step 5: Update production smoke to trigger after a successful main-branch Quality Gate and verify `/api/health` before the existing integration checks.**
+- [x] **Step 6: Run the repository Quality Gate and the health-route tests through GitHub Actions and record the results.**
+- [x] **Step 7: Commit:** `feat(health): add Render to Supabase readiness probe`
 
 
 **Ruling — delivery gating:** Keep Render `autoDeployTrigger` at `commit` while the legacy Netlify integration is frozen. This preserves continuous GitHub → Render delivery without allowing an unrelated legacy check to block production. GitHub Actions remains the validation layer, and the production smoke workflow runs after a successful main-branch Quality Gate. Cost if wrong: production can deploy before the post-deploy smoke result; switching to `checksPass` later provides stricter pre-deploy gating once the legacy check path is no longer active.
+
+
+**Ruling: health probe:** The public Render readiness endpoint probes Supabase Auth health rather than querying `public.grimoires`. This validates upstream Supabase reachability without requiring an anonymous read against an RLS-protected application table or exposing application data. Cost if wrong: the probe proves Supabase Auth/API availability, not the health of every application query path.
