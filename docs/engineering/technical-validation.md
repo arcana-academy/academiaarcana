@@ -8,7 +8,7 @@ Phase 1 — technical audit and green pipeline.
 **Validated branch:** `chore/phase-0-technical-baseline`  
 **Validated commit:** `27209a43ebac741de6f703705df3629523f84669`  
 **GitHub Actions run:** `35632537036` (run #998)  
-**Vercel deployment:** `dpl_GdcMdyDcDYrLFTKHcKMo8k6Yft1F` — READY
+**Render deployment:** historical validation predates the Render migration and is not a current production assertion.
 
 This validation is limited to technical stabilization. No product functionality, UX, architecture, or feature work was introduced.
 
@@ -143,8 +143,8 @@ No BLOCKING, HIGH, or MEDIUM technical pipeline issue remains in the validated b
 
 - The clean install, lint, typecheck, tests, accessibility tests, build, and E2E suite were actually executed in GitHub Actions; no exit codes were masked.
 - The CI run used Node 22.23.2 and npm 11.19.1 after the explicit npm pin.
-- Vercel produced a READY deployment for the exact validated commit `27209a43ebac741de6f703705df3629523f84669`.
-- The Vercel deployment URL returned HTTP 200 when fetched through the connected Vercel integration.
+- Render produced a READY deployment for the exact validated commit `27209a43ebac741de6f703705df3629523f84669`.
+- The Render deployment URL returned HTTP 200 when fetched through the connected Render integration.
 - No local workstation execution is claimed because this connected workflow does not provide the user's local filesystem/runtime.
 
 ## 7. Final result
@@ -155,7 +155,7 @@ No BLOCKING, HIGH, or MEDIUM technical pipeline issue remains in the validated b
 **TESTS    ✅**  
 **BUILD    ✅**
 
-The validated branch has a reproducible green CI pipeline and a READY Vercel deployment for the same commit.
+The validated branch has a reproducible green CI pipeline and a READY Render deployment for the same commit.
 
 ## Release boundary
 
