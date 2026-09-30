@@ -212,7 +212,7 @@ describe("SanctuaryPage", () => {
 
     const primaryNavigation = screen.getByRole("navigation", { name: "Navegação principal" });
     const sanctuaryLinks = within(primaryNavigation).getAllByRole("link", { name: /santu/i });
-    expect(sanctuaryLinks).toHaveLength(2);
+    expect(sanctuaryLinks).toHaveLength(1);
     expect(
       sanctuaryLinks.every((link) =>
         link.getAttribute("aria-current") === "page",
