@@ -120,3 +120,14 @@
 - [ ] **Step 2: Verify Supabase project health and current migrations/RLS with the Supabase MCP after code changes.
 - [ ] **Step 3: Verify Render service configuration and the newest deployment status/logs.
 - [ ] **Step 4: Create a pull request from `chore/migrate-vercel-to-render` to `main`; do not merge automatically.
+
+
+### Task 5.5: Supabase migration history reconciliation
+
+**Reason for addition:** The live Supabase project currently reports 16 applied migration versions while the repository contains 14 migration files, with several version/name pairs not matching one-to-one. This is an observed integration drift and must be reconciled before claiming migration integrity.
+
+- [ ] **Step 1:** Compare the live migration list with repository migration filenames and inspect the SQL of the mismatched migration families.
+- [ ] **Step 2:** Verify the resulting live schema, RLS, grants, functions and storage objects using read-only Supabase checks.
+- [ ] **Step 3:** Do not delete, rewrite or repair remote migration history merely to match repository filenames. If the schema is already correct, document the historical divergence and preserve the live migration ledger.
+- [ ] **Step 4:** If a safe forward-only reconciliation migration is required, add it as a new versioned migration and validate it locally before applying.
+- [ ] **Step 5:** Update the technical baseline with the observed repository/live distinction.
