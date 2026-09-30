@@ -1,11 +1,12 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 const learningAreas = [
-  { href: "/workspace", title: "Workspace", description: "Organize grimórios, cadernos, capítulos e páginas.", mark: "◇" },
-  { href: "/cronograma", title: "Cronograma", description: "Planeje e acompanhe suas próximas tarefas de estudo.", mark: "◷" },
-  { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem.", mark: "✦" },
+  { href: "/workspace", title: "Workspace", description: "Organize grimórios, cadernos, capítulos e páginas.", icon: "/assets/icons/aa-workspace.svg" },
+  { href: "/cronograma", title: "Cronograma", description: "Planeje e acompanhe suas próximas tarefas de estudo.", icon: "/assets/icons/aa-cronograma.svg" },
+  { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem.", icon: "/assets/icons/aa-santuary.svg" },
 ] as const;
 
 export default async function AcademiaPage() {
@@ -38,7 +39,7 @@ export default async function AcademiaPage() {
           <div className="aa-stat-grid">
             {learningAreas.map((area) => (
               <article className="aa-surface aa-sanctuary-section" key={area.href}>
-                <span className="aa-brand-mark" aria-hidden="true">{area.mark}</span>
+                <Image className="aa-learning-area-icon" src={area.icon} alt="" width={64} height={64} />
                 <h3>{area.title}</h3>
                 <p>{area.description}</p>
                 <Link className="aa-button aa-button-secondary" href={area.href}>Abrir</Link>

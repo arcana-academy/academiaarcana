@@ -613,6 +613,14 @@ p {
   font-size: 0.82rem;
 }
 
+.aa-learning-area-icon {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  object-fit: contain;
+  margin-bottom: 0.75rem;
+}
+
 .aa-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
