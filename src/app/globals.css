@@ -1346,3 +1346,36 @@ p {
     height: 4.5rem;
   }
 }
+
+
+.aa-page-header-knowledge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.aa-knowledge-mark {
+  display: block;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: 0 0 3.25rem;
+  object-fit: contain;
+  padding: 0.2rem;
+  border: 1px solid var(--aa-line-highlight);
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, rgb(200 168 106 / 0.07), rgb(155 120 208 / 0.08));
+  box-shadow: 0 0 26px rgb(155 120 208 / 0.08);
+}
+
+@media (max-width: 48rem) {
+  .aa-page-header-knowledge {
+    align-items: flex-start;
+  }
+
+  .aa-knowledge-mark {
+    width: 2.8rem;
+    height: 2.8rem;
+    flex-basis: 2.8rem;
+  }
+}
