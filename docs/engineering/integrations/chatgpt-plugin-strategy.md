@@ -76,7 +76,7 @@ accessibility and end-to-end tests pass.
 ## First-wave provider candidates
 
 The first wave should be limited to services that materially support Academia
-Arcana operations or product workflows, such as GitHub, Vercel, Supabase,
+Arcana operations or product workflows, such as GitHub, Render, Supabase,
 Notion, Slack, Google Drive/Calendar, Outlook, Dropbox, Canva, Figma, Stripe
 and Firecrawl.
 
