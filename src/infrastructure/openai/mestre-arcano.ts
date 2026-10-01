@@ -189,17 +189,23 @@ type MestreArcanoFunctionCallRecord = {
   readonly arguments: string;
 };
 
+/** Checks whether a record contains the required string fields. */
+function hasRequiredStringFields(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): boolean {
+  return keys.every((key) => typeof record[key] === "string");
+}
+
 /** Identifies a complete OpenAI function-call record. */
 function isFunctionCallRecord(
   value: unknown,
 ): value is MestreArcanoFunctionCallRecord {
   const record = toRecord(value);
-  return Boolean(
-    record &&
-      record.type === "function_call" &&
-      typeof record.call_id === "string" &&
-      typeof record.name === "string" &&
-      typeof record.arguments === "string",
+  if (!record) return false;
+  return (
+    record.type === "function_call" &&
+    hasRequiredStringFields(record, ["call_id", "name", "arguments"])
   );
 }
 
