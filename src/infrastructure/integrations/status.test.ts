@@ -190,7 +190,6 @@ describe("integration status snapshot", () => {
   });
 
   it("verifies independent integrations concurrently", async () => {
-    const gateResolvers: Array<() => void> = [];
     let started = 0;
     let release!: () => void;
     const allStarted = new Promise<void>((resolve) => {
@@ -241,7 +240,6 @@ describe("integration status snapshot", () => {
 
     await allStarted;
     expect(started).toBe(4);
-    release();
     await snapshotPromise;
   });
 
