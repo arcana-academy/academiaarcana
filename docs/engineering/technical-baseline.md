@@ -91,9 +91,9 @@ For the validated baseline snapshot (`c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`)
 - The Next.js security patch to 16.3.6 is integrated.
 - Product-domain reconciliation, RPC security hardening, and the eight-character password floor are integrated.
 - PR #309 removed unnecessary `service_role` execution from the public reward RPC and added a regression assertion.
-- PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, pre-commit, and Vercel.
+- PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, pre-commit, and repository security automation.
 
-The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Vercel for each resulting production deployment.
+The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Render for each resulting production deployment.
 
 ## Render
 
@@ -115,7 +115,6 @@ The deployment configuration is versioned in `render.yaml`. Secret environment v
 
 Render should be configured to deploy only after the repository's CI checks pass. Production state is verified by the Render service/deploy object and the application health/smoke checks.
 
-Vercel and GitHub Pages are retired deployment targets and must not be reintroduced into the active delivery path.
 
 ## Supabase
 
@@ -149,7 +148,7 @@ Current Supabase Security Advisor evidence reports one warning: leaked-password 
 
 Honeybadger configuration consumes public environment variables for the browser/server integration. These are optional from the build's perspective because the configuration handles missing values without failing the build. They should remain environment-managed and must not be replaced with hard-coded secrets.
 
-Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. Recent runtime observations for the current deployments did not show new error/fatal entries, but the Vercel environment-variable configuration itself is not directly verifiable through the available connector surface.
+Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. Recent runtime observations for the current deployments did not show new error/fatal entries, and the active deployment environment is managed by Render.
 
 ## Change policy
 
