@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node.js 24.x, TypeScript/JavaScript tests with Vitest, GitHub Actions Quality Gate, Next.js 16.
 
-**Spec:** Current Netlify production build log for deploy `6abc4bdac5157c192abab83c`, which fails in `scripts/verify-public-runtime-config.cjs` while validating `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+**Spec:** Current Netlify production build log for deploy `6abc4bdac5157c192abab83c`, which fails in `scripts/verify-public-runtime-config.mjs` while validating `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 
 ## Global Constraints
 
@@ -31,15 +31,15 @@
 ### Task 1: Update publishable-key validation
 
 **Files:**
-- Modify: `scripts/verify-public-runtime-config.cjs`
-- Modify: `scripts/verify-public-runtime-config.test.cjs`
+- Modify: `scripts/verify-public-runtime-config.mjs`
+- Modify: `scripts/verify-public-runtime-config.test.mjs`
 
 **Interfaces:**
 - Produces: `validateSupabaseProductionConfiguration(supabaseUrl, publishableKey)` accepts current 8-character checksum keys and rejects malformed keys.
 
 - [ ] **Step 1: Update the regression test to use an 8-character checksum and add explicit rejection for the old 7-character shape.**
 - [ ] **Step 2: Run the targeted test and confirm the updated test fails against the current production validator because it still requires 7 characters.**
-- [ ] **Step 3: Change only the publishable-key regular expression in `scripts/verify-public-runtime-config.cjs` from a 7-character checksum to an 8-character checksum.**
+- [ ] **Step 3: Change only the publishable-key regular expression in `scripts/verify-public-runtime-config.mjs` from a 7-character checksum to an 8-character checksum.**
 - [ ] **Step 4: Run the targeted test, then the full test suite, typecheck, and production build.
 - [ ] **Step 5: Open a pull request against `main` and wait for the complete Quality Gate to pass.**
 - [ ] **Step 6: Merge the PR only after all required checks are green.**
