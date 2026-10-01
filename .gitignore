@@ -44,7 +44,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-*.swo/
+*.swo
 
 # Local certificates / secrets
 *.pem
