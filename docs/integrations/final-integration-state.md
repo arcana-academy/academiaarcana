@@ -65,4 +65,4 @@ O commit `46b55b0f3eea3bbd9bc136b16ddba254bdc4ccd5` concluiu com sucesso: Qualit
 O smoke de produção permanece reservado à validação pós-publicação no Render; ele não substitui o Quality Gate pré-merge.
 
 ## Regra de publicação
-Render é a única plataforma de hospedagem e publicação da aplicação. Nenhuma publicação, promoção, rollback ou alteração de produção deve usar Vercel ou GitHub Pages. A publicação do Render ocorre somente dentro da política de release definida pelo repositório e deve ser validada após o Quality Gate.
+Render é a única plataforma de hospedagem e publicação da aplicação. Nenhuma publicação, promoção, rollback ou alteração de produção deve usar Render ou GitHub Pages. A publicação do Render ocorre somente dentro da política de release definida pelo repositório e deve ser validada após o Quality Gate.
