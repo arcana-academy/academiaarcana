@@ -9,6 +9,7 @@ type AuthenticatedShellProps = {
   children: React.ReactNode;
 };
 
+/** Render the shared authenticated application shell. */
 export function AuthenticatedShell({ currentPath, children }: AuthenticatedShellProps) {
   return (
     <div className="aa-shell">
