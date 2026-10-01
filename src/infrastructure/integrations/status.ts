@@ -91,6 +91,7 @@ export type IntegrationStatusSnapshot = {
   >[];
 };
 
+/** Builds the verified GitHub integration status entry. */
 function githubVerificationEntry(
   verification: GitHubConnectionVerification,
 ): IntegrationStatusEntry {
@@ -107,6 +108,7 @@ function githubVerificationEntry(
   };
 }
 
+/** Builds the verified DataCamp integration status entry. */
 function dataCampVerificationEntry(
   verification: DataCampConnectionVerification,
 ): IntegrationStatusEntry {
@@ -125,6 +127,7 @@ function dataCampVerificationEntry(
   };
 }
 
+/** Builds the error state for an unavailable DataCamp integration. */
 function dataCampErrorEntry(): IntegrationStatusEntry {
   return {
     name: "DataCamp",
@@ -137,6 +140,7 @@ function dataCampErrorEntry(): IntegrationStatusEntry {
   };
 }
 
+/** Builds the catalog-only state for an unconfigured DataCamp integration. */
 function dataCampCatalogEntry(): IntegrationStatusEntry {
   return {
     name: "DataCamp",
@@ -149,6 +153,7 @@ function dataCampCatalogEntry(): IntegrationStatusEntry {
   };
 }
 
+/** Builds the verified Dropbox integration status entry. */
 function dropboxVerificationEntry(
   verification: DropboxConnectionVerification,
 ): IntegrationStatusEntry {
@@ -167,6 +172,7 @@ function dropboxVerificationEntry(
   };
 }
 
+/** Builds the catalog-only state for an unconfigured Dropbox integration. */
 function dropboxCatalogEntry(): IntegrationStatusEntry {
   return {
     name: "Dropbox",
@@ -179,6 +185,7 @@ function dropboxCatalogEntry(): IntegrationStatusEntry {
   };
 }
 
+/** Builds the error state for an unavailable Dropbox integration. */
 function dropboxErrorEntry(): IntegrationStatusEntry {
   return {
     name: "Dropbox",
@@ -191,6 +198,7 @@ function dropboxErrorEntry(): IntegrationStatusEntry {
   };
 }
 
+/** Builds the verified Airtable integration status entry. */
 function airtableVerificationEntry(
   verification: AirtableConnectionVerification,
 ): IntegrationStatusEntry {
@@ -210,6 +218,7 @@ function airtableVerificationEntry(
   };
 }
 
+/** Builds the catalog-only state for an unconfigured Airtable integration. */
 function airtableCatalogEntry(): IntegrationStatusEntry {
   return {
     name: "Airtable",
@@ -222,6 +231,7 @@ function airtableCatalogEntry(): IntegrationStatusEntry {
   };
 }
 
+/** Builds the error state for an unavailable Airtable integration. */
 function airtableErrorEntry(): IntegrationStatusEntry {
   return {
     name: "Airtable",
@@ -235,6 +245,7 @@ function airtableErrorEntry(): IntegrationStatusEntry {
 }
 
 /** Builds a catalog entry for a server-side web-research provider. */
+/** Builds the catalog-only status entry for a web-research provider. */
 function webResearchCatalogEntry(
   definition:
     | typeof PARALLEL_SEARCH_INTEGRATION_DEFINITION
