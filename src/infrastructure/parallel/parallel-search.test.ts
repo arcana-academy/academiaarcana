@@ -17,18 +17,20 @@ describe("parallel search infrastructure", () => {
   it("sends search requests with the server-side API key and maps sources", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
 
-    const fetchImpl = vi.fn<ParallelSearchFetch>(() => Promise.resolve(
-      mockResponse({
-        results: [
-          {
-            url: "https://example.com/article",
-            title: "Example",
-            publish_date: "2026-09-29",
-            excerpts: ["Relevant excerpt"],
-          },
-        ],
-        session_id: "session-1",
-      })),
+    const fetchImpl = vi.fn<ParallelSearchFetch>(() =>
+      Promise.resolve(
+        mockResponse({
+          results: [
+            {
+              url: "https://example.com/article",
+              title: "Example",
+              publish_date: "2026-09-29",
+              excerpts: ["Relevant excerpt"],
+            },
+          ],
+          session_id: "session-1",
+        }),
+      ),
     );
 
     const result = await searchParallelWeb({
@@ -71,24 +73,26 @@ describe("parallel search infrastructure", () => {
   it("maps extraction errors without exposing provider response bodies", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
 
-    const fetchImpl = vi.fn<ParallelSearchFetch>(() => Promise.resolve(
-      mockResponse({
-        results: [
-          {
-            url: "https://example.com/document.pdf",
-            title: "Document",
-            excerpts: ["Excerpt"],
-            full_content: "# Document",
-          },
-        ],
-        errors: [
-          {
-            url: "https://example.com/private",
-            error_type: "fetch_error",
-            http_status_code: 403,
-          },
-        ],
-      })),
+    const fetchImpl = vi.fn<ParallelSearchFetch>(() =>
+      Promise.resolve(
+        mockResponse({
+          results: [
+            {
+              url: "https://example.com/document.pdf",
+              title: "Document",
+              excerpts: ["Excerpt"],
+              full_content: "# Document",
+            },
+          ],
+          errors: [
+            {
+              url: "https://example.com/private",
+              error_type: "fetch_error",
+              http_status_code: 403,
+            },
+          ],
+        }),
+      ),
     );
 
     const result = await extractParallelWeb({
