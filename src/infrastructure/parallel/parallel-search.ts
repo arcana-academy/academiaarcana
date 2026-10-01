@@ -274,6 +274,14 @@ async function parseParallelPayload<T>(
   }
 }
 
+/** Maps a Parallel search payload into the application search result. */
+function mapSearchPayload(payload: ParallelSearchApiResponse): ParallelSearchResult {
+  return {
+    sources: (payload.results ?? []).map(mapSource),
+    sessionId: payload.session_id ?? null,
+  };
+}
+
 /** Searches the web through Parallel and normalizes source metadata. */
 export async function searchParallelWeb(
   {
@@ -299,16 +307,12 @@ export async function searchParallelWeb(
     },
     fetchImpl,
   );
-
   const payload = await parseParallelPayload<ParallelSearchApiResponse>(
     await ensureSuccessfulResponse(response),
     "Parallel Search retornou uma resposta inválida.",
   );
 
-  return {
-    sources: (payload.results ?? []).map(mapSource),
-    sessionId: payload.session_id ?? null,
-  };
+  return mapSearchPayload(payload);
 }
 
 /** Extracts content from public HTTP(S) URLs through Parallel. */
