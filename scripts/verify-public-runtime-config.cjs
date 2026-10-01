@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const { existsSync, readFileSync } = require("node:fs");
 const { resolve } = require("node:path");
 const { parseEnv } = require("node:util");
