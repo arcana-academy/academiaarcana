@@ -10,6 +10,7 @@ describe("searchWebWithExa", () => {
         "Content-Type": "application/json",
         "x-api-key": "test-key",
       });
+      expect(init?.signal).toBeInstanceOf(AbortSignal);
       return Promise.resolve(new Response(JSON.stringify({
         results: [{
           title: "Fonte de estudo",
