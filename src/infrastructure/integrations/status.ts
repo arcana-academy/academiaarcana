@@ -334,12 +334,14 @@ export async function getIntegrationStatusSnapshot({
   readonly airtableToken?: string;
   readonly airtableBaseId?: string;
 } = {}): Promise<IntegrationStatusSnapshot> {
-  const [githubEntry, dataCampEntry, dropboxEntry, airtableEntry] = await Promise.all([
-    resolveGitHubEntry(githubVerifier),
-    resolveDataCampEntry(dataCampVerifier, dataCampApiKey),
-    resolveDropboxEntry(dropboxVerifier, dropboxToken),
-    resolveAirtableEntry(airtableVerifier, airtableToken, airtableBaseId),
-  ]);
+  const [githubEntry, dataCampEntry, dropboxEntry, airtableEntry, runtimeIntegration] =
+    await Promise.all([
+      resolveGitHubEntry(githubVerifier),
+      resolveDataCampEntry(dataCampVerifier, dataCampApiKey),
+      resolveDropboxEntry(dropboxVerifier, dropboxToken),
+      resolveAirtableEntry(airtableVerifier, airtableToken, airtableBaseId),
+      getOpenAIAgentsRuntimeSnapshot(),
+    ]);
 
 
   const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
@@ -428,7 +430,7 @@ export async function getIntegrationStatusSnapshot({
     };
   });
 
-  const runtimeIntegrations = [await getOpenAIAgentsRuntimeSnapshot()];
+  const runtimeIntegrations = [runtimeIntegration];
   const serverRuntimeIntegrations = [
     serverRuntimeEntry(
       PARALLEL_SEARCH_INTEGRATION_DEFINITION,
