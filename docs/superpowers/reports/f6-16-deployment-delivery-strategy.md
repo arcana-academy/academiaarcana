@@ -1,4 +1,12 @@
-# CURRENT OVERRIDE — Render\n\n**Effective 2026-09-30:** Render replaces Vercel as the canonical deployment provider for Academia Arcana. The historical sections below are retained only as archival evidence; they are not operational instructions.\n\nCanonical chain: GitHub → GitHub Actions → Supabase → Render.\n\n---\n\n# F6.16 — Deploy e estratégias de entrega
+# CURRENT OVERRIDE — Render
+
+**Effective 2026-09-30:** Render replaces Vercel as the canonical deployment provider for Academia Arcana. The historical sections below are retained only as archival evidence; they are not operational instructions.
+
+Canonical chain: GitHub → GitHub Actions → Supabase → Render.
+
+---
+
+# F6.16 — Deploy e estratégias de entrega
 
 Base: main no commit 21e1a2f6366e40fbf9bbaf0e651d2d350c1bfacd
 Escopo: definir a estratégia operacional de entrega da Academia Arcana entre GitHub, CI, Vercel, Supabase e ambientes de execução.

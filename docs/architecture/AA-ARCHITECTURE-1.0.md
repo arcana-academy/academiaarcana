@@ -741,4 +741,8 @@ CONSOLIDAR
 ```
 
 The architecture remains a living system, but changes must be explicit and traceable.
-\n\n## Deployment platform — Render\n\n**CANÔNICO.** Render is the official deployment platform for Academia Arcana. The application repository remains on GitHub, validation remains in GitHub Actions, and Supabase remains the canonical data/auth infrastructure. Historical Vercel references, where retained, are archival evidence only and are not an active deployment path.\n
+
+
+## Deployment platform — Render
+
+**CANÔNICO.** Render is the official deployment platform for Academia Arcana. The application repository remains on GitHub, validation remains in GitHub Actions, and Supabase remains the canonical data/auth infrastructure. Historical Vercel references, where retained, are archival evidence only and are not an active deployment path.

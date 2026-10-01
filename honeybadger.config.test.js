@@ -36,7 +36,6 @@ describe('Honeybadger runtime configuration', () => {
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_API_KEY', 'browser-key')
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', 'browser-revision')
     vi.stubEnv('RENDER_GIT_COMMIT', 'abc123')
-    
     vi.stubEnv('NODE_ENV', 'test')
 
     const { config } = await import('./honeybadger.browser.config.js')
