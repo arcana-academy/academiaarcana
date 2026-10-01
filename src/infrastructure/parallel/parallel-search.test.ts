@@ -17,7 +17,7 @@ describe("parallel search infrastructure", () => {
   it("sends search requests with the server-side API key and maps sources", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
 
-    const fetchImpl = vi.fn<ParallelSearchFetch>(async () =>
+    const fetchImpl = vi.fn<ParallelSearchFetch>(() => Promise.resolve(
       mockResponse({
         results: [
           {
@@ -28,7 +28,7 @@ describe("parallel search infrastructure", () => {
           },
         ],
         session_id: "session-1",
-      }),
+      })),
     );
 
     const result = await searchParallelWeb({
@@ -44,7 +44,7 @@ describe("parallel search infrastructure", () => {
         headers: expect.objectContaining({
           "x-api-key": "test-key",
         }),
-      }),
+      })),
     );
     expect(result.sources[0]).toEqual({
       url: "https://example.com/article",
@@ -60,7 +60,7 @@ describe("parallel search infrastructure", () => {
 
     await expect(
       extractParallelWeb({
-        urls: ["javascript:alert(1)"],
+        urls: ["ftp://example.com/unsupported"],
         fetchImpl,
       }),
     ).rejects.toThrow("Apenas URLs HTTP(S) são permitidas.");
@@ -71,7 +71,7 @@ describe("parallel search infrastructure", () => {
   it("maps extraction errors without exposing provider response bodies", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
 
-    const fetchImpl = vi.fn<ParallelSearchFetch>(async () =>
+    const fetchImpl = vi.fn<ParallelSearchFetch>(() => Promise.resolve(
       mockResponse({
         results: [
           {
