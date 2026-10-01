@@ -1,0 +1,28 @@
+name: DeepSource Diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install DeepSource CLI
+        run: |
+          curl -fsSL https://cli.deepsource.com/install | BINDIR=./bin sh
+
+      - name: Inspect JavaScript issues
+        run: |
+          ./bin/deepsource issues \
+            --repo gh/arcana-academy/academiaarcana \
+            --pr "${{ github.event.pull_request.number }}" \
+            --analyzer javascript \
+            --output json \
+            --verbose
