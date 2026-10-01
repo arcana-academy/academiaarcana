@@ -48,6 +48,21 @@ npm run test:e2e
 
 CI executes the same quality sequence on pushes to `main`, `feat/**`, and `chore/**`, and on pull requests targeting `main`.
 
+## Deployment
+
+Render is the sole hosting and application deployment platform for Academia Arcana.
+
+Repository deployment contract:
+- infrastructure definition: `render.yaml`;
+- production runtime: Render Web Service running the Next.js Node.js server;
+- build: `npm ci && npm run build`;
+- start: `npm start`;
+- health check: `/api/health`;
+- CI and validation: GitHub Actions;
+- persistence/authentication: Supabase.
+
+Vercel and GitHub Pages are not deployment targets for this repository.
+
 ## Environment
 
 Copy `.env.example` to `.env.local` only when the corresponding integration is enabled. Never commit local environment files or secrets.
