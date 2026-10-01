@@ -8,7 +8,7 @@ test.describe("integration hub", () => {
 
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { name: "Hub de integrações da Academia Arcana" })).toBeVisible();
-    await expect(page.getByText("118 plugins registrados")).toBeVisible();
+    await expect(page.getByText("117 plugins registrados")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ferramentas aplicadas ao ciclo de criação" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
@@ -70,8 +70,8 @@ test.describe("integration hub", () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
 
-    expect(body.catalogSize).toBe(118);
-    expect(body.connectedCount + body.cataloguedCount + body.errorCount).toBe(118);
+    expect(body.catalogSize).toBe(117);
+    expect(body.connectedCount + body.cataloguedCount + body.errorCount).toBe(117);
     expect([0, 1]).toContain(body.errorCount);
     expect(body.connectedCount + body.errorCount).toBe(1);
 
