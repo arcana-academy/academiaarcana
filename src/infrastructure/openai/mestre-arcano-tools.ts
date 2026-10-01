@@ -158,7 +158,7 @@ function requireUrlArguments(args: Record<string, unknown>): string[] {
 }
 
 /** Runs the web-search handler through the single provider-neutral boundary. */
-async function handleSearchWeb(
+function handleSearchWeb(
   args: Record<string, unknown>,
 ): Promise<string> {
   const objective = requireStringArgument(
@@ -177,13 +177,11 @@ async function handleSearchWeb(
     "Parâmetros de pesquisa web inválidos.",
   );
 
-  return jsonResult(
-    await searchWebResearch({ objective, query, numResults }),
-  );
+  return searchWebResearch({ objective, query, numResults }).then(jsonResult);
 }
 
 /** Runs the Parallel-backed web-extraction handler. */
-async function handleExtractWebSource(
+function handleExtractWebSource(
   args: Record<string, unknown>,
 ): Promise<string> {
   const objective = requireStringArgument(
@@ -193,31 +191,29 @@ async function handleExtractWebSource(
   );
   const urls = requireUrlArguments(args);
 
-  return jsonResult(await extractWebResearch({ urls, objective }));
+  return extractWebResearch({ urls, objective }).then(jsonResult);
 }
 
 /** Runs the authenticated learner gamification handler. */
-async function handleGamificationProfile(
+function handleGamificationProfile(
   _args: Record<string, unknown>,
   context: MestreArcanoToolContext,
 ): Promise<string> {
-  return jsonResult(await context.learner.getGamificationProfile());
+  return context.learner.getGamificationProfile().then(jsonResult);
 }
 
 /** Runs the authenticated missions handler. */
-async function handleTodayMissions(
+function handleTodayMissions(
   _args: Record<string, unknown>,
   context: MestreArcanoToolContext,
 ): Promise<string> {
-  return jsonResult(
-    await context.learner.listTodayMissions(
-      new Date().toISOString().slice(0, 10),
-    ),
-  );
+  return context.learner
+    .listTodayMissions(new Date().toISOString().slice(0, 10))
+    .then(jsonResult);
 }
 
 /** Runs the authenticated upcoming-study-task handler. */
-async function handleUpcomingStudyTasks(
+function handleUpcomingStudyTasks(
   args: Record<string, unknown>,
   context: MestreArcanoToolContext,
 ): Promise<string> {
@@ -225,26 +221,21 @@ async function handleUpcomingStudyTasks(
     typeof args.limit === "number"
       ? args.limit
       : 5;
-  return jsonResult(
-    await context.learner.listUpcomingStudyTasks(
-      new Date().toISOString(),
-      limit,
-    ),
-  );
+  return context.learner
+    .listUpcomingStudyTasks(new Date().toISOString(), limit)
+    .then(jsonResult);
 }
 
 /** Runs the authenticated SharePoint source-list handler. */
-async function handleConnectedSharePointSources(
+function handleConnectedSharePointSources(
   _args: Record<string, unknown>,
   context: MestreArcanoToolContext,
 ): Promise<string> {
-  return jsonResult(
-    await context.documents.listConnectedSharePointSources(),
-  );
+  return context.documents.listConnectedSharePointSources().then(jsonResult);
 }
 
 /** Runs the authenticated SharePoint document-context handler. */
-async function handleSharePointDocumentContext(
+function handleSharePointDocumentContext(
   args: Record<string, unknown>,
   context: MestreArcanoToolContext,
 ): Promise<string> {
@@ -253,9 +244,9 @@ async function handleSharePointDocumentContext(
     "sourceId",
     "ID da fonte do SharePoint inválido.",
   );
-  return jsonResult(
-    await context.documents.getSharePointDocumentContext(sourceId),
-  );
+  return context.documents
+    .getSharePointDocumentContext(sourceId)
+    .then(jsonResult);
 }
 
 const TOOL_HANDLERS: Record<string, ToolHandler> = {
