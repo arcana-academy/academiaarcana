@@ -35,15 +35,15 @@ describe('Honeybadger runtime configuration', () => {
   it('configures the browser runtime with public deployment metadata', async () => {
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_API_KEY', 'browser-key')
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', 'browser-revision')
-    vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', 'preview')
-    vi.stubEnv('VERCEL_ENV', 'production')
+    vi.stubEnv('RENDER_GIT_COMMIT', 'abc123')
+    
     vi.stubEnv('NODE_ENV', 'test')
 
     const { config } = await import('./honeybadger.browser.config.js')
 
     expect(config).toEqual({
       apiKey: 'browser-key',
-      environment: 'preview',
+      environment: 'render',
       projectRoot: 'webpack://_N_E/./',
       revision: 'browser-revision',
     })
@@ -55,16 +55,15 @@ describe('Honeybadger runtime configuration', () => {
   })
 
   it('falls back through server deployment and Node environments at the edge', async () => {
-    vi.stubEnv('NEXT_PUBLIC_VERCEL_ENV', '')
-    vi.stubEnv('VERCEL_ENV', 'staging')
+    vi.stubEnv('RENDER_GIT_COMMIT', '')
     vi.stubEnv('NODE_ENV', 'test')
 
     let imported = await import('./honeybadger.edge.config.js')
-    expect(imported.config.environment).toBe('staging')
+    expect(imported.config.environment).toBe('test')
 
     vi.resetModules()
     vi.clearAllMocks()
-    vi.stubEnv('VERCEL_ENV', '')
+    vi.stubEnv('RENDER_GIT_COMMIT', '')
 
     imported = await import('./honeybadger.edge.config.js')
     expect(imported.config.environment).toBe('test')
