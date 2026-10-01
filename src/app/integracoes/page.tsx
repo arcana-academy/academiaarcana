@@ -333,7 +333,7 @@ export default async function IntegracoesPage() {
       >
         <div className="aa-card aa-card-default">
           <h2 id="integrations-summary-title">Catálogo</h2>
-          <p>{snapshot.catalogSize} plugins registrados</p>
+          <p>{snapshot.catalogSize} integrações registradas</p>
         </div>
         <div className="aa-card aa-card-default">
           <h2>Conexões verificadas</h2>
