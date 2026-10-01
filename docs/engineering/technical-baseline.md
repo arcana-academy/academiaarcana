@@ -37,7 +37,7 @@ This document defines the currently supported development and build baseline for
 | Next.js | 16.3.6 |
 | React | 19.3.0 |
 | React DOM | 19.3.0 |
-| TypeScript | 6.0.3 |
+| TypeScript | 5.9.3 |
 | ESLint | 9.39.5 |
 | eslint-config-next | 16.3.5 |
 | typescript-eslint | 8.70.0 (resolved transitively by eslint-config-next) |
@@ -52,7 +52,7 @@ This document defines the currently supported development and build baseline for
 
 TypeScript 7 is **not** part of this baseline.
 
-The repository uses the ordinary `typescript@6.0.3` package directly. The current dependency chain is kept below the `typescript-eslint` support ceiling rather than introducing a parallel TypeScript 7 installation.
+The repository uses the ordinary `typescript@5.9.3` package directly. The current dependency chain is kept below the `typescript-eslint` support ceiling rather than introducing a parallel TypeScript 7 installation.
 
 No TypeScript 6/7 side-by-side installation is permitted for this phase.
 
@@ -117,13 +117,22 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 The repository contains the seven application migrations represented by the current production migration history:
 
-- `20260915181306_remote_schema`
-- `20260921174822_revoke_excess_authenticated_table_privileges`
-- `20260924003140_rename_notebooks_grimoire_index_reconcile`
-- `20260927205154_product_domain_v1`
-- `20260927213158_product_rpc_security`
-- `20260928003542_atomic_move_workspace_page`
-- `20260928005837_20260928005514_tighten_product_rpc_execute_grants`
+- 20260915181306_remote_schema
+- 20260921174822_revoke_excess_authenticated_table_privileges
+- 20260924003140_rename_notebooks_grimoire_index_reconcile
+- 20260927205154_product_domain_v1
+- 20260927213158_product_rpc_security
+- 20260928003542_atomic_move_workspace_page
+- 20260928005837_20260928005514_tighten_product_rpc_execute_grants
+- 20260928190328_grimoire_covers_storage
+- 20260929124554_product_social_focus
+- 20260929142350_harden_friend_connection_updates
+- 20260929155423_outlook_calendar_credentials
+- 20260929172005_create_external_document_sources
+- 20260929201711_feedback_hub
+- 20260929201757_feedback_hub_permissions
+- 20260929202937_feedback_hub_require_authenticated_owner
+- 20260929220739_revoke_excess_external_document_source_privileges
 
 The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
 
