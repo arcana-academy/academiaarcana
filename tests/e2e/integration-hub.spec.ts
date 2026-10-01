@@ -165,8 +165,14 @@ test.describe("integration hub", () => {
         "https://chatgpt.com/plugins/plugin_asdk_app_68de829bf7648191acd70a907364c67c",
       verification: null,
     });
-    await expect(page.getByRole("heading", { name: "Pesquisa web do Mestre Arcano" })).toBeVisible();
-    await expect(page.getByText("Parallel — Web Research do Mestre Arcano", { exact: true })).toBeVisible();
-    await expect(page.getByText("Exa — Web Research do Mestre Arcano", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Pesquisa web do Mestre Arcano" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Parallel — Web Research do Mestre Arcano", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Exa — Web Research do Mestre Arcano", { exact: true }),
+    ).toBeVisible();
   });
 });
