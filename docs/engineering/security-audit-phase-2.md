@@ -64,13 +64,13 @@ As Server Actions verificam autenticação e fazem validações básicas de tít
 
 A ausência de CSP foi tratada como hardening pendente, não como exploração confirmada. Uma CSP exige inventário e teste dos recursos legítimos, especialmente OAuth/Supabase e telemetria.
 
-### Vercel Environment Variables
+### Render Environment Variables
 
 A integração disponível não expôs uma operação segura para inventariar todos os valores/escopos das variáveis de ambiente do projeto. Portanto, a auditoria não declara esse item como verificado integralmente. Nenhum valor secreto foi exposto durante a auditoria.
 
 ## Resultado até o checkpoint
 
-A vulnerabilidade estrutural de excesso de privilégios foi corrigida sem alteração das policies. O hardening HTTP foi aplicado de forma conservadora. O fechamento definitivo da Fase 2 depende da conclusão dos checks do Pull Request e do Preview da Vercel.
+A vulnerabilidade estrutural de excesso de privilégios foi corrigida sem alteração das policies. O hardening HTTP foi aplicado de forma conservadora. O fechamento definitivo da Fase 2 depende da conclusão dos checks do Pull Request e da validação do serviço de produção no Render.
 
 ## Referência técnica
 
