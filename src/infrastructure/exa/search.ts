@@ -133,17 +133,29 @@ function ensureSuccessfulResponse(response: Response): Response {
   return response;
 }
 
+/** Executes the authenticated Exa search request and normalizes external evidence. */
+async function executeExaSearch(
+  query: string,
+  numResults: number,
+  fetchImpl: ExaFetch,
+): Promise<readonly ExaSearchResult[]> {
+  const response = await requestExa(
+    query,
+    numResults,
+    assertConfigured(),
+    fetchImpl,
+  );
+  const payload = await readExaResponse(ensureSuccessfulResponse(response));
+
+  return (payload.results ?? [])
+    .map(normalizeResult)
+    .filter((result): result is ExaSearchResult => result !== null);
+}
+
 /** Searches Exa and returns normalized external evidence. */
 export async function searchWebWithExa(
   { query, numResults = DEFAULT_NUM_RESULTS }: ExaSearch,
   { fetchImpl = fetch }: { readonly fetchImpl?: ExaFetch } = {},
 ): Promise<readonly ExaSearchResult[]> {
-  const normalizedQuery = normalizeQuery(query);
-  const apiKey = assertConfigured();
-  const response = await requestExa(normalizedQuery, numResults, apiKey, fetchImpl);
-  const payload = await readExaResponse(await ensureSuccessfulResponse(response));
-
-  return (payload.results ?? [])
-    .map(normalizeResult)
-    .filter((result): result is ExaSearchResult => result !== null);
+  return executeExaSearch(normalizeQuery(query), numResults, fetchImpl);
 }
