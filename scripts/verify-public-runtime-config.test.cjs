@@ -1,13 +1,13 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+const { mkdtempSync, rmSync, writeFileSync } = require("node:fs");
+const { tmpdir } = require("node:os");
+const { join } = require("node:path");
+const { describe, expect, it } = require("vitest");
 
-import {
+const {
   loadBuildEnvironment,
   validateSupabaseProductionConfiguration,
   verifyPublicRuntimeConfig,
-} from "./verify-public-runtime-config.mjs";
+} = require("./verify-public-runtime-config.cjs");
 
 const validUrl = "https://abcdefghijklmnopqrst.supabase.co";
 const publishablePrefix = ["sb", "publishable"].join("_") + "_";

@@ -1,7 +1,6 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { parseEnv } from "node:util";
-import { fileURLToPath } from "node:url";
+const { existsSync, readFileSync } = require("node:fs");
+const { resolve } = require("node:path");
+const { parseEnv } = require("node:util");
 
 const BUILD_ENV_FILES = [
   ".env.production.local",
@@ -10,7 +9,7 @@ const BUILD_ENV_FILES = [
   ".env",
 ];
 
-export function loadBuildEnvironment(
+function loadBuildEnvironment(
   baseEnvironment = process.env,
   cwd = process.cwd(),
 ) {
@@ -31,7 +30,7 @@ export function loadBuildEnvironment(
   return environment;
 }
 
-export function validateSupabaseProductionConfiguration(
+function validateSupabaseProductionConfiguration(
   supabaseUrl,
   publishableKey,
 ) {
@@ -69,7 +68,7 @@ export function validateSupabaseProductionConfiguration(
   }
 }
 
-export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
+function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
   for (const name of [
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -92,6 +91,11 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
   };
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
+exports.loadBuildEnvironment = loadBuildEnvironment;
+exports.validateSupabaseProductionConfiguration =
+  validateSupabaseProductionConfiguration;
+exports.verifyPublicRuntimeConfig = verifyPublicRuntimeConfig;
+
+if (require.main === module) {
   console.log(JSON.stringify(verifyPublicRuntimeConfig(), null, 2));
 }
