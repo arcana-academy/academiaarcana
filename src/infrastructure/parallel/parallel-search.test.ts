@@ -117,7 +117,7 @@ describe("parallel search infrastructure", () => {
       searchParallelWeb({
         objective: "Teste",
         searchQueries: ["teste"],
-        fetchImpl: vi.fn<ParallelSearchFetch>(),
+        fetchImpl: vi.fn(),
       }),
     ).rejects.toThrow("Parallel Search integration is not configured.");
   });
