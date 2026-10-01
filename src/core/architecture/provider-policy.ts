@@ -17,7 +17,12 @@ export const CANONICAL_INFRASTRUCTURE_PROVIDERS = [
     provider: "GitHub",
     responsibility:
       "Source control, repository history, branches and pull requests.",
-    disallowedAlternatives: ["GitLab", "Bitbucket", "Codeberg"],
+    disallowedAlternatives: [
+      "GitLab",
+      "Bitbucket",
+      "Codeberg",
+      "Azure Repos",
+    ],
   },
   {
     role: "ci-cd",
@@ -30,6 +35,8 @@ export const CANONICAL_INFRASTRUCTURE_PROVIDERS = [
       "Travis CI",
       "Jenkins",
       "Bitbucket Pipelines",
+      "Azure Pipelines",
+      "Buildkite",
     ],
   },
   {
@@ -48,6 +55,9 @@ export const CANONICAL_INFRASTRUCTURE_PROVIDERS = [
       "AWS Amplify",
       "Cloudflare Pages",
       "Cloudflare Workers",
+      "DigitalOcean App Platform",
+      "Google Cloud Run",
+      "Azure Static Web Apps",
       "AppDeploy",
       "Hatchable",
       "Hercules",

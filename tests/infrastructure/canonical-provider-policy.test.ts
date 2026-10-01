@@ -35,6 +35,16 @@ describe("canonical infrastructure provider policy", () => {
     expect(existsSync(resolve(root, "vercel.json"))).toBe(false);
   });
 
+  it("keeps the executable infrastructure guard synchronized with policy", () => {
+    const guard = readRepoFile("scripts/verify-canonical-infrastructure.cjs");
+
+    for (const item of CANONICAL_INFRASTRUCTURE_PROVIDERS) {
+      for (const provider of item.disallowedAlternatives) {
+        expect(guard).toContain(provider);
+      }
+    }
+  });
+
   it("keeps active runtime configuration provider-neutral", () => {
     const activeFiles = [
       "scripts/verify-public-runtime-config.mjs",
