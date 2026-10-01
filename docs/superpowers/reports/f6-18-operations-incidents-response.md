@@ -13,7 +13,7 @@ A operação da Academia Arcana depende de quatro camadas principais:
 | --- | --- | --- |
 | Aplicação Next.js | experiência do produto e regras de domínio | logs, erros, smoke tests, releases |
 | Supabase | autenticação, Postgres e Storage | saúde do projeto, métricas, integridade, RLS |
-| Vercel | build, deployment, runtime e aliases | deployment READY, logs e domínio |
+| Render | build, deployment, runtime e domínio | deployment live, logs e domínio |
 | GitHub | código, CI/CD, histórico e mudanças | commits, checks, PRs e workflows |
 
 O estado operacional deve ser tratado como uma combinação de fatos verificáveis, não como inferência baseada apenas no Git.
@@ -166,7 +166,7 @@ Resposta:
 | --- | --- |
 | Incident Lead | coordenação, prioridade e decisões durante o incidente |
 | Application Owner | diagnóstico da aplicação e validação funcional |
-| Infrastructure Owner | Vercel, ambientes, domínio e infraestrutura |
+| Infrastructure Owner | Render, ambientes, domínio e infraestrutura |
 | Data Owner | banco, Storage, integridade e recuperação |
 | Security Owner | contenção, credenciais e exposição |
 | Communications | status factual e comunicação entre envolvidos |
@@ -251,7 +251,7 @@ Quando um deployment falhar:
 6. validar checks e logs;
 7. executar recovery documentado.
 
-A falha externa do Vercel deve ser registrada como falha do provedor, não convertida em diagnóstico de aplicação sem evidência.
+Uma falha externa do Render deve ser registrada como falha do provedor, não convertida em diagnóstico de aplicação sem evidência.
 
 ## 13. Runbook de banco
 
