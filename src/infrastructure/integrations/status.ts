@@ -476,7 +476,7 @@ export const getIntegrationStatusSnapshot = async ({
   readonly dropboxToken?: string;
   readonly airtableToken?: string;
   readonly airtableBaseId?: string;
-} = {}): Promise<IntegrationStatusSnapshot> {
+} = {}): Promise<IntegrationStatusSnapshot> => {
   const [githubEntry, dataCampEntry, dropboxEntry, airtableEntry] =
     await Promise.all([
       resolveGitHubEntry(githubVerifier),
