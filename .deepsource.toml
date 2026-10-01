@@ -13,7 +13,6 @@ enabled = true
   dialect = "typescript"
   environment = ["nodejs", "vitest"]
   plugins = ["react"]
-  skip_doc_coverage = ["function-declaration"]
 
 [[analyzers]]
 name = "sql"
