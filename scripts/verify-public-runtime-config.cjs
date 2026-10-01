@@ -11,6 +11,9 @@ const BUILD_ENV_FILES = [
   ".env",
 ];
 
+/**
+ * Loads build-time environment variables without overriding explicit process values.
+ */
 const loadBuildEnvironment = (
   baseEnvironment = process.env,
   cwd = process.cwd(),
@@ -32,6 +35,9 @@ const loadBuildEnvironment = (
   return environment;
 }
 
+/**
+ * Validates the public Supabase URL and publishable-key contract.
+ */
 const validateSupabaseProductionConfiguration = (
   supabaseUrl,
   publishableKey,
@@ -71,6 +77,9 @@ const validateSupabaseProductionConfiguration = (
   }
 }
 
+/**
+ * Verifies the complete public runtime configuration required by the application.
+ */
 const verifyPublicRuntimeConfig = (environment = loadBuildEnvironment()) => {
   for (const name of [
     "NEXT_PUBLIC_SUPABASE_URL",
@@ -101,6 +110,6 @@ exports.verifyPublicRuntimeConfig = verifyPublicRuntimeConfig;
 
 if (require.main === module) {
   process.stdout.write(
-    JSON.stringify(verifyPublicRuntimeConfig(), null, 2) + "\n",
+    `${JSON.stringify(verifyPublicRuntimeConfig(), null, 2)}\n`,
   );
 }
