@@ -215,6 +215,17 @@ function buildExtractBody(
   };
 }
 
+/** Builds the normalized result returned after a Parallel extraction. */
+function buildParallelExtractResult(
+  payload: ParallelExtractApiResponse,
+): ParallelExtractResult {
+  return {
+    sources: (payload.results ?? []).map(mapExtractSource),
+    errors: (payload.errors ?? []).map(mapExtractError),
+    sessionId: payload.session_id ?? null,
+  };
+}
+
 /** Validates, normalizes and bounds the URLs accepted by extraction. */
 function normalizeExtractionUrls(urls: readonly string[]): string[] {
   const normalizedUrls = urls.map(validateUrl).slice(0, MAX_EXTRACT_URLS);
@@ -327,9 +338,5 @@ export async function extractParallelWeb(
     "Parallel Extract retornou uma resposta inválida.",
   );
 
-  return {
-    sources: (payload.results ?? []).map(mapExtractSource),
-    errors: (payload.errors ?? []).map(mapExtractError),
-    sessionId: payload.session_id ?? null,
-  };
+  return buildParallelExtractResult(payload);
 }
