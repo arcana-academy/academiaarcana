@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 const SUPABASE_HEALTH_PATH = "/auth/v1/health";
 const READY_TIMEOUT_MS = 5_000;
 
+/** Creates a cache-free JSON response for the readiness contract. */
 function jsonResponse(body: object, status: number) {
   return NextResponse.json(body, {
     status,
