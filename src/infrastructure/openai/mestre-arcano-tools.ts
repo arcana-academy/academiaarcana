@@ -269,7 +269,7 @@ const TOOL_HANDLERS: Record<string, ToolHandler> = {
 };
 
 /** Executes one authorized Mestre Arcano tool call using the current server-side context. */
-export async function executeMestreArcanoTool(
+export function executeMestreArcanoTool(
   call: ToolCall,
   context: MestreArcanoToolContext,
 ): Promise<string> {
