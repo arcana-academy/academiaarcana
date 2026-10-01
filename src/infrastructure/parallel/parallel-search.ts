@@ -78,15 +78,18 @@ export type ParallelExtractResult = {
   readonly sessionId: string | null;
 };
 
+/** Returns the server-side Parallel API key, when configured. */
 function getApiKey(): string | null {
   const value = process.env.PARALLEL_API_KEY?.trim();
   return value ? value : null;
 }
 
+/** Normalizes the configured Parallel API origin. */
 function normalizeBaseUrl(): string {
   return (process.env.PARALLEL_API_BASE_URL?.trim() || PARALLEL_API_ORIGIN).replace(/\/$/, "");
 }
 
+/** Creates an abort signal for bounded provider requests. */
 function createTimeoutSignal(timeoutMs: number): AbortSignal {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -94,6 +97,7 @@ function createTimeoutSignal(timeoutMs: number): AbortSignal {
   return controller.signal;
 }
 
+/** Fails closed when the Parallel integration has no API key. */
 function assertConfigured(): string {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -102,6 +106,7 @@ function assertConfigured(): string {
   return apiKey;
 }
 
+/** Trims, removes empty queries and applies the query-count limit. */
 function normalizeQueries(queries: readonly string[]): string[] {
   return queries
     .map((query) => query.trim())
@@ -109,6 +114,7 @@ function normalizeQueries(queries: readonly string[]): string[] {
     .slice(0, MAX_SEARCH_QUERIES);
 }
 
+/** Validates and normalizes an extraction URL. */
 function validateUrl(value: string): string {
   const url = value.trim();
   if (url.length > MAX_URL_LENGTH) throw new Error("A URL excede o limite permitido.");
@@ -124,6 +130,7 @@ function validateUrl(value: string): string {
   return parsed.toString();
 }
 
+/** Executes one authenticated Parallel API request. */
 async function parallelRequest(
   path: string,
   body: Record<string, unknown>,
@@ -146,6 +153,7 @@ async function parallelRequest(
   }
 }
 
+/** Converts a failed Parallel response into a bounded error. */
 async function parseError(response: Response): Promise<never> {
   let detail = "";
   try {
@@ -165,6 +173,8 @@ async function parseError(response: Response): Promise<never> {
   );
 }
 
+/** Maps a Parallel search result into the application source shape. */
+/** Maps a Parallel search result into the application source shape. */
 function mapSource(result: ParallelSearchApiResult): ParallelSearchSource {
   return {
     url: result.url,
@@ -173,6 +183,38 @@ function mapSource(result: ParallelSearchApiResult): ParallelSearchSource {
     excerpts: (result.excerpts ?? []).filter(
       (excerpt): excerpt is string => typeof excerpt === "string" && Boolean(excerpt.trim()),
     ),
+  };
+}
+
+/** Searches the web through Parallel and normalizes source metadata. */
+
+/** Maps one Parallel extraction result into the application source shape. */
+function mapExtractSource(result: ParallelExtractApiResult): ParallelExtractResult["sources"][number] {
+  return {
+    ...mapSource(result),
+    fullContent: result.full_content ?? null,
+  };
+}
+
+/** Maps one Parallel extraction error into the application error shape. */
+function mapExtractError(error: NonNullable<ParallelExtractApiResponse["errors"]>[number]): ParallelExtractResult["errors"][number] {
+  return {
+    url: typeof error.url === "string" ? error.url : "",
+    type: error.error_type ?? null,
+    status: error.http_status_code ?? null,
+  };
+}
+
+/** Builds the bounded request body for Parallel extraction. */
+function buildExtractBody(
+  normalizedUrls: readonly string[],
+  objective: string | undefined,
+  queries: readonly string[],
+): Record<string, unknown> {
+  return {
+    urls: normalizedUrls,
+    ...(objective?.trim() ? { objective: objective.trim().slice(0, 1_000) } : {}),
+    ...(queries.length > 0 ? { search_queries: queries } : {}),
   };
 }
 
@@ -218,52 +260,4 @@ export async function searchParallelWeb(
   };
 }
 
-export async function extractParallelWeb(
-  {
-    urls,
-    objective,
-    searchQueries = [],
-    fetchImpl = fetch,
-  }: {
-    readonly urls: readonly string[];
-    readonly objective?: string;
-    readonly searchQueries?: readonly string[];
-    readonly fetchImpl?: ParallelSearchFetch;
-  },
-): Promise<ParallelExtractResult> {
-  const normalizedUrls = urls.map(validateUrl).slice(0, MAX_EXTRACT_URLS);
-  if (normalizedUrls.length === 0) throw new Error("Informe pelo menos uma URL.");
-
-  const queries = normalizeQueries(searchQueries);
-  const response = await parallelRequest(
-    "/v1/extract",
-    {
-      urls: normalizedUrls,
-      ...(objective?.trim() ? { objective: objective.trim().slice(0, 1_000) } : {}),
-      ...(queries.length > 0 ? { search_queries: queries } : {}),
-    },
-    fetchImpl,
-  );
-
-  if (!response.ok) await parseError(response);
-
-  let payload: ParallelExtractApiResponse;
-  try {
-    payload = (await response.json()) as ParallelExtractApiResponse;
-  } catch {
-    throw new Error("Parallel Extract retornou uma resposta inválida.");
-  }
-
-  return {
-    sources: (payload.results ?? []).map((result) => ({
-      ...mapSource(result),
-      fullContent: result.full_content ?? null,
-    })),
-    errors: (payload.errors ?? []).map((error) => ({
-      url: typeof error.url === "string" ? error.url : "",
-      type: error.error_type ?? null,
-      status: error.http_status_code ?? null,
-    })),
-    sessionId: payload.session_id ?? null,
-  };
-}
+/** Extracts content from public HTTP(S) URLs through Parallel. */
