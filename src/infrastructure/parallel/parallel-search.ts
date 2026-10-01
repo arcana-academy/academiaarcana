@@ -261,3 +261,43 @@ export async function searchParallelWeb(
 }
 
 /** Extracts content from public HTTP(S) URLs through Parallel. */
+
+/** Extracts content from public HTTP(S) URLs through Parallel. */
+export async function extractParallelWeb(
+  {
+    urls,
+    objective,
+    searchQueries = [],
+    fetchImpl = fetch,
+  }: {
+    readonly urls: readonly string[];
+    readonly objective?: string;
+    readonly searchQueries?: readonly string[];
+    readonly fetchImpl?: ParallelSearchFetch;
+  },
+): Promise<ParallelExtractResult> {
+  const normalizedUrls = urls.map(validateUrl).slice(0, MAX_EXTRACT_URLS);
+  if (normalizedUrls.length === 0) throw new Error("Informe pelo menos uma URL.");
+
+  const queries = normalizeQueries(searchQueries);
+  const response = await parallelRequest(
+    "/v1/extract",
+    buildExtractBody(normalizedUrls, objective, queries),
+    fetchImpl,
+  );
+
+  if (!response.ok) await parseError(response);
+
+  let payload: ParallelExtractApiResponse;
+  try {
+    payload = (await response.json()) as ParallelExtractApiResponse;
+  } catch {
+    throw new Error("Parallel Extract retornou uma resposta inválida.");
+  }
+
+  return {
+    sources: (payload.results ?? []).map(mapExtractSource),
+    errors: (payload.errors ?? []).map(mapExtractError),
+    sessionId: payload.session_id ?? null,
+  };
+}
