@@ -126,7 +126,7 @@ function assertConfigured(): string {
 }
 
 /** Ensures an Exa response is successful before its payload is parsed. */
-async function ensureSuccessfulResponse(response: Response): Promise<Response> {
+function ensureSuccessfulResponse(response: Response): Response {
   if (!response.ok) {
     throw new Error(`Exa search failed with HTTP ${response.status}.`);
   }
