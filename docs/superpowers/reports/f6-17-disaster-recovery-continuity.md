@@ -19,7 +19,7 @@ O repositório é a fonte versionada de:
 
 A recuperação do código parte do GitHub, portanto a integridade do repositório e o acesso às identidades administrativas são dependências do DR.
 
-### Vercel
+### Render
 
 O projeto de produção observado é o projeto Next.js da Academia Arcana.
 
@@ -424,7 +424,7 @@ A recuperação precisa distinguir papéis:
 | --- | --- |
 | Incident lead | coordenação e decisão do incidente |
 | Application owner | comportamento da aplicação |
-| Infrastructure owner | Vercel/rede/ambientes |
+| Infrastructure owner | Render/rede/ambientes |
 | Data owner | restore/integridade |
 | Security owner | credenciais e contenção |
 | Observer | evidência e monitoramento |

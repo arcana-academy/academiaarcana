@@ -50,4 +50,4 @@ The repository does not claim that the ChatGPT Todoist connector is itself the w
 
 Automatic bidirectional reconciliation between Academy `StudyTask` records and Todoist task IDs is deliberately not enabled yet. A future synchronization layer should introduce durable per-user mappings, idempotency keys and explicit conflict rules before claiming full two-way synchronization.
 
-Vercel deployment and production environment configuration remain intentionally outside this change.
+Render deployment and production environment configuration remain intentionally outside this change.

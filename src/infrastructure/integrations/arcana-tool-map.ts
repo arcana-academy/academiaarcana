@@ -8,7 +8,7 @@ export const ARCANA_TOOL_TRACKS: readonly ArcanaToolTrack[] = [
   {
     title: "Construção e publicação",
     description: "Código, revisão, CI/CD e hospedagem do produto.",
-    tools: ["GitHub", "Vercel", "Supabase"],
+    tools: ["GitHub", "Render", "Supabase"],
   },
   {
     title: "Design e prototipagem",

@@ -33,7 +33,7 @@ ExternalIntegrationGateway
         +---- future first-party HTTP/SDK adapter (if exposed)
 ```
 
-No MCP or ChatGPT credentials are stored in the browser, Supabase, or Vercel
+No MCP or ChatGPT credentials are stored in the browser, Supabase, or Render
 environment by this integration.
 
 ## Important boundary

@@ -1,7 +1,7 @@
 # F6.16 — Deploy e estratégias de entrega
 
 Base: main no commit 21e1a2f6366e40fbf9bbaf0e651d2d350c1bfacd
-Escopo: definir a estratégia operacional de entrega da Academia Arcana entre GitHub, CI, Vercel, Supabase e ambientes de execução.
+Escopo: definir a estratégia operacional de entrega da Academia Arcana entre GitHub, CI, Render, Supabase e ambientes de execução.
 
 > Um commit em main, um build bem-sucedido e um deployment de produção são estados diferentes e devem possuir evidência própria.
 
@@ -15,11 +15,11 @@ GitHub Actions
   ↓
 Quality / Security Gates
   ↓
-Vercel
+Render
   ↓
 Production
 
-O projeto Vercel observado é um projeto Next.js.
+O projeto Render observado é um projeto Next.js.
 
 O deployment de produção mais recente confirmado pelo provedor é:
 
@@ -177,9 +177,9 @@ Registrar como bloqueio externo. A falha atual observada de build-rate-limit nã
 ### Deployment criado mas não pronto
 Não promover nem declarar produção saudável até obter estado final e validação funcional.
 
-## 10. Vercel como infraestrutura externa
+## 10. Render como infraestrutura externa
 
-O Vercel controla:
+O Render controla:
 
 - execução do Next.js;
 - deployments;
@@ -300,7 +300,7 @@ O provedor de deploy não deve se tornar autoridade de domínio.
 
 | Capacidade | Estado |
 | --- | --- |
-| Separação GitHub → CI → Vercel | VERIFICADO |
+| Separação GitHub → CI → Render | VERIFICADO |
 | Quality Gates antes de entrega | VERIFICADO |
 | Deployment rastreável por commit | VERIFICADO |
 | Production deployment observável | VERIFICADO |
@@ -327,7 +327,7 @@ Somente essa combinação deve ser usada para fechar uma entrega de produção.
 
 ## Conclusão
 
-A Academia Arcana possui uma cadeia GitHub → GitHub Actions → Vercel funcional e auditável, mas a evidência operacional de uma release termina somente no deployment real e na validação pós-deploy.
+A Academia Arcana possui uma cadeia GitHub → GitHub Actions → Render funcional e auditável, mas a evidência operacional de uma release termina somente no deployment real e na validação pós-deploy.
 
 O deployment de produção atualmente confirmado aponta para o merge do PR #259. Os merges seguintes precisam de nova evidência de deployment antes de serem considerados publicados em produção.
 

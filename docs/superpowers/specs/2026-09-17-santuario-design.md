@@ -386,9 +386,9 @@ Esses sistemas podem posteriormente fornecer adapters ao Santuário através dos
 
 ## 16. Dependências e riscos conhecidos
 
-Os problemas históricos de build/deploy mencionados durante o desenho não devem ser tratados como estado atual sem nova evidência. O commit atual possui build local verde; o endpoint público do deployment responde e o E2E anônimo passou. Porém, o status GitHub do Vercel está `failure` (`Checks for Deployment have failed`) e o estado `READY` não foi confirmado sem acesso autenticado ao Vercel.
+Os problemas históricos de build/deploy mencionados durante o desenho não devem ser tratados como estado atual sem nova evidência. Registros antigos de checks do provedor anterior não representam o estado atual. O estado de produção deve ser confirmado diretamente no Render para o deployment correspondente ao commit liberado.
 
-A publicação final ainda requer reconciliação do deployment com o domínio público, confirmação do check Vercel e validação operacional das integrações externas. O cenário E2E autenticado permanece bloqueado pela ausência de `E2E_EMAIL` e `E2E_PASSWORD` reais.
+A publicação final requer reconciliação do deployment com o domínio público, confirmação do estado do deployment no Render e validação operacional das integrações externas. O cenário E2E autenticado permanece bloqueado pela ausência de `E2E_EMAIL` e `E2E_PASSWORD` reais.
 
 ## 17. Próximo passo
 
