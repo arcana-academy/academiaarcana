@@ -251,7 +251,7 @@ function webResearchCatalogEntry(
   };
 }
 
-const chatgptBridgeUrls = new Map(
+const chatgptBridgeUrls = new Map<string, string | undefined>(
   Object.values(CHATGPT_APP_BRIDGES).map((bridge) => [
     bridge.displayName,
     bridge.appUrl,
