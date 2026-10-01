@@ -2,7 +2,8 @@
 
 **Status:** CANÔNICO  
 **Effective date:** 2026-09-30  
-**Repository:** `arcana-academy/academiaarcana`
+**Repository:** `arcana-academy/academiaarcana`  
+**Last repository verification:** 2026-09-30
 
 ## Plataforma oficial
 
