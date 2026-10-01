@@ -5,7 +5,7 @@ const assetsUrl = process.env.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL
 
 export const config = {
   apiKey: process.env.NEXT_PUBLIC_HONEYBADGER_API_KEY,
-  environment: process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL_ENV || process.env.NODE_ENV,
+  environment: process.env.RENDER === 'true' ? (process.env.IS_PULL_REQUEST === 'true' ? 'preview' : process.env.NODE_ENV) : process.env.NODE_ENV,
   revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
   projectRoot: 'webpack:///./',
   // debug: true,
