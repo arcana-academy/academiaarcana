@@ -47,7 +47,7 @@ describe("Honeybadger runtime configuration", () => {
 
   it("configures the browser with public deployment metadata", async () => {
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_API_KEY", "browser-key");
-    vi.stubEnv("NEXT_PUBLIC_NEXT_PUBLIC_APP_ENV", "preview");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "preview");
     vi.stubEnv("NEXT_PUBLIC_APP_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "browser-revision");
 
@@ -68,7 +68,7 @@ describe("Honeybadger runtime configuration", () => {
 
   it("falls back to server deployment metadata in the edge runtime", async () => {
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_API_KEY", "edge-key");
-    vi.stubEnv("NEXT_PUBLIC_NEXT_PUBLIC_APP_ENV", "");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "");
     vi.stubEnv("NEXT_PUBLIC_APP_ENV", "staging");
     vi.stubEnv("NODE_ENV", "test");
     vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "edge-revision");
@@ -84,7 +84,7 @@ describe("Honeybadger runtime configuration", () => {
   });
 
   it("falls back to NODE_ENV when deployment metadata is unavailable", async () => {
-    vi.stubEnv("NEXT_PUBLIC_NEXT_PUBLIC_APP_ENV", "");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "");
     vi.stubEnv("NEXT_PUBLIC_APP_ENV", "");
     vi.stubEnv("NODE_ENV", "test");
 
