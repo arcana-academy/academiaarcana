@@ -11,20 +11,22 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => {
   class MockSupabaseGamificationRepository {
+    private readonly profile = {
+      ownerId: "user-1",
+      xp: 900,
+      streakDays: 7,
+      lastActiveOn: "2026-09-29",
+      updatedAt: "2026-09-29T10:00:00.000Z",
+    };
+
+    private readonly dailyMissions: readonly never[] = [];
+
     getProfile() {
-      void this;
-      return Promise.resolve({
-        ownerId: "user-1",
-        xp: 900,
-        streakDays: 7,
-        lastActiveOn: "2026-09-29",
-        updatedAt: "2026-09-29T10:00:00.000Z",
-      });
+      return Promise.resolve(this.profile);
     }
 
     listDailyMissions() {
-      void this;
-      return Promise.resolve([]);
+      return Promise.resolve(this.dailyMissions);
     }
   }
 
