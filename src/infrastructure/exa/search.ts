@@ -133,17 +133,33 @@ function ensureSuccessfulResponse(response: Response): Response {
   return response;
 }
 
-/** Searches Exa and returns normalized external evidence. */
-export async function searchWebWithExa(
-  { query, numResults = DEFAULT_NUM_RESULTS }: ExaSearch,
-  { fetchImpl = fetch }: { readonly fetchImpl?: ExaFetch } = {},
+/** Executes the authenticated Exa search request and normalizes external evidence. */
+async function executeExaSearch(
+  query: string,
+  numResults: number,
+  fetchImpl: ExaFetch,
 ): Promise<readonly ExaSearchResult[]> {
-  const normalizedQuery = normalizeQuery(query);
-  const apiKey = assertConfigured();
-  const response = await requestExa(normalizedQuery, numResults, apiKey, fetchImpl);
-  const payload = await readExaResponse(await ensureSuccessfulResponse(response));
+  const response = await requestExa(
+    query,
+    numResults,
+    assertConfigured(),
+    fetchImpl,
+  );
+  const payload = await readExaResponse(ensureSuccessfulResponse(response));
 
   return (payload.results ?? [])
     .map(normalizeResult)
     .filter((result): result is ExaSearchResult => result !== null);
+}
+
+/** Searches Exa and returns normalized external evidence. */
+export function searchWebWithExa(
+  search: ExaSearch,
+  options?: { readonly fetchImpl?: ExaFetch },
+): Promise<readonly ExaSearchResult[]> {
+  const query = normalizeQuery(search.query);
+  const numResults = search.numResults ?? DEFAULT_NUM_RESULTS;
+  const fetchImpl = options?.fetchImpl ?? fetch;
+
+  return executeExaSearch(query, numResults, fetchImpl);
 }

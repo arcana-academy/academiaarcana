@@ -73,7 +73,7 @@ describe("parallel search infrastructure", () => {
   it("maps extraction errors without exposing provider response bodies", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
 
-    const fetchImpl = vi.fn<ParallelSearchFetch>(() =>
+    const fetchImpl: ParallelSearchFetch = vi.fn(() =>
       Promise.resolve(
         mockResponse({
           results: [
@@ -117,7 +117,7 @@ describe("parallel search infrastructure", () => {
       searchParallelWeb({
         objective: "Teste",
         searchQueries: ["teste"],
-        fetchImpl: vi.fn<ParallelSearchFetch>(),
+        fetchImpl: vi.fn(),
       }),
     ).rejects.toThrow("Parallel Search integration is not configured.");
   });

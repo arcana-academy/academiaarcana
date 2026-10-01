@@ -31,8 +31,8 @@ describe("searchWebWithExa", () => {
       }]);
   });
 
-  it("rejects empty queries", async () => {
+  it("rejects empty queries", () => {
     process.env.EXA_API_KEY = "test-key";
-    await expect(searchWebWithExa({ query: "  " })).rejects.toThrow("consulta");
+    expect(() => searchWebWithExa({ query: "  " })).toThrow("consulta");
   });
 });

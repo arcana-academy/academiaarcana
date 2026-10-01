@@ -40,24 +40,37 @@ function getModel(): string {
   return process.env.OPENAI_AGENT_MODEL?.trim() || DEFAULT_MODEL;
 }
 
-function parseOutput(payload: ResponsesApiPayload): string {
-  if (typeof payload.output_text === "string" && payload.output_text.trim()) {
-    return payload.output_text.trim();
-  }
+/** Returns the direct output text when OpenAI provides it. */
+function getDirectOutputText(payload: ResponsesApiPayload): string | null {
+  const value = payload.output_text;
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
 
-  const output = Array.isArray(payload.output) ? payload.output : [];
-  const textParts = output.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const content = (item as { content?: unknown }).content;
-    if (!Array.isArray(content)) return [];
-    return content.flatMap((part) => {
-      if (!part || typeof part !== "object") return [];
-      const text = (part as { text?: unknown }).text;
-      return typeof text === "string" ? [text] : [];
-    });
+/** Reads text fragments from one structured output item. */
+function getStructuredOutputItemText(value: unknown): readonly string[] {
+  const record = toRecord(value);
+  const content = record?.content;
+  if (!Array.isArray(content)) return [];
+
+  return content.flatMap((part) => {
+    const partRecord = toRecord(part);
+    const text = partRecord ? getStringProperty(partRecord, "text") : null;
+    return text ? [text] : [];
   });
+}
 
-  const result = textParts.join("\n").trim();
+/** Collects text fragments from OpenAI structured output. */
+function getStructuredOutputText(payload: ResponsesApiPayload): string {
+  const output = Array.isArray(payload.output) ? payload.output : [];
+  return output.flatMap(getStructuredOutputItemText).join("\n").trim();
+}
+
+/** Parses textual output from the OpenAI Responses payload. */
+function parseOutput(payload: ResponsesApiPayload): string {
+  const directOutput = getDirectOutputText(payload);
+  const structuredOutput = getStructuredOutputText(payload);
+  const result = directOutput ?? structuredOutput;
+
   if (!result) throw new Error("OpenAI returned no textual output.");
   return result;
 }
@@ -169,37 +182,30 @@ function toRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
-/** Builds a validated function call from its required string properties. */
-function buildFunctionCall(
-  callId: string | null,
-  name: string | null,
-  args: string | null,
-): MestreArcanoFunctionCall | null {
-  if (!callId || !name || !args) {
-    return null;
-  }
+type MestreArcanoFunctionCallRecord = {
+  readonly type: "function_call";
+  readonly call_id: string;
+  readonly name: string;
+  readonly arguments: string;
+};
 
-  return {
-    type: "function_call",
-    call_id: callId,
-    name,
-    arguments: args,
-  };
+/** Checks whether a record contains the required string fields. */
+function hasRequiredStringFields(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): boolean {
+  return keys.every((key) => typeof record[key] === "string");
 }
 
-/** Converts one unknown output item into a validated function call. */
-function toFunctionCall(
+/** Identifies a complete OpenAI function-call record. */
+function isFunctionCallRecord(
   value: unknown,
-): MestreArcanoFunctionCall | null {
+): value is MestreArcanoFunctionCallRecord {
   const record = toRecord(value);
-  if (!record || record.type !== "function_call") {
-    return null;
-  }
-
-  return buildFunctionCall(
-    getStringProperty(record, "call_id"),
-    getStringProperty(record, "name"),
-    getStringProperty(record, "arguments"),
+  if (!record) return false;
+  return (
+    record.type === "function_call" &&
+    hasRequiredStringFields(record, ["call_id", "name", "arguments"])
   );
 }
 
@@ -209,10 +215,13 @@ function extractFunctionCalls(
 ): MestreArcanoFunctionCall[] {
   const items = Array.isArray(output) ? output : [];
   return items
-    .map(toFunctionCall)
-    .filter(
-      (call): call is MestreArcanoFunctionCall => call !== null,
-    );
+    .filter(isFunctionCallRecord)
+    .map((record) => ({
+      type: "function_call" as const,
+      call_id: record.call_id,
+      name: record.name,
+      arguments: record.arguments,
+    }));
 }
 
 /** Requests one OpenAI Responses API iteration and parses its payload. */
