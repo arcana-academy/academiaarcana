@@ -286,9 +286,7 @@ describe("integration status snapshot", () => {
 
   it("fails closed for provider errors without exposing provider details", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
-      githubVerifier: async () => {
-        throw new Error("secret network diagnostics");
-      },
+      githubVerifier: () => Promise.reject(new Error("secret network diagnostics")),
     });
 
     const github = snapshot.entries.find((entry) => entry.name === "GitHub");
