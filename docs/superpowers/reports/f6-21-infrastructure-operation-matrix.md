@@ -2,7 +2,7 @@
 
 **Base documental:** `main` — matriz originalmente consolidada antes das verificações operacionais de setembro de 2026.
 
-**Atualização operacional:** esta matriz foi reconciliada com as evidências posteriores registradas no Issue #268, incluindo o deployment de produção `serviço Render `srv-dauor697lnhs739cicag`` em estado `READY` e a verificação anônima de `/santuario`, que respondeu com redirecionamento para `/login`.  
+**Atualização operacional:** o serviço Render `academiaarcana` (`srv-dauor697lnhs739cicag`) foi verificado como ativo; o deployment atualmente `live` é `dep-daupusa1a91c739nagog`, associado ao commit `024f92e0758a065137ea9fd5dfc98a30ae4d6609`.  
 **Escopo:** consolidar a visão operacional da Academia Arcana a partir de evidências presentes no repositório e de estados externos explicitamente verificados.
 
 > Esta matriz distingue fatos comprovados no código/configuração versionada de controles que existem fora do repositório e ainda precisam de verificação operacional independente.
@@ -35,7 +35,7 @@
 | JavaScript/TypeScript analysis | Qualidade de código | DeepSource JavaScript + qlty | DeepSource / qlty | Sem exposição de segredos | Checks por commit/PR | PR #258 eliminou os findings observados | **VERIFICADO** |
 | Error monitoring | `trust` / infraestrutura transversal | Honeybadger browser/server/edge | Honeybadger | API key somente por ambiente | Erros de runtime e contexto | Recovery é operacional, conforme provedor | **EXTERNO** |
 | Produção | Delivery | Render | Render service `academiaarcana` (`srv-dauor697lnhs739cicag`) | Configuração de ambiente externa | Deployment status + runtime logs disponíveis | Rollback/redeploy suportados pela plataforma | **EXTERNO** |
-| Produção atual verificada | Delivery | GitHub → Render | Render | Configuração externa | Deployment state + smoke test + runtime logs | `serviço Render `srv-dauor697lnhs739cicag`` READY; smoke test `/santuario` HTTP 200; sem runtime errors no período verificado | **VERIFICADO / EXTERNO** |
+| Produção atual verificada | Delivery | GitHub → Render | Render | Configuração externa | Deployment state + smoke test + runtime logs | deployment `dep-daupusa1a91c739nagog` `live` para o commit `024f92e0758a065137ea9fd5dfc98a30ae4d6609` | **VERIFICADO / EXTERNO** |
 | Web Analytics | Observabilidade de produto | PR #245 mantém a implementação proposta | Render / analytics externos | Configuração depende dos serviços de observabilidade | Page views / insights após ativação | Ativação deve ocorrer no dashboard | **EXTERNO / PENDENTE** |
 | Backups e recuperação | `data` / operação | Estratégia definida em F6, execução fora do app | Supabase / provedores operacionais | Retenção, acesso e restauração dependem da configuração externa | Restore deve ser validado por teste operacional | RTO/RPO exigem evidência externa | **PENDENTE** |
 | Resiliência e disponibilidade | Infraestrutura | Aplicação desenhada para estados parciais em algumas superfícies | Render + Supabase | Failures não devem ampliar autorização | Monitoring/alerts dependem dos provedores | Não declarar disponibilidade sem evidência de teste | **PENDENTE** |
@@ -81,7 +81,7 @@ O `SECURITY.md` exige que vulnerabilidades sejam reportadas privadamente e orien
 
 ### Estado confirmado
 
-O deployment de produção anterior ao merge do PR #258 é mantido apenas como evidência histórica de uma release anterior.
+Os deployments anteriores ao merge do PR #258 pertencem ao ciclo histórico de entrega e não representam o provedor atual.
 
 O merge do PR #258 criou o commit:
 
@@ -89,7 +89,7 @@ O merge do PR #258 criou o commit:
 6f2a51016b8337dbeb36ac686a6cf458384566f3
 ```
 
-A matriz original registrava o bloqueio `build-rate-limit` para uma versão anterior. Esse estado não deve ser usado como descrição da produção atual: posteriormente foi confirmado um deployment de produção `READY`, com smoke test do Santuário e ausência de runtime errors no período observado. O limitações de quota do provedor de deployment continua sendo uma limitação operacional possível para novos deployments e não deve ser confundido com falha do código.
+A matriz original registrava o bloqueio `build-rate-limit` para uma versão anterior. Esse registro é histórico e não deve ser usado como descrição da produção atual. Limitações externas de build/deploy devem ser tratadas como riscos do provedor somente quando houver evidência contemporânea.
 
 ### Regra operacional
 
