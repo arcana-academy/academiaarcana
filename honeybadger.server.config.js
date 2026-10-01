@@ -1,37 +1,29 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+import Honeybadger from '@honeybadger-io/js'
 
-const Honeybadger = require("@honeybadger-io/js");
+const projectRoot = process.cwd()
+const assetsUrl = process.env.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL
 
-const projectRoot = process.cwd();
-const assetsUrl = process.env.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL;
-
-const config = {
+export const config = {
   apiKey: process.env.NEXT_PUBLIC_HONEYBADGER_API_KEY,
   environment: process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV,
   revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
-  projectRoot: "webpack:///./",
+  projectRoot: 'webpack:///./',
   // debug: true,
   // reportData: true,
-};
-
-exports.config = config;
+}
 
 Honeybadger
   .configure(config)
   .beforeNotify((notice) => {
     if (!notice || !assetsUrl) {
-      return;
+      return
     }
 
     notice.backtrace.forEach((line) => {
       if (line.file) {
-        line.file = line.file.replace(
-          `${projectRoot}/.next/server`,
-          `${assetsUrl}/..`,
-        );
+        line.file = line.file.replace(`${projectRoot}/.next/server`, `${assetsUrl}/..`)
       }
-      return line;
-    });
-  });
-
-Honeybadger.logger.debug("Honeybadger configured for server");
+      return line
+    })
+  })
+Honeybadger.logger.debug('Honeybadger configured for server')
