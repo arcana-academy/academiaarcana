@@ -1,4 +1,4 @@
-# Academia Arcana — Technical Validation
+# Current deployment platform — Render\n\n**CURRENT CANONICAL STATUS — 2026-09-30**\n\nThe active deployment platform is Render. Historical Vercel deployment evidence in this document remains unchanged for auditability and is not an active deployment path. Current production/runtime validation must use the Render service.\n\n# Academia Arcana — Technical Validation
 
 ## Status
 
