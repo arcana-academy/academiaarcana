@@ -12,9 +12,8 @@ const {
 } = require("./verify-public-runtime-config.cjs");
 
 const validUrl = "https://abcdefghijklmnopqrst.supabase.co";
-const publishablePrefix = ["sb", "publishable"].join("_") + "_";
-const validKey =
-  publishablePrefix + "A".repeat(10) + "_" + "B".repeat(11) + "_" + "C".repeat(8);
+const publishablePrefix = "sb_publishable_";
+const validKey = `${publishablePrefix}${"A".repeat(10)}_${"B".repeat(11)}_${"C".repeat(8)}`;
 
 describe("verify-public-runtime-config", () => {
   it("loads missing runtime values from .env.local without overriding process env", () => {
@@ -91,7 +90,7 @@ describe("verify-public-runtime-config", () => {
     expect(() =>
       validateSupabaseProductionConfiguration(
         validUrl,
-        publishablePrefix + "A".repeat(22) + "_" + "B".repeat(7),
+        `${publishablePrefix}${"A".repeat(22)}_${"B".repeat(7)}`,
       ),
     ).toThrow(/expected sb_publishable/);
   });
