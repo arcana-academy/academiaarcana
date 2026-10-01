@@ -174,7 +174,6 @@ async function parseError(response: Response): Promise<never> {
 }
 
 /** Maps a Parallel search result into the application source shape. */
-
 function mapSource(result: ParallelSearchApiResult): ParallelSearchSource {
   return {
     url: result.url,
@@ -287,8 +286,6 @@ export async function searchParallelWeb(
     sessionId: payload.session_id ?? null,
   };
 }
-
-/** Extracts content from public HTTP(S) URLs through Parallel. */
 
 /** Extracts content from public HTTP(S) URLs through Parallel. */
 export async function extractParallelWeb(
