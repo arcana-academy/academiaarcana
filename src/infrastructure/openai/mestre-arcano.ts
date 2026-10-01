@@ -40,24 +40,37 @@ function getModel(): string {
   return process.env.OPENAI_AGENT_MODEL?.trim() || DEFAULT_MODEL;
 }
 
-function parseOutput(payload: ResponsesApiPayload): string {
-  if (typeof payload.output_text === "string" && payload.output_text.trim()) {
-    return payload.output_text.trim();
-  }
+/** Returns the direct output text when OpenAI provides it. */
+function getDirectOutputText(payload: ResponsesApiPayload): string | null {
+  const value = payload.output_text;
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
 
-  const output = Array.isArray(payload.output) ? payload.output : [];
-  const textParts = output.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const content = (item as { content?: unknown }).content;
-    if (!Array.isArray(content)) return [];
-    return content.flatMap((part) => {
-      if (!part || typeof part !== "object") return [];
-      const text = (part as { text?: unknown }).text;
-      return typeof text === "string" ? [text] : [];
-    });
+/** Reads text fragments from one structured output item. */
+function getStructuredOutputItemText(value: unknown): readonly string[] {
+  const record = toRecord(value);
+  const content = record?.content;
+  if (!Array.isArray(content)) return [];
+
+  return content.flatMap((part) => {
+    const partRecord = toRecord(part);
+    const text = partRecord ? getStringProperty(partRecord, "text") : null;
+    return text ? [text] : [];
   });
+}
 
-  const result = textParts.join("\n").trim();
+/** Collects text fragments from OpenAI structured output. */
+function getStructuredOutputText(payload: ResponsesApiPayload): string {
+  const output = Array.isArray(payload.output) ? payload.output : [];
+  return output.flatMap(getStructuredOutputItemText).join("\n").trim();
+}
+
+/** Parses textual output from the OpenAI Responses payload. */
+function parseOutput(payload: ResponsesApiPayload): string {
+  const directOutput = getDirectOutputText(payload);
+  const structuredOutput = getStructuredOutputText(payload);
+  const result = directOutput ?? structuredOutput;
+
   if (!result) throw new Error("OpenAI returned no textual output.");
   return result;
 }
