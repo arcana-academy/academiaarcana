@@ -21,17 +21,18 @@ A recuperação do código parte do GitHub, portanto a integridade do repositór
 
 ### Render
 
-O projeto de produção observado é o projeto Next.js da Academia Arcana.
+O serviço de produção atual é gerenciado pelo Render.
 
-Deployment de produção atualmente confirmado:
+- serviço: `academiaarcana`;
+- service ID: `srv-dauor697lnhs739cicag`;
+- estado atual: `live`;
+- deployment atual: `dep-daupusa1a91c739nagog`;
+- commit: `024f92e0758a065137ea9fd5dfc98a30ae4d6609`;
+- URL: https://academiaarcana.onrender.com;
+- branch: `main`;
+- auto deploy: habilitado por commit.
 
-- deployment: `dpl_5qsB7DP9oNnD3YgCPmtqMUQkfq5z`;
-- estado: `READY`;
-- target: `production`;
-- commit: `2e2aa683f79f88333e8866e7dd82c236b5fd1e50`;
-- região observada: `iad1`.
-
-Os merges posteriores já estão em `main`, mas ainda não há evidência de deployment de produção correspondente a eles nesta inspeção. O estado de produção, portanto, deve ser validado separadamente do estado do Git.
+Para recuperação, o código deve partir do GitHub e o estado de produção deve ser confirmado no Render. O deployment do Render é evidência de estado operacional, não substituto para os checks do GitHub ou para a integridade do Supabase.
 
 ### Supabase
 
