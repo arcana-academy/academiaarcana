@@ -61,7 +61,6 @@ Repository deployment contract:
 - CI and validation: GitHub Actions;
 - persistence/authentication: Supabase.
 
-Vercel and GitHub Pages are not deployment targets for this repository.
 
 ## Environment
 
