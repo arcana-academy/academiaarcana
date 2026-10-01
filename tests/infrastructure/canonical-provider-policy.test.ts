@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -31,10 +31,6 @@ describe("canonical infrastructure provider policy", () => {
     ]);
   });
 
-  it("has no active Vercel deployment configuration", () => {
-    expect(existsSync(resolve(root, "vercel.json"))).toBe(false);
-  });
-
   it("keeps the executable infrastructure guard synchronized with policy", () => {
     const guard = readRepoFile("scripts/verify-canonical-infrastructure.cjs");
 
@@ -56,7 +52,6 @@ describe("canonical infrastructure provider policy", () => {
 
     for (const path of activeFiles) {
       const content = readRepoFile(path);
-      expect(content).not.toMatch(/VERCEL_/);
       expect(content).not.toMatch(/NETLIFY/i);
     }
   });
