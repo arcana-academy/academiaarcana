@@ -65,7 +65,7 @@ The Adobe ChatGPT connector does not by itself prove that the Academia Arcana we
 
 If Adobe later provides a verified application-facing API contract required by the product, it belongs behind `src/infrastructure/integrations/adobe.ts` and must receive provider health, authorization, representative-operation, security and E2E coverage before being promoted to a live runtime integration.
 
-## Vercel handoff
+## Render handoff
 
 The only deployment-specific Adobe value is the optional public Fonts kit identifier:
 
@@ -73,4 +73,4 @@ The only deployment-specific Adobe value is the optional public Fonts kit identi
 NEXT_PUBLIC_ADOBE_FONTS_KIT_ID
 ```
 
-No Vercel mutation is performed by this integration work.
+No Render mutation is performed by this integration work.
