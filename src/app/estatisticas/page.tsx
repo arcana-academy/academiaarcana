@@ -9,10 +9,12 @@ import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamifi
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
+/** Return the current UTC calendar date for daily gamification queries. */
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** Render persisted learning and gamification statistics. */
 export default async function EstatisticasPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
