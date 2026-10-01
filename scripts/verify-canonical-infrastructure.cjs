@@ -27,7 +27,6 @@
       "Buildkite",
     ],
     "application-runtime": [
-      "Vercel",
       "Netlify",
       "GitHub Pages",
       "Railway",
@@ -79,9 +78,7 @@
   };
 
   const FORBIDDEN_PATHS = [
-    "vercel.json",
     "netlify.toml",
-    ".vercel",
     ".netlify",
     "public/_redirects",
     "public/_headers",
@@ -104,8 +101,6 @@
   ];
 
   const FORBIDDEN_DEPENDENCY_TOKENS = [
-    "@vercel/",
-    "vercel",
     "@netlify/",
     "netlify-cli",
     "netlify",
@@ -120,7 +115,6 @@
   ];
 
   const FORBIDDEN_ENV_PREFIXES = [
-    "VERCEL_",
     "NETLIFY_",
     "RAILWAY_",
     "FLY_",
