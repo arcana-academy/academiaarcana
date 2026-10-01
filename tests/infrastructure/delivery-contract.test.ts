@@ -9,9 +9,8 @@ import {
 
 const root = process.cwd();
 
-function readRepoFile(path: string) {
-  return readFileSync(resolve(root, path), "utf8");
-}
+const readRepoFile = (path: string) =>
+  readFileSync(resolve(root, path), "utf8");
 
 describe("delivery infrastructure contract", () => {
   it("defines one canonical provider for each infrastructure responsibility", () => {
