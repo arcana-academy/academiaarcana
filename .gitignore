@@ -44,10 +44,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-*.swo
-
-# Vercel
-.vercel/
+*.swo/
 
 # Local certificates / secrets
 *.pem
@@ -55,7 +52,8 @@ Thumbs.db
 
 # Git worktrees locais
 .worktrees/
-.vercel
+
+# Local environment patterns
 .env*
 
 # .env.example é versionado e deve continuar visivel
