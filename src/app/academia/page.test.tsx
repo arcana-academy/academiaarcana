@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
-  requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+  requireAuthenticatedUser: vi.fn(() => Promise.resolve({ sub: "user-1" })),
 }));
 
 vi.mock("@/components/layout/AuthenticatedShell", () => ({

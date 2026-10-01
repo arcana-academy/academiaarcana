@@ -4,11 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 const listByOwner = vi.fn();
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
-  requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+  requireAuthenticatedUser: vi.fn(() => Promise.resolve({ sub: "user-1" })),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({})),
+  createClient: vi.fn(() => Promise.resolve({})),
 }));
 
 vi.mock("@/infrastructure/supabase/workspace/grimoire-repository", () => ({

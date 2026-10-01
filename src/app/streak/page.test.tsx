@@ -9,7 +9,7 @@ vi.mock("@/lib/auth/require-authenticated-user", () => ({
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({})),
+  createClient: vi.fn(() => Promise.resolve({})),
 }));
 
 const getProfileMock = vi.fn();

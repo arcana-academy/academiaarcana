@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import FocoPage from "./page";
 
 const { requireAuthenticatedUser } = vi.hoisted(() => ({
-  requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+  requireAuthenticatedUser: vi.fn(() => Promise.resolve({ sub: "user-1" })),
 }));
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
