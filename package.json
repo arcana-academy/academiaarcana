@@ -5,7 +5,7 @@
   "packageManager": "npm@11.19.1",
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/verify-public-runtime-config.cjs",
+    "prebuild": "node scripts/verify-public-runtime-config.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint . --ignore-pattern welcome-to-docker/**",
@@ -62,5 +62,6 @@
       "version": "11.19.1",
       "onFail": "warn"
     }
-  }
+  },
+  "type": "module"
 }
