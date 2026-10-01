@@ -11,10 +11,10 @@ const BUILD_ENV_FILES = [
   ".env",
 ];
 
-function loadBuildEnvironment(
+const loadBuildEnvironment = (
   baseEnvironment = process.env,
   cwd = process.cwd(),
-) {
+) => {
   const environment = { ...baseEnvironment };
 
   for (const filename of BUILD_ENV_FILES) {
@@ -32,11 +32,11 @@ function loadBuildEnvironment(
   return environment;
 }
 
-function validateSupabaseProductionConfiguration(
+const validateSupabaseProductionConfiguration = (
   supabaseUrl,
   publishableKey,
-) {
-  let parsedUrl;
+) => {
+  let parsedUrl = null;
 
   try {
     parsedUrl = new URL(supabaseUrl);
@@ -47,17 +47,18 @@ function validateSupabaseProductionConfiguration(
   }
 
   const projectRef = parsedUrl.hostname.replace(/\.supabase\.co$/, "");
+  const invalidUrl = [
+    parsedUrl.protocol !== "https:",
+    Boolean(parsedUrl.username),
+    Boolean(parsedUrl.password),
+    Boolean(parsedUrl.port),
+    parsedUrl.pathname !== "/",
+    Boolean(parsedUrl.search),
+    Boolean(parsedUrl.hash),
+    !/^[a-z0-9]{20}$/.test(projectRef),
+  ].some(Boolean);
 
-  if (
-    parsedUrl.protocol !== "https:" ||
-    parsedUrl.username ||
-    parsedUrl.password ||
-    parsedUrl.port ||
-    parsedUrl.pathname !== "/" ||
-    parsedUrl.search ||
-    parsedUrl.hash ||
-    !/^[a-z0-9]{20}$/.test(projectRef)
-  ) {
+  if (invalidUrl) {
     throw new Error(
       "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.",
     );
@@ -70,7 +71,7 @@ function validateSupabaseProductionConfiguration(
   }
 }
 
-function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
+const verifyPublicRuntimeConfig = (environment = loadBuildEnvironment()) => {
   for (const name of [
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -99,5 +100,7 @@ exports.validateSupabaseProductionConfiguration =
 exports.verifyPublicRuntimeConfig = verifyPublicRuntimeConfig;
 
 if (require.main === module) {
-  console.log(JSON.stringify(verifyPublicRuntimeConfig(), null, 2));
+  process.stdout.write(
+    JSON.stringify(verifyPublicRuntimeConfig(), null, 2) + "\n",
+  );
 }
