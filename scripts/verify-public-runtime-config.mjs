@@ -87,7 +87,7 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
   return {
     integration: "supabase-public-runtime",
     verified: true,
-    environment: environment.VERCEL_ENV ?? environment.NODE_ENV ?? "unknown",
+    environment: environment.IS_PULL_REQUEST === "true" ? "preview" : environment.NODE_ENV ?? "unknown",
     configuration: "environment",
   };
 }
