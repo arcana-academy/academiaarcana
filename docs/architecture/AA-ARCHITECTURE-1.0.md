@@ -722,14 +722,12 @@ Each infrastructure responsibility has one canonical platform. A provider with e
 |---|---|---|
 | Source control | GitHub | GitLab, Bitbucket, Codeberg, Azure Repos |
 | CI/CD and Quality Gate | GitHub Actions | GitLab CI/CD, CircleCI, Travis CI, Jenkins, Bitbucket Pipelines, Azure Pipelines, Buildkite |
-| Application hosting and production runtime | Render | Vercel, Netlify, GitHub Pages, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers, DigitalOcean App Platform, Google Cloud Run, Azure Static Web Apps, AppDeploy, Hatchable, Hercules, Floot, Replit, Base44, Lovable, Webflow, Wix |
+| Application hosting and production runtime | Render | Netlify, GitHub Pages, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers, DigitalOcean App Platform, Google Cloud Run, Azure Static Web Apps, AppDeploy, Hatchable, Hercules, Floot, Replit, Base44, Lovable, Webflow, Wix |
 | Database, Auth, RLS and application data services | Supabase | Firebase, Appwrite, PocketBase, Neon, Convex, PlanetScale |
 
 The policy is implemented in `src/core/architecture/provider-policy.ts` and protected by `tests/infrastructure/canonical-provider-policy.test.ts`.
 
 The policy applies to operational architecture. It does not prohibit SaaS tools whose role is materially different from these four infrastructure responsibilities. It does prohibit using an equivalent platform as a second source-control system, CI/CD system, production runtime or application data backend.
-
-Historical references may remain only where explicitly identified as historical engineering evidence and must not describe the provider as an active production dependency.
 
 State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
 

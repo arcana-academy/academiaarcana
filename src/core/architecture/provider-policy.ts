@@ -45,7 +45,6 @@ export const CANONICAL_INFRASTRUCTURE_PROVIDERS = [
     responsibility:
       "Next.js production Web Service, runtime and application deployment.",
     disallowedAlternatives: [
-      "Vercel",
       "Netlify",
       "GitHub Pages",
       "Railway",

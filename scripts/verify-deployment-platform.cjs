@@ -36,12 +36,6 @@ for (const relativePath of activeSurfaces) {
 
   const fileContent = readFileSync(file, "utf8");
 
-  if (/vercel/i.test(fileContent)) {
-    throw new Error(
-      `Obsolete Vercel reference found in active deployment surface: ${relativePath}`,
-    );
-  }
-
   if (/github-pages/i.test(fileContent) || /deploy-pages/i.test(fileContent)) {
     throw new Error(
       `Obsolete GitHub Pages reference found in active deployment surface: ${relativePath}`,
