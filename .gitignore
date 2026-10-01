@@ -46,16 +46,12 @@ Thumbs.db
 *.swp
 *.swo
 
-# Vercel
-.vercel/
-
 # Local certificates / secrets
 *.pem
 *.key
 
 # Git worktrees locais
 .worktrees/
-.vercel
 .env*
 
 # .env.example é versionado e deve continuar visivel
