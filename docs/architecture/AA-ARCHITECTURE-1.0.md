@@ -722,12 +722,12 @@ The infrastructure platform model is intentionally non-duplicative: one architec
 |---|---|---|
 | Source control | GitHub | GitLab, Bitbucket, Codeberg |
 | CI/CD and Quality Gate | GitHub Actions | GitLab CI/CD, CircleCI, Travis CI, Jenkins, Bitbucket Pipelines |
-| Application hosting and production runtime | Render | Vercel, Netlify, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers |
-| Database, Auth, RLS and application data services | Supabase | Firebase, Appwrite, PocketBase |
+| Application hosting and production runtime | Render | Vercel, Netlify, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers, AppDeploy, Hatchable, Hercules, Floot, Replit, Base44, Lovable, Webflow, Wix |
+| Database, Auth, RLS and application data services | Supabase | Firebase, Appwrite, PocketBase, Neon, Convex, PlanetScale |
 
 The provider policy is implemented in `src/core/architecture/provider-policy.ts` and protected by `tests/infrastructure/delivery-contract.test.ts`.
 
-This rule does not prohibit optional SaaS integrations whose responsibilities differ from the four canonical infrastructure roles. It does prohibit duplicating one of these roles merely because another provider offers a similar capability.
+This rule does not prohibit optional SaaS integrations whose responsibilities differ from the four canonical infrastructure roles. It does prohibit duplicating one of these roles merely because another provider offers a similar capability. Connected app-building or hosting tools that can serve the application itself must not become a second production hosting/deployment path.
 
 **Architectural rule:** Do not introduce Vercel, Netlify, or another equivalent infrastructure platform into the active application, CI/CD, deployment or data path. Historical evidence may remain in explicitly historical documentation.
 
