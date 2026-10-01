@@ -97,25 +97,9 @@ describe("delivery infrastructure contract", () => {
       "next.config.ts",
     ];
 
-    const forbidden = [
-      "Vercel",
-      "Netlify",
-      "Railway",
-      "Fly.io",
-      "Heroku",
-      "AWS App Runner",
-      "AWS Amplify",
-      "Cloudflare Pages",
-      "Cloudflare Workers",
-      "GitLab CI",
-      "CircleCI",
-      "Travis CI",
-      "Jenkins",
-      "Bitbucket Pipelines",
-      "Firebase",
-      "Appwrite",
-      "PocketBase",
-    ];
+    const forbidden = CANONICAL_INFRASTRUCTURE_PROVIDERS.flatMap(
+      (item) => item.disallowedAlternatives,
+    );
 
     for (const path of activeFiles) {
       const content = readRepoFile(path);
