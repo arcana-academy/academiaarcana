@@ -40,6 +40,7 @@ export const CANONICAL_INFRASTRUCTURE_PROVIDERS = [
     disallowedAlternatives: [
       "Vercel",
       "Netlify",
+      "GitHub Pages",
       "Railway",
       "Fly.io",
       "Heroku",
