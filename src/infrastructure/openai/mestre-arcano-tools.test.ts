@@ -1,5 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
+const { searchWebResearch, extractWebResearch } = vi.hoisted(() => ({
+  searchWebResearch: vi.fn(),
+  extractWebResearch: vi.fn(),
+}));
+
+vi.mock("@/infrastructure/web-research/search", () => ({
+  searchWebResearch,
+  extractWebResearch,
+}));
+
 import type {
   MestreArcanoToolContext,
   MestreArcanoDocumentContext,
@@ -93,6 +103,52 @@ describe("Mestre Arcano tools", () => {
         required: ["sourceId"],
       },
     });
+  });
+
+  it("routes web research through the unified authorized boundary", async () => {
+    const context = createContext();
+    searchWebResearch.mockResolvedValue({
+      provider: "exa",
+      sources: [{
+        provider: "exa",
+        url: "https://example.test/source",
+        title: "Fonte",
+        publishedAt: "2026-09-29",
+        author: "Autor",
+        excerpts: ["Evidência"],
+      }],
+      sessionId: null,
+    });
+    const output = JSON.parse(await executeMestreArcanoTool({
+      name: "search_web",
+      arguments: JSON.stringify({ objective: "Estudar", query: "anatomia", numResults: 3 }),
+    }, context));
+    expect(output.sources[0]).toMatchObject({ provider: "exa", url: "https://example.test/source" });
+    expect(searchWebResearch).toHaveBeenCalledWith({ objective: "Estudar", query: "anatomia", numResults: 3 });
+  });
+
+  it("routes web extraction through the same boundary", async () => {
+    const context = createContext();
+    extractWebResearch.mockResolvedValue({
+      provider: "parallel",
+      sources: [{
+        provider: "parallel",
+        url: "https://example.test/source",
+        title: "Documento",
+        publishedAt: null,
+        author: null,
+        excerpts: ["Resumo"],
+        fullContent: "Conteúdo",
+      }],
+      errors: [],
+      sessionId: "session-2",
+    });
+    const output = JSON.parse(await executeMestreArcanoTool({
+      name: "extract_web_source",
+      arguments: JSON.stringify({ urls: ["https://example.test/source"], objective: "Extrair pontos principais" }),
+    }, context));
+    expect(output.sources[0]).toMatchObject({ provider: "parallel", fullContent: "Conteúdo" });
+    expect(extractWebResearch).toHaveBeenCalledWith({ urls: ["https://example.test/source"], objective: "Extrair pontos principais" });
   });
 
   it("reads learner data only through the authorized learner port", async () => {
