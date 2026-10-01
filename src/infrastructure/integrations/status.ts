@@ -258,6 +258,7 @@ const chatgptBridgeUrls = new Map<string, string | undefined>(
   ]),
 );
 
+/** Resolves GitHub status from a runtime verifier, failing closed on errors. */
 async function resolveGitHubEntry(
   verifier: () => Promise<GitHubConnectionVerification>,
 ): Promise<IntegrationStatusEntry> {
@@ -274,6 +275,7 @@ async function resolveGitHubEntry(
   }
 }
 
+/** Resolves DataCamp status from its optional server-side credential. */
 async function resolveDataCampEntry(
   verifier: () => Promise<DataCampConnectionVerification>,
   apiKey?: string,
@@ -286,6 +288,7 @@ async function resolveDataCampEntry(
   }
 }
 
+/** Resolves Dropbox status from its optional runtime token. */
 async function resolveDropboxEntry(
   verifier: (token?: string) => Promise<DropboxConnectionVerification>,
   token?: string,
@@ -298,6 +301,7 @@ async function resolveDropboxEntry(
   }
 }
 
+/** Resolves Airtable status when both runtime credential inputs are available. */
 async function resolveAirtableEntry(
   verifier: () => Promise<AirtableConnectionVerification>,
   token?: string,
@@ -311,6 +315,7 @@ async function resolveAirtableEntry(
   }
 }
 
+/** Builds a catalog-only runtime integration entry. */
 function runtimeCatalogEntry(
   name: string,
   providerId: string,
@@ -394,6 +399,7 @@ const STATIC_PLUGIN_ENTRIES = new Map<string, IntegrationStatusEntry>([
   ],
 ]);
 
+/** Builds the catalog representation for one ChatGPT plugin entry. */
 function catalogEntryForPlugin(
   plugin: (typeof CHATGPT_PLUGIN_CATALOG)[number],
 ): IntegrationStatusEntry {
@@ -413,6 +419,7 @@ function catalogEntryForPlugin(
   };
 }
 
+/** Combines verified runtime entries with the canonical ChatGPT catalog. */
 function buildIntegrationEntries(
   githubEntry: IntegrationStatusEntry,
   dataCampEntry: IntegrationStatusEntry,
@@ -430,6 +437,7 @@ function buildIntegrationEntries(
   );
 }
 
+/** Builds the final integration status snapshot from catalog entries. */
 function buildIntegrationSnapshot(
   entries: readonly IntegrationStatusEntry[],
   runtimeIntegrations: readonly Awaited<
