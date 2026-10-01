@@ -169,6 +169,24 @@ function toRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
+/** Builds a validated function call from its required string properties. */
+function buildFunctionCall(
+  callId: string | null,
+  name: string | null,
+  args: string | null,
+): MestreArcanoFunctionCall | null {
+  if (!callId || !name || !args) {
+    return null;
+  }
+
+  return {
+    type: "function_call",
+    call_id: callId,
+    name,
+    arguments: args,
+  };
+}
+
 /** Converts one unknown output item into a validated function call. */
 function toFunctionCall(
   value: unknown,
@@ -178,19 +196,11 @@ function toFunctionCall(
     return null;
   }
 
-  const [callId, name, args] = ["call_id", "name", "arguments"].map(
-    (key) => getStringProperty(record, key),
+  return buildFunctionCall(
+    getStringProperty(record, "call_id"),
+    getStringProperty(record, "name"),
+    getStringProperty(record, "arguments"),
   );
-  if (![callId, name, args].every(Boolean)) {
-    return null;
-  }
-
-  return {
-    type: "function_call",
-    call_id: callId as string,
-    name: name as string,
-    arguments: args as string,
-  };
 }
 
 /** Extracts validated function calls from an OpenAI response output. */
