@@ -26,3 +26,11 @@ services:
         sync: false
       - key: NEXT_PUBLIC_HONEYBADGER_REVISION
         sync: false
+      - key: MESTRE_ARCANO_WEB_RESEARCH_PROVIDER
+        sync: false
+      - key: PARALLEL_API_KEY
+        sync: false
+      - key: PARALLEL_API_BASE_URL
+        value: https://api.parallel.ai
+      - key: EXA_API_KEY
+        sync: false
