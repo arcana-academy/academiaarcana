@@ -44,7 +44,7 @@ describe("parallel search infrastructure", () => {
         headers: expect.objectContaining({
           "x-api-key": "test-key",
         }),
-      })),
+      }),
     );
     expect(result.sources[0]).toEqual({
       url: "https://example.com/article",
