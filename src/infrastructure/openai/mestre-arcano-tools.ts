@@ -102,6 +102,7 @@ function jsonResult(value: unknown): string {
   return JSON.stringify(value);
 }
 
+/** Executes one authorized Mestre Arcano tool call using the current server-side context. */
 export async function executeMestreArcanoTool(
   call: ToolCall,
   context: MestreArcanoToolContext,
