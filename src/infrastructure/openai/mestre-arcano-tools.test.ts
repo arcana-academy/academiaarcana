@@ -215,7 +215,7 @@ describe("Mestre Arcano tools", () => {
     );
   });
 
-  it("rejects malformed tool arguments and unknown tools", async () => {
+  it("rejects malformed tool arguments and unknown tools", () => {
     const context = createContext();
 
     expect(() =>
