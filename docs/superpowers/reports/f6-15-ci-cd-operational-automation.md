@@ -1,4 +1,4 @@
-# F6.15 — CI/CD e automação operacional
+# CURRENT OVERRIDE — Render\n\n**Effective 2026-09-30:** Render is the canonical delivery platform. Historical references to Vercel in this report are archival and do not authorize or describe the current deployment path.\n\nCanonical chain: GitHub → GitHub Actions → Supabase → Render.\n\n---\n\n# F6.15 — CI/CD e automação operacional
 
 **Base:** `main` no commit `3459444851bca0ee763845a891a251e72af3c7a4`  
 **Escopo:** consolidar o fluxo de mudança da Academia Arcana em processos reproduzíveis, auditáveis e controlados, separando validação automática de decisões operacionais.
