@@ -44,17 +44,24 @@ function normalizeHighlights(value: unknown): readonly string[] {
   return value.filter((item): item is string => typeof item === "string");
 }
 
+/** Returns a required non-empty string field or null. */
+function getRequiredString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  return value.trim() ? value : null;
+}
+
 /** Normalizes one Exa result into the provider-neutral search shape. */
 function normalizeResult(
   value: NonNullable<ExaApiResponse["results"]>[number],
 ): ExaSearchResult | null {
-  if (typeof value.title !== "string" || typeof value.url !== "string") {
-    return null;
-  }
+  const title = getRequiredString(value.title);
+  const url = getRequiredString(value.url);
+
+  if (!title || !url) return null;
 
   return {
-    title: value.title,
-    url: value.url,
+    title,
+    url,
     publishedDate: getOptionalString(value.publishedDate),
     author: getOptionalString(value.author),
     highlights: normalizeHighlights(value.highlights),
@@ -104,28 +111,38 @@ async function readExaResponse(response: Response): Promise<ExaApiResponse> {
   }
 }
 
+/** Normalizes and validates the Exa search query. */
+function normalizeQuery(query: string): string {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) throw new Error("A pesquisa web exige uma consulta.");
+  return normalizedQuery;
+}
+
+/** Fails closed when the Exa provider has no server-side API key. */
+function assertConfigured(): string {
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error("Exa integration is not configured.");
+  return apiKey;
+}
+
+/** Ensures an Exa response is successful before its payload is parsed. */
+async function ensureSuccessfulResponse(response: Response): Promise<Response> {
+  if (!response.ok) {
+    throw new Error(`Exa search failed with HTTP ${response.status}.`);
+  }
+  return response;
+}
+
 /** Searches Exa and returns normalized external evidence. */
 export async function searchWebWithExa(
   { query, numResults = DEFAULT_NUM_RESULTS }: ExaSearch,
   { fetchImpl = fetch }: { readonly fetchImpl?: ExaFetch } = {},
 ): Promise<readonly ExaSearchResult[]> {
-  const normalizedQuery = query.trim();
-  if (!normalizedQuery) throw new Error("A pesquisa web exige uma consulta.");
+  const normalizedQuery = normalizeQuery(query);
+  const apiKey = assertConfigured();
+  const response = await requestExa(normalizedQuery, numResults, apiKey, fetchImpl);
+  const payload = await readExaResponse(await ensureSuccessfulResponse(response));
 
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error("Exa integration is not configured.");
-
-  const response = await requestExa(
-    normalizedQuery,
-    numResults,
-    apiKey,
-    fetchImpl,
-  );
-  if (!response.ok) {
-    throw new Error(`Exa search failed with HTTP ${response.status}.`);
-  }
-
-  const payload = await readExaResponse(response);
   return (payload.results ?? [])
     .map(normalizeResult)
     .filter((result): result is ExaSearchResult => result !== null);
