@@ -9,6 +9,7 @@ const learningAreas = [
   { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem.", icon: "/assets/icons/aa-sanctuary.svg" },
 ] as const;
 
+/** Render the authenticated learning-area landing page. */
 export default async function AcademiaPage() {
   await requireAuthenticatedUser();
 
