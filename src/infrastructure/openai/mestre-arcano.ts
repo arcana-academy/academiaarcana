@@ -169,19 +169,21 @@ function toRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
-/** Reads the three required strings from a function-call record. */
-function getFunctionCallFields(
+/** Identifies a complete OpenAI function-call record. */
+function isFunctionCallRecord(
   record: Record<string, unknown>,
-): {
-  readonly callId: string | null;
-  readonly name: string | null;
-  readonly arguments: string | null;
+): record is Record<string, unknown> & {
+  readonly type: "function_call";
+  readonly call_id: string;
+  readonly name: string;
+  readonly arguments: string;
 } {
-  return {
-    callId: getStringProperty(record, "call_id"),
-    name: getStringProperty(record, "name"),
-    arguments: getStringProperty(record, "arguments"),
-  };
+  return (
+    record.type === "function_call" &&
+    typeof record.call_id === "string" &&
+    typeof record.name === "string" &&
+    typeof record.arguments === "string"
+  );
 }
 
 /** Converts one unknown output item into a validated function call. */
@@ -189,16 +191,13 @@ function toFunctionCall(
   value: unknown,
 ): MestreArcanoFunctionCall | null {
   const record = toRecord(value);
-  if (!record || record.type !== "function_call") return null;
-
-  const fields = getFunctionCallFields(record);
-  if (!fields.callId || !fields.name || !fields.arguments) return null;
+  if (!record || !isFunctionCallRecord(record)) return null;
 
   return {
     type: "function_call",
-    call_id: fields.callId,
-    name: fields.name,
-    arguments: fields.arguments,
+    call_id: record.call_id,
+    name: record.name,
+    arguments: record.arguments,
   };
 }
 
