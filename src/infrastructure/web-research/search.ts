@@ -74,6 +74,8 @@ function resolveConfiguredProvider(
   return configured;
 }
 
+
+
 /** Returns the provider selected when exactly one server-side credential exists. */
 function selectSingleConfiguredProvider(
   parallelConfigured: boolean,
