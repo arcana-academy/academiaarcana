@@ -15,7 +15,7 @@
 - Preserve `NEXT_PUBLIC_SUPABASE_URL` validation exactly as currently implemented.
 - Accept publishable keys in the form `sb_publishable_<22-char-random>_<8-char-checksum>`.
 - Do not use or accept `service_role`, `sb_secret_`, or legacy JWT keys for this variable.
-- Do not change Vercel, Supabase project settings, domain configuration, or application architecture.
+- Do not change Render, Supabase project settings, domain configuration, or application architecture.
 - Validate through the repository's Quality Gate before merging to `main`.
 
 ## Review Focus
@@ -24,7 +24,7 @@
 - 7-character checksum keys must remain rejected.
 - Malformed prefixes and malformed lengths must remain rejected.
 - Existing Supabase URL validation must remain unchanged.
-- The Netlify build must reach `next build --webpack` after the prebuild validation passes.
+- The Render build must reach `next build --webpack` after the prebuild validation passes.
 
 ---
 
@@ -43,4 +43,4 @@
 - [ ] **Step 4: Run the targeted test, then the full test suite, typecheck, and production build.
 - [ ] **Step 5: Open a pull request against `main` and wait for the complete Quality Gate to pass.**
 - [ ] **Step 6: Merge the PR only after all required checks are green.**
-- [ ] **Step 7: After merge, return to Netlify and deploy the updated `main`; do not touch Vercel.**
+- [ ] **Step 7: After merge, deploy the updated `main` through Render.**
