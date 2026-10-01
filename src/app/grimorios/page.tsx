@@ -7,6 +7,7 @@ import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/gr
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
+/** Render the authenticated Grimoire library. */
 export default async function GrimoiresPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
