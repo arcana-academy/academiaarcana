@@ -90,6 +90,7 @@ export type IntegrationStatusSnapshot = {
   readonly serverRuntimeIntegrations: readonly IntegrationStatusEntry[];
 };
 
+/** Maps a verified GitHub repository into the public integration status shape. */
 function githubVerificationEntry(
   verification: GitHubConnectionVerification,
 ): IntegrationStatusEntry {
@@ -233,6 +234,7 @@ function airtableErrorEntry(): IntegrationStatusEntry {
   };
 }
 
+/** Creates a non-sensitive status entry for a server-side provider. */
 function serverRuntimeEntry(
   definition: {
     readonly id: string;
@@ -253,6 +255,7 @@ function serverRuntimeEntry(
   };
 }
 
+/** Resolves the official ChatGPT launch URL for a catalog entry, when available. */
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
