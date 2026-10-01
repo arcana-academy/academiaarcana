@@ -251,6 +251,7 @@ function webResearchCatalogEntry(
   };
 }
 
+/** Returns the ChatGPT app URL associated with a catalog plugin name. */
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
