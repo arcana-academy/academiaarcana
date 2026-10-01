@@ -10,6 +10,9 @@ test.describe("integration hub", () => {
     await expect(page.getByRole("heading", { name: "Hub de integrações da Academia Arcana" })).toBeVisible();
     await expect(page.getByText("118 plugins registrados")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Pesquisa web do Mestre Arcano" })).toBeVisible();
+    await expect(page.getByText("Parallel — Web Research do Mestre Arcano", { exact: true })).toBeVisible();
+    await expect(page.getByText("Exa — Web Research do Mestre Arcano", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ferramentas aplicadas ao ciclo de criação" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
     await expect(page.getByText("NVIDIA · Physical AI", { exact: true })).toBeVisible();
