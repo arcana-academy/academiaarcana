@@ -6,6 +6,7 @@ type SidebarProps = {
   currentPath: string;
 };
 
+/** Render primary navigation for authenticated routes. */
 export function Sidebar({ currentPath }: SidebarProps) {
   return (
     <aside className="aa-sidebar" aria-label="Navegação principal">
