@@ -714,6 +714,27 @@ Every new architecture change must preserve:
 
 ---
 
+## 24. Canonical infrastructure provider policy
+
+Each infrastructure responsibility has one canonical platform. A provider with equivalent responsibility must not be introduced as an operational substitute or parallel production path without an explicit architecture decision.
+
+| Responsibility | Canonical platform | Equivalent platforms excluded from the default architecture |
+|---|---|---|
+| Source control | GitHub | GitLab, Bitbucket, Codeberg |
+| CI/CD and Quality Gate | GitHub Actions | GitLab CI/CD, CircleCI, Travis CI, Jenkins, Bitbucket Pipelines |
+| Application hosting and production runtime | Render | Vercel, Netlify, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers, AppDeploy, Hatchable, Hercules, Floot, Replit, Base44, Lovable, Webflow, Wix |
+| Database, Auth, RLS and application data services | Supabase | Firebase, Appwrite, PocketBase, Neon, Convex, PlanetScale |
+
+The policy is implemented in `src/core/architecture/provider-policy.ts` and protected by `tests/infrastructure/canonical-provider-policy.test.ts`.
+
+The policy applies to operational architecture. It does not prohibit SaaS tools whose role is materially different from these four infrastructure responsibilities. It does prohibit using an equivalent platform as a second source-control system, CI/CD system, production runtime or application data backend.
+
+Historical references may remain only where explicitly identified as historical engineering evidence and must not describe the provider as an active production dependency.
+
+State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
+
+---
+
 ## 24. Final canonical state
 
 **AA-ARCHITECTURE-1.0 = CANÔNICO**
