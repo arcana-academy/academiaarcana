@@ -153,7 +153,7 @@ async function executeExaSearch(
 }
 
 /** Searches Exa and returns normalized external evidence. */
-export async function searchWebWithExa(
+export function searchWebWithExa(
   search: ExaSearch,
   options?: { readonly fetchImpl?: ExaFetch },
 ): Promise<readonly ExaSearchResult[]> {
