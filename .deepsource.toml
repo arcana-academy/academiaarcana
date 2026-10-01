@@ -7,7 +7,7 @@ enabled = true
   [analyzers.meta]
   module_system = "es-modules"
   dialect = "typescript"
-  environment = ["nodejs", "browser", "vitest"]
+  environment = ["nodejs", "vitest"]
   plugins = ["react"]
 
 [[analyzers]]
