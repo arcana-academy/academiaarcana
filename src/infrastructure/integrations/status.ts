@@ -22,6 +22,8 @@ import {
   type AirtableConnectionVerification,
 } from "./airtable";
 import { ASANA_PROVIDER_ID } from "./asana";
+import { EXA_WEB_RESEARCH_INTEGRATION_DEFINITION } from "./exa-web-research";
+import { PARALLEL_SEARCH_INTEGRATION_DEFINITION } from "./parallel-web-research";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
@@ -35,6 +37,7 @@ const TARTEEL_CAPABILITIES = [
 ] as const;
 
 export type IntegrationCatalogStatus = "catalogued" | "connected" | "error";
+export type IntegrationConfigurationStatus = "configured" | "not-configured";
 export type IntegrationExecutionMode =
   | "runtime"
   | "chatgpt-hosted"
@@ -48,6 +51,7 @@ export type IntegrationStatusEntry = {
   readonly executionMode: IntegrationExecutionMode;
   readonly capabilities?: readonly string[];
   readonly providerId?: string;
+  readonly configuration?: IntegrationConfigurationStatus;
   readonly verification:
     | {
         readonly providerId: "github";
@@ -83,6 +87,7 @@ export type IntegrationStatusSnapshot = {
   readonly runtimeIntegrations: readonly Awaited<
     ReturnType<typeof getOpenAIAgentsRuntimeSnapshot>
   >[];
+  readonly serverRuntimeIntegrations: readonly IntegrationStatusEntry[];
 };
 
 function githubVerificationEntry(
@@ -228,6 +233,80 @@ function airtableErrorEntry(): IntegrationStatusEntry {
   };
 }
 
+
+function serverRuntimeEntry(
+  definition: {
+    readonly id: string;
+    readonly displayName: string;
+    readonly capabilities: readonly string[];
+  },
+  credential: string | undefined,
+): IntegrationStatusEntry {
+  return {
+    name: definition.displayName,
+    source: "runtime",
+    status: "catalogued",
+    executionMode: "runtime",
+    providerId: definition.id,
+    capabilities: definition.capabilities,
+    configuration: credential?.trim() ? "configured" : "not-configured",
+    verification: null,
+  };
+}
+
+async function resolveGitHubEntry(
+  verifier: () => Promise<GitHubConnectionVerification>,
+): Promise<IntegrationStatusEntry> {
+  try {
+    return githubVerificationEntry(await verifier());
+  } catch {
+    return {
+      name: "GitHub",
+      source: "chatgpt-catalog",
+      status: "error",
+      executionMode: "runtime",
+      verification: null,
+    };
+  }
+}
+
+async function resolveDataCampEntry(
+  verifier: () => Promise<DataCampConnectionVerification>,
+  apiKey: string | undefined,
+): Promise<IntegrationStatusEntry> {
+  if (!apiKey?.trim()) return dataCampCatalogEntry();
+  try {
+    return dataCampVerificationEntry(await verifier());
+  } catch {
+    return dataCampErrorEntry();
+  }
+}
+
+async function resolveDropboxEntry(
+  verifier: (token?: string) => Promise<DropboxConnectionVerification>,
+  token: string | undefined,
+): Promise<IntegrationStatusEntry> {
+  if (!token?.trim()) return dropboxCatalogEntry();
+  try {
+    return dropboxVerificationEntry(await verifier(token));
+  } catch {
+    return dropboxErrorEntry();
+  }
+}
+
+async function resolveAirtableEntry(
+  verifier: () => Promise<AirtableConnectionVerification>,
+  token: string | undefined,
+  baseId: string | undefined,
+): Promise<IntegrationStatusEntry> {
+  if (!token?.trim() || !baseId?.trim()) return airtableCatalogEntry();
+  try {
+    return airtableVerificationEntry(await verifier());
+  } catch {
+    return airtableErrorEntry();
+  }
+}
+
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
@@ -255,46 +334,12 @@ export async function getIntegrationStatusSnapshot({
   readonly airtableToken?: string;
   readonly airtableBaseId?: string;
 } = {}): Promise<IntegrationStatusSnapshot> {
-  let githubEntry: IntegrationStatusEntry = {
-    name: "GitHub",
-    source: "chatgpt-catalog",
-    status: "error",
-    executionMode: "runtime",
-    verification: null,
-  };
-
-  try {
-    githubEntry = githubVerificationEntry(await githubVerifier());
-  } catch {
-    // Keep the public status response generic.
-  }
-
-  let dataCampEntry = dataCampCatalogEntry();
-  if (dataCampApiKey?.trim()) {
-    try {
-      dataCampEntry = dataCampVerificationEntry(await dataCampVerifier());
-    } catch {
-      dataCampEntry = dataCampErrorEntry();
-    }
-  }
-
-  let dropboxEntry = dropboxCatalogEntry();
-  if (dropboxToken?.trim()) {
-    try {
-      dropboxEntry = dropboxVerificationEntry(await dropboxVerifier(dropboxToken));
-    } catch {
-      dropboxEntry = dropboxErrorEntry();
-    }
-  }
-
-  let airtableEntry = airtableCatalogEntry();
-  if (airtableToken?.trim() && airtableBaseId?.trim()) {
-    try {
-      airtableEntry = airtableVerificationEntry(await airtableVerifier());
-    } catch {
-      airtableEntry = airtableErrorEntry();
-    }
-  }
+  const [githubEntry, dataCampEntry, dropboxEntry, airtableEntry] = await Promise.all([
+    resolveGitHubEntry(githubVerifier),
+    resolveDataCampEntry(dataCampVerifier, dataCampApiKey),
+    resolveDropboxEntry(dropboxVerifier, dropboxToken),
+    resolveAirtableEntry(airtableVerifier, airtableToken, airtableBaseId),
+  ]);
 
 
   const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
@@ -384,6 +429,16 @@ export async function getIntegrationStatusSnapshot({
   });
 
   const runtimeIntegrations = [await getOpenAIAgentsRuntimeSnapshot()];
+  const serverRuntimeIntegrations = [
+    serverRuntimeEntry(
+      PARALLEL_SEARCH_INTEGRATION_DEFINITION,
+      process.env.PARALLEL_API_KEY,
+    ),
+    serverRuntimeEntry(
+      EXA_WEB_RESEARCH_INTEGRATION_DEFINITION,
+      process.env.EXA_API_KEY,
+    ),
+  ];
 
   return {
     generatedAt: new Date().toISOString(),
@@ -393,5 +448,6 @@ export async function getIntegrationStatusSnapshot({
     errorCount: entries.filter((entry) => entry.status === "error").length,
     entries,
     runtimeIntegrations,
+    serverRuntimeIntegrations,
   };
 }
