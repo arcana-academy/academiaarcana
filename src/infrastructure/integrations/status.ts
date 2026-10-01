@@ -252,11 +252,12 @@ function webResearchCatalogEntry(
 }
 
 /** Returns the ChatGPT app URL associated with a catalog plugin name. */
-function chatgptBridgeUrl(pluginName: string): string | undefined {
-  return Object.values(CHATGPT_APP_BRIDGES).find(
+const chatgptBridgeUrl = (
+  pluginName: string,
+): string | undefined =>
+  Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
   )?.appUrl;
-}
 
 export async function getIntegrationStatusSnapshot({
   githubVerifier = verifyGitHubConnection,
