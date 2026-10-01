@@ -236,7 +236,7 @@ describe("Mestre Arcano tools", () => {
   it("requires a valid SharePoint source id", async () => {
     const context = createContext();
 
-    await expect(
+    expect(() =>
       executeMestreArcanoTool(
         {
           name: "get_sharepoint_document_context",
@@ -244,7 +244,7 @@ describe("Mestre Arcano tools", () => {
         },
         context,
       ),
-    ).rejects.toThrow("ID da fonte do SharePoint inválido.");
+    ).toThrow("ID da fonte do SharePoint inválido.");
 
     expect(
       context.documents.getSharePointDocumentContext,
