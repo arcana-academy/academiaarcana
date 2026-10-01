@@ -289,7 +289,7 @@ Corrigir a causa antes de repetir indefinidamente.
 
 ### Falha de infraestrutura externa
 
-Registrar claramente como dependência externa, por exemplo o limitações de build/deploy do provedor de infraestrutura externo.
+Registrar claramente como dependência externa sempre que houver evidência contemporânea de falha ou limitação do provedor.
 
 Não mascarar uma falha do provedor como sucesso do deployment.
 
