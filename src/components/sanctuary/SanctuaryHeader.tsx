@@ -6,6 +6,7 @@ type SanctuaryHeaderProps = {
   primaryAction: QuickAction;
 };
 
+/** Render the Sanctuary hero header and its primary continuation action. */
 export function SanctuaryHeader({ header, primaryAction }: SanctuaryHeaderProps) {
   const displayName = header.user.displayName?.trim();
 
