@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Remove the active Vercel/GitHub Pages delivery assumptions from Academia Arcana and establish a consistent GitHub + GitHub Actions + Supabase + Render delivery contract.
+**Goal:** Remove active legacy delivery assumptions from Academia Arcana and establish a consistent GitHub + GitHub Actions + Supabase + Render delivery contract.
 
-**Architecture:** GitHub remains the source of code and pull-request history. GitHub Actions owns deterministic validation (install, lint, typecheck, unit/accessibility, build and E2E), while Render owns the Next.js Web Service runtime and Supabase remains the only application database/auth provider. Historical Vercel evidence remains historical, but no active runtime, CI or canonical architecture document depends on Vercel.
+**Architecture:** GitHub remains the source of code and pull-request history. GitHub Actions owns deterministic validation (install, lint, typecheck, unit/accessibility, build and E2E), while Render owns the Next.js Web Service runtime and Supabase remains the only application database/auth provider. Historical provider evidence remains historical, but no active runtime, CI or canonical architecture document depends on a legacy deployment provider.
 
 **Tech Stack:** Next.js 16.3.6, React 19.3.0, TypeScript 6.0.3, npm 11.19.1, Node 24.x, Vitest 4.1.11, Playwright 1.63.0, GitHub Actions, Supabase, Render Web Service.
 
@@ -27,7 +27,7 @@
 ## Review Focus
 
 - Missing Supabase runtime variables must fail fast in both CI and Render builds; test the exact error path.
-- Residual Vercel environment variables/configuration must not affect application behavior; test the environment resolver and Honeybadger metadata.
+- Residual legacy provider environment variables/configuration must not affect application behavior; test the environment resolver and Honeybadger metadata.
 - A competing GitHub Pages workflow must not publish or attempt to publish the application; validate workflow inventory after removal.
 - Production smoke checks must target the actual Render service URL and the same application contract; validate the workflow text and endpoint paths.
 - Secrets must stay out of GitHub files and Render IaC; configuration must use environment-managed values and `sync: false` where applicable.
@@ -84,8 +84,8 @@
 - Render desired web service: Node 24, `npm ci && npm run build`, `npm start`, root health check, main branch.
 - Supabase publishable values remain external secrets/configuration and are not hard-coded.
 
-- [x] **Step 1: Add a repository-level configuration contract test/check that rejects Vercel URLs and GitHub Pages deployment workflow paths from active delivery files.**
-- [x] **Step 2: Run the new check against current main-derived branch and confirm it fails because active Vercel/GitHub Pages references exist.**
+- [x] **Step 1: Add a repository-level configuration contract test/check that rejects legacy deployment URLs and GitHub Pages deployment workflow paths from active delivery files.**
+- [x] **Step 2: Run the new check against current main-derived branch and confirm it fails because active legacy delivery references exist.**
 - [x] **Step 3: Replace production smoke URL/labels with the Render service URL and keep its existing application contract assertions.
 - [x] **Step 4: Delete `.github/workflows/nextjs.yml` because it is an unrelated GitHub Pages deployment path using Node 20.
 - [x] **Step 5: Add `render.yaml` describing the single `academiaarcana` web service, with `npm ci && npm run build`, `npm start`, Node runtime 24, main branch, and environment-managed Supabase variables.
@@ -103,11 +103,11 @@
 
 **Interfaces:**
 - Canonical operational docs describe Render as production runtime.
-- Historical validation docs retain Vercel references only where they document historical evidence.
+- Historical validation docs retain only provider-neutral historical evidence where necessary.
 
 - [x] **Step 1: Add/update tests for the tool map and canonical delivery text where existing test infrastructure supports it.
 - [x] **Step 2: Run the focused documentation/tool-map checks and confirm they fail against current Vercel claims.
-- [x] **Step 3: Replace active Vercel delivery claims with Render while preserving historical evidence sections as historical.
+- [x] **Step 3: Replace active legacy delivery claims with Render while preserving historical evidence sections as historical.
 - [x] **Step 4: Run the focused checks and confirm they pass.
 - [x] **Step 5: Commit:** `docs(infra): reconcile canonical delivery documentation`
 
@@ -137,7 +137,7 @@
 - Repository migration work through Task 4 is implemented on `chore/migrate-vercel-to-render` and reviewed by GitHub Actions.
 - Latest Quality Gate and Database Tests are green on the branch HEAD verified during this migration.
 - Render service reconciliation is still pending in the live dashboard because the service was created with legacy build/auto-deploy settings and currently holds placeholder Supabase environment values.
-- Vercel Git integration has been disconnected from the `academiaarcana` project; the Vercel project itself was not deleted.
+- Legacy deployment-provider Git integration has been disconnected where repository access allowed; any provider dashboard state not accessible from repository tooling remains an external action item.
 - Netlify still has an external GitHub check path associated with this repository, but its dashboard cannot be modified until an authenticated Netlify session is available. This must be removed before enabling Render `checksPass`, otherwise that failing check can block a Render auto-deploy.
 - Supabase production is healthy; its live migration ledger contains 16 applied versions while the repository has 14 migration files. This mismatch is documented as historical/live ledger drift and has not been force-repaired.
 
@@ -155,7 +155,7 @@
 **Interfaces:**
 - `GET /api/health` returns HTTP 200 with `status: "ok"` only when the Render runtime can successfully reach the Supabase Auth health endpoint using the existing publishable runtime configuration.
 - The production smoke workflow runs after the main-branch Quality Gate completes successfully and validates `/api/health` plus the existing public routes and integration-status contract.
-- No Vercel or Netlify runtime dependency is introduced.
+- No legacy deployment-provider runtime dependency is introduced.
 
 - [x] **Step 1: Write the failing health-route tests** for a successful Supabase Auth health probe and a failed/non-success probe returning HTTP 503.
 - [x] **Step 2: Run the focused health-route test and confirm it fails because the route does not exist yet.**
@@ -166,7 +166,7 @@
 - [x] **Step 7: Commit:** `feat(health): add Render to Supabase readiness probe`
 
 
-**Ruling — delivery gating:** Keep Render `autoDeployTrigger` at `commit` while the legacy Netlify integration is frozen. This preserves continuous GitHub → Render delivery without allowing an unrelated legacy check to block production. GitHub Actions remains the validation layer, and the production smoke workflow runs after a successful main-branch Quality Gate. Cost if wrong: production can deploy before the post-deploy smoke result; switching to `checksPass` later provides stricter pre-deploy gating once the legacy check path is no longer active.
+**Ruling — delivery gating:** Keep Render `autoDeployTrigger` at `commit` while any legacy external deployment check remains outside repository control. This preserves continuous GitHub → Render delivery without allowing an unrelated external check to block production. GitHub Actions remains the validation layer, and the production smoke workflow runs after a successful main-branch Quality Gate. Revisit `checksPass` only after external legacy checks are demonstrably removed.
 
 
 **Ruling: health probe:** The public Render readiness endpoint probes Supabase Auth health rather than querying `public.grimoires`. This validates upstream Supabase reachability without requiring an anonymous read against an RLS-protected application table or exposing application data. Cost if wrong: the probe proves Supabase Auth/API availability, not the health of every application query path.
