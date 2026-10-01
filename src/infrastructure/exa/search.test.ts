@@ -5,12 +5,12 @@ import { searchWebWithExa } from "./search";
 describe("searchWebWithExa", () => {
   it("keeps the Exa API key server-side and normalizes search evidence", async () => {
     process.env.EXA_API_KEY = "test-key";
-    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    const fetchImpl = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
       expect(init?.headers).toEqual({
         "Content-Type": "application/json",
         "x-api-key": "test-key",
       });
-      return new Response(JSON.stringify({
+      return Promise.resolve(new Response(JSON.stringify({
         results: [{
           title: "Fonte de estudo",
           url: "https://example.com/study",
@@ -18,7 +18,7 @@ describe("searchWebWithExa", () => {
           author: "Autor",
           highlights: ["Trecho relevante"],
         }],
-      }), { status: 200 });
+      }), { status: 200 }));
     });
 
     await expect(searchWebWithExa({ query: "fotossíntese", numResults: 3 }, { fetchImpl }))
