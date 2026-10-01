@@ -285,7 +285,7 @@ export async function getIntegrationStatusSnapshot({
     dataCampEntry,
     dropboxEntry,
     airtableEntry,
-    runtimeIntegrations,
+    runtimeIntegration,
   ] = await Promise.all([
     (async () => {
       try {
@@ -434,7 +434,7 @@ export async function getIntegrationStatusSnapshot({
     cataloguedCount: allEntries.filter((entry) => entry.status === "catalogued").length,
     errorCount: allEntries.filter((entry) => entry.status === "error").length,
     entries: allEntries,
-    runtimeIntegrations: [runtimeIntegrations],
+    runtimeIntegrations: [runtimeIntegration],
     serverRuntimeIntegrations,
   };
 }
