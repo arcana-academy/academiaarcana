@@ -12,6 +12,7 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => {
   class MockSupabaseGamificationRepository {
     getProfile() {
+      void this;
       return Promise.resolve({
         ownerId: "user-1",
         xp: 900,
@@ -22,6 +23,7 @@ vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => 
     }
 
     listDailyMissions() {
+      void this;
       return Promise.resolve([]);
     }
   }
