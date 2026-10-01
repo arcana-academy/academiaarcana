@@ -188,6 +188,100 @@ describe("integration status snapshot", () => {
     });
   });
 
+  it("runs independent provider verifications concurrently", async () => {
+    let started = 0;
+    let release!: () => void;
+    const allStarted = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    const verifier = <T,>(result: T) => async () => {
+      started += 1;
+      if (started === 4) release();
+      await allStarted;
+      return result;
+    };
+
+    const snapshotPromise = getIntegrationStatusSnapshot({
+      githubVerifier: verifier({
+        providerId: "github",
+        pluginName: "GitHub",
+        status: "connected",
+        repository: {
+          fullName: "arcana-academy/academiaarcana",
+          defaultBranch: "main",
+          visibility: "public",
+          private: false,
+          htmlUrl: "https://github.com/arcana-academy/academiaarcana",
+        },
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      dataCampVerifier: verifier({
+        providerId: "datacamp",
+        endpoint: "https://api.datacamp.com",
+        status: "connected",
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      dropboxVerifier: verifier({
+        providerId: "dropbox",
+        accountId: "account-1",
+        status: "connected",
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      airtableVerifier: verifier({
+        providerId: "airtable",
+        baseId: "base-1",
+        tableCount: 1,
+        status: "connected",
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      dataCampApiKey: "configured",
+      dropboxToken: "configured",
+      airtableToken: "configured",
+      airtableBaseId: "base-1",
+    });
+
+    await allStarted;
+    expect(started).toBe(4);
+    await snapshotPromise;
+  });
+
+  it("surfaces server provider configuration without marking it verified", async () => {
+    process.env.PARALLEL_API_KEY = "configured";
+    process.env.EXA_API_KEY = "configured";
+
+    const snapshot = await getIntegrationStatusSnapshot({
+      githubVerifier: async () => ({
+        providerId: "github",
+        pluginName: "GitHub",
+        status: "connected",
+        repository: {
+          fullName: "arcana-academy/academiaarcana",
+          defaultBranch: "main",
+          visibility: "public",
+          private: false,
+          htmlUrl: "https://github.com/arcana-academy/academiaarcana",
+        },
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+    });
+
+    expect(snapshot.serverRuntimeIntegrations).toMatchObject([
+      {
+        providerId: "parallel-web-research",
+        configuration: "configured",
+        status: "catalogued",
+        verification: null,
+      },
+      {
+        providerId: "exa-web-research",
+        configuration: "configured",
+        status: "catalogued",
+        verification: null,
+      },
+    ]);
+  });
+
   it("fails closed for provider errors without exposing provider details", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
       githubVerifier: async () => {
