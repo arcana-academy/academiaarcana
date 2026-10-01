@@ -169,13 +169,6 @@
    * @param {string} role Infrastructure responsibility being checked.
    * @returns {void} Returns when the content is valid.
    */
-  const assertNoForbiddenProvider = (content, relativePath, role) => {
-    const lowered = content.toLowerCase();
-    assertNoForbiddenProviderName(lowered, relativePath, role);
-    assertNoForbiddenHostingUrl(content, relativePath);
-    assertNoForbiddenEnvironmentPrefix(content, relativePath);
-  }
-
   /**
    * Check provider names for a single infrastructure role.
    * @param {string} loweredContent Lower-cased configuration content.
@@ -230,6 +223,19 @@
   }
 
   /**
+   * Assert that an active configuration surface contains no excluded provider.
+   * @param {string} content Configuration content to inspect.
+   * @param {string} relativePath Repository-relative path.
+   * @param {string} role Infrastructure responsibility being checked.
+   * @returns {void} Returns when the content is valid.
+   */
+  const assertNoForbiddenProvider = (content, relativePath, role) => {
+    const lowered = content.toLowerCase();
+    assertNoForbiddenProviderName(lowered, relativePath, role);
+    assertNoForbiddenHostingUrl(content, relativePath);
+    assertNoForbiddenEnvironmentPrefix(content, relativePath);
+  }
+    /**
    * Recursively collect workflow configuration files.
    * @param {string} relativeDir Repository-relative directory.
    * @returns {string[]} Repository-relative workflow file paths.
