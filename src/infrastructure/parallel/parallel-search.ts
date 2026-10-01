@@ -215,6 +215,21 @@ function buildExtractBody(
   };
 }
 
+/** Validates, normalizes and bounds the URLs accepted by extraction. */
+function normalizeExtractionUrls(urls: readonly string[]): string[] {
+  const normalizedUrls = urls.map(validateUrl).slice(0, MAX_EXTRACT_URLS);
+  if (normalizedUrls.length === 0) {
+    throw new Error("Informe pelo menos uma URL.");
+  }
+  return normalizedUrls;
+}
+
+/** Ensures a provider response succeeded before parsing its payload. */
+async function ensureSuccessfulResponse(response: Response): Promise<Response> {
+  if (!response.ok) await parseError(response);
+  return response;
+}
+
 /** Validates search inputs and returns normalized request values. */
 function validateSearchInputs(
   objective: string,
@@ -274,10 +289,8 @@ export async function searchParallelWeb(
     fetchImpl,
   );
 
-  if (!response.ok) await parseError(response);
-
   const payload = await parseParallelPayload<ParallelSearchApiResponse>(
-    response,
+    await ensureSuccessfulResponse(response),
     "Parallel Search retornou uma resposta inválida.",
   );
 
@@ -301,9 +314,7 @@ export async function extractParallelWeb(
     readonly fetchImpl?: ParallelSearchFetch;
   },
 ): Promise<ParallelExtractResult> {
-  const normalizedUrls = urls.map(validateUrl).slice(0, MAX_EXTRACT_URLS);
-  if (normalizedUrls.length === 0) throw new Error("Informe pelo menos uma URL.");
-
+  const normalizedUrls = normalizeExtractionUrls(urls);
   const queries = normalizeQueries(searchQueries);
   const response = await parallelRequest(
     "/v1/extract",
@@ -311,10 +322,8 @@ export async function extractParallelWeb(
     fetchImpl,
   );
 
-  if (!response.ok) await parseError(response);
-
   const payload = await parseParallelPayload<ParallelExtractApiResponse>(
-    response,
+    await ensureSuccessfulResponse(response),
     "Parallel Extract retornou uma resposta inválida.",
   );
 
