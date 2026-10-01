@@ -44,44 +44,58 @@ function hasKey(name: "PARALLEL_API_KEY" | "EXA_API_KEY"): boolean {
   return Boolean(process.env[name]?.trim());
 }
 
+/** Returns whether a value names a supported web-research provider. */
+function isWebResearchProvider(value: string): value is WebResearchProvider {
+  return value === "parallel" || value === "exa";
+}
+
+/** Ensures the explicitly selected provider has its server-side credential. */
+function assertSelectedProviderConfigured(provider: WebResearchProvider): void {
+  const keyName = provider === "parallel" ? "PARALLEL_API_KEY" : "EXA_API_KEY";
+  if (!hasKey(keyName)) {
+    throw new Error(
+      `Configured web research provider "${provider}" is not configured.`,
+    );
+  }
+}
+
 /** Resolves an explicitly requested provider, or returns null when none was requested. */
 function resolveConfiguredProvider(
   configured: string | undefined,
 ): WebResearchProvider | null {
   if (!configured) return null;
-
-  if (configured !== "parallel" && configured !== "exa") {
+  if (!isWebResearchProvider(configured)) {
     throw new Error(
       "MESTRE_ARCANO_WEB_RESEARCH_PROVIDER must be either parallel or exa.",
     );
   }
 
-  const keyName =
-    configured === "parallel" ? "PARALLEL_API_KEY" : "EXA_API_KEY";
-  if (!hasKey(keyName)) {
+  assertSelectedProviderConfigured(configured);
+  return configured;
+}
+
+/** Returns the provider selected when exactly one server-side credential exists. */
+function selectSingleConfiguredProvider(
+  parallelConfigured: boolean,
+  exaConfigured: boolean,
+): WebResearchProvider {
+  if (parallelConfigured === exaConfigured) {
     throw new Error(
-      `Configured web research provider "${configured}" is not configured.`,
+      parallelConfigured
+        ? "Both web research providers are configured. Set MESTRE_ARCANO_WEB_RESEARCH_PROVIDER explicitly."
+        : "No web research provider is configured.",
     );
   }
 
-  return configured;
+  return parallelConfigured ? "parallel" : "exa";
 }
 
 /** Resolves a provider from the available server-side credentials. */
 function resolveAutomaticProvider(): WebResearchProvider {
-  const parallelConfigured = hasKey("PARALLEL_API_KEY");
-  const exaConfigured = hasKey("EXA_API_KEY");
-
-  if (parallelConfigured === exaConfigured) {
-    if (parallelConfigured) {
-      throw new Error(
-        "Both web research providers are configured. Set MESTRE_ARCANO_WEB_RESEARCH_PROVIDER explicitly.",
-      );
-    }
-    throw new Error("No web research provider is configured.");
-  }
-
-  return parallelConfigured ? "parallel" : "exa";
+  return selectSingleConfiguredProvider(
+    hasKey("PARALLEL_API_KEY"),
+    hasKey("EXA_API_KEY"),
+  );
 }
 
 /** Resolves the single configured or explicitly selected web-research provider. */
