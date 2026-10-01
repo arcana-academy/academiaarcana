@@ -16,7 +16,6 @@ const activeSurfaces = [
   ".github/workflows/quality.yml",
   "package.json",
   "README.md",
-  "docs/architecture/AA-ARCHITECTURE-1.0.md",
   "docs/deployment/render.md",
   "docs/engineering/technical-baseline.md",
   "docs/integrations/final-integration-state.md",
