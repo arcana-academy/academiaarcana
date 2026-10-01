@@ -81,7 +81,7 @@ O `SECURITY.md` exige que vulnerabilidades sejam reportadas privadamente e orien
 
 ### Estado confirmado
 
-O deployment de produção anterior ao merge do PR #258 foi observado como `READY` no Vercel e apontava para o merge do PR #257 (`f24b72c…`).
+O deployment de produção anterior ao merge do PR #258 pertence ao histórico anterior à migração para o Render e deve ser tratado somente como evidência histórica.
 
 O merge do PR #258 criou o commit:
 
@@ -89,7 +89,7 @@ O merge do PR #258 criou o commit:
 6f2a51016b8337dbeb36ac686a6cf458384566f3
 ```
 
-A matriz original registrava o bloqueio `build-rate-limit` para uma versão anterior. Esse estado não deve ser usado como descrição da produção atual: posteriormente a publicação passou a ser gerenciada pelo Render e o serviço possui deployment `live`, com smoke test do Santuário e ausência de runtime errors no período observado. O bloqueio de quota do Vercel continua sendo uma limitação operacional possível para novos deployments e não deve ser confundido com falha do código.
+A matriz original registrava o bloqueio `build-rate-limit` para uma versão anterior. Esse estado não deve ser usado como descrição da produção atual: posteriormente a publicação passou a ser gerenciada pelo Render e o serviço possui deployment `live`, com smoke test do Santuário e ausência de runtime errors no período observado. Limitações do provedor de publicação devem ser registradas como dependências externas e não confundidas com falhas do código.
 
 ### Regra operacional
 
