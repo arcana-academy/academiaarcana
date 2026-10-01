@@ -13,7 +13,7 @@ describe("integration status snapshot", () => {
       githubVerifier: () =>
         Promise.resolve({
           providerId: "github",
-        pluginName: "GitHub",
+          pluginName: "GitHub",
         status: "connected",
         repository: {
           fullName: "arcana-academy/academiaarcana",
