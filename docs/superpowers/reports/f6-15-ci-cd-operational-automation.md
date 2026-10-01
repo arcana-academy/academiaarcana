@@ -213,7 +213,7 @@ GitHub Actions
 ```
 
 ```text
-Vercel / infrastructure
+Render / infrastructure
   = delivers artifact
 ```
 
@@ -289,7 +289,7 @@ Corrigir a causa antes de repetir indefinidamente.
 
 ### Falha de infraestrutura externa
 
-Registrar claramente como dependência externa, por exemplo o bloqueio atual do Vercel por `build-rate-limit`.
+Registrar claramente como dependência externa, por exemplo o limitações de build/deploy do provedor de infraestrutura externo.
 
 Não mascarar uma falha do provedor como sucesso do deployment.
 
@@ -320,7 +320,7 @@ Para considerar CI/CD operacionalmente consolidado, devem existir evidências de
 | Gates de banco em mudanças críticas | **PENDENTE** |
 | Artifacts auditados para retenção/sensibilidade | **PENDENTE** |
 | Automação operacional de incidentes | **PENDENTE** |
-| Evidência completa de produção após merge | **PENDENTE** enquanto Vercel estiver bloqueado |
+| Evidência completa de produção após merge | **PENDENTE** enquanto o deployment externo não estiver validado |
 
 ## 17. Regra de governança
 
