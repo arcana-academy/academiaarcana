@@ -91,19 +91,29 @@ For the validated baseline snapshot (`c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`)
 - The Next.js security patch to 16.3.6 is integrated.
 - Product-domain reconciliation, RPC security hardening, and the eight-character password floor are integrated.
 - PR #309 removed unnecessary `service_role` execution from the public reward RPC and added a regression assertion.
-- PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, pre-commit, and Vercel.
+- PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, and pre-commit.
 
-The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Vercel for each resulting production deployment.
+The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Render for each resulting production deployment.
 
-## Vercel
+## Render
 
-The validated production snapshot associated with this baseline is deployment `dpl_F8G5MrgYSa6t3uwbnJ4MWFGD8nGp`, generated from commit `c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`.
+The current production web service is managed by Render.
 
-The deployment was `READY`, and the repository's Production Smoke workflow completed successfully for the same commit.
+- service: `academiaarcana`
+- service ID: `srv-dauor697lnhs739cicag`
+- branch: `main`
+- auto deploy: enabled on commit
+- URL: https://academiaarcana.onrender.com
+- build command: `npm ci && npm run build`
+- start command: `npm start`
+- health check: `/`
+- runtime: Node.js
+- current live deploy: `dep-daupusa1a91c739nagog`
+- current live commit: `024f92e0758a065137ea9fd5dfc98a30ae4d6609`
 
-The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
+Render is the canonical production deployment platform. GitHub remains the source of code and CI, while Supabase remains the source of application data and authentication.
 
-The Vercel connector used for this audit does not expose a reliable environment-variable mutation operation. No unsupported Vercel-side environment mutation is claimed.
+Production deployment state must be verified from Render and must not be inferred only from the Git branch state.
 
 ## Supabase
 
