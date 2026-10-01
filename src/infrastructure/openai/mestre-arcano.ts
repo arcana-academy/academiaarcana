@@ -178,18 +178,18 @@ function toFunctionCall(
     return null;
   }
 
-  const [callId, name, args] = ["call_id", "name", "arguments"].map(
-    (key) => getStringProperty(record, key),
-  );
-  if (![callId, name, args].every(Boolean)) {
+  const callId = getStringProperty(record, "call_id");
+  const name = getStringProperty(record, "name");
+  const args = getStringProperty(record, "arguments");
+  if (callId === null || name === null || args === null) {
     return null;
   }
 
   return {
     type: "function_call",
-    call_id: callId as string,
-    name: name as string,
-    arguments: args as string,
+    call_id: callId,
+    name,
+    arguments: args,
   };
 }
 
