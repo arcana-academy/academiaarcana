@@ -65,4 +65,4 @@ O commit `46b55b0f3eea3bbd9bc136b16ddba254bdc4ccd5` concluiu com sucesso: Qualit
 O smoke de produção permanece manual e reservado à validação pós-publicação no Render.
 
 ## Regra de publicação
-Nenhuma publicação, promoção, rollback ou alteração de infraestrutura de produção da Vercel faz parte desta etapa. A etapa Vercel somente será executada após a validação final do conjunto GitHub + Supabase + aplicação.
+A publicação, promoção, rollback e a operação de infraestrutura da aplicação ocorrem exclusivamente no Render. O deployment é acionado pela branch `main` após a validação do artefato. O Vercel não é um caminho operacional vigente. Referências históricas, quando existentes em documentação de auditoria, são apenas registros do estado anterior.
