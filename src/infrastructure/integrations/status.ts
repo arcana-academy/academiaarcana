@@ -251,13 +251,12 @@ function webResearchCatalogEntry(
   };
 }
 
-/** Returns the ChatGPT app URL associated with a catalog plugin name. */
-const chatgptBridgeUrl = (
-  pluginName: string,
-): string | undefined =>
-  Object.values(CHATGPT_APP_BRIDGES).find(
-    (bridge) => bridge.displayName === pluginName,
-  )?.appUrl;
+const chatgptBridgeUrls = new Map(
+  Object.values(CHATGPT_APP_BRIDGES).map((bridge) => [
+    bridge.displayName,
+    bridge.appUrl,
+  ]),
+);
 
 export async function getIntegrationStatusSnapshot({
   githubVerifier = verifyGitHubConnection,
@@ -374,7 +373,7 @@ export async function getIntegrationStatusSnapshot({
       };
     }
 
-    const bridgeUrl = chatgptBridgeUrl(plugin.name);
+    const bridgeUrl = chatgptBridgeUrls.get(plugin.name);
     const isAgenticCourseRedesign = plugin.name === "Agentic Course Redesign";
     const isTarteel = plugin.name === "Tarteel";
 
