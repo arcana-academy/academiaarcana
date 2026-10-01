@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/infrastructure/integrations/status", () => ({
   getIntegrationStatusSnapshot: vi.fn(async () => ({
     generatedAt: "2026-09-27T00:00:00.000Z",
-    catalogSize: 116,
+    catalogSize: 118,
     connectedCount: 1,
-    cataloguedCount: 115,
+    cataloguedCount: 117,
     errorCount: 0,
     runtimeIntegrations: [
       {
@@ -102,7 +102,7 @@ describe("IntegracoesPage", () => {
   it("renders the catalog size and the distinction between verified and catalogued", async () => {
     const html = renderToStaticMarkup(await IntegracoesPage());
 
-    expect(html).toContain("116 plugins registrados");
+    expect(html).toContain("118 integrações registradas");
     expect(html).toContain("Conexões verificadas");
     expect(html).toContain("1");
     expect(html).toContain("Ainda catalogados");
