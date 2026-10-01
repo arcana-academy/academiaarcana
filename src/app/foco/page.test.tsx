@@ -15,5 +15,6 @@ describe("FocoPage", () => {
     render(await FocoPage());
     expect(screen.getByRole("heading", { name: "Foco", level: 1 })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Planejar sessão" })).toHaveAttribute("href", "/cronograma");
+    expect(document.querySelector('img[src="/assets/focus/aa-focus-sigil.svg"]')).toBeInTheDocument();
   });
 });

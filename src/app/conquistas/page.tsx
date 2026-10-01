@@ -1,4 +1,5 @@
-import { Award, CheckCircle2, Crown, Gem } from "lucide-react";
+import Image from "next/image";
+import { CheckCircle2, Gem } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -11,6 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
 }
+
+const achievementEmblem = "/assets/gamification/aa-achievement-emblem.svg";
 
 export default async function ConquistasPage() {
   const claims = await requireAuthenticatedUser();
@@ -30,17 +33,20 @@ export default async function ConquistasPage() {
         description="Marcos derivados de progresso verificável, sem inventar conquistas para preencher a interface."
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Desbloqueadas" description="Conquistas que seu estado persistido já comprova." icon={<Award size={22} />}>
+          <FeatureCard title="Desbloqueadas" description="Conquistas que seu estado persistido já comprova." icon={<Image src={achievementEmblem} alt="" width={22} height={22} />}>
             <p className="aa-state-copy">{unlocked.length}/{achievements.length}</p>
             {unlocked.length ? (
               <ul className="aa-list" aria-label="Conquistas desbloqueadas">
                 {unlocked.map((achievement) => (
                   <li className="aa-list-item" key={achievement.code}>
-                    <div>
-                      <strong>{achievement.title}</strong>
-                      <p>{achievement.description}</p>
+                    <div className="aa-achievement-item-copy">
+                      <Image className="aa-achievement-item-emblem" src={achievementEmblem} alt="" width={40} height={40} />
+                      <div>
+                        <strong>{achievement.title}</strong>
+                        <p>{achievement.description}</p>
+                      </div>
                     </div>
-                    <CheckCircle2 size={20} aria-label="Desbloqueada" />
+                    <CheckCircle2 className="aa-achievement-item-status" size={20} aria-label="Desbloqueada" />
                   </li>
                 ))}
               </ul>
@@ -48,13 +54,16 @@ export default async function ConquistasPage() {
               <p className="aa-state-copy">Seu próximo marco será calculado a partir do progresso real.</p>
             )}
           </FeatureCard>
-          <FeatureCard title="Próximos marcos" description="Regras transparentes para você saber o que cada conquista exige." icon={<Crown size={22} />}>
+          <FeatureCard title="Próximos marcos" description="Regras transparentes para você saber o que cada conquista exige." icon={<Image src={achievementEmblem} alt="" width={22} height={22} />}>
             <ul className="aa-list" aria-label="Próximas conquistas">
               {achievements.filter((achievement) => !achievement.unlocked).map((achievement) => (
                 <li className="aa-list-item" key={achievement.code}>
-                  <div>
-                    <strong>{achievement.title}</strong>
-                    <p>{achievement.description}</p>
+                  <div className="aa-achievement-item-copy">
+                    <Image className="aa-achievement-item-emblem" src={achievementEmblem} alt="" width={40} height={40} />
+                    <div>
+                      <strong>{achievement.title}</strong>
+                      <p>{achievement.description}</p>
+                    </div>
                   </div>
                 </li>
               ))}

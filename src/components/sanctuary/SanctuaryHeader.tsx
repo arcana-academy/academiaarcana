@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { QuickAction, SanctuaryViewModel } from "@/domains/sanctuary";
 
 type SanctuaryHeaderProps = {
@@ -30,7 +31,15 @@ export function SanctuaryHeader({ header, primaryAction }: SanctuaryHeaderProps)
       </div>
 
       <div className="aa-sanctuary-hero-atmosphere" aria-hidden="true">
-        <div className="aa-sanctuary-sigil">✦</div>
+        <div className="aa-sanctuary-sigil">
+          <Image
+            src="/assets/sanctuary/aa-sanctuary-sigil.svg"
+            alt=""
+            width={128}
+            height={128}
+            priority
+          />
+        </div>
       </div>
     </header>
   );

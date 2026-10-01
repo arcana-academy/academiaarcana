@@ -48,6 +48,17 @@ function renderHeader({
   );
 }
 
+function renderHeaderForAssetCheck() {
+  const view = render(
+    <SanctuaryHeader
+      header={{ greeting, user }}
+      primaryAction={primaryAction}
+    />,
+  );
+
+  return view;
+}
+
 describe("SanctuaryHeader", () => {
   it("renders the greeting as the labelled level-one heading", () => {
     renderHeader();
@@ -124,6 +135,15 @@ describe("SanctuaryHeader", () => {
 
     expect(link).toHaveFocus();
     expect(link).not.toHaveAttribute("tabindex", "-1");
+  });
+
+  it("renders the approved sanctuary sigil as decorative imagery", () => {
+    const { container } = renderHeaderForAssetCheck();
+
+    const sigil = container.querySelector('img[src="/assets/sanctuary/aa-sanctuary-sigil.svg"]');
+
+    expect(sigil).toBeInTheDocument();
+    expect(sigil).toHaveAttribute("alt", "");
   });
 
   it("does not depend on Supabase or the sanctuary repository", () => {

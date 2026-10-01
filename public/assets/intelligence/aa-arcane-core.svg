@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Núcleo Arcano</title>
+  <desc id="desc">Símbolo abstrato de inteligência com núcleo central, órbitas estáveis e quatro eixos de conexão.</desc>
+  <defs>
+    <radialGradient id="core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(64 64) rotate(90) scale(24)">
+      <stop stop-color="#E1C98E"/>
+      <stop offset=".55" stop-color="#B996EE"/>
+      <stop offset="1" stop-color="#704B9D" stop-opacity=".18"/>
+    </radialGradient>
+    <linearGradient id="arcane" x1="28" y1="24" x2="100" y2="104" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E1C98E"/>
+      <stop offset=".5" stop-color="#C8A7F4"/>
+      <stop offset="1" stop-color="#704B9D"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="46" stroke="#B996EE" stroke-width="1.5" opacity=".28"/>
+  <circle cx="64" cy="64" r="37" stroke="url(#arcane)" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round" opacity=".85"/>
+  <path d="M64 13v15M64 100v15M13 64h15M100 64h15" stroke="#E1C98E" stroke-width="2" stroke-linecap="round" opacity=".78"/>
+  <path d="M36 36 48 48M92 36 80 48M36 92l12-12M92 92 80 80" stroke="#B996EE" stroke-width="1.6" stroke-linecap="round" opacity=".65"/>
+  <path d="M64 34 88 48v28L64 90 40 76V48L64 34Z" fill="#120D19" stroke="url(#arcane)" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M64 43 78 51v18l-14 8-14-8V51l14-8Z" fill="url(#core)" opacity=".78"/>
+  <circle cx="64" cy="64" r="8.5" fill="#0C0A12" stroke="#E1C98E" stroke-width="2"/>
+  <circle cx="64" cy="64" r="3.2" fill="#E1C98E"/>
+  <circle cx="26" cy="26" r="2.4" fill="#C8A7F4" opacity=".82"/>
+  <circle cx="102" cy="26" r="2.4" fill="#C8A7F4" opacity=".82"/>
+  <circle cx="26" cy="102" r="2.4" fill="#C8A7F4" opacity=".82"/>
+  <circle cx="102" cy="102" r="2.4" fill="#C8A7F4" opacity=".82"/>
+</svg>

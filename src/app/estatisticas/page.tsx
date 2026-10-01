@@ -1,4 +1,5 @@
-import { BarChart3, BookOpen, Flame, Sparkles, Target, TrendingUp } from "lucide-react";
+import Image from "next/image";
+import { BarChart3, BookOpen, Sparkles, Target, TrendingUp } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -39,7 +40,11 @@ export default async function EstatisticasPage() {
             </div>
             <p className="aa-state-copy">{progression.levelProgressXp} XP no nível · {progression.totalXp} XP total</p>
           </FeatureCard>
-          <FeatureCard title="Continuidade" description="Sequência atual registrada pelo sistema de gamificação." icon={<Flame size={22} />}>
+          <FeatureCard
+            title="Continuidade"
+            description="Sequência atual registrada pelo sistema de gamificação."
+            icon={<Image src="/assets/gamification/aa-contained-arcane-flame.svg" alt="" width={22} height={22} />}
+          >
             <p className="aa-state-copy">{progression.streakDays} {progression.streakDays === 1 ? "dia" : "dias"}</p>
           </FeatureCard>
           <FeatureCard title="Missões de hoje" description="Conclusões reais registradas para a data atual." icon={<Target size={22} />}>

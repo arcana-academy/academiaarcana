@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
 
@@ -161,10 +162,20 @@ export function StudyTaskBoard({
   return (
     <main className="aa-page aa-page-narrow" aria-labelledby="cronograma-title">
       <header className="aa-page-header">
-        <div className="aa-page-header-copy">
-          <p className="aa-eyebrow">Planejamento · ritmo</p>
-          <h1 id="cronograma-title">Cronograma</h1>
-          <p>Transforme intenção em próximos passos claros, sem sobrecarregar sua visão.</p>
+        <div className="aa-page-header-knowledge">
+          <Image
+            className="aa-knowledge-mark"
+            src="/assets/icons/aa-cronograma.svg"
+            alt=""
+            width={52}
+            height={52}
+            priority
+          />
+          <div className="aa-page-header-copy">
+            <p className="aa-eyebrow">Planejamento · ritmo</p>
+            <h1 id="cronograma-title">Cronograma</h1>
+            <p>Transforme intenção em próximos passos claros, sem sobrecarregar sua visão.</p>
+          </div>
         </div>
       </header>
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { signOut } from "@/lib/auth/actions";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -18,7 +19,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
           <div className="aa-topbar-mobile">
             <MobileNavigation currentPath={currentPath} />
             <div className="aa-topbar-mobile-brand">
-              <span className="aa-brand-mark" aria-hidden="true">✦</span>
+              <span className="aa-brand-mark" aria-hidden="true"><Image src="/assets/brand/aa-institutional-seal.svg" alt="" width={40} height={40} priority /></span>
               <span>Arcana</span>
             </div>
           </div>

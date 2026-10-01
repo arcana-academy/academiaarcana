@@ -51,6 +51,7 @@ describe("MissoesPage", () => {
     expect(screen.getByRole("heading", { name: "Missões", level: 1 })).toBeInTheDocument();
     expect(screen.getByText("1/1 concluídas")).toBeInTheDocument();
     expect(screen.getByText("Concluir uma tarefa de estudo")).toBeInTheDocument();
+    expect(document.querySelector('img[src="/assets/missions/aa-mission-document.svg"]')).toBeInTheDocument();
     expect(listDailyMissionsMock).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
   });
 

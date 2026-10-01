@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -26,10 +27,20 @@ export default async function GrimoiresPage() {
     <AuthenticatedShell currentPath="/grimorios">
       <main className="aa-page" aria-labelledby="grimorios-title">
         <header className="aa-page-header">
-          <div className="aa-page-header-copy">
-            <p className="aa-eyebrow">Biblioteca · conhecimento</p>
+          <div className="aa-page-header-knowledge">
+            <Image
+              className="aa-knowledge-mark"
+              src="/assets/icons/aa-library-mark.svg"
+              alt=""
+              width={52}
+              height={52}
+              priority
+            />
+            <div className="aa-page-header-copy">
+              <p className="aa-eyebrow">Biblioteca · conhecimento</p>
             <h1 id="grimorios-title">Grimórios</h1>
-            <p>Sua biblioteca pessoal de estudos e conhecimentos, organizada para voltar ao que importa.</p>
+              <p>Sua biblioteca pessoal de estudos e conhecimentos, organizada para voltar ao que importa.</p>
+            </div>
           </div>
           <Link className="aa-button aa-button-primary" href="/workspace">Novo espaço</Link>
         </header>
@@ -69,7 +80,15 @@ export default async function GrimoiresPage() {
           <section className="aa-list" aria-label="Seus grimórios">
             {grimoires.map((grimoire) => (
               <article className="aa-list-item aa-surface" key={grimoire.id}>
-                <div>
+                <div className="aa-grimoire-item-visual" aria-hidden="true">
+                  <Image
+                    src="/assets/grimoires/aa-grimoire-cover-base.svg"
+                    alt=""
+                    width={96}
+                    height={132}
+                  />
+                </div>
+                <div className="aa-grimoire-item-copy">
                   <p className="aa-eyebrow">Grimório</p>
                   <h2>{grimoire.title}</h2>
                   {grimoire.description ? <p>{grimoire.description}</p> : null}

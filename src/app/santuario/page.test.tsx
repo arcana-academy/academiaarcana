@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
@@ -210,16 +210,17 @@ describe("SanctuaryPage", () => {
 
     render(await SanctuaryPage());
 
-    const sanctuaryLinks = screen.getAllByRole("link", { name: /santu/i });
-    expect(sanctuaryLinks).toHaveLength(2);
+    const primaryNavigation = screen.getByRole("navigation", { name: "Navegação principal" });
+    const sanctuaryLinks = within(primaryNavigation).getAllByRole("link", { name: /santu/i });
+    expect(sanctuaryLinks).toHaveLength(1);
     expect(
       sanctuaryLinks.every((link) =>
         link.getAttribute("aria-current") === "page",
       ),
     ).toBe(true);
 
-    const workspaceLinks = screen.getAllByRole("link", { name: "Workspace" });
-    expect(workspaceLinks).toHaveLength(2);
+    const workspaceLinks = within(primaryNavigation).getAllByRole("link", { name: "Workspace" });
+    expect(workspaceLinks).toHaveLength(1);
     expect(
       workspaceLinks.every(
         (link) => link.getAttribute("aria-current") === null,

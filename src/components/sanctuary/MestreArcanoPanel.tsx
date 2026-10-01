@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 
 type AgentResponse = {
@@ -12,6 +13,8 @@ const STARTER_PROMPTS = [
   "Monte meu próximo passo de estudo.",
   "Explique como retomar meu estudo sem me sobrecarregar.",
 ] as const;
+
+const arcaneCore = "/assets/intelligence/aa-arcane-core.svg";
 
 export function MestreArcanoPanel() {
   const [input, setInput] = useState("");
@@ -58,11 +61,16 @@ export function MestreArcanoPanel() {
 
   return (
     <section className="aa-surface aa-mestre-panel" aria-labelledby="mestre-arcano-title">
-      <div className="aa-surface-header">
-        <div>
-          <p className="aa-eyebrow">Inteligência · Mestre Arcano</p>
-          <h2 id="mestre-arcano-title">Seu próximo passo pode começar aqui.</h2>
-          <p>Consulte o tutor usando apenas o contexto autorizado da sua conta.</p>
+      <div className="aa-mestre-header">
+        <div className="aa-mestre-core" aria-hidden="true">
+          <Image src={arcaneCore} alt="" width={72} height={72} priority />
+        </div>
+        <div className="aa-surface-header aa-mestre-header-copy">
+          <div>
+            <p className="aa-eyebrow">Inteligência · Mestre Arcano</p>
+            <h2 id="mestre-arcano-title">Seu próximo passo pode começar aqui.</h2>
+            <p>Consulte o tutor usando apenas o contexto autorizado da sua conta.</p>
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
-import { Flame, History, ShieldCheck } from "lucide-react";
+import { History, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -22,7 +23,7 @@ export default async function StreakPage() {
         description="Acompanhe consistência a partir de eventos reais de aprendizagem, sem transformar pausas em fracasso."
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Sequência atual" description="Dias consecutivos registrados pelo sistema de gamificação." icon={<Flame size={22} />}>
+          <FeatureCard title="Sequência atual" description="Dias consecutivos registrados pelo sistema de gamificação." icon={<Image src="/assets/gamification/aa-contained-arcane-flame.svg" alt="" width={22} height={22} />}>
             <p className="aa-state-copy">
               {profile ? `${profile.streakDays} ${profile.streakDays === 1 ? "dia" : "dias"}` : "Nenhuma atividade registrada ainda."}
             </p>

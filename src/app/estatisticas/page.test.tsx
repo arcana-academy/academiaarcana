@@ -44,6 +44,7 @@ describe("EstatisticasPage", () => {
     expect(html).toContain("Nível 4");
     expect(html).toContain("900 XP");
     expect(html).toContain("7 dias");
+    expect(html).toContain("/assets/gamification/aa-contained-arcane-flame.svg");
     expect(html).toContain("1/1 concluídas");
   });
 });

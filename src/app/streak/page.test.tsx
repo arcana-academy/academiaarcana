@@ -46,6 +46,7 @@ describe("StreakPage", () => {
     expect(screen.getByRole("heading", { name: "Streak", level: 1 })).toBeInTheDocument();
     expect(screen.getByText("3 dias")).toBeInTheDocument();
     expect(screen.getByText("2026-09-28")).toBeInTheDocument();
+    expect(document.querySelector('img[src="/assets/gamification/aa-contained-arcane-flame.svg"]')).toBeInTheDocument();
     expect(getProfileMock).toHaveBeenCalledWith("user-1");
   });
 

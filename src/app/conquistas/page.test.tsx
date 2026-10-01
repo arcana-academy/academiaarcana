@@ -42,6 +42,7 @@ describe("ConquistasPage", () => {
     expect(html).toContain("Primeiro passo");
     expect(html).toContain("Aprendiz Arcano");
     expect(html).toContain("Constância");
+    expect(html).toContain('src="/assets/gamification/aa-achievement-emblem.svg"');
     expect(html).not.toContain("Nenhuma conquista persistida");
   });
 });
