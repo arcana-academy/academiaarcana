@@ -43,4 +43,4 @@
 - [ ] **Step 4: Run the targeted test, then the full test suite, typecheck, and production build.
 - [ ] **Step 5: Open a pull request against `main` and wait for the complete Quality Gate to pass.**
 - [ ] **Step 6: Merge the PR only after all required checks are green.**
-- [ ] **Step 7: After merge, return to Netlify and deploy the updated `main`; do not touch Render.**
+- [ ] **Step 7: After merge, Render will deploy the updated `main`; do not use legacy deployment providers.**
