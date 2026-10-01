@@ -8,6 +8,28 @@ vi.mock("@/infrastructure/integrations/status", () => ({
     connectedCount: 1,
     cataloguedCount: 115,
     errorCount: 0,
+    serverRuntimeIntegrations: [
+      {
+        name: "Parallel — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        providerId: "parallel-web-research",
+        capabilities: ["search"],
+        configuration: "not-configured",
+        verification: null,
+      },
+      {
+        name: "Exa — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        providerId: "exa-web-research",
+        capabilities: ["search"],
+        configuration: "not-configured",
+        verification: null,
+      },
+    ],
     runtimeIntegrations: [
       {
         providerId: "openai-agents",
@@ -126,6 +148,10 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Gerenciar conexão do Trello");
 
     expect(html).toContain("OpenAI Agents");
+    expect(html).toContain("Pesquisa web do Mestre Arcano");
+    expect(html).toContain("Parallel — Web Research do Mestre Arcano");
+    expect(html).toContain("Exa — Web Research do Mestre Arcano");
+    expect(html).toContain("Não configurado");
     expect(html).toContain("gpt-5.6-sol");
     expect(html).toContain("Abrir OpenAI Agents");
     expect(html).toContain("1 Billion Brain Cells");
