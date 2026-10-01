@@ -2,6 +2,14 @@
 
 Academia Arcana is a Next.js application organized as a modular monolith. The technical foundation is intentionally kept separate from product feature work so that future domains can evolve behind explicit boundaries.
 
+## Product
+
+The operational product baseline is documented in:
+
+`docs/product/AA-PRODUCT-1.0.md`
+
+It defines the product purpose, canonical learning cycle, educational model, module responsibilities, prioritization, product decisions, and the current implementation/backlog state. It is subordinate to the Master Constitution (Prompt 00).
+
 ## Stack
 
 - Next.js + App Router
