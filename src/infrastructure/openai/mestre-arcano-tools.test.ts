@@ -218,19 +218,19 @@ describe("Mestre Arcano tools", () => {
   it("rejects malformed tool arguments and unknown tools", async () => {
     const context = createContext();
 
-    await expect(
+    expect(() =>
       executeMestreArcanoTool(
         { name: "get_upcoming_study_tasks", arguments: "{" },
         context,
       ),
-    ).rejects.toThrow("Argumentos de ferramenta inválidos.");
+    ).toThrow("Argumentos de ferramenta inválidos.");
 
-    await expect(
+    expect(() =>
       executeMestreArcanoTool(
         { name: "get_unknown_tool", arguments: "{}" },
         context,
       ),
-    ).rejects.toThrow("Ferramenta do Mestre Arcano não autorizada.");
+    ).toThrow("Ferramenta do Mestre Arcano não autorizada.");
   });
 
   it("requires a valid SharePoint source id", async () => {
