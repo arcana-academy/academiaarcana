@@ -161,39 +161,35 @@ function getStringProperty(
   return typeof value === "string" ? value : null;
 }
 
+/** Returns a plain record when the output item can be inspected safely. */
+function toRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
 /** Converts one unknown output item into a validated function call. */
 function toFunctionCall(
   value: unknown,
 ): MestreArcanoFunctionCall | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+  const record = toRecord(value);
+  if (!record || record.type !== "function_call") {
     return null;
   }
 
-  const record = value as Record<string, unknown>;
-  if (record.type !== "function_call") {
-    return null;
-  }
-
-  const callId = getStringProperty(record, "call_id");
-  if (!callId) {
-    return null;
-  }
-
-  const name = getStringProperty(record, "name");
-  if (!name) {
-    return null;
-  }
-
-  const args = getStringProperty(record, "arguments");
-  if (!args) {
+  const [callId, name, args] = ["call_id", "name", "arguments"].map(
+    (key) => getStringProperty(record, key),
+  );
+  if (![callId, name, args].every(Boolean)) {
     return null;
   }
 
   return {
     type: "function_call",
-    call_id: callId,
-    name,
-    arguments: args,
+    call_id: callId as string,
+    name: name as string,
+    arguments: args as string,
   };
 }
 
@@ -280,7 +276,7 @@ async function executeMestreArcanoCall(
 }
 
 /** Executes all function calls returned by one OpenAI iteration. */
-async function executeMestreArcanoCalls(
+function executeMestreArcanoCalls(
   calls: readonly MestreArcanoFunctionCall[],
   toolContext: import("@/domains/intelligence").MestreArcanoToolContext,
 ): Promise<readonly {
