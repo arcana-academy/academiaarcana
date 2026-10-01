@@ -226,16 +226,22 @@ describe("integration status snapshot", () => {
       }),
       dataCampVerifier: verifier({
         providerId: "datacamp",
+        pluginName: "DataCamp",
+        status: "connected",
         endpoint: "https://api.datacamp.com",
         verifiedAt: "2026-09-27T00:00:00.000Z",
       }),
       dropboxVerifier: verifier({
         providerId: "dropbox",
+        pluginName: "Dropbox",
+        status: "connected",
         accountId: "account-1",
         verifiedAt: "2026-09-27T00:00:00.000Z",
       }),
       airtableVerifier: verifier({
         providerId: "airtable",
+        pluginName: "Airtable",
+        status: "connected",
         baseId: "base-1",
         tableCount: 1,
         verifiedAt: "2026-09-27T00:00:00.000Z",
