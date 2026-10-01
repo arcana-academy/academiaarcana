@@ -11,6 +11,7 @@ import { completeFocusSession, startFocusSession } from "./actions";
 
 const focusSigil = "/assets/focus/aa-focus-sigil.svg";
 
+/** Render the authenticated Focus experience. */
 export default async function FocoPage() {
   await requireAuthenticatedUser();
   return (
