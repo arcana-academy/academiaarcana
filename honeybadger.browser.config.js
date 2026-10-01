@@ -1,17 +1,13 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+import { Honeybadger } from '@honeybadger-io/react'
 
-const { Honeybadger } = require("@honeybadger-io/react");
-
-const config = {
+export const config = {
   apiKey: process.env.NEXT_PUBLIC_HONEYBADGER_API_KEY,
   environment: process.env.NEXT_PUBLIC_APP_ENV || process.env.NODE_ENV,
   revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
-  projectRoot: "webpack://_N_E/./",
+  projectRoot: 'webpack://_N_E/./',
   // debug: true,
   // reportData: true,
-};
+}
 
-exports.config = config;
-
-Honeybadger.configure(config);
-Honeybadger.logger.debug("Honeybadger configured for browser");
+Honeybadger.configure(config)
+Honeybadger.logger.debug('Honeybadger configured for browser')
