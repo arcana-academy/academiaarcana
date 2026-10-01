@@ -5,7 +5,7 @@
   "packageManager": "npm@11.19.1",
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/verify-public-runtime-config.mjs",
+    "prebuild": "node scripts/verify-deployment-platform.mjs && node scripts/verify-public-runtime-config.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint . --ignore-pattern welcome-to-docker/**",
@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:a11y": "vitest run src/components/ui/button.test.tsx src/components/ui/card.test.tsx src/components/ui/icon-button.test.tsx",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "verify:deployment": "node scripts/verify-deployment-platform.mjs"
   },
   "dependencies": {
     "@honeybadger-io/nextjs": "^5.11.5",
