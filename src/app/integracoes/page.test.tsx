@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/infrastructure/integrations/status", () => ({
   getIntegrationStatusSnapshot: vi.fn(async () => ({
     generatedAt: "2026-09-27T00:00:00.000Z",
-    catalogSize: 118,
+    catalogSize: 120,
     connectedCount: 1,
-    cataloguedCount: 115,
+    cataloguedCount: 119,
     errorCount: 0,
     serverRuntimeIntegrations: [
       {
@@ -124,11 +124,11 @@ describe("IntegracoesPage", () => {
   it("renders the catalog size and the distinction between verified and catalogued", async () => {
     const html = renderToStaticMarkup(await IntegracoesPage());
 
-    expect(html).toContain("118 integrações registradas");
+    expect(html).toContain("120 integrações registradas");
     expect(html).toContain("Conexões verificadas");
     expect(html).toContain("1");
     expect(html).toContain("Ainda catalogados");
-    expect(html).toContain("117");
+    expect(html).toContain("119");
     expect(html).toContain("Agentic Course Redesign");
     expect(html).toContain("Hospedado no ChatGPT");
     expect(html).toContain(
