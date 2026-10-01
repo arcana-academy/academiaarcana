@@ -23,11 +23,13 @@ type StudyTaskBoardProps = {
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
 };
 
+/** Format an optional study-task deadline for the learner locale. */
 function formatDueAt(value: string | null): string {
   if (!value) return "Sem prazo";
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
+/** Render the interactive study-task board and external calendar actions. */
 export function StudyTaskBoard({
   tasks,
   outlookConnected = false,
