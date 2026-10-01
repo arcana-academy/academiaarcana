@@ -36,7 +36,6 @@ describe('Honeybadger runtime configuration', () => {
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_API_KEY', 'browser-key')
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_REVISION', 'browser-revision')
     vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'preview')
-    vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'production')
     vi.stubEnv('NODE_ENV', 'test')
 
     const { config } = await import('./honeybadger.browser.config.js')
@@ -55,7 +54,6 @@ describe('Honeybadger runtime configuration', () => {
   })
 
   it('falls back through server deployment and Node environments at the edge', async () => {
-    vi.stubEnv('NEXT_PUBLIC_APP_ENV', '')
     vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'staging')
     vi.stubEnv('NODE_ENV', 'test')
 
