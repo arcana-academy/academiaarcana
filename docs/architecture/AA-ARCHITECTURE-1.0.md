@@ -714,6 +714,27 @@ Every new architecture change must preserve:
 
 ---
 
+## 24. Canonical infrastructure provider policy
+
+The infrastructure platform model is intentionally non-duplicative: one architectural responsibility has one canonical platform. A provider with equivalent responsibility must not be introduced as an operational substitute or parallel path without an explicit architecture decision.
+
+| Responsibility | Canonical platform | Equivalent platforms excluded from the default architecture |
+|---|---|---|
+| Source control | GitHub | GitLab, Bitbucket, Codeberg |
+| CI/CD and Quality Gate | GitHub Actions | GitLab CI/CD, CircleCI, Travis CI, Jenkins, Bitbucket Pipelines |
+| Application hosting and production runtime | Render | Vercel, Netlify, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers |
+| Database, Auth, RLS and application data services | Supabase | Firebase, Appwrite, PocketBase |
+
+The provider policy is implemented in `src/core/architecture/provider-policy.ts` and protected by `tests/infrastructure/delivery-contract.test.ts`.
+
+This rule does not prohibit optional SaaS integrations whose responsibilities differ from the four canonical infrastructure roles. It does prohibit duplicating one of these roles merely because another provider offers a similar capability.
+
+**Architectural rule:** Do not introduce Vercel, Netlify, or another equivalent infrastructure platform into the active application, CI/CD, deployment or data path. Historical evidence may remain in explicitly historical documentation.
+
+State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
+
+---
+
 ## 24. Final canonical state
 
 **AA-ARCHITECTURE-1.0 = CANÔNICO**
