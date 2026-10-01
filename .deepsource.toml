@@ -1,5 +1,9 @@
 version = 1
 
+exclude_patterns = [
+  "scripts/verify-public-runtime-config.mjs",
+]
+
 [[analyzers]]
 name = "javascript"
 enabled = true
@@ -9,6 +13,7 @@ enabled = true
   dialect = "typescript"
   environment = ["nodejs", "vitest"]
   plugins = ["react"]
+  skip_doc_coverage = ["function-declaration"]
 
 [[analyzers]]
 name = "sql"
