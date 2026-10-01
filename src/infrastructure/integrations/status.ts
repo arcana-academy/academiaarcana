@@ -22,6 +22,12 @@ import {
   type AirtableConnectionVerification,
 } from "./airtable";
 import { ASANA_PROVIDER_ID } from "./asana";
+import {
+  EXA_WEB_RESEARCH_INTEGRATION_DEFINITION,
+} from "./exa-web-research";
+import {
+  PARALLEL_SEARCH_INTEGRATION_DEFINITION,
+} from "./parallel-web-research";
 
 const TARTEEL_APP_ID = "tarteel";
 const TARTEEL_CAPABILITIES = [
@@ -228,6 +234,23 @@ function airtableErrorEntry(): IntegrationStatusEntry {
   };
 }
 
+/** Builds a catalog entry for a server-side web-research provider. */
+function webResearchCatalogEntry(
+  definition:
+    | typeof PARALLEL_SEARCH_INTEGRATION_DEFINITION
+    | typeof EXA_WEB_RESEARCH_INTEGRATION_DEFINITION,
+): IntegrationStatusEntry {
+  return {
+    name: definition.displayName,
+    source: "runtime",
+    status: "catalogued",
+    executionMode: "runtime",
+    providerId: definition.id,
+    capabilities: definition.capabilities,
+    verification: null,
+  };
+}
+
 function chatgptBridgeUrl(pluginName: string): string | undefined {
   return Object.values(CHATGPT_APP_BRIDGES).find(
     (bridge) => bridge.displayName === pluginName,
@@ -383,15 +406,20 @@ export async function getIntegrationStatusSnapshot({
     };
   });
 
+  const webResearchEntries = [
+    webResearchCatalogEntry(PARALLEL_SEARCH_INTEGRATION_DEFINITION),
+    webResearchCatalogEntry(EXA_WEB_RESEARCH_INTEGRATION_DEFINITION),
+  ];
+  const allEntries = [...entries, ...webResearchEntries];
   const runtimeIntegrations = [await getOpenAIAgentsRuntimeSnapshot()];
 
   return {
     generatedAt: new Date().toISOString(),
-    catalogSize: entries.length,
-    connectedCount: entries.filter((entry) => entry.status === "connected").length,
-    cataloguedCount: entries.filter((entry) => entry.status === "catalogued").length,
-    errorCount: entries.filter((entry) => entry.status === "error").length,
-    entries,
+    catalogSize: allEntries.length,
+    connectedCount: allEntries.filter((entry) => entry.status === "connected").length,
+    cataloguedCount: allEntries.filter((entry) => entry.status === "catalogued").length,
+    errorCount: allEntries.filter((entry) => entry.status === "error").length,
+    entries: allEntries,
     runtimeIntegrations,
   };
 }
