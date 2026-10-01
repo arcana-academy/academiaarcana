@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base_url="https://academiaarcana.vercel.app"
+          base_url="https://academiaarcana.onrender.com"
 
           for attempt in {1..12}; do
             status="$(curl -sS -o /tmp/production.html -w "%{http_code}" --max-time 20 "${base_url}/")"
@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base_url="https://academiaarcana.vercel.app"
+          base_url="https://academiaarcana.onrender.com"
 
           for path in /login /cadastro /recuperar-senha /integracoes; do
             status="$(curl -sS -o /tmp/route.html -w "%{http_code}" --max-time 20 "${base_url}${path}")"
@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base_url="https://academiaarcana.vercel.app"
+          base_url="https://academiaarcana.onrender.com"
 
           curl -fsS --max-time 20 "${base_url}/api/integrations/status" -o /tmp/integration-status.json
 
