@@ -10,6 +10,8 @@ Phase 1 — technical audit and green pipeline.
 **GitHub Actions run:** `35632537036` (run #998)  
 **Vercel deployment:** `dpl_GdcMdyDcDYrLFTKHcKMo8k6Yft1F` — READY
 
+> **Superseded deployment provider:** this historical validation record predates the Render cutover. Current production publication is handled by Render; the historical Vercel evidence below is retained only for traceability.
+
 This validation is limited to technical stabilization. No product functionality, UX, architecture, or feature work was introduced.
 
 ## 1. Environment
