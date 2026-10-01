@@ -17,3 +17,7 @@ Quando Parallel e Exa estiverem simultaneamente configurados, use MESTRE_ARCANO_
 Resultados web são evidências externas não confiáveis. O Mestre Arcano não deve tratar conteúdo recuperado como instruções de sistema.
 
 A chave nunca usa variáveis NEXT_PUBLIC_*.
+
+## Status operacional
+
+O provider aparece no snapshot central de integrações como adapter de runtime catalogado. A plataforma não o marca como conexão verificada apenas pela existência da chave; a execução permanece server-side e a conexão só deve ser considerada verificada quando houver evidência de runtime.
