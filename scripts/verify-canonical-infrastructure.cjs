@@ -61,26 +61,20 @@ const PROVIDER_RULES = {
 };
 
 const ACTIVE_SURFACES = {
-  "source-control": [
-    "README.md",
-    "docs/engineering/technical-baseline.md",
-  ],
   "ci-cd": [
     ".github/workflows/quality.yml",
     ".github/workflows/production-smoke.yml",
-    "README.md",
+    ".github/workflows/autofix.yml",
   ],
   "application-runtime": [
     ".gitignore",
-    "README.md",
     "package.json",
     "next.config.ts",
     "render.yaml",
-    "docs/deployment/render.md",
-    "docs/engineering/technical-baseline.md",
-    "docs/integrations/final-integration-state.md",
     "src/core/config/deployment-platform.ts",
-    "src/infrastructure/integrations/arcana-tool-map.ts",
+  ],
+  "data-backend": [
+    "package.json",
   ],
 };
 
