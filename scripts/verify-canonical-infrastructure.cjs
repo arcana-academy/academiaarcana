@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
-(() => {
   const {
     existsSync,
     readdirSync,
@@ -146,7 +145,7 @@
    * @param {string} message Violation details.
    * @returns {never} This function always throws.
    */
-  function fail(message) {
+  const fail = (message) => {
     throw new Error(`Canonical infrastructure contract violation: ${message}`);
   }
 
@@ -155,7 +154,7 @@
    * @param {string} relativePath Repository-relative file path.
    * @returns {string} File contents.
    */
-  function readRepoFile(relativePath) {
+  const readRepoFile = (relativePath) => {
     const file = resolve(root, relativePath);
     if (!existsSync(file) || !statSync(file).isFile()) {
       fail(`missing active file: ${relativePath}`);
@@ -170,7 +169,7 @@
    * @param {string} role Infrastructure responsibility being checked.
    * @returns {void} Returns when the content is valid.
    */
-  function assertNoForbiddenProvider(content, relativePath, role) {
+  const assertNoForbiddenProvider = (content, relativePath, role) => {
     const lowered = content.toLowerCase();
     assertNoForbiddenProviderName(lowered, relativePath, role);
     assertNoForbiddenHostingUrl(content, relativePath);
@@ -184,11 +183,11 @@
    * @param {string} role Infrastructure responsibility being checked.
    * @returns {void} Returns when no excluded provider is found.
    */
-  function assertNoForbiddenProviderName(
+  const assertNoForbiddenProviderName = (
     loweredContent,
     relativePath,
     role,
-  ) {
+  ) => {
     for (const provider of PROVIDER_RULES[role]) {
       if (loweredContent.includes(provider.toLowerCase())) {
         fail(
@@ -204,7 +203,7 @@
    * @param {string} relativePath Repository-relative path.
    * @returns {void} Returns when no excluded hostname is found.
    */
-  function assertNoForbiddenHostingUrl(content, relativePath) {
+  const assertNoForbiddenHostingUrl = (content, relativePath) => {
     for (const pattern of FORBIDDEN_HOST_PATTERNS) {
       if (pattern.test(content)) {
         fail(
@@ -220,7 +219,7 @@
    * @param {string} relativePath Repository-relative path.
    * @returns {void} Returns when no excluded environment prefix is found.
    */
-  function assertNoForbiddenEnvironmentPrefix(content, relativePath) {
+  const assertNoForbiddenEnvironmentPrefix = (content, relativePath) => {
     for (const prefix of FORBIDDEN_ENV_PREFIXES) {
       if (content.includes(prefix)) {
         fail(
@@ -235,7 +234,7 @@
    * @param {string} relativeDir Repository-relative directory.
    * @returns {string[]} Repository-relative workflow file paths.
    */
-  function walkFiles(relativeDir) {
+  const walkFiles = (relativeDir) => {
     const absoluteDir = resolve(root, relativeDir);
     if (!existsSync(absoluteDir)) return [];
 
@@ -332,4 +331,3 @@
   process.stdout.write(
     "Canonical infrastructure contract verified: GitHub + GitHub Actions + Render + Supabase.\\n",
   );
-})();
