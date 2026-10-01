@@ -259,9 +259,9 @@ const chatgptBridgeUrls = new Map<string, string | undefined>(
 );
 
 /** Resolves GitHub status from a runtime verifier, failing closed on errors. */
-async function resolveGitHubEntry(
+const resolveGitHubEntry = async (
   verifier: () => Promise<GitHubConnectionVerification>,
-): Promise<IntegrationStatusEntry> {
+): Promise<IntegrationStatusEntry> => {
   try {
     return githubVerificationEntry(await verifier());
   } catch {
@@ -276,10 +276,10 @@ async function resolveGitHubEntry(
 }
 
 /** Resolves DataCamp status from its optional server-side credential. */
-async function resolveDataCampEntry(
+async const resolveDataCampEntry = async (
   verifier: () => Promise<DataCampConnectionVerification>,
   apiKey?: string,
-): Promise<IntegrationStatusEntry> {
+): Promise<IntegrationStatusEntry> => {
   if (!apiKey?.trim()) return dataCampCatalogEntry();
   try {
     return dataCampVerificationEntry(await verifier());
@@ -289,10 +289,10 @@ async function resolveDataCampEntry(
 }
 
 /** Resolves Dropbox status from its optional runtime token. */
-async function resolveDropboxEntry(
+async const resolveDropboxEntry = async (
   verifier: (token?: string) => Promise<DropboxConnectionVerification>,
   token?: string,
-): Promise<IntegrationStatusEntry> {
+): Promise<IntegrationStatusEntry> => {
   if (!token?.trim()) return dropboxCatalogEntry();
   try {
     return dropboxVerificationEntry(await verifier(token));
@@ -302,11 +302,11 @@ async function resolveDropboxEntry(
 }
 
 /** Resolves Airtable status when both runtime credential inputs are available. */
-async function resolveAirtableEntry(
+async const resolveAirtableEntry = async (
   verifier: () => Promise<AirtableConnectionVerification>,
   token?: string,
   baseId?: string,
-): Promise<IntegrationStatusEntry> {
+): Promise<IntegrationStatusEntry> => {
   if (!token?.trim() || !baseId?.trim()) return airtableCatalogEntry();
   try {
     return airtableVerificationEntry(await verifier());
@@ -316,11 +316,11 @@ async function resolveAirtableEntry(
 }
 
 /** Builds a catalog-only runtime integration entry. */
-function runtimeCatalogEntry(
+const runtimeCatalogEntry = (
   name: string,
   providerId: string,
   capabilities: readonly string[],
-): IntegrationStatusEntry {
+): IntegrationStatusEntry => {
   return {
     name,
     source: "runtime",
@@ -400,9 +400,9 @@ const STATIC_PLUGIN_ENTRIES = new Map<string, IntegrationStatusEntry>([
 ]);
 
 /** Builds the catalog representation for one ChatGPT plugin entry. */
-function catalogEntryForPlugin(
+const catalogEntryForPlugin = (
   plugin: (typeof CHATGPT_PLUGIN_CATALOG)[number],
-): IntegrationStatusEntry {
+): IntegrationStatusEntry => {
   const bridgeUrl = chatgptBridgeUrls.get(plugin.name);
   const staticEntry = STATIC_PLUGIN_ENTRIES.get(plugin.name);
   const baseEntry = staticEntry ?? {
@@ -420,12 +420,12 @@ function catalogEntryForPlugin(
 }
 
 /** Combines verified runtime entries with the canonical ChatGPT catalog. */
-function buildIntegrationEntries(
+const buildIntegrationEntries = (
   githubEntry: IntegrationStatusEntry,
   dataCampEntry: IntegrationStatusEntry,
   dropboxEntry: IntegrationStatusEntry,
   airtableEntry: IntegrationStatusEntry,
-): IntegrationStatusEntry[] {
+): IntegrationStatusEntry[] => {
   const verifiedEntries = new Map<string, IntegrationStatusEntry>([
     ["GitHub", githubEntry],
     ["DataCamp", dataCampEntry],
@@ -438,12 +438,12 @@ function buildIntegrationEntries(
 }
 
 /** Builds the final integration status snapshot from catalog entries. */
-function buildIntegrationSnapshot(
+const buildIntegrationSnapshot = (
   entries: readonly IntegrationStatusEntry[],
   runtimeIntegrations: readonly Awaited<
     ReturnType<typeof getOpenAIAgentsRuntimeSnapshot>
   >[],
-): IntegrationStatusSnapshot {
+): IntegrationStatusSnapshot => {
   return {
     generatedAt: new Date().toISOString(),
     catalogSize: entries.length,
@@ -456,7 +456,7 @@ function buildIntegrationSnapshot(
 }
 
 /** Returns the current integration catalog and verified runtime connection states. */
-export async function getIntegrationStatusSnapshot({
+export const getIntegrationStatusSnapshot = async ({
   githubVerifier = verifyGitHubConnection,
   dataCampVerifier = verifyDataCampConnection,
   dropboxVerifier = verifyDropboxConnection,
