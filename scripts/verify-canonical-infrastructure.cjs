@@ -131,13 +131,13 @@
   ];
 
   const FORBIDDEN_HOST_PATTERNS = [
-    /\\.vercel\\.app/i,
-    /\\.netlify\\.app/i,
-    /\\.railway\\.app/i,
-    /\\.fly\\.dev/i,
-    /\\.herokuapp\\.com/i,
-    /\\.pages\\.dev/i,
-    /\\.workers\\.dev/i,
+    /\.vercel\.app/i,
+    /\.netlify\.app/i,
+    /\.railway\.app/i,
+    /\.fly\.dev/i,
+    /\.herokuapp\.com/i,
+    /\.pages\.dev/i,
+    /\.workers\.dev/i,
   ];
 
   /**
@@ -241,7 +241,7 @@
     const files = [];
     for (const entry of readdirSync(absoluteDir, { withFileTypes: true })) {
       const relativePath = resolve(relativeDir, entry.name)
-        .replaceAll("\\\\", "/");
+        .replaceAll("\\", "/");
 
       if (entry.isDirectory()) {
         files.push(...walkFiles(relativePath));
