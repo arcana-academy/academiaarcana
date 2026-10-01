@@ -1,9 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import { getIntegrationStatusSnapshot } from "./status";
 
 describe("integration status snapshot", () => {
+  beforeEach(() => {
+    delete process.env.DATACAMP_API_KEY;
+    delete process.env.DROPBOX_RUNTIME_TOKEN;
+    delete process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN;
+    delete process.env.AIRTABLE_BASE_ID;
+    delete process.env.PARALLEL_API_KEY;
+    delete process.env.EXA_API_KEY;
+  });
   it("reports the complete catalog and a verified GitHub connection", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
       githubVerifier: async () => ({
