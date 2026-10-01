@@ -29,7 +29,7 @@ describe("AccessibilityPreferencesProvider", () => {
       | "reduced" = "normal";
 
     const local: LocalAccessibilityPreferencesRepository = {
-      load: async () => null,
+      load: () => Promise.resolve(null),
 
       save: async (
         preferences,
@@ -40,7 +40,7 @@ describe("AccessibilityPreferencesProvider", () => {
 
     const authenticated: AuthenticatedAccessibilityPreferencesRepository =
       {
-        load: async () => null,
+        load: () => Promise.resolve(null),
 
         save: (
           _subjectId,
@@ -439,9 +439,9 @@ describe("AccessibilityPreferencesProvider", () => {
     const local:
       LocalAccessibilityPreferencesRepository =
         {
-          load: async () => null,
+          load: () => Promise.resolve(null),
 
-          save: async () => {},
+          save: () => Promise.resolve(),
         };
 
     const authenticated:

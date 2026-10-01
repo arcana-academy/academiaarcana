@@ -287,7 +287,7 @@ export function Workspace({
   onDeletePage,
   onSavePage,
   pageProgressStatus = "not-started",
-  onSetPageProgress = async () => undefined,
+  onSetPageProgress = () => Promise.resolve(),
 }: WorkspaceProps) {
   return (
     <div className="workspace-shell">

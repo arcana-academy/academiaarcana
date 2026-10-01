@@ -14,12 +14,12 @@ import {
 function createDependencies() {
   return {
     local: {
-      load: async () => null,
-      save: async () => {},
+      load: () => Promise.resolve(null),
+      save: () => Promise.resolve(),
     },
     authenticated: {
-      load: async () => null,
-      save: async () => {},
+      load: () => Promise.resolve(null),
+      save: () => Promise.resolve(),
     },
     motionEnvironment: {
       getSystemMotionPreference: () => "normal" as const,

@@ -101,7 +101,7 @@ export function WorkspaceShell({
   onDeletePage,
   onSavePage,
   initialPageProgress = {},
-  onSetPageProgress = async () => undefined,
+  onSetPageProgress = () => Promise.resolve(),
 }: WorkspaceShellProps) {
 
   const [state, setState] = useState<WorkspaceState>(initialState);

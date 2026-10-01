@@ -33,7 +33,7 @@ describe("IdentityResolver", () => {
 
   it("resolve como anônimo quando não existe subjectId", async () => {
     const resolver = createIdentityResolver({
-      resolveSubjectId: async () => null,
+      resolveSubjectId: () => Promise.resolve(null),
     });
 
     const result = await resolver.resolve();

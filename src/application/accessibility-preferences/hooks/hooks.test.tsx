@@ -27,8 +27,8 @@ describe("accessibility-preferences hooks", () => {
     }) => (
       <AccessibilityPreferencesProvider
         local={{
-          load: async () => null,
-          save: async () => {},
+          load: () => Promise.resolve(null),
+          save: () => Promise.resolve(),
         }}
         authenticated={{
           load: async () => ({
@@ -37,7 +37,7 @@ describe("accessibility-preferences hooks", () => {
               motion: "reduced" as const,
             },
           }),
-          save: async () => {},
+          save: () => Promise.resolve(),
         }}
         motionEnvironment={{
           getSystemMotionPreference: () => "normal",
@@ -82,12 +82,12 @@ describe("accessibility-preferences hooks", () => {
     }) => (
       <AccessibilityPreferencesProvider
         local={{
-          load: async () => null,
-          save: async () => {},
+          load: () => Promise.resolve(null),
+          save: () => Promise.resolve(),
         }}
         authenticated={{
-          load: async () => null,
-          save: async () => {},
+          load: () => Promise.resolve(null),
+          save: () => Promise.resolve(),
         }}
         motionEnvironment={{
           getSystemMotionPreference: () => "normal",
@@ -139,7 +139,7 @@ describe("accessibility-preferences hooks", () => {
     }) => (
       <AccessibilityPreferencesProvider
         local={{
-          load: async () => null,
+          load: () => Promise.resolve(null),
           save: async () => {
             throw new Error(
               "falha de persistência local",
@@ -147,8 +147,8 @@ describe("accessibility-preferences hooks", () => {
           },
         }}
         authenticated={{
-          load: async () => null,
-          save: async () => {},
+          load: () => Promise.resolve(null),
+          save: () => Promise.resolve(),
         }}
         motionEnvironment={{
           getSystemMotionPreference: () => "normal",

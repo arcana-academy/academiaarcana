@@ -54,8 +54,8 @@ describe("accessibility-preferences contracts", () => {
 
   it("define o contrato de persistência local", () => {
     const repository: LocalAccessibilityPreferencesRepository = {
-      load: async () => null,
-      save: async () => {},
+      load: () => Promise.resolve(null),
+      save: () => Promise.resolve(),
     };
 
     expect(repository).toBeDefined();

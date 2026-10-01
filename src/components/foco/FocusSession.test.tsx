@@ -7,8 +7,8 @@ describe("FocusSession", () => {
   it("renders an accessible paused session", () => {
     render(
       <FocusSession
-        startSession={vi.fn(async () => "session-1")}
-        completeSession={vi.fn(async () => undefined)}
+        startSession={vi.fn(() => Promise.resolve("session-1"))}
+        completeSession={vi.fn(() => Promise.resolve())}
       />,
     );
 
@@ -22,12 +22,12 @@ describe("FocusSession", () => {
   });
 
   it("persists a session before starting the timer", async () => {
-    const startSession = vi.fn(async () => "session-1");
+    const startSession = vi.fn(() => Promise.resolve("session-1"));
 
     render(
       <FocusSession
         startSession={startSession}
-        completeSession={vi.fn(async () => undefined)}
+        completeSession={vi.fn(() => Promise.resolve())}
       />,
     );
 

@@ -24,7 +24,7 @@ const identity: {
 
 const authenticatedRepository: AuthenticatedAccessibilityPreferencesRepository =
   {
-    load: async () => null,
+    load: () => Promise.resolve(null),
     save: () => Promise.resolve(),
   };
 

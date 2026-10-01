@@ -200,7 +200,7 @@ export function PageEditor({
   onDelete,
   onSave,
   progressStatus = "not-started",
-  onSetProgress = async () => undefined,
+  onSetProgress = () => Promise.resolve(),
 }: PageEditorProps) {
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);

@@ -35,13 +35,13 @@ describe("accessibility-preferences index", () => {
     const errorCode: AccessibilityPreferencesErrorCode = error.code;
 
     const local: LocalAccessibilityPreferencesRepository = {
-      load: async () => null,
-      save: async () => {},
+      load: () => Promise.resolve(null),
+      save: () => Promise.resolve(),
     };
 
     const authenticated: AuthenticatedAccessibilityPreferencesRepository = {
-      load: async () => null,
-      save: async () => {},
+      load: () => Promise.resolve(null),
+      save: () => Promise.resolve(),
     };
 
     const systemPreference: SystemMotionPreference = "normal";

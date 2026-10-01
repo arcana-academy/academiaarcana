@@ -25,11 +25,11 @@ describe("external integration contracts", () => {
 
   it("requires independent interfaces for credentials, scope checks and execution", () => {
     const credentialStore: IntegrationCredentialStore = {
-      getAccessToken: async () => null,
-      revoke: async () => undefined,
+      getAccessToken: () => Promise.resolve(null),
+      revoke: () => Promise.resolve(),
     };
     const scopeVerifier: IntegrationScopeVerifier = {
-      verify: async () => false,
+      verify: () => Promise.resolve(false),
     };
     const gateway: ExternalIntegrationGateway = {
       execute: async (subjectId, request) => ({
