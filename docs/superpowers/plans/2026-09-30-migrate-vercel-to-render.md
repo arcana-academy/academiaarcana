@@ -138,7 +138,7 @@
 - Latest Quality Gate and Database Tests are green on the branch HEAD verified during this migration.
 - Render service reconciliation is still pending in the live dashboard because the service was created with legacy build/auto-deploy settings and currently holds placeholder Supabase environment values.
 - Legacy deployment-provider Git integration has been disconnected where repository access allowed; any provider dashboard state not accessible from repository tooling remains an external action item.
-- Netlify still has an external GitHub check path associated with this repository, but its dashboard cannot be modified until an authenticated Netlify session is available. This must be removed before enabling Render `checksPass`, otherwise that failing check can block a Render auto-deploy.
+- A legacy external GitHub check path remains outside repository control and must be removed before enabling Render `checksPass`; otherwise an unrelated failing check could block a Render auto-deploy.
 - Supabase production is healthy; its live migration ledger contains 16 applied versions while the repository has 14 migration files. This mismatch is documented as historical/live ledger drift and has not been force-repaired.
 
 
