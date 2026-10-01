@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
 type AgentResponse = {
   output?: unknown;
@@ -16,12 +17,14 @@ const STARTER_PROMPTS = [
 
 const arcaneCore = "/assets/intelligence/aa-arcane-core.svg";
 
+/** Render the authenticated Mestre Arcano interaction panel. */
 export function MestreArcanoPanel() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  /** Submit the learner request to the authenticated Mestre Arcano endpoint. */
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalized = input.trim();
