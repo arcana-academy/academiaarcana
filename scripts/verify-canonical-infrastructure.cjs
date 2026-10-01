@@ -58,24 +58,38 @@ const PROVIDER_RULES = {
   ],
 };
 
-const ACTIVE_FILES = [
-  ".gitignore",
-  "README.md",
-  "package.json",
-  "next.config.ts",
-  "render.yaml",
-  "docs/deployment/render.md",
-  "docs/engineering/technical-baseline.md",
-  "docs/integrations/final-integration-state.md",
-  "src/core/config/deployment-platform.ts",
-  "src/infrastructure/integrations/arcana-tool-map.ts",
-];
+const ACTIVE_SURFACES = {
+  "source-control": [
+    "README.md",
+    "docs/engineering/technical-baseline.md",
+  ],
+  "ci-cd": [
+    ".github/workflows/quality.yml",
+    ".github/workflows/production-smoke.yml",
+    "README.md",
+  ],
+  "application-runtime": [
+    ".gitignore",
+    "README.md",
+    "package.json",
+    "next.config.ts",
+    "render.yaml",
+    "docs/deployment/render.md",
+    "docs/engineering/technical-baseline.md",
+    "docs/integrations/final-integration-state.md",
+    "src/core/config/deployment-platform.ts",
+    "src/infrastructure/integrations/arcana-tool-map.ts",
+  ],
+};
 
 const FORBIDDEN_PATHS = [
   "vercel.json",
   "netlify.toml",
   ".vercel",
   ".netlify",
+  "public/_redirects",
+  "public/_headers",
+  "netlify/functions",
   "railway.json",
   "railway.toml",
   "fly.toml",
@@ -186,12 +200,22 @@ for (const relativePath of FORBIDDEN_PATHS) {
   }
 }
 
-for (const relativePath of ACTIVE_FILES) {
-  assertNoForbiddenProvider(
-    readRepoFile(relativePath),
-    relativePath,
-    relativePath === "package.json" ? "data-backend" : "application-runtime",
-  );
+for (const [role, paths] of Object.entries(ACTIVE_SURFACES)) {
+  for (const relativePath of paths) {
+    assertNoForbiddenProvider(
+      readRepoFile(relativePath),
+      relativePath,
+      role,
+    );
+  }
+}
+
+const optionalEnvironmentFiles = [".env.example"];
+for (const relativePath of optionalEnvironmentFiles) {
+  if (existsSync(resolve(root, relativePath))) {
+    const content = readFileSync(resolve(root, relativePath), "utf8");
+    assertNoForbiddenProvider(content, relativePath, "application-runtime");
+  }
 }
 
 const workflowFiles = walkFiles(".github/workflows");
