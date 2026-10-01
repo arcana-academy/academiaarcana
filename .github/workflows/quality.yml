@@ -48,6 +48,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Canonical infrastructure guard
+        run: node scripts/verify-canonical-infrastructure.cjs
+
       - name: Lint
         run: npm run lint
 
