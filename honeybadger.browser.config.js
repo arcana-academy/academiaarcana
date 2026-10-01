@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const { Honeybadger } = require("@honeybadger-io/react");
 
 const config = {
