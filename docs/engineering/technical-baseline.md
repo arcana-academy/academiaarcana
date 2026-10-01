@@ -140,7 +140,7 @@ Honeybadger configuration consumes public environment variables for the browser/
 Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. Recent runtime observations for the current deployments did not show new error/fatal entries, but the Render environment-variable configuration itself is not directly verifiable through the available connector surface.
 
 ## Change policy
-\n- The repository pins TypeScript `5.9.3` because the current DeepSource JavaScript analyzer supports TypeScript through 5.9; keeping the supported analyzer/runtime intersection avoids an external static-analysis failure without weakening local type checking.
+- The repository pins TypeScript `5.9.3` because the current DeepSource JavaScript analyzer supports TypeScript through 5.9; keeping the supported analyzer/runtime intersection avoids an external static-analysis failure without weakening local type checking.
 
 - Dependency changes must be reviewed as toolchain changes.
 - Do not upgrade to `latest` automatically.
