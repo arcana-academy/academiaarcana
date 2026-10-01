@@ -10,8 +10,9 @@ describe("integration status snapshot", () => {
   });
   it("reports the complete catalog and a verified GitHub connection", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
-      githubVerifier: async () => ({
-        providerId: "github",
+      githubVerifier: () =>
+        Promise.resolve({
+          providerId: "github",
         pluginName: "GitHub",
         status: "connected",
         repository: {
@@ -251,8 +252,9 @@ describe("integration status snapshot", () => {
     process.env.EXA_API_KEY = "configured";
 
     const snapshot = await getIntegrationStatusSnapshot({
-      githubVerifier: async () => ({
-        providerId: "github",
+      githubVerifier: () =>
+        Promise.resolve({
+          providerId: "github",
         pluginName: "GitHub",
         status: "connected",
         repository: {
