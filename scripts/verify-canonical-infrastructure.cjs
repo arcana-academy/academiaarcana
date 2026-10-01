@@ -125,7 +125,6 @@
   ];
 
   const FORBIDDEN_HOST_PATTERNS = [
-    /\.vercel\.app/i,
     /\.netlify\.app/i,
     /\.railway\.app/i,
     /\.fly\.dev/i,
