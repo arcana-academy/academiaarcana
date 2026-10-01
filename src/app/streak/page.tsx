@@ -9,6 +9,7 @@ import { FeatureCard } from "@/components/ui/feature-card";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
+/** Render persisted continuity information for the authenticated learner. */
 export default async function StreakPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
