@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement a secure, optional Asana integration for Academia Arcana that complements the Planning domain and leaves Vercel as the only intentionally remaining deployment/infrastructure step.
+**Goal:** Implement a secure, optional Asana integration for Academia Arcana that complements the Planning domain and leaves Render as the only intentionally remaining deployment/infrastructure step.
 
 **Architecture:** Reuse the existing vendor-neutral integration boundary and Todoist's server-side OAuth pattern. Add an Asana provider adapter, authenticated API routes, an integration page/hub entry, and an explicit `StudyTask -> Asana task` action without introducing durable two-way synchronization.
 
@@ -17,7 +17,7 @@
 - The v1 integration uses OAuth 2.0 Authorization Code Grant with state + PKCE and the minimum configured scopes.
 - No generic Asana proxy endpoint is allowed.
 - No durable two-way StudyTask <-> Asana synchronization, webhooks or background reconciliation in v1.
-- No Vercel deployment, production promotion or production environment mutation is part of this implementation.
+- No Render deployment, production promotion or production environment mutation is part of this implementation.
 
 ## Review Focus
 
@@ -147,6 +147,6 @@
 
 - [ ] **Step 1: Verify the exact final commit is the commit tested by the local quality suite.**
 - [ ] **Step 2: Verify the integration documentation and hub status agree with the implementation.**
-- [ ] **Step 3: Verify no Vercel action was performed.**
+- [ ] **Step 3: Verify no Render action was performed.**
 - [ ] **Step 4: Record the remaining external prerequisites for a real user connection: Asana OAuth application credentials and exact registered redirect URI.**
 - [ ] **Step 5: Commit any final metadata-only correction if required.
