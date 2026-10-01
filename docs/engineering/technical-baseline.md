@@ -91,11 +91,11 @@ For the validated baseline snapshot (`c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`)
 - The Next.js security patch to 16.3.6 is integrated.
 - Product-domain reconciliation, RPC security hardening, and the eight-character password floor are integrated.
 - PR #309 removed unnecessary `service_role` execution from the public reward RPC and added a regression assertion.
-- PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, pre-commit, and Vercel.
+- PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, pre-commit, and Render.
 
-The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Vercel for each resulting production deployment.
+The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Render for each resulting production deployment.
 
-## Vercel
+## Render
 
 The validated production snapshot associated with this baseline is deployment `dpl_F8G5MrgYSa6t3uwbnJ4MWFGD8nGp`, generated from commit `c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`.
 
@@ -103,7 +103,7 @@ The deployment was `READY`, and the repository's Production Smoke workflow compl
 
 The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
-The Vercel connector used for this audit does not expose a reliable environment-variable mutation operation. No unsupported Vercel-side environment mutation is claimed.
+The Render connector used for this audit does not expose a reliable environment-variable mutation operation. No unsupported Render-side environment mutation is claimed.
 
 ## Supabase
 
@@ -137,7 +137,7 @@ Current Supabase Security Advisor evidence reports one warning: leaked-password 
 
 Honeybadger configuration consumes public environment variables for the browser/server integration. These are optional from the build's perspective because the configuration handles missing values without failing the build. They should remain environment-managed and must not be replaced with hard-coded secrets.
 
-Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. Recent runtime observations for the current deployments did not show new error/fatal entries, but the Vercel environment-variable configuration itself is not directly verifiable through the available connector surface.
+Historical Production runtime data recorded missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` errors on earlier deployments. Recent runtime observations for the current deployments did not show new error/fatal entries, but the Render environment-variable configuration itself is not directly verifiable through the available connector surface.
 
 ## Change policy
 
