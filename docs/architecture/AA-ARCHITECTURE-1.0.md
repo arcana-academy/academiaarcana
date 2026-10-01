@@ -722,7 +722,7 @@ Each infrastructure responsibility has one canonical platform. A provider with e
 |---|---|---|
 | Source control | GitHub | GitLab, Bitbucket, Codeberg |
 | CI/CD and Quality Gate | GitHub Actions | GitLab CI/CD, CircleCI, Travis CI, Jenkins, Bitbucket Pipelines |
-| Application hosting and production runtime | Render | Vercel, Netlify, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers, AppDeploy, Hatchable, Hercules, Floot, Replit, Base44, Lovable, Webflow, Wix |
+| Application hosting and production runtime | Render | Vercel, Netlify, GitHub Pages, Railway, Fly.io, Heroku, AWS App Runner, AWS Amplify, Cloudflare Pages, Cloudflare Workers, AppDeploy, Hatchable, Hercules, Floot, Replit, Base44, Lovable, Webflow, Wix |
 | Database, Auth, RLS and application data services | Supabase | Firebase, Appwrite, PocketBase, Neon, Convex, PlanetScale |
 
 The policy is implemented in `src/core/architecture/provider-policy.ts` and protected by `tests/infrastructure/canonical-provider-policy.test.ts`.
