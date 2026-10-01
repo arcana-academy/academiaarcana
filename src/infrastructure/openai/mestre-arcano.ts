@@ -169,27 +169,36 @@ function toRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
+/** Reads the three required strings from a function-call record. */
+function getFunctionCallFields(
+  record: Record<string, unknown>,
+): {
+  readonly callId: string | null;
+  readonly name: string | null;
+  readonly arguments: string | null;
+} {
+  return {
+    callId: getStringProperty(record, "call_id"),
+    name: getStringProperty(record, "name"),
+    arguments: getStringProperty(record, "arguments"),
+  };
+}
+
 /** Converts one unknown output item into a validated function call. */
 function toFunctionCall(
   value: unknown,
 ): MestreArcanoFunctionCall | null {
   const record = toRecord(value);
-  if (!record || record.type !== "function_call") {
-    return null;
-  }
+  if (!record || record.type !== "function_call") return null;
 
-  const [callId, name, args] = ["call_id", "name", "arguments"].map(
-    (key) => getStringProperty(record, key),
-  );
-  if (![callId, name, args].every(Boolean)) {
-    return null;
-  }
+  const fields = getFunctionCallFields(record);
+  if (!fields.callId || !fields.name || !fields.arguments) return null;
 
   return {
     type: "function_call",
-    call_id: callId as string,
-    name: name as string,
-    arguments: args as string,
+    call_id: fields.callId,
+    name: fields.name,
+    arguments: fields.arguments,
   };
 }
 
