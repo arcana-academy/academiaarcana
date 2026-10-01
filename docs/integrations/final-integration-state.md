@@ -6,7 +6,7 @@ Atualizado em 2026-09-29.
 
 - Código, contratos, componentes e CI: GitHub `arcana-academy/academiaarcana`.
 - Persistência, RLS, RPCs e autenticação: Supabase `fichnalpbcfjywwhixid`.
-- Publicação: Vercel `academiaarcana`, reservada para a etapa final.
+- Publicação: Render `academiaarcana`, reservada para a etapa final.
 
 ## Domínios reconciliados
 
@@ -47,7 +47,7 @@ O Santuário já compõe:
 - Credenciais criptografadas e vinculadas ao usuário.
 - Projetos e tarefas com leitura, criação e conclusão.
 - Página de gerenciamento em `/integracoes/asana`.
-- Sem publicação ou alteração de infraestrutura da Vercel nesta etapa.
+- Sem publicação ou alteração de infraestrutura do Render nesta etapa.
 
 ## CI
 O GitHub já possui workflows separados para:
@@ -62,7 +62,7 @@ O GitHub já possui workflows separados para:
 ### Último ciclo validado
 O commit `46b55b0f3eea3bbd9bc136b16ddba254bdc4ccd5` concluiu com sucesso: Quality Gate, Database Tests, Supabase Preview, CodeQL (JavaScript/TypeScript), CodeQL (Actions), Secret Scan, Scorecards e autofix.
 
-O smoke de produção permanece manual e reservado à validação pós-publicação; ele não bloqueia o ciclo pré-Vercel.
+O smoke de produção permanece manual e reservado à validação pós-publicação; ele não bloqueia o ciclo pré-Render.
 
 ## Regra de publicação
-Nenhuma publicação, promoção, rollback ou alteração de infraestrutura de produção da Vercel faz parte desta etapa. A etapa Vercel somente será executada após a validação final do conjunto GitHub + Supabase + aplicação.
+Nenhuma publicação, promoção, rollback ou alteração de infraestrutura de produção do Render faz parte desta etapa. A etapa Render somente será executada após a validação final do conjunto GitHub + Supabase + aplicação.
