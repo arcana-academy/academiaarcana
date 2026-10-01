@@ -276,7 +276,7 @@ const resolveGitHubEntry = async (
 }
 
 /** Resolves DataCamp status from its optional server-side credential. */
-async const resolveDataCampEntry = async (
+const resolveDataCampEntry = async (
   verifier: () => Promise<DataCampConnectionVerification>,
   apiKey?: string,
 ): Promise<IntegrationStatusEntry> => {
@@ -289,7 +289,7 @@ async const resolveDataCampEntry = async (
 }
 
 /** Resolves Dropbox status from its optional runtime token. */
-async const resolveDropboxEntry = async (
+const resolveDropboxEntry = async (
   verifier: (token?: string) => Promise<DropboxConnectionVerification>,
   token?: string,
 ): Promise<IntegrationStatusEntry> => {
@@ -302,7 +302,7 @@ async const resolveDropboxEntry = async (
 }
 
 /** Resolves Airtable status when both runtime credential inputs are available. */
-async const resolveAirtableEntry = async (
+const resolveAirtableEntry = async (
   verifier: () => Promise<AirtableConnectionVerification>,
   token?: string,
   baseId?: string,
@@ -330,7 +330,7 @@ const runtimeCatalogEntry = (
     capabilities,
     verification: null,
   };
-}
+};
 
 const STATIC_PLUGIN_ENTRIES = new Map<string, IntegrationStatusEntry>([
   [
@@ -417,7 +417,7 @@ const catalogEntryForPlugin = (
     ...baseEntry,
     ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
   };
-}
+};
 
 /** Combines verified runtime entries with the canonical ChatGPT catalog. */
 const buildIntegrationEntries = (
@@ -435,7 +435,7 @@ const buildIntegrationEntries = (
   return CHATGPT_PLUGIN_CATALOG.map(
     (plugin) => verifiedEntries.get(plugin.name) ?? catalogEntryForPlugin(plugin),
   );
-}
+};
 
 /** Builds the final integration status snapshot from catalog entries. */
 const buildIntegrationSnapshot = (
@@ -453,7 +453,7 @@ const buildIntegrationSnapshot = (
     entries,
     runtimeIntegrations,
   };
-}
+};
 
 /** Returns the current integration catalog and verified runtime connection states. */
 export const getIntegrationStatusSnapshot = async ({
