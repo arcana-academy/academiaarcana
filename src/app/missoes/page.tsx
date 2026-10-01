@@ -9,12 +9,14 @@ import { FeatureCard } from "@/components/ui/feature-card";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
+/** Return the current UTC calendar date for daily mission queries. */
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
 }
 
 const missionDocument = "/assets/missions/aa-mission-document.svg";
 
+/** Render the authenticated daily mission surface. */
 export default async function MissoesPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
