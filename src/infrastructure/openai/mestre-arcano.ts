@@ -169,36 +169,25 @@ function toRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
-/** Identifies a complete OpenAI function-call record. */
-function isFunctionCallRecord(
-  record: Record<string, unknown>,
-): record is Record<string, unknown> & {
+type MestreArcanoFunctionCallRecord = {
   readonly type: "function_call";
   readonly call_id: string;
   readonly name: string;
   readonly arguments: string;
-} {
-  return (
-    record.type === "function_call" &&
-    typeof record.call_id === "string" &&
-    typeof record.name === "string" &&
-    typeof record.arguments === "string"
-  );
-}
+};
 
-/** Converts one unknown output item into a validated function call. */
-function toFunctionCall(
+/** Identifies a complete OpenAI function-call record. */
+function isFunctionCallRecord(
   value: unknown,
-): MestreArcanoFunctionCall | null {
+): value is MestreArcanoFunctionCallRecord {
   const record = toRecord(value);
-  if (!record || !isFunctionCallRecord(record)) return null;
-
-  return {
-    type: "function_call",
-    call_id: record.call_id,
-    name: record.name,
-    arguments: record.arguments,
-  };
+  return Boolean(
+    record &&
+      record.type === "function_call" &&
+      typeof record.call_id === "string" &&
+      typeof record.name === "string" &&
+      typeof record.arguments === "string",
+  );
 }
 
 /** Extracts validated function calls from an OpenAI response output. */
@@ -207,10 +196,13 @@ function extractFunctionCalls(
 ): MestreArcanoFunctionCall[] {
   const items = Array.isArray(output) ? output : [];
   return items
-    .map(toFunctionCall)
-    .filter(
-      (call): call is MestreArcanoFunctionCall => call !== null,
-    );
+    .filter(isFunctionCallRecord)
+    .map((record) => ({
+      type: "function_call" as const,
+      call_id: record.call_id,
+      name: record.name,
+      arguments: record.arguments,
+    }));
 }
 
 /** Requests one OpenAI Responses API iteration and parses its payload. */
