@@ -62,5 +62,6 @@
       "version": "11.19.1",
       "onFail": "warn"
     }
-  }
+  },
+  "type": "module"
 }
