@@ -9,12 +9,14 @@ import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamifi
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
+/** Return the current UTC calendar date for daily gamification queries. */
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
 }
 
 const achievementEmblem = "/assets/gamification/aa-achievement-emblem.svg";
 
+/** Render verified achievement state for the authenticated learner. */
 export default async function ConquistasPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
