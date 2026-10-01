@@ -322,48 +322,57 @@ function chatgptBridgeUrl(pluginName: string): string | undefined {
 
 type CatalogOverrides = Readonly<Record<string, IntegrationStatusEntry>>;
 
-/** Builds one catalog entry while keeping provider-specific behavior isolated. */
+type CatalogEntryMetadata = {
+  readonly executionMode?: IntegrationExecutionMode;
+  readonly providerId?: string;
+  readonly capabilities?: readonly string[];
+};
+
+const SPECIAL_CATALOG_METADATA: Readonly<
+  Record<string, CatalogEntryMetadata>
+> = {
+  Todoist: {
+    executionMode: "runtime",
+    providerId: "todoist",
+    capabilities: ["read", "write", "search", "calendar"],
+  },
+  "Agentic Course Redesign": {
+    executionMode: "chatgpt-hosted",
+    providerId: AGENTIC_COURSE_REDESIGN_APP_ID,
+    capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,
+  },
+  Tarteel: {
+    executionMode: "chatgpt-hosted",
+    providerId: TARTEEL_APP_ID,
+    capabilities: TARTEEL_CAPABILITIES,
+  },
+};
+
+/** Builds one catalog entry while keeping provider-specific behavior declarative. */
 function buildCatalogEntry(
   plugin: (typeof CHATGPT_PLUGIN_CATALOG)[number],
   overrides: CatalogOverrides,
 ): IntegrationStatusEntry {
-  const override = overrides[plugin.name];
-  if (override) return override;
-
-  const bridgeUrl = chatgptBridgeUrl(plugin.name);
-  const isAgenticCourseRedesign =
-    plugin.name === "Agentic Course Redesign";
-  const isTarteel = plugin.name === "Tarteel";
-  const isTodoist = plugin.name === "Todoist";
-
-  return {
-    name: plugin.name,
-    source: plugin.source,
-    status: "catalogued",
-    executionMode:
-      isAgenticCourseRedesign || isTarteel
-        ? "chatgpt-hosted"
-        : isTodoist
-          ? "runtime"
-          : "catalog-only",
-    ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
-    ...(isTodoist
-      ? {
-          providerId: "todoist",
-          capabilities: ["read", "write", "search", "calendar"],
-        }
-      : {}),
-    ...(isAgenticCourseRedesign
-      ? {
-          capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,
-          providerId: AGENTIC_COURSE_REDESIGN_APP_ID,
-        }
-      : {}),
-    ...(isTarteel
-      ? { capabilities: TARTEEL_CAPABILITIES, providerId: TARTEEL_APP_ID }
-      : {}),
-    verification: null,
-  };
+  return (
+    overrides[plugin.name] ?? {
+      name: plugin.name,
+      source: plugin.source,
+      status: "catalogued",
+      executionMode:
+        SPECIAL_CATALOG_METADATA[plugin.name]?.executionMode ??
+        "catalog-only",
+      ...(SPECIAL_CATALOG_METADATA[plugin.name]?.providerId
+        ? { providerId: SPECIAL_CATALOG_METADATA[plugin.name]?.providerId }
+        : {}),
+      ...(SPECIAL_CATALOG_METADATA[plugin.name]?.capabilities
+        ? { capabilities: SPECIAL_CATALOG_METADATA[plugin.name]?.capabilities }
+        : {}),
+      ...(chatgptBridgeUrl(plugin.name)
+        ? { chatgptAppUrl: chatgptBridgeUrl(plugin.name) }
+        : {}),
+      verification: null,
+    }
+  );
 }
 
 /** Builds the verified/runtime overrides for catalogued integrations. */
