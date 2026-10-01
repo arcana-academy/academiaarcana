@@ -27,7 +27,7 @@ A future direct Adobe provider belongs behind `src/infrastructure/integrations/a
 
 ## ChatGPT catalog
 
-The repository contains the 118 plugin names supplied for the project as a catalog. Catalog presence is deliberately different from a live provider connection.
+The repository contains the 118 plugin names supplied for the project as a catalog. The runtime status surface also registers two server-side web-research providers (Parallel and Exa), so the integration-status endpoint exposes 120 entries in total. Catalog presence is deliberately different from a live provider connection.
 
 The application exposes `/integracoes` and `GET /api/integrations/status` so the current state is inspectable at runtime:
 
@@ -38,6 +38,10 @@ The application exposes `/integracoes` and `GET /api/integrations/status` so the
 The first implemented provider verification is GitHub. It is a public, read-only API verification of `arcana-academy/academiaarcana`; it does **not** represent a user's GitHub account OAuth authorization.
 
 A provider may move from `catalogued` to a real authenticated integration only after its documented API/OAuth/MCP mechanism, scopes, credentials and server-side adapter have been implemented and verified.
+
+### Mestre Arcano web research
+
+Parallel and Exa are server-side runtime providers for external evidence used by the Mestre Arcano. Their credentials are runtime-only. The integration hub reports whether each provider is configured, while remaining explicit that configuration is not the same as a verified connection. Exa requests are bounded by a deterministic 12-second timeout; the web-research boundary normalizes provider-specific responses before they reach the agent.
 
 ## A-Z Daily Word
 
