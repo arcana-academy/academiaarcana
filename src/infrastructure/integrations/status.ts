@@ -353,23 +353,17 @@ function buildCatalogEntry(
   plugin: (typeof CHATGPT_PLUGIN_CATALOG)[number],
   overrides: CatalogOverrides,
 ): IntegrationStatusEntry {
+  const metadata = SPECIAL_CATALOG_METADATA[plugin.name] ?? {};
+  const bridgeUrl = chatgptBridgeUrl(plugin.name);
+
   return (
     overrides[plugin.name] ?? {
       name: plugin.name,
       source: plugin.source,
       status: "catalogued",
-      executionMode:
-        SPECIAL_CATALOG_METADATA[plugin.name]?.executionMode ??
-        "catalog-only",
-      ...(SPECIAL_CATALOG_METADATA[plugin.name]?.providerId
-        ? { providerId: SPECIAL_CATALOG_METADATA[plugin.name]?.providerId }
-        : {}),
-      ...(SPECIAL_CATALOG_METADATA[plugin.name]?.capabilities
-        ? { capabilities: SPECIAL_CATALOG_METADATA[plugin.name]?.capabilities }
-        : {}),
-      ...(chatgptBridgeUrl(plugin.name)
-        ? { chatgptAppUrl: chatgptBridgeUrl(plugin.name) }
-        : {}),
+      executionMode: metadata.executionMode ?? "catalog-only",
+      ...metadata,
+      ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
       verification: null,
     }
   );
