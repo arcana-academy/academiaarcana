@@ -175,7 +175,8 @@ The current adapter intentionally does not treat the ChatGPT connector as a web 
 | Supabase | Auth + PostgreSQL persistence | Browser/server clients, session refresh, repositories, RLS-backed schema | Project URL + publishable key; Auth settings | Connected |
 | Adobe | Visual production + web typography | Adobe configuration boundary, asset contract, optional Fonts kit loader | `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID` when a published kit exists | Configuration-ready; direct creative API not connected |
 | Honeybadger | Error monitoring | Next.js, browser, server and edge configuration; error boundaries | API key, assets URL, revision | Integrated / credentials external |
-| Todoist | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, task/project reads, task creation and completion | Todoist OAuth Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |\n| Asana | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, project/task reads, task creation and completion | Asana Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
+| Todoist | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, task/project reads, task creation and completion | Todoist OAuth Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
+| Asana | Study task planning and external productivity | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, project/task reads, task creation and completion | Asana Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Trello | Operational workflow and project execution | Server-side OAuth 2.0/PKCE adapter, encrypted credential cookie, board/list/card/checklist/search operations | Trello OAuth 2.0 Client ID, Client Secret and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
 | Airtable | Operations and structured content management | Server-side PAT adapter, base verification, bounded record reads and batched record creation | Airtable Personal Access Token and Base ID | Runtime adapter implemented; external credentials remain deployment configuration |
 | Microsoft SharePoint | External document knowledge source | Server-side OAuth 2.0 adapter, encrypted credentials, site/drive/search/context routes | Microsoft OAuth client credentials and exact Redirect URI | Runtime adapter implemented; per-user connection configured when authorized |
@@ -215,10 +216,10 @@ This prevents accidental exposure of connector credentials, unnecessary client d
 The integration baseline is considered operational only when all of these are true:
 
 1. GitHub Quality Gate is green for the exact commit being released.
-2. Vercel has a READY deployment for that same commit.
-3. The public production alias serves that deployment.
+2. Render has a successful deployment for that same commit.
+3. The configured Render production service URL serves that deployment.
 4. Supabase project state is healthy and the expected RLS policies are present.
-5. Production environment variables are configured in Vercel.
+5. Required production environment variables are configured in Render.
 6. Honeybadger is configured when production error monitoring is required.
 7. Runtime smoke checks return the expected application behavior.
 8. Every application-facing provider marked `connected` has a provider-specific runtime check and an E2E test.
