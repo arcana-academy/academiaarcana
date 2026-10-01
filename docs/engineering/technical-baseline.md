@@ -1,4 +1,4 @@
-# Academia Arcana — Technical Baseline
+# Current deployment platform — Render\n\n**CURRENT CANONICAL STATUS — 2026-09-30**\n\nRender is the official deployment platform for Academia Arcana. The current service is `academiaarcana`, connected to `arcana-academy/academiaarcana` on `main`, with build `npm ci && npm run build` and start `npm start`.\n\nThis notice supersedes prior operational deployment references. Any Vercel mentions later in this historical audit are archival evidence and must not be treated as current infrastructure.\n\n# Academia Arcana — Technical Baseline
 
 ## Status
 
