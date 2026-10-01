@@ -64,7 +64,7 @@ describe('Honeybadger runtime configuration', () => {
 
     vi.resetModules()
     vi.clearAllMocks()
-    vi.stubEnv('VERCEL_ENV', '')
+    vi.stubEnv('IS_PULL_REQUEST', 'false')
 
     imported = await import('./honeybadger.edge.config.js')
     expect(imported.config.environment).toBe('test')
