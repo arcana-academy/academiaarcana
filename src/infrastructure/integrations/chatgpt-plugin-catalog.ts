@@ -114,7 +114,7 @@ export const CHATGPT_PLUGIN_CATALOG = [
   { name: "Trivana Study — Quiz My Notes", source: "chatgpt-catalog" as const },
   { name: "True Sky", source: "chatgpt-catalog" as const },
   { name: "Udemy", source: "chatgpt-catalog" as const },
-  { name: "Vercel", source: "chatgpt-catalog" as const },
+  { name: "Render", source: "chatgpt-catalog" as const },
   { name: "Vocabulary Trainer Shchebitka", source: "chatgpt-catalog" as const },
   { name: "Wiley Scholar Gateway", source: "chatgpt-catalog" as const },
   { name: "Wolfram", source: "chatgpt-catalog" as const },
