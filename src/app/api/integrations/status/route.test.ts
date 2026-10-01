@@ -18,6 +18,7 @@ describe("integration status route", () => {
       connectedCount: 1,
       cataloguedCount: 113,
       errorCount: 0,
+      serverRuntimeIntegrations: [],
       entries: [
         {
           name: "GitHub",
