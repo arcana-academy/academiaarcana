@@ -284,28 +284,21 @@ function mapSearchPayload(payload: ParallelSearchApiResponse): ParallelSearchRes
 
 /** Searches the web through Parallel and normalizes source metadata. */
 export async function searchParallelWeb(
-  {
-    objective,
-    searchQueries,
-    fetchImpl = fetch,
-  }: {
+  options: {
     readonly objective: string;
     readonly searchQueries: readonly string[];
     readonly fetchImpl?: ParallelSearchFetch;
   },
 ): Promise<ParallelSearchResult> {
-  const { objective: normalizedObjective, queries } = validateSearchInputs(
-    objective,
-    searchQueries,
-  );
+  const input = validateSearchInputs(options.objective, options.searchQueries);
   const response = await parallelRequest(
     "/v1/search",
     {
-      objective: normalizedObjective.slice(0, 1_000),
-      search_queries: queries,
+      objective: input.objective.slice(0, 1_000),
+      search_queries: input.queries,
       max_results: MAX_SEARCH_RESULTS,
     },
-    fetchImpl,
+    options.fetchImpl ?? fetch,
   );
   const payload = await parseParallelPayload<ParallelSearchApiResponse>(
     await ensureSuccessfulResponse(response),
@@ -317,24 +310,19 @@ export async function searchParallelWeb(
 
 /** Extracts content from public HTTP(S) URLs through Parallel. */
 export async function extractParallelWeb(
-  {
-    urls,
-    objective,
-    searchQueries = [],
-    fetchImpl = fetch,
-  }: {
+  options: {
     readonly urls: readonly string[];
     readonly objective?: string;
     readonly searchQueries?: readonly string[];
     readonly fetchImpl?: ParallelSearchFetch;
   },
 ): Promise<ParallelExtractResult> {
-  const normalizedUrls = normalizeExtractionUrls(urls);
-  const queries = normalizeQueries(searchQueries);
+  const normalizedUrls = normalizeExtractionUrls(options.urls);
+  const queries = normalizeQueries(options.searchQueries ?? []);
   const response = await parallelRequest(
     "/v1/extract",
-    buildExtractBody(normalizedUrls, objective, queries),
-    fetchImpl,
+    buildExtractBody(normalizedUrls, options.objective, queries),
+    options.fetchImpl ?? fetch,
   );
 
   const payload = await parseParallelPayload<ParallelExtractApiResponse>(
