@@ -21,7 +21,7 @@ The repository is prepared for a Render Web Service using the versioned `render.
 | Auto-deploy | After CI checks pass |
 | Source | GitHub `arcana-academy/academiaarcana` |
 
-Render's current documentation supports Next.js applications with server-side rendering and API routes as Node.js Web Services using a production start command. The repository follows that model rather than a static export. citeturn189903search1turn189903search7
+Render's current documentation supports Next.js applications with server-side rendering and API routes as Node.js Web Services using a production start command. The repository follows that model rather than a static export.
 
 ## Environment
 
@@ -36,11 +36,11 @@ The Blueprint declares environment keys that must be supplied by the Render envi
 - optional Honeybadger variables
 - other provider credentials required by enabled integrations
 
-Secret placeholders use Render's `sync: false` pattern so values remain managed outside Git. citeturn941904search1turn941904search2
+Secret placeholders use Render's `sync: false` pattern so values remain managed outside Git.
 
 ## Health
 
-Render checks `/api/health`. A successful 2xx/3xx response is sufficient for an HTTP health check. citeturn941904search3
+Render checks `/api/health`. A successful 2xx/3xx response is sufficient for an HTTP health check.
 
 ## Release sequence
 
@@ -58,11 +58,11 @@ Health / smoke verification
 Production
 ```
 
-Render should deploy only after the repository CI checks pass. Render supports an "After CI Checks Pass" auto-deploy mode for connected Git repositories. citeturn941904search11
+Render should deploy only after the repository CI checks pass. Render supports an "After CI Checks Pass" auto-deploy mode for connected Git repositories.
 
 ## Recovery
 
-A failed Render deploy does not replace a healthy running deployment. The release remains on the most recent successful deployment until the new version is healthy. Rollback uses a known healthy Render deployment and is followed by smoke verification. citeturn189903search3
+A failed Render deploy does not replace a healthy running deployment. The release remains on the most recent successful deployment until the new version is healthy. Rollback uses a known healthy Render deployment and is followed by smoke verification.
 
 ## Prohibited active delivery targets
 
