@@ -129,6 +129,20 @@ jobs:
             throw new Error("Tarot bridge contract failed.");
           }
 
+          const webResearchProviders = body.serverRuntimeIntegrations ?? [];
+          if (
+            webResearchProviders.length !== 2 ||
+            !webResearchProviders.every(
+              (entry) =>
+                entry.status === "catalogued" &&
+                entry.executionMode === "runtime" &&
+                entry.verification === null &&
+                ["parallel-web-research", "exa-web-research"].includes(entry.providerId),
+            )
+          ) {
+            throw new Error("Web research provider contract failed.");
+          }
+
           const bridgedEntries = body.entries.filter(
             (entry) => typeof entry.chatgptAppUrl === "string",
           );
