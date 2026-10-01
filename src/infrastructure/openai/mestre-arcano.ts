@@ -169,6 +169,15 @@ function toRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
+/** Returns a non-empty function-call string property or null. */
+function getFunctionCallProperty(
+  record: Record<string, unknown>,
+  key: string,
+): string | null {
+  const value = getStringProperty(record, key);
+  return value?.trim() ? value : null;
+}
+
 /** Converts one unknown output item into a validated function call. */
 function toFunctionCall(
   value: unknown,
@@ -178,18 +187,18 @@ function toFunctionCall(
     return null;
   }
 
-  const [callId, name, args] = ["call_id", "name", "arguments"].map(
-    (key) => getStringProperty(record, key),
-  );
-  if (![callId, name, args].every(Boolean)) {
+  const callId = getFunctionCallProperty(record, "call_id");
+  const name = getFunctionCallProperty(record, "name");
+  const args = getFunctionCallProperty(record, "arguments");
+  if (callId === null || name === null || args === null) {
     return null;
   }
 
   return {
     type: "function_call",
-    call_id: callId as string,
-    name: name as string,
-    arguments: args as string,
+    call_id: callId,
+    name,
+    arguments: args,
   };
 }
 
