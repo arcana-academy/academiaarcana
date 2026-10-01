@@ -392,6 +392,7 @@ export {
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
+  IntegrationConfigurationStatus,
   IntegrationExecutionMode,
   IntegrationStatusEntry,
   IntegrationStatusSnapshot,
