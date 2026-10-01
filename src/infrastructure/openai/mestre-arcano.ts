@@ -107,6 +107,7 @@ export async function verifyOpenAIAgentConnection({
   };
 }
 
+/** Executes the Mestre Arcano loop and any authorized tool calls. */
 export async function runMestreArcano(
   input: string,
   {
