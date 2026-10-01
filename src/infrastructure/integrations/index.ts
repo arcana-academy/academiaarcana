@@ -380,6 +380,17 @@ export type {
   TrelloTokenSet,
 } from "./trello";
 
+
+export {
+  EXA_WEB_RESEARCH_PROVIDER_ID,
+  EXA_WEB_RESEARCH_INTEGRATION_DEFINITION,
+} from "./exa-web-research";
+
+export {
+  PARALLEL_SEARCH_PROVIDER_ID,
+  PARALLEL_SEARCH_INTEGRATION_DEFINITION,
+} from "./parallel-web-research";
+
 export { getIntegrationStatusSnapshot } from "./status";
 export type {
   IntegrationCatalogStatus,
