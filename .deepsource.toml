@@ -1,10 +1,5 @@
 version = 1
 
-exclude_patterns = [
-  # CommonJS build guard; the repository-wide analyzer is configured for ESM.
-  "scripts/verify-deployment-platform.cjs",
-]
-
 [[analyzers]]
 name = "javascript"
 enabled = true
