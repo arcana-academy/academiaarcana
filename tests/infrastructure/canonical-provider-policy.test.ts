@@ -83,7 +83,7 @@ describe("canonical infrastructure provider policy", () => {
     expect(render).toContain("branch: main");
     expect(render).toContain("buildCommand: npm ci && npm run build");
     expect(render).toContain("startCommand: npm start");
-    expect(render).toContain("healthCheckPath: /");
+    expect(render).toContain("healthCheckPath: /api/health");
   });
 
   it("preserves the Supabase role as the application data backend", () => {
