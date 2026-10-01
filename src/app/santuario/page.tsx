@@ -6,6 +6,7 @@ import { SupabaseSanctuaryRepository } from "@/infrastructure/sanctuary/supabase
 import { createClient } from "@/lib/supabase/server";
 
 /** Render the authenticated Sanctuary route using the application layer. */
+/** Render the authenticated Sanctuary route using the application layer. */
 export default async function SanctuaryPage() {
   const claims = await requireAuthenticatedUser();
 
