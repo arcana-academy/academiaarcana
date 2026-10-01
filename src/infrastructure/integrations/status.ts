@@ -258,6 +258,196 @@ const chatgptBridgeUrls = new Map<string, string | undefined>(
   ]),
 );
 
+async function resolveGitHubEntry(
+  verifier: () => Promise<GitHubConnectionVerification>,
+): Promise<IntegrationStatusEntry> {
+  try {
+    return githubVerificationEntry(await verifier());
+  } catch {
+    return {
+      name: "GitHub",
+      source: "chatgpt-catalog",
+      status: "error",
+      executionMode: "runtime",
+      verification: null,
+    };
+  }
+}
+
+async function resolveDataCampEntry(
+  verifier: () => Promise<DataCampConnectionVerification>,
+  apiKey?: string,
+): Promise<IntegrationStatusEntry> {
+  if (!apiKey?.trim()) return dataCampCatalogEntry();
+  try {
+    return dataCampVerificationEntry(await verifier());
+  } catch {
+    return dataCampErrorEntry();
+  }
+}
+
+async function resolveDropboxEntry(
+  verifier: (token?: string) => Promise<DropboxConnectionVerification>,
+  token?: string,
+): Promise<IntegrationStatusEntry> {
+  if (!token?.trim()) return dropboxCatalogEntry();
+  try {
+    return dropboxVerificationEntry(await verifier(token));
+  } catch {
+    return dropboxErrorEntry();
+  }
+}
+
+async function resolveAirtableEntry(
+  verifier: () => Promise<AirtableConnectionVerification>,
+  token?: string,
+  baseId?: string,
+): Promise<IntegrationStatusEntry> {
+  if (!token?.trim() || !baseId?.trim()) return airtableCatalogEntry();
+  try {
+    return airtableVerificationEntry(await verifier());
+  } catch {
+    return airtableErrorEntry();
+  }
+}
+
+function runtimeCatalogEntry(
+  name: string,
+  providerId: string,
+  capabilities: readonly string[],
+): IntegrationStatusEntry {
+  return {
+    name,
+    source: "runtime",
+    status: "catalogued",
+    executionMode: "runtime",
+    providerId,
+    capabilities,
+    verification: null,
+  };
+}
+
+const STATIC_PLUGIN_ENTRIES = new Map<string, IntegrationStatusEntry>([
+  [
+    "Notion",
+    runtimeCatalogEntry(
+      "Notion",
+      "notion",
+      ["read", "write", "search", "metadata"],
+    ),
+  ],
+  [
+    "Outlook Calendar",
+    runtimeCatalogEntry(
+      "Outlook Calendar",
+      "outlook-calendar",
+      ["read", "write", "search", "calendar"],
+    ),
+  ],
+  [
+    "Asana",
+    runtimeCatalogEntry(
+      "Asana",
+      ASANA_PROVIDER_ID,
+      ["read", "write", "search"],
+    ),
+  ],
+  [
+    "Trello",
+    runtimeCatalogEntry(
+      "Trello",
+      "trello",
+      ["read", "write", "search", "metadata"],
+    ),
+  ],
+  [
+    "Todoist",
+    runtimeCatalogEntry(
+      "Todoist",
+      "todoist",
+      ["read", "write", "search", "calendar"],
+    ),
+  ],
+  [
+    "Agentic Course Redesign",
+    {
+      name: "Agentic Course Redesign",
+      source: "chatgpt-catalog",
+      status: "catalogued",
+      executionMode: "chatgpt-hosted",
+      providerId: AGENTIC_COURSE_REDESIGN_APP_ID,
+      capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,
+      verification: null,
+    },
+  ],
+  [
+    "Tarteel",
+    {
+      name: "Tarteel",
+      source: "chatgpt-catalog",
+      status: "catalogued",
+      executionMode: "chatgpt-hosted",
+      providerId: TARTEEL_APP_ID,
+      capabilities: TARTEEL_CAPABILITIES,
+      verification: null,
+    },
+  ],
+]);
+
+function catalogEntryForPlugin(
+  plugin: (typeof CHATGPT_PLUGIN_CATALOG)[number],
+): IntegrationStatusEntry {
+  const bridgeUrl = chatgptBridgeUrls.get(plugin.name);
+  const staticEntry = STATIC_PLUGIN_ENTRIES.get(plugin.name);
+  const baseEntry = staticEntry ?? {
+    name: plugin.name,
+    source: plugin.source,
+    status: "catalogued" as const,
+    executionMode: plugin.name === "Todoist" ? "runtime" as const : "catalog-only" as const,
+    verification: null,
+  };
+
+  return {
+    ...baseEntry,
+    ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
+  };
+}
+
+function buildIntegrationEntries(
+  githubEntry: IntegrationStatusEntry,
+  dataCampEntry: IntegrationStatusEntry,
+  dropboxEntry: IntegrationStatusEntry,
+  airtableEntry: IntegrationStatusEntry,
+): IntegrationStatusEntry[] {
+  const verifiedEntries = new Map<string, IntegrationStatusEntry>([
+    ["GitHub", githubEntry],
+    ["DataCamp", dataCampEntry],
+    ["Dropbox", dropboxEntry],
+    ["Airtable", airtableEntry],
+  ]);
+  return CHATGPT_PLUGIN_CATALOG.map(
+    (plugin) => verifiedEntries.get(plugin.name) ?? catalogEntryForPlugin(plugin),
+  );
+}
+
+function buildIntegrationSnapshot(
+  entries: readonly IntegrationStatusEntry[],
+  runtimeIntegrations: readonly Awaited<
+    ReturnType<typeof getOpenAIAgentsRuntimeSnapshot>
+  >[],
+): IntegrationStatusSnapshot {
+  return {
+    generatedAt: new Date().toISOString(),
+    catalogSize: entries.length,
+    connectedCount: entries.filter((entry) => entry.status === "connected").length,
+    cataloguedCount: entries.filter((entry) => entry.status === "catalogued").length,
+    errorCount: entries.filter((entry) => entry.status === "error").length,
+    entries,
+    runtimeIntegrations,
+  };
+}
+
+/** Returns the current integration catalog and verified runtime connection states. */
 export async function getIntegrationStatusSnapshot({
   githubVerifier = verifyGitHubConnection,
   dataCampVerifier = verifyDataCampConnection,
@@ -279,134 +469,20 @@ export async function getIntegrationStatusSnapshot({
   readonly airtableToken?: string;
   readonly airtableBaseId?: string;
 } = {}): Promise<IntegrationStatusSnapshot> {
-  let githubEntry: IntegrationStatusEntry = {
-    name: "GitHub",
-    source: "chatgpt-catalog",
-    status: "error",
-    executionMode: "runtime",
-    verification: null,
-  };
+  const [githubEntry, dataCampEntry, dropboxEntry, airtableEntry] =
+    await Promise.all([
+      resolveGitHubEntry(githubVerifier),
+      resolveDataCampEntry(dataCampVerifier, dataCampApiKey),
+      resolveDropboxEntry(dropboxVerifier, dropboxToken),
+      resolveAirtableEntry(airtableVerifier, airtableToken, airtableBaseId),
+    ]);
 
-  try {
-    githubEntry = githubVerificationEntry(await githubVerifier());
-  } catch {
-    // Keep the public status response generic.
-  }
-
-  let dataCampEntry = dataCampCatalogEntry();
-  if (dataCampApiKey?.trim()) {
-    try {
-      dataCampEntry = dataCampVerificationEntry(await dataCampVerifier());
-    } catch {
-      dataCampEntry = dataCampErrorEntry();
-    }
-  }
-
-  let dropboxEntry = dropboxCatalogEntry();
-  if (dropboxToken?.trim()) {
-    try {
-      dropboxEntry = dropboxVerificationEntry(await dropboxVerifier(dropboxToken));
-    } catch {
-      dropboxEntry = dropboxErrorEntry();
-    }
-  }
-
-  let airtableEntry = airtableCatalogEntry();
-  if (airtableToken?.trim() && airtableBaseId?.trim()) {
-    try {
-      airtableEntry = airtableVerificationEntry(await airtableVerifier());
-    } catch {
-      airtableEntry = airtableErrorEntry();
-    }
-  }
-
-
-  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
-    if (plugin.name === "GitHub") return githubEntry;
-    if (plugin.name === "DataCamp") return dataCampEntry;
-    if (plugin.name === "Dropbox") return dropboxEntry;
-    if (plugin.name === "Notion") {
-      return {
-        name: "Notion",
-        source: "runtime" as const,
-        status: "catalogued" as const,
-        executionMode: "runtime" as const,
-        providerId: "notion",
-        capabilities: ["read", "write", "search", "metadata"],
-        verification: null,
-      };
-    }
-    if (plugin.name === "Outlook Calendar") {
-      return {
-        name: "Outlook Calendar",
-        source: "runtime" as const,
-        status: "catalogued" as const,
-        executionMode: "runtime" as const,
-        providerId: "outlook-calendar",
-        capabilities: ["read", "write", "search", "calendar"],
-        verification: null,
-      };
-    }
-    if (plugin.name === "Airtable") return airtableEntry;
-
-    if (plugin.name === "Asana") {
-      return {
-        name: "Asana",
-        source: "runtime" as const,
-        status: "catalogued" as const,
-        executionMode: "runtime" as const,
-        providerId: ASANA_PROVIDER_ID,
-        capabilities: ["read", "write", "search"],
-        verification: null,
-      };
-    }
-
-    if (plugin.name === "Trello") {
-      return {
-        name: "Trello",
-        source: "runtime" as const,
-        status: "catalogued" as const,
-        executionMode: "runtime" as const,
-        providerId: "trello",
-        capabilities: ["read", "write", "search", "metadata"],
-        verification: null,
-      };
-    }
-
-    const bridgeUrl = chatgptBridgeUrls.get(plugin.name);
-    const isAgenticCourseRedesign = plugin.name === "Agentic Course Redesign";
-    const isTarteel = plugin.name === "Tarteel";
-
-    return {
-      name: plugin.name,
-      source: plugin.source,
-      status: "catalogued" as const,
-      executionMode:
-        isAgenticCourseRedesign || isTarteel
-          ? ("chatgpt-hosted" as const)
-          : plugin.name === "Todoist"
-            ? ("runtime" as const)
-            : ("catalog-only" as const),
-      ...(bridgeUrl ? { chatgptAppUrl: bridgeUrl } : {}),
-      ...(plugin.name === "Todoist"
-        ? {
-            providerId: "todoist",
-            capabilities: ["read", "write", "search", "calendar"],
-          }
-        : {}),
-      ...(isAgenticCourseRedesign
-        ? {
-            capabilities: AGENTIC_COURSE_REDESIGN_CAPABILITIES,
-            providerId: AGENTIC_COURSE_REDESIGN_APP_ID,
-          }
-        : {}),
-      ...(isTarteel
-        ? { capabilities: TARTEEL_CAPABILITIES, providerId: TARTEEL_APP_ID }
-        : {}),
-      verification: null,
-    };
-  });
-
+  const entries = buildIntegrationEntries(
+    githubEntry,
+    dataCampEntry,
+    dropboxEntry,
+    airtableEntry,
+  );
   const webResearchEntries = [
     webResearchCatalogEntry(PARALLEL_SEARCH_INTEGRATION_DEFINITION),
     webResearchCatalogEntry(EXA_WEB_RESEARCH_INTEGRATION_DEFINITION),
@@ -414,13 +490,6 @@ export async function getIntegrationStatusSnapshot({
   const allEntries = [...entries, ...webResearchEntries];
   const runtimeIntegrations = [await getOpenAIAgentsRuntimeSnapshot()];
 
-  return {
-    generatedAt: new Date().toISOString(),
-    catalogSize: allEntries.length,
-    connectedCount: allEntries.filter((entry) => entry.status === "connected").length,
-    cataloguedCount: allEntries.filter((entry) => entry.status === "catalogued").length,
-    errorCount: allEntries.filter((entry) => entry.status === "error").length,
-    entries: allEntries,
-    runtimeIntegrations,
-  };
+  return buildIntegrationSnapshot(allEntries, runtimeIntegrations);
 }
+
