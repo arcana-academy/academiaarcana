@@ -710,7 +710,7 @@ Every new architecture change must preserve:
 7. No silent replacement of prior decisions.
 8. Product-driven complexity.
 9. Accessibility and privacy as cross-cutting properties.
-10. Vercel remains final infrastructure/deployment work and requires explicit approval for production mutation.
+10. Render is the sole application deployment/hosting platform. GitHub Actions provides CI/validation; production deployment is performed by Render after the approved release boundary.
 
 ---
 
