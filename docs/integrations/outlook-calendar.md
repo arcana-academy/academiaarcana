@@ -67,4 +67,4 @@ environment confirms:
 6. Unit, accessibility and E2E coverage.
 7. Required external configuration.
 
-No Vercel production action is part of this integration change.
+No Render production action is part of this integration change.
