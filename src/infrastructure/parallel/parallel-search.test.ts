@@ -73,7 +73,7 @@ describe("parallel search infrastructure", () => {
   it("maps extraction errors without exposing provider response bodies", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
 
-    const fetchImpl = vi.fn<ParallelSearchFetch>(() =>
+    const fetchImpl: ParallelSearchFetch = vi.fn(() =>
       Promise.resolve(
         mockResponse({
           results: [
