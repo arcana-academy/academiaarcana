@@ -44,13 +44,19 @@ export const CANONICAL_INFRASTRUCTURE_PROVIDERS = [
       "AWS Amplify",
       "Cloudflare Pages",
       "Cloudflare Workers",
+      "Floot",
+      "Replit",
+      "Base44",
+      "Lovable",
+      "Webflow",
+      "Wix",
     ],
   },
   {
     role: "data-backend",
     provider: "Supabase",
     responsibility: "Authentication, PostgreSQL persistence, RLS, Storage and application data services.",
-    disallowedAlternatives: ["Firebase", "Appwrite", "PocketBase"],
+    disallowedAlternatives: ["Firebase", "Appwrite", "PocketBase", "Neon"],
   },
 ] as const satisfies readonly CanonicalProvider[];
 
