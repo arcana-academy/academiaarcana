@@ -59,19 +59,34 @@ function assertSelectedProviderConfigured(provider: WebResearchProvider): void {
   }
 }
 
+const PROVIDER_KEY_NAMES: Record<
+  WebResearchProvider,
+  "PARALLEL_API_KEY" | "EXA_API_KEY"
+> = {
+  parallel: "PARALLEL_API_KEY",
+  exa: "EXA_API_KEY",
+};
+
 /** Resolves an explicitly requested provider, or returns null when none was requested. */
 function resolveConfiguredProvider(
   configured: string | undefined,
 ): WebResearchProvider | null {
   if (!configured) return null;
-  if (!isWebResearchProvider(configured)) {
+
+  const provider = PROVIDER_KEY_NAMES[configured as WebResearchProvider];
+  if (!provider) {
     throw new Error(
       "MESTRE_ARCANO_WEB_RESEARCH_PROVIDER must be either parallel or exa.",
     );
   }
 
-  assertSelectedProviderConfigured(configured);
-  return configured;
+  if (!hasKey(provider)) {
+    throw new Error(
+      `Configured web research provider "${configured}" is not configured.`,
+    );
+  }
+
+  return configured as WebResearchProvider;
 }
 
 
