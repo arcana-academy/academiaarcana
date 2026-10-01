@@ -70,6 +70,18 @@ describe('Honeybadger runtime configuration', () => {
     expect(mocks.debug).toHaveBeenCalledWith('Honeybadger configured for edge')
   })
 
+  it('uses Render commit metadata when no public revision is supplied', async () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_ENV', '')
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('RENDER_GIT_COMMIT', 'render-commit')
+
+    const { config } = await import('./honeybadger.server.config.js')
+
+    expect(config.environment).toBe('production')
+    expect(config.revision).toBe('render-commit')
+    expect(mocks.configure).toHaveBeenCalledWith(config)
+  })
+
   it('rewrites server backtrace files to their hosted asset locations', async () => {
     vi.stubEnv('NEXT_PUBLIC_HONEYBADGER_ASSETS_URL', 'https://assets.example.test')
 
