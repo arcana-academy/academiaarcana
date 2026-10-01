@@ -88,7 +88,7 @@ describe("parallel search infrastructure", () => {
             http_status_code: 403,
           },
         ],
-      }),
+      })),
     );
 
     const result = await extractParallelWeb({
