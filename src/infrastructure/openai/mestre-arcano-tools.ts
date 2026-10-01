@@ -93,70 +93,190 @@ export const MESTRE_ARCANO_TOOLS = [
   },
 ] as const;
 
+
 type ToolCall = {
   readonly name: string;
   readonly arguments: string;
 };
 
+type ToolHandler = (
+  args: Record<string, unknown>,
+  context: MestreArcanoToolContext,
+) => Promise<string>;
+
+/** Serializes a tool result for the OpenAI Responses API. */
 function jsonResult(value: unknown): string {
   return JSON.stringify(value);
 }
+
+/** Parses untrusted tool arguments and fails closed on non-object JSON. */
+function parseToolArguments(rawArguments: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(rawArguments) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Argumentos de ferramenta inválidos.");
+    }
+    return parsed as Record<string, unknown>;
+  } catch {
+    throw new Error("Argumentos de ferramenta inválidos.");
+  }
+}
+
+/** Reads a required string argument and preserves the tool-specific error message. */
+function requireStringArgument(
+  args: Record<string, unknown>,
+  key: string,
+  errorMessage: string,
+): string {
+  const value = args[key];
+  if (typeof value !== "string") {
+    throw new Error(errorMessage);
+  }
+  return value;
+}
+
+/** Reads a required numeric argument and preserves the tool-specific error message. */
+function requireNumberArgument(
+  args: Record<string, unknown>,
+  key: string,
+  errorMessage: string,
+): number {
+  const value = args[key];
+  if (typeof value !== "number") {
+    throw new Error(errorMessage);
+  }
+  return value;
+}
+
+/** Extracts string URLs from the validated extraction argument. */
+function requireUrlArguments(args: Record<string, unknown>): string[] {
+  const value = args.urls;
+  if (!Array.isArray(value)) {
+    throw new Error("Parâmetros de extração web inválidos.");
+  }
+  return value.filter((url): url is string => typeof url === "string");
+}
+
+/** Runs the web-search handler through the single provider-neutral boundary. */
+async function handleSearchWeb(
+  args: Record<string, unknown>,
+): Promise<string> {
+  const objective = requireStringArgument(
+    args,
+    "objective",
+    "Parâmetros de pesquisa web inválidos.",
+  );
+  const query = requireStringArgument(
+    args,
+    "query",
+    "Parâmetros de pesquisa web inválidos.",
+  );
+  const numResults = requireNumberArgument(
+    args,
+    "numResults",
+    "Parâmetros de pesquisa web inválidos.",
+  );
+
+  return jsonResult(
+    await searchWebResearch({ objective, query, numResults }),
+  );
+}
+
+/** Runs the Parallel-backed web-extraction handler. */
+async function handleExtractWebSource(
+  args: Record<string, unknown>,
+): Promise<string> {
+  const objective = requireStringArgument(
+    args,
+    "objective",
+    "Parâmetros de extração web inválidos.",
+  );
+  const urls = requireUrlArguments(args);
+
+  return jsonResult(await extractWebResearch({ urls, objective }));
+}
+
+/** Runs the authenticated learner gamification handler. */
+async function handleGamificationProfile(
+  _args: Record<string, unknown>,
+  context: MestreArcanoToolContext,
+): Promise<string> {
+  return jsonResult(await context.learner.getGamificationProfile());
+}
+
+/** Runs the authenticated missions handler. */
+async function handleTodayMissions(
+  _args: Record<string, unknown>,
+  context: MestreArcanoToolContext,
+): Promise<string> {
+  return jsonResult(
+    await context.learner.listTodayMissions(
+      new Date().toISOString().slice(0, 10),
+    ),
+  );
+}
+
+/** Runs the authenticated upcoming-study-task handler. */
+async function handleUpcomingStudyTasks(
+  args: Record<string, unknown>,
+  context: MestreArcanoToolContext,
+): Promise<string> {
+  const limit =
+    typeof args.limit === "number"
+      ? args.limit
+      : 5;
+  return jsonResult(
+    await context.learner.listUpcomingStudyTasks(
+      new Date().toISOString(),
+      limit,
+    ),
+  );
+}
+
+/** Runs the authenticated SharePoint source-list handler. */
+async function handleConnectedSharePointSources(
+  _args: Record<string, unknown>,
+  context: MestreArcanoToolContext,
+): Promise<string> {
+  return jsonResult(
+    await context.documents.listConnectedSharePointSources(),
+  );
+}
+
+/** Runs the authenticated SharePoint document-context handler. */
+async function handleSharePointDocumentContext(
+  args: Record<string, unknown>,
+  context: MestreArcanoToolContext,
+): Promise<string> {
+  const sourceId = requireStringArgument(
+    args,
+    "sourceId",
+    "ID da fonte do SharePoint inválido.",
+  );
+  return jsonResult(
+    await context.documents.getSharePointDocumentContext(sourceId),
+  );
+}
+
+const TOOL_HANDLERS: Record<string, ToolHandler> = {
+  search_web: handleSearchWeb,
+  extract_web_source: handleExtractWebSource,
+  get_gamification_profile: handleGamificationProfile,
+  get_today_missions: handleTodayMissions,
+  get_upcoming_study_tasks: handleUpcomingStudyTasks,
+  get_connected_sharepoint_sources: handleConnectedSharePointSources,
+  get_sharepoint_document_context: handleSharePointDocumentContext,
+};
 
 /** Executes one authorized Mestre Arcano tool call using the current server-side context. */
 export async function executeMestreArcanoTool(
   call: ToolCall,
   context: MestreArcanoToolContext,
 ): Promise<string> {
-  let args: Record<string, unknown>;
-  try {
-    args = JSON.parse(call.arguments) as Record<string, unknown>;
-  } catch {
-    throw new Error("Argumentos de ferramenta inválidos.");
+  const args = parseToolArguments(call.arguments);
+  const handler = TOOL_HANDLERS[call.name];
+  if (!handler) {
+    throw new Error("Ferramenta do Mestre Arcano não autorizada.");
   }
-
-  switch (call.name) {
-    case "search_web":
-      if (typeof args.objective !== "string" || typeof args.query !== "string" || typeof args.numResults !== "number") {
-        throw new Error("Parâmetros de pesquisa web inválidos.");
-      }
-      return jsonResult(await searchWebResearch({ objective: args.objective, query: args.query, numResults: args.numResults }));
-
-    case "extract_web_source":
-      if (!Array.isArray(args.urls) || typeof args.objective !== "string") {
-        throw new Error("Parâmetros de extração web inválidos.");
-      }
-      return jsonResult(await extractWebResearch({ urls: args.urls.filter((url): url is string => typeof url === "string"), objective: args.objective }));
-
-    case "get_gamification_profile":
-      return jsonResult(await context.learner.getGamificationProfile());
-
-    case "get_today_missions":
-      return jsonResult(
-        await context.learner.listTodayMissions(new Date().toISOString().slice(0, 10)),
-      );
-
-    case "get_upcoming_study_tasks":
-      return jsonResult(
-        await context.learner.listUpcomingStudyTasks(
-          new Date().toISOString(),
-          typeof args.limit === "number" ? args.limit : 5,
-        ),
-      );
-
-    case "get_connected_sharepoint_sources":
-      return jsonResult(
-        await context.documents.listConnectedSharePointSources(),
-      );
-
-    case "get_sharepoint_document_context":
-      if (typeof args.sourceId !== "string") {
-        throw new Error("ID da fonte do SharePoint inválido.");
-      }
-      return jsonResult(
-        await context.documents.getSharePointDocumentContext(args.sourceId),
-      );
-
-    default:
-      throw new Error("Ferramenta do Mestre Arcano não autorizada.");
-  }
+  return handler(args, context);
 }
