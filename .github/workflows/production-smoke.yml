@@ -1,7 +1,12 @@
-name: Academia Arcana Production Smoke
+name: Academia Arcana Render Production Smoke
 
 on:
   workflow_dispatch:
+    inputs:
+      base_url:
+        description: "URL pública do Web Service de produção no Render"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -17,11 +22,11 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check production alias
+      - name: Check Render production service
         shell: bash
         run: |
           set -euo pipefail
-          base_url="https://academiaarcana.vercel.app"
+          base_url="${{ inputs.base_url }}"
 
           for attempt in {1..12}; do
             status="$(curl -sS -o /tmp/production.html -w "%{http_code}" --max-time 20 "${base_url}/")"
@@ -41,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base_url="https://academiaarcana.vercel.app"
+          base_url="${{ inputs.base_url }}"
 
           for path in /login /cadastro /recuperar-senha /integracoes; do
             status="$(curl -sS -o /tmp/route.html -w "%{http_code}" --max-time 20 "${base_url}${path}")"
@@ -57,7 +62,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base_url="https://academiaarcana.vercel.app"
+          base_url="${{ inputs.base_url }}"
 
           curl -fsS --max-time 20 "${base_url}/api/integrations/status" -o /tmp/integration-status.json
 
