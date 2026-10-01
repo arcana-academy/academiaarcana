@@ -1,7 +1,6 @@
 version = 1
 
 exclude_patterns = [
-  "scripts/verify-public-runtime-config.mjs",
   # CommonJS build guard; the repository-wide analyzer is configured for ESM.
   "scripts/verify-deployment-platform.cjs",
 ]
