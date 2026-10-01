@@ -95,15 +95,27 @@ For the validated baseline snapshot (`c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`)
 
 The full Quality Gate is established through pull-request checks; deployment state and runtime observability are verified directly in Vercel for each resulting production deployment.
 
-## Vercel
+## Render
 
-The validated production snapshot associated with this baseline is deployment `dpl_F8G5MrgYSa6t3uwbnJ4MWFGD8nGp`, generated from commit `c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`.
+Render is the sole application hosting/deployment platform for the current repository.
 
-The deployment was `READY`, and the repository's Production Smoke workflow completed successfully for the same commit.
+The operational deployment contract is:
 
-The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
+- GitHub repository: `arcana-academy/academiaarcana`;
+- Render service type: Web Service;
+- runtime: Node.js;
+- branch: `main`;
+- build command: `npm ci && npm run build`;
+- start command: `npm start`;
+- health check: `/api/health`;
+- CI/validation: GitHub Actions Quality Gate and security checks;
+- authentication/persistence: Supabase.
 
-The Vercel connector used for this audit does not expose a reliable environment-variable mutation operation. No unsupported Vercel-side environment mutation is claimed.
+The deployment configuration is versioned in `render.yaml`. Secret environment values are intentionally not stored in that file; Render-managed secret variables use `sync: false` and are supplied through the Render environment.
+
+Render should be configured to deploy only after the repository's CI checks pass. Production state is verified by the Render service/deploy object and the application health/smoke checks.
+
+Vercel and GitHub Pages are retired deployment targets and must not be reintroduced into the active delivery path.
 
 ## Supabase
 
