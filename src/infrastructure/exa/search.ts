@@ -154,8 +154,12 @@ async function executeExaSearch(
 
 /** Searches Exa and returns normalized external evidence. */
 export async function searchWebWithExa(
-  { query, numResults = DEFAULT_NUM_RESULTS }: ExaSearch,
-  { fetchImpl = fetch }: { readonly fetchImpl?: ExaFetch } = {},
+  search: ExaSearch,
+  options?: { readonly fetchImpl?: ExaFetch },
 ): Promise<readonly ExaSearchResult[]> {
-  return executeExaSearch(normalizeQuery(query), numResults, fetchImpl);
+  const query = normalizeQuery(search.query);
+  const numResults = search.numResults ?? DEFAULT_NUM_RESULTS;
+  const fetchImpl = options?.fetchImpl ?? fetch;
+
+  return executeExaSearch(query, numResults, fetchImpl);
 }
