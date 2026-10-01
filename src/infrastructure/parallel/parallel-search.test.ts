@@ -17,7 +17,7 @@ describe("parallel search infrastructure", () => {
   it("sends search requests with the server-side API key and maps sources", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
 
-    const fetchImpl = vi.fn<ParallelSearchFetch>(() =>
+    const fetchImpl: ParallelSearchFetch = vi.fn(() =>
       Promise.resolve(
         mockResponse({
           results: [
@@ -58,7 +58,7 @@ describe("parallel search infrastructure", () => {
 
   it("rejects non-http URLs before calling the provider", async () => {
     process.env.PARALLEL_API_KEY = "test-key";
-    const fetchImpl = vi.fn<ParallelSearchFetch>();
+    const fetchImpl: ParallelSearchFetch = vi.fn();
 
     await expect(
       extractParallelWeb({
