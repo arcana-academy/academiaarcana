@@ -2,6 +2,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import {
+  CANONICAL_INFRASTRUCTURE_PROVIDERS,
+  CANONICAL_INFRASTRUCTURE_RULE,
+} from "@/core/architecture/provider-policy";
+
 const root = process.cwd();
 
 function readRepoFile(path: string) {
@@ -9,6 +14,20 @@ function readRepoFile(path: string) {
 }
 
 describe("delivery infrastructure contract", () => {
+  it("defines one canonical provider for each infrastructure responsibility", () => {
+    const roles = CANONICAL_INFRASTRUCTURE_PROVIDERS.map((item) => item.role);
+
+    expect(new Set(roles).size).toBe(4);
+    expect(CANONICAL_INFRASTRUCTURE_PROVIDERS).toHaveLength(4);
+    expect(CANONICAL_INFRASTRUCTURE_RULE).toContain("one canonical platform");
+    expect(CANONICAL_INFRASTRUCTURE_PROVIDERS.map((item) => item.provider)).toEqual([
+      "GitHub",
+      "GitHub Actions",
+      "Render",
+      "Supabase",
+    ]);
+  });
+
   it("has no active Vercel configuration", () => {
     expect(existsSync(resolve(root, "vercel.json"))).toBe(false);
   });
@@ -64,6 +83,45 @@ describe("delivery infrastructure contract", () => {
 
     for (const path of activeFiles) {
       expect(readRepoFile(path)).not.toMatch(/VERCEL_/);
+      expect(readRepoFile(path)).not.toMatch(/NETLIFY/i);
+    }
+  });
+
+  it("blocks equivalent deployment and CI providers from active infrastructure files", () => {
+    const activeFiles = [
+      ".github/workflows/quality.yml",
+      ".github/workflows/production-smoke.yml",
+      "render.yaml",
+      "package.json",
+      ".gitignore",
+      "next.config.ts",
+    ];
+
+    const forbidden = [
+      "Vercel",
+      "Netlify",
+      "Railway",
+      "Fly.io",
+      "Heroku",
+      "AWS App Runner",
+      "AWS Amplify",
+      "Cloudflare Pages",
+      "Cloudflare Workers",
+      "GitLab CI",
+      "CircleCI",
+      "Travis CI",
+      "Jenkins",
+      "Bitbucket Pipelines",
+      "Firebase",
+      "Appwrite",
+      "PocketBase",
+    ];
+
+    for (const path of activeFiles) {
+      const content = readRepoFile(path);
+      for (const provider of forbidden) {
+        expect(content).not.toContain(provider);
+      }
     }
   });
 });
