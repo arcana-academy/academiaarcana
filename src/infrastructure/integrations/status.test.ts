@@ -21,10 +21,10 @@ describe("integration status snapshot", () => {
       }),
     });
 
-    expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length);
+    expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length + 2);
     expect(snapshot.connectedCount).toBe(1);
     expect(snapshot.cataloguedCount).toBe(
-      CHATGPT_PLUGIN_CATALOG.length - 1,
+      CHATGPT_PLUGIN_CATALOG.length + 1,
     );
     expect(snapshot.errorCount).toBe(0);
 
@@ -152,6 +152,32 @@ describe("integration status snapshot", () => {
       executionMode: "runtime",
       providerId: "airtable",
       capabilities: ["read", "write", "search", "metadata", "analytics"],
+      verification: null,
+    });
+
+    const parallel = snapshot.entries.find(
+      (entry) => entry.name === "Parallel — Web Research do Mestre Arcano",
+    );
+    expect(parallel).toMatchObject({
+      name: "Parallel — Web Research do Mestre Arcano",
+      source: "runtime",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "parallel-web-research",
+      capabilities: ["search"],
+      verification: null,
+    });
+
+    const exa = snapshot.entries.find(
+      (entry) => entry.name === "Exa — Web Research do Mestre Arcano",
+    );
+    expect(exa).toMatchObject({
+      name: "Exa — Web Research do Mestre Arcano",
+      source: "runtime",
+      status: "catalogued",
+      executionMode: "runtime",
+      providerId: "exa-web-research",
+      capabilities: ["search"],
       verification: null,
     });
 
