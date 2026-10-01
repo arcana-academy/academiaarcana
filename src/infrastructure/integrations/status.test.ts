@@ -1,9 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import { getIntegrationStatusSnapshot } from "./status";
 
 describe("integration status snapshot", () => {
+  beforeEach(() => {
+    delete process.env.PARALLEL_API_KEY;
+    delete process.env.EXA_API_KEY;
+  });
   it("reports the complete catalog and a verified GitHub connection", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
       githubVerifier: async () => ({
@@ -21,12 +25,30 @@ describe("integration status snapshot", () => {
       }),
     });
 
-    expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length);
+    expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length + 2);
     expect(snapshot.connectedCount).toBe(1);
     expect(snapshot.cataloguedCount).toBe(
-      CHATGPT_PLUGIN_CATALOG.length - 1,
+      CHATGPT_PLUGIN_CATALOG.length + 1,
     );
     expect(snapshot.errorCount).toBe(0);
+    expect(snapshot.serverRuntimeIntegrations).toMatchObject([
+      {
+        providerId: "parallel-web-research",
+        name: "Parallel — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        configuration: "not-configured",
+      },
+      {
+        providerId: "exa-web-research",
+        name: "Exa — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        configuration: "not-configured",
+      },
+    ]);
 
     expect(snapshot.runtimeIntegrations).toMatchObject([
       {
