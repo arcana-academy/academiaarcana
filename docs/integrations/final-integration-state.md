@@ -6,7 +6,7 @@ Atualizado em 2026-09-29.
 
 - Código, contratos, componentes e CI: GitHub `arcana-academy/academiaarcana`.
 - Persistência, RLS, RPCs e autenticação: Supabase `fichnalpbcfjywwhixid`.
-- Publicação: Vercel `academiaarcana`, reservada para a etapa final.
+- Publicação: Render Web Service, controlada pelo `render.yaml` e pelo pipeline GitHub Actions.
 
 ## Domínios reconciliados
 
@@ -47,7 +47,7 @@ O Santuário já compõe:
 - Credenciais criptografadas e vinculadas ao usuário.
 - Projetos e tarefas com leitura, criação e conclusão.
 - Página de gerenciamento em `/integracoes/asana`.
-- Sem publicação ou alteração de infraestrutura da Vercel nesta etapa.
+- Sem publicação ou alteração de infraestrutura de Render nesta etapa.
 
 ## CI
 O GitHub já possui workflows separados para:
