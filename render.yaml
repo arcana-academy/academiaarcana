@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: academiaarcana
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeployTrigger: commit
