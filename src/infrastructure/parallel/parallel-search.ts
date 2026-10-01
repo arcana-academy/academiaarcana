@@ -216,6 +216,39 @@ function buildExtractBody(
   };
 }
 
+/** Validates search inputs and returns normalized request values. */
+function validateSearchInputs(
+  objective: string,
+  searchQueries: readonly string[],
+): { readonly objective: string; readonly queries: string[] } {
+  const normalizedObjective = objective.trim();
+  if (!normalizedObjective) {
+    throw new Error("O objetivo da pesquisa é obrigatório.");
+  }
+
+  const queries = normalizeQueries(searchQueries);
+  if (queries.length === 0) {
+    throw new Error("Informe pelo menos uma consulta de pesquisa.");
+  }
+
+  return {
+    objective: normalizedObjective,
+    queries,
+  };
+}
+
+/** Parses a successful JSON response from a Parallel endpoint. */
+async function parseParallelPayload<T>(
+  response: Response,
+  errorMessage: string,
+): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new Error(errorMessage);
+  }
+}
+
 /** Searches the web through Parallel and normalizes source metadata. */
 export async function searchParallelWeb(
   {
@@ -228,12 +261,10 @@ export async function searchParallelWeb(
     readonly fetchImpl?: ParallelSearchFetch;
   },
 ): Promise<ParallelSearchResult> {
-  const normalizedObjective = objective.trim();
-  if (!normalizedObjective) throw new Error("O objetivo da pesquisa é obrigatório.");
-
-  const queries = normalizeQueries(searchQueries);
-  if (queries.length === 0) throw new Error("Informe pelo menos uma consulta de pesquisa.");
-
+  const { objective: normalizedObjective, queries } = validateSearchInputs(
+    objective,
+    searchQueries,
+  );
   const response = await parallelRequest(
     "/v1/search",
     {
@@ -246,12 +277,10 @@ export async function searchParallelWeb(
 
   if (!response.ok) await parseError(response);
 
-  let payload: ParallelSearchApiResponse;
-  try {
-    payload = (await response.json()) as ParallelSearchApiResponse;
-  } catch {
-    throw new Error("Parallel Search retornou uma resposta inválida.");
-  }
+  const payload = await parseParallelPayload<ParallelSearchApiResponse>(
+    response,
+    "Parallel Search retornou uma resposta inválida.",
+  );
 
   return {
     sources: (payload.results ?? []).map(mapSource),
@@ -287,12 +316,10 @@ export async function extractParallelWeb(
 
   if (!response.ok) await parseError(response);
 
-  let payload: ParallelExtractApiResponse;
-  try {
-    payload = (await response.json()) as ParallelExtractApiResponse;
-  } catch {
-    throw new Error("Parallel Extract retornou uma resposta inválida.");
-  }
+  const payload = await parseParallelPayload<ParallelExtractApiResponse>(
+    response,
+    "Parallel Extract retornou uma resposta inválida.",
+  );
 
   return {
     sources: (payload.results ?? []).map(mapExtractSource),
