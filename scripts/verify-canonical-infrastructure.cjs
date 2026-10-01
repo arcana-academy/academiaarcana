@@ -231,16 +231,6 @@
   }
 
   /**
-   * Alias for the environment-prefix validator kept separate for clarity.
-   * @param {string} content Configuration content to inspect.
-   * @param {string} relativePath Repository-relative path.
-   * @returns {void} Returns when the environment configuration is valid.
-   */
-  function assertNoForbiddenEnvironment(content, relativePath) {
-    assertNoForbiddenEnvironmentPrefix(content, relativePath);
-  }
-
-  /**
    * Recursively collect workflow configuration files.
    * @param {string} relativeDir Repository-relative directory.
    * @returns {string[]} Repository-relative workflow file paths.
