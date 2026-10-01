@@ -174,7 +174,7 @@ async function parseError(response: Response): Promise<never> {
 }
 
 /** Maps a Parallel search result into the application source shape. */
-/** Maps a Parallel search result into the application source shape. */
+
 function mapSource(result: ParallelSearchApiResult): ParallelSearchSource {
   return {
     url: result.url,
@@ -185,8 +185,6 @@ function mapSource(result: ParallelSearchApiResult): ParallelSearchSource {
     ),
   };
 }
-
-/** Searches the web through Parallel and normalizes source metadata. */
 
 /** Maps one Parallel extraction result into the application source shape. */
 function mapExtractSource(result: ParallelExtractApiResult): ParallelExtractResult["sources"][number] {
@@ -218,6 +216,7 @@ function buildExtractBody(
   };
 }
 
+/** Searches the web through Parallel and normalizes source metadata. */
 export async function searchParallelWeb(
   {
     objective,
