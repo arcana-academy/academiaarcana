@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(23);
+select extensions.plan(18);
 
 insert into auth.users (id, email)
 values
@@ -164,6 +164,25 @@ select extensions.is(
   'criterion snapshot is persisted with both attempts'
 );
 
+insert into public.educational_practice_items (
+  id,
+  owner_id,
+  page_id,
+  prompt,
+  reference_answer,
+  evidence_mode,
+  difficulty
+)
+values (
+  '97500000-0000-4000-8000-000000000002',
+  '97000000-0000-4000-8000-000000000001',
+  '97400000-0000-4000-8000-000000000001',
+  'Explique a ideia.',
+  'Uma explicação válida.',
+  'self_assessment',
+  3
+);
+
 select extensions.ok(
   not has_table_privilege(
     'authenticated',
@@ -219,10 +238,10 @@ where pronamespace = 'private'::regnamespace
   and pronargs = 2;
 
 select extensions.throws_ok(
-  $$select public.record_criterion_referenced_practice_attempt(
-    '97500000-0000-4000-8000-000000000001',
+  $select public.record_criterion_referenced_practice_attempt(
+    '97500000-0000-4000-8000-000000000002',
     'Outra tentativa'
-  )$$,
+  )$,
   '22023',
   'Esta atividade usa autoavaliação, não avaliação objetiva.',
   'objective RPC refuses an activity configured for self-assessment'
