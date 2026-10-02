@@ -3,6 +3,7 @@ import type {
   PracticeAttempt,
   PracticeItem,
   PracticeOutcome,
+  PracticeDifficulty,
 } from "@/domains/education";
 import {
   buildEducationalProfile,
@@ -91,7 +92,7 @@ export async function createPractice(
     prompt: string;
     referenceAnswer: string;
     explanation?: string | null;
-    difficulty: import("@/domains/education").PracticeDifficulty;
+    difficulty: PracticeDifficulty;
   },
 ) {
   return repository.createPracticeItem(input);
