@@ -1,20 +1,24 @@
-import type { EducationalPracticeRepository, PracticeOutcome } from "@/domains/education";
 import type {
-  EducationalProfile,
-  LearningGapSignal,
-  ReviewRecommendation,
-} from "@/domains/adaptive";
-import type {
-  EducationalStatistics,
-  MasteryProjection,
-} from "@/domains/learning";
-import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education/p1";
-import { buildEducationalStatistics, buildMasteryProjection } from "@/domains/learning/evidence";
+  EducationalPracticeRepository,
+  PracticeAttempt,
+  PracticeItem,
+  PracticeOutcome,
+} from "@/domains/education";
 import {
   buildEducationalProfile,
   buildLearningGapSignal,
   buildReviewRecommendation,
+  type EducationalProfile,
+  type LearningGapSignal,
+  type ReviewRecommendation,
 } from "@/domains/adaptive";
+import {
+  buildEducationalStatistics,
+  buildMasteryProjection,
+  type EducationalStatistics,
+  type MasteryProjection,
+} from "@/domains/learning";
+import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education/p1";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
@@ -24,16 +28,13 @@ export type EducationalOverview = {
   statistics: EducationalStatistics;
 };
 
-export async function getEducationalOverview(
-  repository: EducationalPracticeRepository,
-  ownerId: string,
-): Promise<EducationalOverview> {
-  const [pages, items, attempts] = await Promise.all([
-    repository.listPages(ownerId),
-    repository.listPracticeItems(ownerId),
-    repository.listPracticeAttempts(ownerId),
-  ]);
-  const attemptsByItem = new Map<string, typeof attempts>();
+export function buildEducationalOverview(
+  pages: Array<{ id: string; title: string }>,
+  items: PracticeItem[],
+  attempts: PracticeAttempt[],
+  now = new Date(),
+): EducationalOverview {
+  const attemptsByItem = new Map<string, PracticeAttempt[]>();
 
   for (const attempt of attempts) {
     const current = attemptsByItem.get(attempt.practiceItemId) ?? [];
@@ -42,13 +43,15 @@ export async function getEducationalOverview(
   }
 
   const reviews = items.map((item) =>
-    buildReviewRecommendation(item, attemptsByItem.get(item.id) ?? []),
+    buildReviewRecommendation(item, attemptsByItem.get(item.id) ?? [], now),
   );
   const mastery = items.map((item) =>
     buildMasteryProjection(item, attemptsByItem.get(item.id) ?? []),
   );
   const learningGaps = items
-    .map((item) => buildLearningGapSignal(item, attemptsByItem.get(item.id) ?? []))
+    .map((item) =>
+      buildLearningGapSignal(item, attemptsByItem.get(item.id) ?? []),
+    )
     .filter((gap): gap is LearningGapSignal => gap !== null);
 
   const profile = buildEducationalProfile(
@@ -65,6 +68,19 @@ export async function getEducationalOverview(
   );
 
   return { reviews, mastery, learningGaps, profile, statistics };
+}
+
+export async function getEducationalOverview(
+  repository: EducationalPracticeRepository,
+  ownerId: string,
+): Promise<EducationalOverview> {
+  const [pages, items, attempts] = await Promise.all([
+    repository.listPages(ownerId),
+    repository.listPracticeItems(ownerId),
+    repository.listPracticeAttempts(ownerId),
+  ]);
+
+  return buildEducationalOverview(pages, items, attempts);
 }
 
 export async function createPractice(
