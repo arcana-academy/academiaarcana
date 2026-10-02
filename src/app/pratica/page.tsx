@@ -267,6 +267,37 @@ function ObjectiveEvidenceSection({
   );
 }
 
+/** Renders the submitted response and the persisted reference snapshot. */
+function PracticeAttemptDetails({
+  attempt,
+  item,
+}: {
+  attempt: PracticeAttempt;
+  item: PracticeItem;
+}) {
+  return (
+    <details>
+      <summary>Ver sua resposta e a referência</summary>
+      <div className="aa-stack">
+        <div>
+          <h4>Sua resposta</h4>
+          <p>{attempt.answer}</p>
+        </div>
+        <div>
+          <h4>Referência</h4>
+          <p>{attempt.criterionReference ?? item.referenceAnswer}</p>
+        </div>
+        {item.explanation ? (
+          <div>
+            <h4>Explicação / próximo passo</h4>
+            <p>{item.explanation}</p>
+          </div>
+        ) : null}
+      </div>
+    </details>
+  );
+}
+
 /** Renders the latest attempt feedback and its evidence provenance. */
 function PracticeAttemptFeedback({
   attempt,
@@ -275,18 +306,18 @@ function PracticeAttemptFeedback({
   attempt: PracticeAttempt;
   item: PracticeItem;
 }) {
+  const evidenceLabel =
+    attempt.evidenceType === "criterion-referenced"
+      ? "criterion-referenced"
+      : "autoavaliação";
+
   return (
     <div className="aa-card aa-card-default" aria-live="polite">
       <h3>Feedback da tentativa</h3>
       <p className="aa-state-copy">{attempt.feedback}</p>
       <p>
-        Tipo de evidência:{" "}
-        <strong>
-          {attempt.evidenceType === "criterion-referenced"
-            ? "criterion-referenced"
-            : "autoavaliação"}
-        </strong>{" "}
-        · resultado <strong>{attempt.outcome}</strong> · evidência{" "}
+        Tipo de evidência: <strong>{evidenceLabel}</strong> · resultado{" "}
+        <strong>{attempt.outcome}</strong> · evidência{" "}
         <strong>{formatPercent(attempt.evidenceScore)}</strong>.
       </p>
       {attempt.criterionResult ? (
@@ -294,25 +325,7 @@ function PracticeAttemptFeedback({
           Resultado do critério: <strong>{attempt.criterionResult}</strong>.
         </p>
       ) : null}
-      <details>
-        <summary>Ver sua resposta e a referência</summary>
-        <div className="aa-stack">
-          <div>
-            <h4>Sua resposta</h4>
-            <p>{attempt.answer}</p>
-          </div>
-          <div>
-            <h4>Referência</h4>
-            <p>{item.referenceAnswer}</p>
-          </div>
-          {item.explanation ? (
-            <div>
-              <h4>Explicação / próximo passo</h4>
-              <p>{item.explanation}</p>
-            </div>
-          ) : null}
-        </div>
-      </details>
+      <PracticeAttemptDetails attempt={attempt} item={item} />
     </div>
   );
 }
@@ -459,6 +472,30 @@ function PracticeGapPanel({ gap }: { gap: LearningGapSignal | null }) {
   );
 }
 
+/** Renders the objective criterion notice when the activity declares one. */
+function PracticeCriterionNotice({ item }: { item: PracticeItem }) {
+  if (item.evidenceMode !== "criterion_exact_match" || !item.criterion) {
+    return null;
+  }
+
+  return (
+    <p className="aa-state-copy">
+      <strong>Critério:</strong> {item.criterion}
+    </p>
+  );
+}
+
+/** Renders feedback only when an attempt is available. */
+function PracticeFeedbackSlot({
+  attempt,
+  item,
+}: {
+  attempt: PracticeAttempt | undefined;
+  item: PracticeItem;
+}) {
+  return attempt ? <PracticeAttemptFeedback attempt={attempt} item={item} /> : null;
+}
+
 /** Renders one practice session while keeping evidence and gamification separate. */
 function PracticeSession({
   item,
@@ -469,20 +506,19 @@ function PracticeSession({
   attempts: PracticeAttempt[];
   overview: EducationalOverview;
 }) {
-  const latestAttempt = attempts[0] ?? null;
-  const review =
-    overview.reviews.find((entry) => entry.practiceItemId === item.id) ?? null;
-  const selfEvidence =
-    overview.evidence.find((entry) => entry.practiceItemId === item.id) ?? null;
-  const objectiveEvidence =
-    overview.objectiveEvidence.find(
-      (entry) => entry.practiceItemId === item.id,
-    ) ?? null;
-  const gap =
-    overview.learningGaps.find(
-      (entry: LearningGapSignal) => entry.practiceItemId === item.id,
-    ) ?? null;
-  const objective = item.evidenceMode === "criterion_exact_match";
+  const latestAttempt = attempts[0];
+  const review = overview.reviews.find(
+    (entry) => entry.practiceItemId === item.id,
+  );
+  const selfEvidence = overview.evidence.find(
+    (entry) => entry.practiceItemId === item.id,
+  );
+  const objectiveEvidence = overview.objectiveEvidence.find(
+    (entry) => entry.practiceItemId === item.id,
+  );
+  const gap = overview.learningGaps.find(
+    (entry) => entry.practiceItemId === item.id,
+  );
 
   return (
     <section
@@ -495,24 +531,16 @@ function PracticeSession({
         {evidenceModeLabel(item.evidenceMode)}. Responda primeiro; a referência só
         aparece depois de existir uma tentativa registrada.
       </p>
-
-      {objective && item.criterion ? (
-        <p className="aa-state-copy">
-          <strong>Critério:</strong> {item.criterion}
-        </p>
-      ) : null}
-
+      <PracticeCriterionNotice item={item} />
       <PracticeAnswerForm item={item} />
-      {latestAttempt ? (
-        <PracticeAttemptFeedback attempt={latestAttempt} item={item} />
-      ) : null}
+      <PracticeFeedbackSlot attempt={latestAttempt} item={item} />
       <PracticeEvidencePanel
         item={item}
-        selfEvidence={selfEvidence}
-        objectiveEvidence={objectiveEvidence}
+        selfEvidence={selfEvidence ?? null}
+        objectiveEvidence={objectiveEvidence ?? null}
       />
-      <PracticeReviewPanel item={item} review={review} />
-      <PracticeGapPanel gap={gap} />
+      <PracticeReviewPanel item={item} review={review ?? null} />
+      <PracticeGapPanel gap={gap ?? null} />
     </section>
   );
 }
