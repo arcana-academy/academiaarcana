@@ -6,6 +6,7 @@ import {
 import {
   createPracticeItemAction,
   submitPracticeAttemptAction,
+  planPracticeReviewAction,
 } from "./actions";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
@@ -65,6 +66,11 @@ export default async function PraticaPage({
     : null;
   const gap = selectedItem
     ? overview.learningGaps.find(
+        (entry) => entry.practiceItemId === selectedItem.id,
+      )
+    : null;
+  const mastery = selectedItem
+    ? overview.mastery.find(
         (entry) => entry.practiceItemId === selectedItem.id,
       )
     : null;
@@ -285,6 +291,19 @@ export default async function PraticaPage({
                 </div>
               ) : null}
 
+              {mastery ? (
+                <div className="aa-card aa-card-default" aria-labelledby="mastery-state-title">
+                  <h3 id="mastery-state-title">Evidência atual</h3>
+                  <p>
+                    Estado: <strong>{mastery.state}</strong>
+                    {mastery.score === null ? "" : ` · ${formatPercent(mastery.score)}`}
+                    {" · "}
+                    {mastery.attemptCount} tentativa(s).
+                  </p>
+                  <p className="aa-state-copy">{mastery.reason}</p>
+                </div>
+              ) : null}
+
               {review ? (
                 <div className="aa-card aa-card-default">
                   <h3>Revisão</h3>
@@ -294,6 +313,26 @@ export default async function PraticaPage({
                       ? "A revisão deste item está liberada."
                       : `Próxima revisão: ${formatDate(review.nextReviewAt)}.`}
                   </p>
+                  <form action={planPracticeReviewAction} className="aa-form">
+                    <input
+                      type="hidden"
+                      name="practiceItemId"
+                      value={selectedItem.id}
+                    />
+                    <input
+                      type="hidden"
+                      name="title"
+                      value={`Revisar: ${selectedItem.prompt}`}
+                    />
+                    <input
+                      type="hidden"
+                      name="dueAt"
+                      value={review.due ? new Date().toISOString() : (review.nextReviewAt ?? "")}
+                    />
+                    <button className="aa-button aa-button-secondary" type="submit">
+                      Adicionar ao Cronograma
+                    </button>
+                  </form>
                 </div>
               ) : null}
 
