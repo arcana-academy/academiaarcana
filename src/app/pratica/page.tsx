@@ -9,7 +9,7 @@ import type {
   LearningGapSignal,
   ReviewRecommendation,
 } from "@/domains/adaptive";
-import type { MasteryProjection } from "@/domains/learning";
+import type { EvidenceProjection } from "@/domains/learning";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import {
   createPracticeItemAction,
@@ -194,9 +194,9 @@ function PracticeSession({
     overview.reviews.find(
       (entry: ReviewRecommendation) => entry.practiceItemId === item.id,
     ) ?? null;
-  const mastery =
-    overview.mastery.find(
-      (entry: MasteryProjection) => entry.practiceItemId === item.id,
+  const evidence =
+    overview.evidence.find(
+      (entry: EvidenceProjection) => entry.practiceItemId === item.id,
     ) ?? null;
   const gap =
     overview.learningGaps.find(
@@ -277,16 +277,16 @@ function PracticeSession({
         </div>
       ) : null}
 
-      {mastery ? (
-        <div className="aa-card aa-card-default" aria-labelledby="mastery-state-title">
-          <h3 id="mastery-state-title">Evidência atual</h3>
+      {evidence ? (
+        <div className="aa-card aa-card-default" aria-labelledby="evidence-state-title">
+          <h3 id="evidence-state-title">Evidência autorreportada atual</h3>
           <p>
-            Estado: <strong>{mastery.state}</strong>
-            {mastery.score === null ? "" : ` · ${formatPercent(mastery.score)}`}
+            Estado: <strong>{evidence.state}</strong>
+            {evidence.score === null ? "" : ` · ${formatPercent(evidence.score)}`}
             {" · "}
-            {mastery.attemptCount} tentativa(s).
+            {evidence.attemptCount} tentativa(s).
           </p>
-          <p className="aa-state-copy">{mastery.reason}</p>
+          <p className="aa-state-copy">{evidence.reason}</p>
         </div>
       ) : null}
 

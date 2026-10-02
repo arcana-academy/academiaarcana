@@ -1,13 +1,12 @@
 /**
  * Public contracts for the learning domain.
  *
- * Domain behavior will be introduced incrementally.
+ * Educational evidence is intentionally distinguished from confirmed mastery.
  */
 
-export {};
-
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
-export type MasteryProjection = {
+
+export type EvidenceProjection = {
   practiceItemId: string;
   pageId: string;
   pageTitle: string;
@@ -16,7 +15,10 @@ export type MasteryProjection = {
   attemptCount: number;
   confidence: EvidenceConfidence;
   reason: string;
+  source: "self-assessment";
+  masteryConfirmed: false;
 };
+
 export type EducationalStatistics = {
   practiceItemCount: number;
   attemptCount: number;
@@ -24,5 +26,5 @@ export type EducationalStatistics = {
   retrievalSuccessRate: number | null;
   averageEvidenceScore: number | null;
   reviewDueCount: number;
-  masteryWithStrongEvidence: number;
+  itemsWithStrongSelfReportedEvidence: number;
 };

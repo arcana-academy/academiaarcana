@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
-import { buildEducationalStatistics, buildMasteryProjection } from "./evidence";
+import { buildEducationalStatistics, buildEvidenceProjection } from "./evidence";
 
 const item: PracticeItem = {
   id: "item-1",
@@ -35,8 +35,8 @@ const makeAttempt = (
 });
 
 describe("learning evidence", () => {
-  it("keeps mastery unknown without evidence", () => {
-    expect(buildMasteryProjection(item, [])).toMatchObject({
+  it("keeps evidence unknown without evidence", () => {
+    expect(buildEvidenceProjection(item, [])).toMatchObject({
       state: "unknown",
       score: null,
       attemptCount: 0,
@@ -44,36 +44,40 @@ describe("learning evidence", () => {
     });
   });
 
-  it("requires repeated evidence before strong mastery", () => {
+  it("requires repeated evidence before strong self-reported evidence", () => {
     const attempts = [
       makeAttempt("a1", 1, "strong", "27"),
       makeAttempt("a2", 1, "strong", "28"),
       makeAttempt("a3", 1, "strong", "29"),
     ];
-    expect(buildMasteryProjection(item, attempts)).toMatchObject({
+    expect(buildEvidenceProjection(item, attempts)).toMatchObject({
       state: "strong-evidence",
       score: 1,
       attemptCount: 3,
       confidence: "strong",
+      source: "self-assessment",
+      masteryConfirmed: false,
     });
   });
 
-  it("does not let one strong answer become mastery", () => {
-    const mastery = buildMasteryProjection(
+  it("does not let one strong answer confirm mastery", () => {
+    const evidence = buildEvidenceProjection(
       item,
       [makeAttempt("a1", 1, "strong", "29")],
     );
-    expect(mastery.state).toBe("developing");
+    expect(evidence.state).toBe("developing");
+    expect(evidence.masteryConfirmed).toBe(false);
+    expect(evidence.source).toBe("self-assessment");
   });
 
   it("keeps statistics separate from XP and streak", () => {
     const attempts = [makeAttempt("a1", 1, "strong", "29")];
-    const mastery = [buildMasteryProjection(item, attempts)];
-    expect(buildEducationalStatistics([item], attempts, mastery, 0)).toMatchObject({
+    const evidence = [buildEvidenceProjection(item, attempts)];
+    expect(buildEducationalStatistics([item], attempts, evidence, 0)).toMatchObject({
       practiceItemCount: 1,
       attemptCount: 1,
       retrievalSuccessRate: 1,
-      masteryWithStrongEvidence: 0,
+      itemsWithStrongSelfReportedEvidence: 0,
     });
   });
 });
