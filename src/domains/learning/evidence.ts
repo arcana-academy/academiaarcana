@@ -221,23 +221,37 @@ export function buildEducationalStatistics(
       .filter((item) => practicedItemIds.has(item.id))
       .map((item) => item.pageId),
   ).size;
+  const selfReportedAttempts = attempts.filter(
+    (attempt) => attempt.evidenceType === "self-assessment",
+  );
+  const objectiveAttempts = attempts.filter(
+    (attempt) => attempt.evidenceType === "criterion-referenced",
+  );
 
   return {
     practiceItemCount: items.length,
     attemptCount: attempts.length,
     practicedPageCount,
     retrievalSuccessRate:
-      attempts.length === 0
+      selfReportedAttempts.length === 0
         ? null
-        : attempts.filter((attempt) => attempt.outcome === "strong").length /
-          attempts.length,
+        : selfReportedAttempts.filter(
+            (attempt) => attempt.outcome === "strong",
+          ).length / selfReportedAttempts.length,
     averageEvidenceScore:
-      attempts.length === 0
+      selfReportedAttempts.length === 0
         ? null
-        : attempts.reduce(
+        : selfReportedAttempts.reduce(
             (sum, attempt) => sum + attempt.evidenceScore,
             0,
-          ) / attempts.length,
+          ) / selfReportedAttempts.length,
+    objectiveAttemptCount: objectiveAttempts.length,
+    objectivePassRate:
+      objectiveAttempts.length === 0
+        ? null
+        : objectiveAttempts.filter(
+            (attempt) => attempt.criterionResult === "pass",
+          ).length / objectiveAttempts.length,
     reviewDueCount,
     itemsWithStrongSelfReportedEvidence: evidence.filter(
       (entry) => entry.state === "strong-evidence",
