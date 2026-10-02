@@ -113,7 +113,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
       aria-labelledby="education-stats-title"
     >
       <p className="aa-eyebrow">P1 · Estatísticas educacionais</p>
-      <h2 id="education-stats-title">Aprendizagem observável</h2>
+      <h2 id="education-stats-title">Evidência de aprendizagem</h2>
       <p className="aa-state-copy">
         Cada indicador abaixo identifica sua fonte. Ausência de tentativas permanece
         como ausência de evidência.
@@ -178,12 +178,12 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         </FeatureCard>
 
         <FeatureCard
-          title="Evidência forte de domínio"
-          description="Itens com pelo menos três tentativas recentes e média de evidência ≥ 90%."
+          title="Evidência autorreportada forte"
+          description="Itens com pelo menos três autoavaliações recentes e média de evidência ≥ 90%. Isso não confirma domínio acadêmico."
           icon={<Sparkles size={22} />}
         >
           <p className="aa-state-copy">
-            {educational.statistics.masteryWithStrongEvidence}
+            {educational.statistics.itemsWithStrongSelfReportedEvidence}
           </p>
         </FeatureCard>
       </ArcanaFeatureGrid>
@@ -232,18 +232,18 @@ function ProfileSignals({ educational }: { educational: EducationalOverview }) {
 }
 
 /** Renders item-level mastery projections with explicit evidence counts. */
-function MasterySection({ educational }: { educational: EducationalOverview }) {
+function EvidenceSection({ educational }: { educational: EducationalOverview }) {
   return (
     <section className="aa-card aa-card-default" aria-labelledby="mastery-title">
-      <h2 id="mastery-title">Evidência por conteúdo</h2>
-      {educational.mastery.length ? (
+      <h2 id="mastery-title">Evidência autorreportada por conteúdo</h2>
+      {educational.evidence.length ? (
         <ul className="aa-list">
-          {educational.mastery.map((entry) => (
+          {educational.evidence.map((entry) => (
             <li className="aa-list-item aa-surface" key={entry.practiceItemId}>
               <div>
                 <strong>{entry.pageTitle}</strong>
                 <p>
-                  {entry.state} · {percent(entry.score)} · {entry.attemptCount} tentativa(s)
+                  {entry.state} · {percent(entry.score)} · {entry.attemptCount} tentativa(s) · fonte: autoavaliação
                 </p>
                 <span className="aa-state-copy">{entry.reason}</span>
               </div>
@@ -356,7 +356,7 @@ export default async function EstatisticasPage() {
         />
         <EducationalStats educational={educational} />
         <ProfileSignals educational={educational} />
-        <MasterySection educational={educational} />
+        <EvidenceSection educational={educational} />
         <GapsSection educational={educational} />
         <ReviewSection educational={educational} />
       </ArcanaPage>
