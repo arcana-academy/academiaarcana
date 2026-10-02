@@ -1,5 +1,6 @@
 "use client";
 
+/** Renders a recoverable error state for the educational practice surface. */
 export default function Error({
   reset,
 }: {
