@@ -244,6 +244,10 @@ O Produto não possui decisão crítica escondida.
 
 As capacidades futuras permanecem explicitamente separadas de V1.
 
-## 10. Próxima ação
+## 10. Execução PI-01/PI-02
+
+A implementação correspondente foi preparada em PR #459. A promoção de P1.5 continua condicionada à evidência adequada de domínio; a autoavaliação permanece explicitamente autorreportada.
+
+## 11. Próxima ação
 
 Executar PI-01 e PI-02 nos domínios responsáveis antes de promover P1.5 para CONCLUÍDO e antes de apresentar qualquer métrica atual como “domínio confirmado”.
