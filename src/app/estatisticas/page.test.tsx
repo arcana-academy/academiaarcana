@@ -35,6 +35,26 @@ vi.mock("@/components/layout/AuthenticatedShell", () => ({
   AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
+  class MockEducationalPracticeRepository {
+    async listPages() {
+      return [];
+    }
+
+    async listPracticeItems() {
+      return [];
+    }
+
+    async listPracticeAttempts() {
+      return [];
+    }
+  }
+
+  return {
+    SupabaseEducationalPracticeRepository: MockEducationalPracticeRepository,
+  };
+});
+
 import EstatisticasPage from "./page";
 
 describe("EstatisticasPage", () => {
