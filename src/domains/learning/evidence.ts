@@ -9,12 +9,14 @@ export type LearningEvidenceOverview = {
   statistics: EducationalStatistics;
 };
 
+/** Derives confidence from the number of persisted retrieval attempts. */
 function confidenceFor(attemptCount: number): EvidenceProjection["confidence"] {
   if (attemptCount >= 3) return "strong";
   if (attemptCount > 0) return "partial";
   return "insufficient";
 }
 
+/** Classifies the strength of self-reported evidence without confirming mastery. */
 function evidenceStateFor(
   attempts: number,
   score: number,
@@ -24,6 +26,7 @@ function evidenceStateFor(
   return "developing";
 }
 
+/** Explains the current self-reported evidence state and its epistemic limit. */
 function evidenceReasonFor(
   attempts: number,
   state: EvidenceProjection["state"],
