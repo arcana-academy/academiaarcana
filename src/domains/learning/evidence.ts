@@ -28,6 +28,7 @@ const evidenceReasonFor = (
   state: EvidenceProjection["state"],
 ): string =>
   ({
+    unknown: "Ainda não há evidência suficiente para produzir um sinal.",
     "strong-evidence":
       "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
     consolidating:
