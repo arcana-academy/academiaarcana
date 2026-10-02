@@ -30,6 +30,7 @@ export type EducationalOverview = {
 };
 
 /** Builds all educational projections from persisted evidence. */
+/** Builds the complete educational overview from persisted evidence. */
 export function buildEducationalOverview(
   pages: Array<{ id: string; title: string }>,
   items: PracticeItem[],
@@ -73,6 +74,7 @@ export function buildEducationalOverview(
 }
 
 /** Loads and assembles the authenticated learner's educational overview. */
+/** Loads educational evidence for an authenticated learner through the repository boundary. */
 export async function getEducationalOverview(
   repository: EducationalPracticeRepository,
   ownerId: string,
@@ -102,6 +104,7 @@ export function createPractice(
 }
 
 /** Converts an explicit retrieval outcome into normalized educational evidence. */
+/** Converts a self-assessed recovery result into a persisted evidence input. */
 export function buildAttemptInput(input: {
   answer: string;
   outcome: PracticeOutcome;
