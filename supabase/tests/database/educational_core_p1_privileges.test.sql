@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(12);
+select extensions.plan(16);
 
 select extensions.ok(
   relrowsecurity,
@@ -63,3 +63,40 @@ select extensions.ok(
 
 select * from extensions.finish();
 rollback;
+
+
+select extensions.ok(
+  has_function_privilege(
+    'authenticated',
+    'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)',
+    'EXECUTE'
+  ),
+  'authenticated can execute atomic educational attempt operation'
+);
+
+select extensions.ok(
+  not has_function_privilege(
+    'anon',
+    'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)',
+    'EXECUTE'
+  ),
+  'anon cannot execute atomic educational attempt operation'
+);
+
+select extensions.ok(
+  not prosecdef,
+  'atomic educational attempt operation is SECURITY INVOKER'
+)
+from pg_proc
+where oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
+
+select extensions.ok(
+  to_regclass('public.idx_educational_practice_items_page_id') is not null,
+  'practice item page foreign key is indexed'
+);
+
+select extensions.ok(
+  to_regclass('public.idx_educational_practice_attempts_practice_item_id') is not null,
+  'practice attempt item foreign key is indexed'
+);
+
