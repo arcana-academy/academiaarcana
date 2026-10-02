@@ -5,12 +5,14 @@ import type {
 } from "./contracts";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 
+/** Intervals used by the P1 evidence-based review policy. */
 const REVIEW_DAYS: Record<PracticeAttempt["outcome"], number> = {
   strong: 7,
   partial: 3,
   insufficient: 1,
 };
 
+/** Builds the next review window from the latest retrieval evidence. */
 export function buildReviewRecommendation(
   item: PracticeItem,
   attempts: PracticeAttempt[],
@@ -47,6 +49,7 @@ export function buildReviewRecommendation(
   };
 }
 
+/** Emits a revisable gap signal only after repeated weak evidence. */
 export function buildLearningGapSignal(
   item: PracticeItem,
   attempts: PracticeAttempt[],
@@ -72,6 +75,7 @@ export function buildLearningGapSignal(
   };
 }
 
+/** Builds dynamic educational signals from the learner's current evidence sample. */
 export function buildEducationalProfile(
   pageCount: number,
   items: PracticeItem[],
