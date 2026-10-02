@@ -56,7 +56,8 @@ select extensions.ok(
 select extensions.ok(
   not has_function_privilege(
     'service_role',
-    'private.record_educational_practice_attempt(',
+    'private.record_educational_practice_attempt('
+    || 'uuid, text, text, numeric, text, text)',
     'EXECUTE'
   ),
   'service_role cannot execute the private implementation'
