@@ -188,6 +188,26 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         </FeatureCard>
 
         <FeatureCard
+          title="Tentativas objetivas"
+          description="Tentativas avaliadas pelo critério objective da atividade, sem autoavaliação."
+          icon={<Target size={22} />}
+        >
+          <p className="aa-state-copy">
+            {educational.statistics.objectiveAttemptCount}
+          </p>
+        </FeatureCard>
+
+        <FeatureCard
+          title="Aprovação objetiva"
+          description="Tentativas objetivas aprovadas ÷ tentativas objetivas. Sem dados quando nenhuma avaliação objetiva foi feita."
+          icon={<Target size={22} />}
+        >
+          <p className="aa-state-copy">
+            {percent(educational.statistics.objectivePassRate)}
+          </p>
+        </FeatureCard>
+
+        <FeatureCard
           title="Domínio objetivo confirmado"
           description="Atividades criterion-referenced cuja amostra recente satisfez o mínimo de tentativas aprovadas, sem conflito recente."
           icon={<Target size={22} />}
