@@ -29,13 +29,13 @@ select extensions.ok(
 );
 
 select extensions.ok(
-  has_table_privilege('authenticated', 'public.educational_objective_assessments', 'UPDATE'),
-  'authenticated can update objective assessments'
+  not has_table_privilege('authenticated', 'public.educational_objective_assessments', 'UPDATE'),
+  'authenticated cannot alter objective criteria after creation'
 );
 
 select extensions.ok(
-  has_table_privilege('authenticated', 'public.educational_objective_assessments', 'DELETE'),
-  'authenticated can delete objective assessments'
+  not has_table_privilege('authenticated', 'public.educational_objective_assessments', 'DELETE'),
+  'authenticated cannot delete objective evidence roots'
 );
 
 select extensions.ok(
