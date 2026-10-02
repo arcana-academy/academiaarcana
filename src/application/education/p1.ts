@@ -85,7 +85,7 @@ export async function getEducationalOverview(
   ownerId: string,
 ): Promise<EducationalOverview> {
   const [pages, items, attempts] = await Promise.all([
-    repository.listPages(ownerId),
+    repository.listPages(),
     repository.listPracticeItems(ownerId),
     repository.listPracticeAttempts(ownerId),
   ]);
