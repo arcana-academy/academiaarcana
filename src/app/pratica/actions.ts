@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { buildAttemptInput } from "@/application/education/p1";
+import {
+  type PracticeEvidenceMode,
+  type PracticeOutcome,
+} from "@/domains/education";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { StudyTaskService } from "@/application/planning/study-tasks";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
@@ -32,6 +36,13 @@ function difficultyField(formData: FormData): 1 | 2 | 3 | 4 | 5 {
   return value as 1 | 2 | 3 | 4 | 5;
 }
 
+/** Reads the supported evidence mode instead of trusting arbitrary form values. */
+function evidenceModeField(formData: FormData): PracticeEvidenceMode {
+  const value = formData.get("evidenceMode");
+  if (value === "criterion_exact_match") return value;
+  return "self_assessment";
+}
+
 /** Creates a practice item owned by the authenticated learner and redirects to it. */
 export async function createPracticeItemAction(formData: FormData) {
   const claims = await requireAuthenticatedUser();
@@ -46,6 +57,7 @@ export async function createPracticeItemAction(formData: FormData) {
     referenceAnswer: textField(formData, "referenceAnswer"),
     explanation: textField(formData, "explanation", false) || null,
     difficulty: difficultyField(formData),
+    evidenceMode: evidenceModeField(formData),
   });
 
   revalidatePath("/pratica");
@@ -53,7 +65,7 @@ export async function createPracticeItemAction(formData: FormData) {
   redirect(`/pratica?pagina=${encodeURIComponent(pageId)}&item=${encodeURIComponent(item.id)}`);
 }
 
-/** Records an authenticated retrieval attempt and synchronizes page progress. */
+/** Records an authenticated retrieval attempt using the item's declared evidence mode. */
 export async function submitPracticeAttemptAction(formData: FormData) {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
@@ -61,27 +73,33 @@ export async function submitPracticeAttemptAction(formData: FormData) {
 
   const practiceItemId = textField(formData, "practiceItemId");
   const answer = textField(formData, "answer");
-  const outcome = textField(formData, "outcome") as "strong" | "partial" | "insufficient";
-
-  if (!["strong", "partial", "insufficient"].includes(outcome)) {
-    throw new Error("Resultado de recuperação inválido.");
-  }
-
-  const item = (await repository.listPracticeItems(claims.sub)).find(
-    (candidate) => candidate.id === practiceItemId,
-  );
+  const items = await repository.listPracticeItems(claims.sub);
+  const item = items.find((candidate) => candidate.id === practiceItemId);
   if (!item) throw new Error("Atividade de prática não encontrada.");
 
-  const attempt = buildAttemptInput({
-    practiceItemId,
-    answer,
-    outcome,
-  });
+  if (item.evidenceMode === "criterion_exact_match") {
+    await repository.recordCriterionReferencedPracticeAttempt({
+      ownerId: claims.sub,
+      practiceItemId,
+      answer,
+    });
+  } else {
+    const outcome = textField(formData, "outcome") as PracticeOutcome;
+    if (!["strong", "partial", "insufficient"].includes(outcome)) {
+      throw new Error("Resultado de recuperação inválido.");
+    }
 
-  await repository.recordPracticeAttemptAndProgress({
-    ownerId: claims.sub,
-    ...attempt,
-  });
+    const attempt = buildAttemptInput({
+      practiceItemId,
+      answer,
+      outcome,
+    });
+
+    await repository.recordPracticeAttemptAndProgress({
+      ownerId: claims.sub,
+      ...attempt,
+    });
+  }
 
   revalidatePath("/pratica");
   revalidatePath("/estatisticas");
@@ -91,7 +109,6 @@ export async function submitPracticeAttemptAction(formData: FormData) {
     `/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`,
   );
 }
-
 
 /** Schedules a review task for an authenticated practice item. */
 export async function planPracticeReviewAction(formData: FormData) {
@@ -111,7 +128,9 @@ export async function planPracticeReviewAction(formData: FormData) {
   );
   if (!item) throw new Error("Atividade de prática não encontrada.");
 
-  const taskService = new StudyTaskService(new SupabaseStudyTaskRepository(supabase));
+  const taskService = new StudyTaskService(
+    new SupabaseStudyTaskRepository(supabase),
+  );
   await taskService.create({
     ownerId: claims.sub,
     title: title || `Revisar: ${item.prompt}`,
@@ -122,4 +141,4 @@ export async function planPracticeReviewAction(formData: FormData) {
   revalidatePath("/cronograma");
   revalidatePath("/santuario");
   revalidatePath("/estatisticas");
-};
+}
