@@ -19,6 +19,7 @@ import {
   buildObjectiveEvidenceOverview,
   type EducationalStatistics,
   type EvidenceProjection,
+  type ObjectiveEvidenceRecord,
 } from "@/domains/learning";
 import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
@@ -38,6 +39,7 @@ export function buildEducationalOverview(
   items: PracticeItem[],
   attempts: PracticeAttempt[],
   now = new Date(),
+  objectiveEvidence: ObjectiveEvidenceRecord[] = [],
 ): EducationalOverview {
   const attemptsByItem = new Map<string, PracticeAttempt[]>();
 
@@ -100,7 +102,13 @@ export async function getEducationalOverview(
     repository.listObjectiveEvidences(ownerId),
   ]);
 
-  return buildEducationalOverview(pages, items, attempts);
+  return buildEducationalOverview(
+    pages,
+    items,
+    attempts,
+    new Date(),
+    objectiveEvidence,
+  );
 }
 
 /** Creates a native retrieval-practice activity through the repository contract. */
