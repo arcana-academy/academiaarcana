@@ -3,9 +3,12 @@ import type {
   EvidenceProjection,
 } from "./contracts";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
+import type { ObjectiveEvidenceRecord, ObjectiveEvidenceProjection } from "./objective-evidence";
+import { buildObjectiveEvidenceProjection } from "./objective-evidence";
 
 export type LearningEvidenceOverview = {
   evidence: EvidenceProjection[];
+  objectiveEvidence: ObjectiveEvidenceProjection[];
   statistics: EducationalStatistics;
 };
 
@@ -96,6 +99,7 @@ export function buildEducationalStatistics(
   items: PracticeItem[],
   attempts: PracticeAttempt[],
   evidence: EvidenceProjection[],
+  objectiveEvidence: ObjectiveEvidenceProjection[] = [],
   reviewDueCount: number,
 ): EducationalStatistics {
   const practicedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
@@ -125,5 +129,27 @@ export function buildEducationalStatistics(
     itemsWithStrongSelfReportedEvidence: evidence.filter(
       (entry) => entry.state === "strong-evidence",
     ).length,
+    itemsWithConfirmedObjectiveEvidence: objectiveEvidence.filter(
+      (entry) => entry.masteryConfirmed,
+    ).length,
   };
 }
+
+/** Builds item-level objective projections from persisted criterion evidence. */
+export function buildObjectiveEvidenceOverview(
+  items: PracticeItem[],
+  objectiveEvidence: ObjectiveEvidenceRecord[],
+): ObjectiveEvidenceProjection[] {
+  const evidenceByItem = new Map<string, ObjectiveEvidenceRecord[]>();
+
+  for (const evidence of objectiveEvidence) {
+    const current = evidenceByItem.get(evidence.practiceItemId) ?? [];
+    current.push(evidence);
+    evidenceByItem.set(evidence.practiceItemId, current);
+  }
+
+  return items.map((item) =>
+    buildObjectiveEvidenceProjection(item, evidenceByItem.get(item.id) ?? []),
+  );
+}
+
