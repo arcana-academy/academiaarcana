@@ -68,7 +68,7 @@ export function evaluateRequiredPhrases(
     totalCriteria: normalizedPhrases.length,
     state:
       score === 1
-        ? "confirmed"
+        ? "criteria-satisfied"
         : score >= 0.5
           ? "developing"
           : "insufficient",
@@ -135,7 +135,9 @@ export function buildObjectiveEvidenceProjection(
     masteryConfirmed: latest.state === "confirmed",
     reason:
       latest.state === "confirmed"
-        ? "Todos os critérios objetivos desta atividade foram satisfeitos nesta tentativa."
+        ? "Os critérios objetivos validados desta atividade foram satisfeitos."
+        : latest.state === "criteria-satisfied"
+          ? "Todos os critérios explícitos desta atividade foram atendidos. Isso é evidência objetiva de desempenho nesta tarefa, mas não confirma domínio acadêmico por si só."
         : latest.state === "developing"
           ? "Parte dos critérios objetivos foi satisfeita; o sinal permanece em desenvolvimento."
           : latest.state === "conflicting"
