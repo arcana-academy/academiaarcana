@@ -89,6 +89,24 @@ function toAttempt(row: PracticeAttemptRow): PracticeAttempt {
   };
 }
 
+const objectiveCriterion = "A resposta normalizada deve coincidir exatamente com a resposta de referência.";
+const objectiveCriterionVersion = "criterion_exact_match_v1";
+
+/** Derives persisted metadata for an objective exact-match activity. */
+function criterionMetadataFor(evidenceMode: PracticeEvidenceMode) {
+  return evidenceMode === "criterion_exact_match"
+    ? {
+        criterion: objectiveCriterion,
+        criterionVersion: objectiveCriterionVersion,
+        minimumEvidence: 2,
+      }
+    : {
+        criterion: null,
+        criterionVersion: null,
+        minimumEvidence: 2,
+      };
+}
+
 /** Supabase adapter for authenticated educational-practice persistence. */
 export class SupabaseEducationalPracticeRepository
   implements EducationalPracticeRepository
@@ -97,7 +115,6 @@ export class SupabaseEducationalPracticeRepository
 
   /** Lists pages visible to the authenticated owner through RLS. */
   async listPages(ownerId: string) {
-    void ownerId;
     const { data, error } = await this.supabase
       .from("pages")
       .select("id, title")
@@ -158,7 +175,7 @@ export class SupabaseEducationalPracticeRepository
     evidenceMode?: PracticeEvidenceMode;
   }) {
     const evidenceMode = input.evidenceMode ?? "self_assessment";
-    const objective = evidenceMode === "criterion_exact_match";
+    const criterionMetadata = criterionMetadataFor(evidenceMode);
     const { data, error } = await this.supabase
       .from("educational_practice_items")
       .insert({
@@ -169,11 +186,9 @@ export class SupabaseEducationalPracticeRepository
         explanation: input.explanation ?? null,
         difficulty: input.difficulty,
         evidence_mode: evidenceMode,
-        criterion: objective
-          ? "A resposta normalizada deve coincidir exatamente com a resposta de referência."
-          : null,
-        criterion_version: objective ? "criterion_exact_match_v1" : null,
-        minimum_evidence: 2,
+        criterion: criterionMetadata.criterion,
+        criterion_version: criterionMetadata.criterionVersion,
+        minimum_evidence: criterionMetadata.minimumEvidence,
       })
       .select("*")
       .single();
@@ -197,7 +212,6 @@ export class SupabaseEducationalPracticeRepository
     confidence: EvidenceConfidence;
     feedback: string;
   }) {
-    void input.ownerId;
     const { data, error } = await this.supabase.rpc(
       "record_educational_practice_attempt",
       {
