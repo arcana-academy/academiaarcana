@@ -16,6 +16,7 @@ import {
   planPracticeReviewAction,
   submitPracticeAttemptAction,
 } from "./actions";
+import { ObjectiveEvidenceSection } from "./objective-evidence";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
@@ -24,6 +25,7 @@ type PracticePageProps = {
   searchParams: Promise<{
     pagina?: string;
     item?: string;
+    avaliacao?: string;
   }>;
 };
 
@@ -343,12 +345,22 @@ export default async function PraticaPage({
   const supabase = await createClient();
   const repository = new SupabaseEducationalPracticeRepository(supabase);
 
-  const [pages, items, attempts] = await Promise.all([
-    repository.listPages(claims.sub),
-    repository.listPracticeItems(claims.sub),
-    repository.listPracticeAttempts(claims.sub),
-  ]);
-  const overview = buildEducationalOverview(pages, items, attempts);
+  const [pages, items, attempts, objectiveAssessments, objectiveAttempts] =
+    await Promise.all([
+      repository.listPages(claims.sub),
+      repository.listPracticeItems(claims.sub),
+      repository.listPracticeAttempts(claims.sub),
+      repository.listObjectiveAssessments(claims.sub),
+      repository.listObjectiveAttempts(claims.sub),
+    ]);
+  const overview = buildEducationalOverview(
+    pages,
+    items,
+    attempts,
+    new Date(),
+    objectiveAssessments,
+    objectiveAttempts,
+  );
 
   const selectedPage =
     pages.find((page) => page.id === params.pagina) ?? pages[0] ?? null;
@@ -419,6 +431,16 @@ export default async function PraticaPage({
                 item={selectedItem}
                 attempts={attemptsForItem(attempts, selectedItem.id)}
                 overview={overview}
+              />
+            ) : null}
+
+            {selectedPage ? (
+              <ObjectiveEvidenceSection
+                pageId={selectedPage.id}
+                assessments={objectiveAssessments}
+                attempts={objectiveAttempts}
+                selectedAssessmentId={params.avaliacao}
+                evidence={overview.objectiveEvidence}
               />
             ) : null}
           </>
