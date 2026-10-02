@@ -151,6 +151,15 @@ describe("learning evidence", () => {
     );
   });
 
+  it("does not invent objective evidence for self-assessment activities", () => {
+    expect(buildObjectiveEvidenceProjection(item, [])).toMatchObject({
+      state: "unknown",
+      masteryConfirmed: false,
+      criterion: null,
+      criterionVersion: null,
+    });
+  });
+
   it("keeps statistics separate from XP and includes objective confirmations", () => {
     const attempts = [makeAttempt("a1", 1, "strong", "29")];
     const evidence = [buildEvidenceProjection(item, attempts)];
@@ -162,6 +171,8 @@ describe("learning evidence", () => {
       attemptCount: 1,
       retrievalSuccessRate: 1,
       itemsWithStrongSelfReportedEvidence: 0,
+      objectiveAttemptCount: 0,
+      objectivePassRate: null,
       itemsWithConfirmedObjectiveMastery: 0,
     });
   });
