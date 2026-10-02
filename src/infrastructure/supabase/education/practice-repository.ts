@@ -34,6 +34,7 @@ type PracticeAttemptRow = {
   created_at: string;
 };
 
+/** Maps a database practice-item row into the domain contract. */
 function toItem(
   row: PracticeItemRow,
   pageTitle: string,
@@ -53,6 +54,7 @@ function toItem(
   };
 }
 
+/** Maps a database practice-attempt row into the domain contract. */
 function toAttempt(row: PracticeAttemptRow): PracticeAttempt {
   return {
     id: row.id,
@@ -67,13 +69,14 @@ function toAttempt(row: PracticeAttemptRow): PracticeAttempt {
   };
 }
 
+/** Supabase adapter for authenticated educational-practice persistence. */
 export class SupabaseEducationalPracticeRepository
   implements EducationalPracticeRepository
 {
   constructor(private readonly supabase: SupabaseClient) {}
 
-  async listPages(ownerId: string) {
-    void ownerId;
+  /** Lists pages visible to the authenticated owner through RLS. */
+  async listPages(_ownerId: string) {
     const { data, error } = await this.supabase
       .from("pages")
       .select("id, title")
@@ -83,6 +86,7 @@ export class SupabaseEducationalPracticeRepository
     return (data ?? []) as PageRow[];
   }
 
+  /** Lists active practice activities owned by the learner. */
   async listPracticeItems(ownerId: string, pageId?: string) {
     let query = this.supabase
       .from("educational_practice_items")
@@ -107,6 +111,7 @@ export class SupabaseEducationalPracticeRepository
       .map((row) => toItem(row, titles.get(row.page_id) ?? "Página"));
   }
 
+  /** Lists immutable practice evidence owned by the learner. */
   async listPracticeAttempts(ownerId: string, practiceItemId?: string) {
     let query = this.supabase
       .from("educational_practice_attempts")
@@ -121,6 +126,7 @@ export class SupabaseEducationalPracticeRepository
     return ((data ?? []) as PracticeAttemptRow[]).map(toAttempt);
   }
 
+  /** Creates an activity only when the page ownership policy permits it. */
   async createPracticeItem(input: {
     ownerId: string;
     pageId: string;
@@ -151,6 +157,7 @@ export class SupabaseEducationalPracticeRepository
     return toItem(data as PracticeItemRow, pageTitle);
   }
 
+  /** Records evidence and advances page progress in one authorized transaction. */
   async recordPracticeAttemptAndProgress(input: {
     ownerId: string;
     practiceItemId: string;
@@ -180,6 +187,7 @@ export class SupabaseEducationalPracticeRepository
     return toAttempt(row as PracticeAttemptRow);
   }
 
+  /** Legacy repository operation kept for contract compatibility. */
   async createPracticeAttempt(input: {
     ownerId: string;
     practiceItemId: string;
