@@ -109,6 +109,7 @@ describe("learning evidence", () => {
         criterionVersion: objectiveItem.criterionVersion,
         criterionResult: "pass" as const,
         criterionScope: "practice-item" as const,
+        criterionReference: objectiveItem.referenceAnswer,
       },
     ];
     const evidence = buildObjectiveEvidenceProjection(objectiveItem, attempts);
