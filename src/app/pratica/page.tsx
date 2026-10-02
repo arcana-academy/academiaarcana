@@ -7,6 +7,7 @@ import {
   planPracticeReviewAction,
 } from "./actions";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
+import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
@@ -74,7 +75,8 @@ export default async function PraticaPage({
     : null;
 
   return (
-    <main className="aa-page" aria-labelledby="practice-title">
+    <AuthenticatedShell currentPath="/pratica">
+      <main className="aa-page" aria-labelledby="practice-title">
       <header className="aa-card aa-card-elevated">
         <p className="aa-eyebrow">Núcleo educacional P1</p>
         <h1 id="practice-title">Prática e recuperação</h1>
@@ -311,26 +313,32 @@ export default async function PraticaPage({
                       ? "A revisão deste item está liberada."
                       : `Próxima revisão: ${formatDate(review.nextReviewAt)}.`}
                   </p>
-                  <form action={planPracticeReviewAction} className="aa-form">
-                    <input
-                      type="hidden"
-                      name="practiceItemId"
-                      value={selectedItem.id}
-                    />
-                    <input
-                      type="hidden"
-                      name="title"
-                      value={`Revisar: ${selectedItem.prompt}`}
-                    />
-                    <input
-                      type="hidden"
-                      name="dueAt"
-                      value={review.due ? new Date().toISOString() : (review.nextReviewAt ?? "")}
-                    />
-                    <button className="aa-button aa-button-secondary" type="submit">
-                      Adicionar ao Cronograma
-                    </button>
-                  </form>
+                  {review.nextReviewAt ? (
+                    <form action={planPracticeReviewAction} className="aa-form">
+                      <input
+                        type="hidden"
+                        name="practiceItemId"
+                        value={selectedItem.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="title"
+                        value={`Revisar: ${selectedItem.prompt}`}
+                      />
+                      <input
+                        type="hidden"
+                        name="dueAt"
+                        value={review.due ? new Date().toISOString() : review.nextReviewAt}
+                      />
+                      <button className="aa-button aa-button-secondary" type="submit">
+                        Adicionar ao Cronograma
+                      </button>
+                    </form>
+                  ) : (
+                    <p className="aa-state-copy">
+                      A revisão será programável depois que existir uma tentativa registrada.
+                    </p>
+                  )}
                 </div>
               ) : null}
 
@@ -348,6 +356,7 @@ export default async function PraticaPage({
           ) : null}
         </>
       )}
-    </main>
+      </main>
+    </AuthenticatedShell>
   );
 }
