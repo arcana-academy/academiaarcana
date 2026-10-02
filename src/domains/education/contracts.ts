@@ -47,6 +47,10 @@ export interface EducationalPracticeRepository {
     ownerId: string,
     practiceItemId?: string,
   ): Promise<PracticeAttempt[]>;
+  listObjectiveEvidences(
+    ownerId: string,
+    practiceItemId?: string,
+  ): Promise<import("@/domains/learning").ObjectiveEvidenceRecord[]>;
   createPracticeItem(input: {
     ownerId: string;
     pageId: string;
