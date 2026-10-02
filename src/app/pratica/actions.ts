@@ -33,6 +33,7 @@ function difficultyField(formData: FormData): 1 | 2 | 3 | 4 | 5 {
   return value as 1 | 2 | 3 | 4 | 5;
 }
 
+/** Reads and validates the assessment mode selected for a practice item. */
 function assessmentModeField(formData: FormData): PracticeAssessmentMode {
   const value = formData.get("assessmentMode");
   if (value !== "self-assessment" && value !== "criterion-referenced") {
@@ -41,6 +42,7 @@ function assessmentModeField(formData: FormData): PracticeAssessmentMode {
   return value;
 }
 
+/** Parses explicit criterion phrases, one required phrase per line. */
 function criterionPhrasesField(
   formData: FormData,
   assessmentMode: PracticeAssessmentMode,
@@ -63,6 +65,7 @@ function criterionPhrasesField(
   return [...new Set(phrases)];
 }
 
+/** Reads the bounded number of attempts required for objective criteria. */
 function minimumObjectiveAttemptsField(formData: FormData): number {
   const value = Number(formData.get("minimumObjectiveAttempts") ?? 1);
   if (!Number.isInteger(value) || value < 1 || value > 10) {
