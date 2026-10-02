@@ -55,9 +55,8 @@ export function buildEvidenceProjection(
       "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
     consolidating:
       "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências.",
-    developing: repeated
-      ? "As evidências autorreportadas atuais indicam que este conteúdo ainda merece prática ou revisão."
-      : "Há alguma evidência autorreportada, mas a amostra ainda é pequena.",
+    developing:
+      "As evidências autorreportadas atuais ainda merecem prática ou revisão; este sinal não confirma domínio acadêmico.",
   } as const;
 
   return {
