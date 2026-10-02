@@ -7,7 +7,6 @@ import {
   buildAttemptInput,
   createObjectiveAssessment,
 } from "@/application/education/p1";
-import { NORMALIZED_EXACT_MATCH_CRITERION } from "@/domains/education";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { StudyTaskService } from "@/application/planning/study-tasks";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
@@ -79,7 +78,6 @@ export async function createObjectiveAssessmentAction(formData: FormData) {
     pageId,
     prompt: textField(formData, "prompt"),
     referenceAnswer: textField(formData, "referenceAnswer"),
-    criterion: NORMALIZED_EXACT_MATCH_CRITERION,
     minimumEvidence,
   });
 
