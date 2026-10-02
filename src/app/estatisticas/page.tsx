@@ -306,7 +306,7 @@ function ObjectiveEvidenceSection({
                 <span className="aa-state-copy">{entry.reason}</span>
               </div>
               <Link
-                href={"/pratica?pagina=" + encodeURIComponent(entry.pageId) + "&item=" + encodeURIComponent(entry.practiceItemId)}
+                href={`/pratica?pagina=${encodeURIComponent(entry.pageId)}&item=${encodeURIComponent(entry.practiceItemId)}`}
               >
                 Abrir atividade
               </Link>
