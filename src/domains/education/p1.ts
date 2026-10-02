@@ -15,6 +15,7 @@ const scoreByOutcome: Record<PracticeOutcome, number> = {
   insufficient: 0.2,
 };
 
+/** Normalizes a retrieval result into transparent, non-punitive evidence. */
 export function buildAttemptInput(input: {
   answer: string;
   outcome: PracticeOutcome;
