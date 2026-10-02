@@ -7,8 +7,8 @@ export type ObjectiveEvidenceState =
   | "confirmed"
   | "conflicting";
 
-export type ObjectiveEvidenceRecord = import("@/domains/education").ObjectiveEvidenceRepositoryRecord;
-
+export type ObjectiveEvidenceRecord =
+  import("@/domains/education").ObjectiveEvidenceRepositoryRecord;
 
 export type ObjectiveEvidenceProjection = {
   practiceItemId: string;
@@ -25,6 +25,7 @@ export type ObjectiveEvidenceProjection = {
   reason: string;
 };
 
+/** Normalizes criterion text deterministically without semantic inference. */
 function normalizeCriterionText(value: string): string {
   return value
     .toLocaleLowerCase("pt-BR")
@@ -33,7 +34,7 @@ function normalizeCriterionText(value: string): string {
     .replace(/\s+/g, " ");
 }
 
-/** Evaluates a deterministic required-phrases criterion without semantic inference. */
+/** Evaluates required phrases against a learner response. */
 export function evaluateRequiredPhrases(
   answer: string,
   phrases: string[],
@@ -44,9 +45,9 @@ export function evaluateRequiredPhrases(
   state: Exclude<ObjectiveEvidenceState, "conflicting">;
 } {
   const normalizedAnswer = normalizeCriterionText(answer);
-  const normalizedPhrases = [...new Set(
-    phrases.map(normalizeCriterionText).filter(Boolean),
-  )];
+  const normalizedPhrases = [
+    ...new Set(phrases.map(normalizeCriterionText).filter(Boolean)),
+  ];
 
   if (!normalizedPhrases.length) {
     return {
@@ -76,79 +77,12 @@ export function evaluateRequiredPhrases(
   };
 }
 
-export type ObjectiveEvidenceProjection = {
-  practiceItemId: string;
-  pageId: string;
-  pageTitle: string;
-  state: "unknown" | ObjectiveEvidenceState;
-  score: number | null;
-  evidenceCount: number;
-  matchedCriteria: number;
-  totalCriteria: number;
-  criterionVersion: number | null;
-  source: "criterion-referenced";
-  masteryConfirmed: boolean;
-  reason: string;
-};
-
-function normalizeCriterionText(value: string): string {
-  return value
-    .toLocaleLowerCase("pt-BR")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim()
-    .replace(/\s+/g, " ");
-}
-
-/** Evaluates a deterministic required-phrases criterion without semantic inference. */
-export function evaluateRequiredPhrases(
-  answer: string,
-  phrases: string[],
-): {
-  score: number;
-  matchedCriteria: number;
-  totalCriteria: number;
-  state: Exclude<ObjectiveEvidenceState, "conflicting">;
-} {
-  const normalizedAnswer = normalizeCriterionText(answer);
-  const normalizedPhrases = [...new Set(
-    phrases.map(normalizeCriterionText).filter(Boolean),
-  )];
-
-  if (!normalizedPhrases.length) {
-    return {
-      score: 0,
-      matchedCriteria: 0,
-      totalCriteria: 0,
-      state: "insufficient",
-    };
-  }
-
-  const paddedAnswer = ` ${normalizedAnswer} `;
-  const matchedCriteria = normalizedPhrases.filter((phrase) =>
-    paddedAnswer.includes(` ${phrase} `),
-  ).length;
-  const score = matchedCriteria / normalizedPhrases.length;
-
-  return {
-    score,
-    matchedCriteria,
-    totalCriteria: normalizedPhrases.length,
-    state:
-      score === 1
-        ? "criteria-satisfied"
-        : score >= 0.5
-          ? "developing"
-          : "insufficient",
-  };
-}
-
-/** Builds the empty objective projection for an unconfigured or unevaluated item. */
+/** Builds the empty objective projection used when no objective result exists. */
 function unknownObjectiveEvidence(
   item: PracticeItem,
   reason: string,
   criterionVersion: number | null,
   totalCriteria: number,
-  evidenceCount = 0,
 ): ObjectiveEvidenceProjection {
   return {
     practiceItemId: item.id,
@@ -156,7 +90,7 @@ function unknownObjectiveEvidence(
     pageTitle: item.pageTitle,
     state: "unknown",
     score: null,
-    evidenceCount,
+    evidenceCount: 0,
     matchedCriteria: 0,
     totalCriteria,
     criterionVersion,
@@ -166,10 +100,8 @@ function unknownObjectiveEvidence(
   };
 }
 
-/** Returns a learner-facing reason that matches the objective evidence state. */
-function objectiveEvidenceReason(
-  state: ObjectiveEvidenceState,
-): string {
+/** Builds learner-facing copy from an objective evidence state. */
+function objectiveEvidenceReason(state: ObjectiveEvidenceState): string {
   switch (state) {
     case "confirmed":
       return "Os critérios objetivos validados desta atividade foram satisfeitos.";
@@ -190,7 +122,8 @@ export function buildObjectiveEvidenceProjection(
   evidences: ObjectiveEvidenceRecord[],
 ): ObjectiveEvidenceProjection {
   const criteria = item.criterionPhrases;
-  if (item.assessmentMode !== "criterion-referenced" || !criteria.length) {
+
+  if (item.assessmentMode !== "criterion-referenced" || criteria.length === 0) {
     return unknownObjectiveEvidence(
       item,
       "Esta atividade usa autoavaliação; ainda não existe evidência objetiva configurada.",
@@ -228,5 +161,3 @@ export function buildObjectiveEvidenceProjection(
     reason: objectiveEvidenceReason(latest.state),
   };
 }
-
-
