@@ -49,6 +49,8 @@ export type EducationalStatistics = {
   practicedPageCount: number;
   retrievalSuccessRate: number | null;
   averageEvidenceScore: number | null;
+  objectiveAttemptCount: number;
+  objectivePassRate: number | null;
   reviewDueCount: number;
   itemsWithStrongSelfReportedEvidence: number;
   itemsWithConfirmedObjectiveMastery: number;
