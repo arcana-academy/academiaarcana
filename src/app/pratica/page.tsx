@@ -354,9 +354,13 @@ function PracticeSession({
             atendido(s) · {objectiveEvidence.evidenceCount} tentativa(s) avaliada(s).
           </p>
           <p className="aa-state-copy">{objectiveEvidence.reason}</p>
-          {objectiveEvidence.masteryConfirmed ? (
+          {objectiveEvidence.state === "criteria-satisfied" ? (
             <p>
               <strong>Critérios objetivos satisfeitos nesta atividade.</strong>
+            </p>
+          ) : objectiveEvidence.masteryConfirmed ? (
+            <p>
+              <strong>Domínio confirmado neste escopo específico.</strong>
             </p>
           ) : (
             <p className="aa-state-copy">
