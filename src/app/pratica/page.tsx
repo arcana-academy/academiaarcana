@@ -282,7 +282,7 @@ function PracticeSession({
           <h3 id="evidence-state-title">Evidência autorreportada atual</h3>
           <p>
             Estado: <strong>{evidence.state}</strong>
-            {evidence.score === null ? "" : ` · ${formatPercent(mastery.score)}`}
+            {evidence.score === null ? "" : ` · ${formatPercent(evidence.score)}`}
             {" · "}
             {evidence.attemptCount} tentativa(s).
           </p>
