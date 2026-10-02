@@ -16,7 +16,7 @@ export type ObjectiveEvidenceRepositoryRecord = {
   practiceAttemptId: string;
   practiceItemId: string;
   evidenceType: "criterion-referenced";
-  state: "insufficient" | "developing" | "confirmed" | "conflicting";
+  state: "insufficient" | "developing" | "criteria-satisfied" | "confirmed" | "conflicting";
   score: number;
   matchedCriteria: number;
   totalCriteria: number;
