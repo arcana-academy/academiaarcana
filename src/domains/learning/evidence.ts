@@ -125,6 +125,27 @@ export function buildObjectiveEvidenceProjection(
   item: PracticeItem,
   attempts: PracticeAttempt[],
 ): ObjectiveEvidenceProjection {
+  if (item.evidenceMode !== "criterion_exact_match") {
+    return {
+      practiceItemId: item.id,
+      pageId: item.pageId,
+      pageTitle: item.pageTitle,
+      state: "unknown",
+      score: null,
+      attemptCount: 0,
+      passingAttemptCount: 0,
+      minimumEvidence: item.minimumEvidence,
+      confidence: "insufficient",
+      reason:
+        "Esta atividade não está configurada para produzir evidência objetiva.",
+      source: "criterion-referenced",
+      criterion: null,
+      criterionVersion: null,
+      scope: "practice-item",
+      masteryConfirmed: false,
+    };
+  }
+
   const objectiveAttempts = recentAttemptsFor(
     attempts.filter(
       (attempt) => attempt.evidenceType === "criterion-referenced",
