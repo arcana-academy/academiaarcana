@@ -2,6 +2,7 @@ import type {
   EducationalStatistics,
   EvidenceProjection,
   ObjectiveEvidenceProjection,
+  ObjectiveMasteryState,
 } from "./contracts";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 
@@ -34,20 +35,25 @@ const evidenceStateFor = (
   return repeated ? stateByScore[scoreBand] : "developing";
 };
 
+const evidenceReasons: Record<
+  Exclude<EvidenceProjection["state"], "unknown">,
+  string
+> = {
+  "strong-evidence":
+    "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
+  consolidating:
+    "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências.",
+  developing:
+    "As evidências autorreportadas atuais ainda merecem prática ou revisão; este sinal não confirma domínio acadêmico.",
+};
+
 /** Explains the evidence state and its epistemic limit. */
 const evidenceReasonFor = (
   state: EvidenceProjection["state"],
 ): string =>
-  ({
-    "strong-evidence":
-      "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
-    consolidating:
-      "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências.",
-    developing:
-      "As evidências autorreportadas atuais ainda merecem prática ou revisão; este sinal não confirma domínio acadêmico.",
-    unknown:
-      "Ainda não há autoavaliações registradas para este item.",
-  })[state];
+  state === "unknown"
+    ? "Ainda não há autoavaliações registradas para este item."
+    : evidenceReasons[state];
 
 /** Returns the five most recent attempts used for a current evidence signal. */
 const recentAttemptsFor = (attempts: PracticeAttempt[]): PracticeAttempt[] =>
@@ -99,51 +105,102 @@ export function buildEvidenceProjection(
     source: "self-assessment",
     masteryConfirmed: false,
   };
-}
-
-/** Explains a criterion-referenced evidence state without inflating its scope. */
-const objectiveReasonFor = (
-  state: ObjectiveEvidenceProjection["state"],
-  minimumEvidence: number,
-): string => {
-  switch (state) {
-    case "unknown":
-      return "Ainda não há evidência objetiva registrada para esta atividade.";
-    case "insufficient":
-      return `Há evidência objetiva, mas ela ainda não atende ao mínimo de ${minimumEvidence} tentativa(s) aprovadas.`;
-    case "developing":
-      return "Há pelo menos uma tentativa objetiva aprovada, mas a amostra mínima para confirmação ainda não foi atingida.";
-    case "confirmed":
-      return "Os critérios objetivos desta atividade foram satisfeitos pela amostra mínima exigida.";
-    case "conflicting":
-      return "As evidências objetivas recentes entram em conflito. O domínio permanece sem confirmação automática enquanto o conflito existir.";
-  }
 };
 
-/** Derives bounded objective mastery from the five most recent criterion attempts. */
+const objectiveReasons: Record<
+  ObjectiveMasteryState,
+  (minimumEvidence: number) => string
+> = {
+  unknown: () => "Ainda não há evidência objetiva registrada para esta atividade.",
+  insufficient: (minimum) =>
+    `Há evidência objetiva, mas ela ainda não atende ao mínimo de ${minimum} tentativa(s) aprovadas.`,
+  developing: () =>
+    "Há pelo menos uma tentativa objetiva aprovada, mas a amostra mínima para confirmação ainda não foi atingida.",
+  confirmed: () =>
+    "Os critérios objetivos desta atividade foram satisfeitos pela amostra mínima exigida.",
+  conflicting: () =>
+    "As evidências objetivas recentes entram em conflito. O domínio permanece sem confirmação automática enquanto o conflito existir.",
+};
+
+/** Explains an objective evidence state without inflating its scope. */
+const objectiveReasonFor = (
+  state: ObjectiveMasteryState,
+  minimumEvidence: number,
+): string => objectiveReasons[state](minimumEvidence);
+
+/** Builds the empty projection used when objective evidence is not applicable. */
+const emptyObjectiveProjection = (
+  item: PracticeItem,
+  reason: string,
+): ObjectiveEvidenceProjection => ({
+  practiceItemId: item.id,
+  pageId: item.pageId,
+  pageTitle: item.pageTitle,
+  state: "unknown",
+  score: null,
+  attemptCount: 0,
+  passingAttemptCount: 0,
+  minimumEvidence: item.minimumEvidence,
+  confidence: "insufficient",
+  reason,
+  source: "criterion-referenced",
+  criterion: null,
+  criterionVersion: null,
+  scope: "practice-item",
+  masteryConfirmed: false,
+});
+
+/** Counts passing and failing attempts in the bounded objective sample. */
+const objectiveAttemptCounts = (
+  attempts: PracticeAttempt[],
+): { passing: number; failing: number } => ({
+  passing: attempts.filter((attempt) => attempt.criterionResult === "pass")
+    .length,
+  failing: attempts.filter((attempt) => attempt.criterionResult === "fail")
+    .length,
+});
+
+/** Derives an objective state from pass/fail evidence and the required sample size. */
+const objectiveStateFor = (
+  passing: number,
+  failing: number,
+  attemptCount: number,
+  minimumEvidence: number,
+): ObjectiveMasteryState => {
+  if (attemptCount === 0) return "unknown";
+  if (passing >= minimumEvidence && failing === 0) return "confirmed";
+  if (passing > 0 && failing > 0) return "conflicting";
+  if (passing > 0) return "developing";
+  return "insufficient";
+};
+
+/** Derives confidence for an objective evidence state. */
+const objectiveConfidenceFor = (
+  state: ObjectiveMasteryState,
+): ObjectiveEvidenceProjection["confidence"] =>
+  state === "confirmed"
+    ? "strong"
+    : state === "unknown"
+      ? "insufficient"
+      : "partial";
+
+/** Calculates the mean objective evidence score for the bounded sample. */
+const objectiveScoreFor = (attempts: PracticeAttempt[]): number | null =>
+  attempts.length === 0
+    ? null
+    : attempts.reduce((sum, attempt) => sum + attempt.evidenceScore, 0) /
+      attempts.length;
+
+/** Derives bounded objective mastery from recent criterion-referenced evidence. */
 export function buildObjectiveEvidenceProjection(
   item: PracticeItem,
   attempts: PracticeAttempt[],
 ): ObjectiveEvidenceProjection {
   if (item.evidenceMode !== "criterion_exact_match") {
-    return {
-      practiceItemId: item.id,
-      pageId: item.pageId,
-      pageTitle: item.pageTitle,
-      state: "unknown",
-      score: null,
-      attemptCount: 0,
-      passingAttemptCount: 0,
-      minimumEvidence: item.minimumEvidence,
-      confidence: "insufficient",
-      reason:
-        "Esta atividade não está configurada para produzir evidência objetiva.",
-      source: "criterion-referenced",
-      criterion: null,
-      criterionVersion: null,
-      scope: "practice-item",
-      masteryConfirmed: false,
-    };
+    return emptyObjectiveProjection(
+      item,
+      "Esta atividade não está configurada para produzir evidência objetiva.",
+    );
   }
 
   const objectiveAttempts = recentAttemptsFor(
@@ -151,51 +208,25 @@ export function buildObjectiveEvidenceProjection(
       (attempt) => attempt.evidenceType === "criterion-referenced",
     ),
   );
-
   const latest = objectiveAttempts[0];
-  const passingAttemptCount = objectiveAttempts.filter(
-    (attempt) => attempt.criterionResult === "pass",
-  ).length;
-  const failingAttemptCount = objectiveAttempts.filter(
-    (attempt) => attempt.criterionResult === "fail",
-  ).length;
-  let state: ObjectiveEvidenceProjection["state"] = "unknown";
-
-  if (objectiveAttempts.length > 0) {
-    if (passingAttemptCount >= item.minimumEvidence && failingAttemptCount === 0) {
-      state = "confirmed";
-    } else if (passingAttemptCount > 0 && failingAttemptCount > 0) {
-      state = "conflicting";
-    } else if (passingAttemptCount > 0) {
-      state = "developing";
-    } else {
-      state = "insufficient";
-    }
-  }
-
-  const score =
-    objectiveAttempts.length === 0
-      ? null
-      : objectiveAttempts.reduce(
-          (sum, attempt) => sum + attempt.evidenceScore,
-          0,
-        ) / objectiveAttempts.length;
+  const counts = objectiveAttemptCounts(objectiveAttempts);
+  const state = objectiveStateFor(
+    counts.passing,
+    counts.failing,
+    objectiveAttempts.length,
+    item.minimumEvidence,
+  );
 
   return {
     practiceItemId: item.id,
     pageId: item.pageId,
     pageTitle: item.pageTitle,
     state,
-    score,
+    score: objectiveScoreFor(objectiveAttempts),
     attemptCount: objectiveAttempts.length,
-    passingAttemptCount,
+    passingAttemptCount: counts.passing,
     minimumEvidence: item.minimumEvidence,
-    confidence:
-      state === "unknown"
-        ? "insufficient"
-        : state === "confirmed"
-          ? "strong"
-          : "partial",
+    confidence: objectiveConfidenceFor(state),
     reason: objectiveReasonFor(state, item.minimumEvidence),
     source: "criterion-referenced",
     criterion: latest?.criterion ?? item.criterion,
