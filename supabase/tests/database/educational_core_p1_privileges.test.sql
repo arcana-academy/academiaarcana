@@ -61,8 +61,6 @@ select extensions.ok(
   'anon cannot read practice attempts'
 );
 
-select * from extensions.finish();
-rollback;
 
 
 select extensions.ok(
@@ -100,3 +98,5 @@ select extensions.ok(
   'practice attempt item foreign key is indexed'
 );
 
+select * from extensions.finish();
+rollback;
