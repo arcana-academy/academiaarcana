@@ -16,14 +16,17 @@ import {
 import {
   buildEducationalStatistics,
   buildEvidenceProjection,
+  buildObjectiveEvidenceOverview,
   type EducationalStatistics,
   type EvidenceProjection,
+  type ObjectiveEvidenceRecord,
 } from "@/domains/learning";
 import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
   evidence: EvidenceProjection[];
+  objectiveEvidence: ReturnType<typeof buildObjectiveEvidenceOverview>;
   learningGaps: LearningGapSignal[];
   profile: EducationalProfile;
   statistics: EducationalStatistics;
@@ -63,14 +66,26 @@ export function buildEducationalOverview(
     attempts,
     reviews,
   );
+  const objectiveEvidenceProjection = buildObjectiveEvidenceOverview(
+    items,
+    objectiveEvidence,
+  );
   const statistics = buildEducationalStatistics(
     items,
     attempts,
     evidence,
     reviews.filter((review) => review.due).length,
+    objectiveEvidenceProjection,
   );
 
-  return { reviews, evidence, learningGaps, profile, statistics };
+  return {
+    reviews,
+    evidence,
+    objectiveEvidence: objectiveEvidenceProjection,
+    learningGaps,
+    profile,
+    statistics,
+  };
 }
 
 /** Loads and assembles the authenticated learner's educational overview. */
@@ -79,10 +94,11 @@ export async function getEducationalOverview(
   repository: EducationalPracticeRepository,
   ownerId: string,
 ): Promise<EducationalOverview> {
-  const [pages, items, attempts] = await Promise.all([
+  const [pages, items, attempts, objectiveEvidence] = await Promise.all([
     repository.listPages(ownerId),
     repository.listPracticeItems(ownerId),
     repository.listPracticeAttempts(ownerId),
+    repository.listObjectiveEvidences(ownerId),
   ]);
 
   return buildEducationalOverview(pages, items, attempts);
@@ -98,6 +114,10 @@ export function createPractice(
     referenceAnswer: string;
     explanation?: string | null;
     difficulty: PracticeDifficulty;
+    assessmentMode?: "self-assessment" | "criterion-referenced";
+    criterionPhrases?: string[];
+    criterionVersion?: number;
+    minimumObjectiveAttempts?: number;
   },
 ) {
   return repository.createPracticeItem(input);
