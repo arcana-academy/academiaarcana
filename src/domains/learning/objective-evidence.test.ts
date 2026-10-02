@@ -89,7 +89,7 @@ describe("objective evidence", () => {
 
   it("confirms only the explicit criterion result", () => {
     const projection = buildObjectiveEvidenceProjection(item, [
-      record("current", "confirmed", 1, "30", 2),
+      record("current", "criteria-satisfied", 1, "30", 2),
     ]);
     expect(projection.masteryConfirmed).toBe(false);
     expect(projection.state).toBe("criteria-satisfied");
