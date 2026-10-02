@@ -59,7 +59,8 @@ values (
   'Qual é a resposta objetiva?',
   'Resposta correta',
   'criterion_exact_match',
-  'A resposta normalizada deve coincidir exatamente com a resposta de referência.',
+  'A resposta normalizada deve coincidir exatamente com a resposta de '
+  'referência.',
   'criterion_exact_match_v1',
   2,
   3
@@ -252,7 +253,8 @@ select extensions.throws_ok(
       set reference_answer = 'Outra resposta de referência'
     where id = '97500000-0000-4000-8000-000000000001'$query$,
   '55000',
-  'O critério objetivo não pode ser alterado depois que já houver evidência objetiva registrada.',
+  'O critério objetivo não pode ser alterado depois que já houver '
+  'evidência objetiva registrada.',
   'criterion configuration is immutable after objective evidence exists'
 );
 
