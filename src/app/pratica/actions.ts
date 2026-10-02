@@ -79,7 +79,6 @@ export async function submitPracticeAttemptAction(formData: FormData) {
 
   if (item.evidenceMode === "criterion_exact_match") {
     await repository.recordCriterionReferencedPracticeAttempt({
-      ownerId: claims.sub,
       practiceItemId,
       answer,
     });
