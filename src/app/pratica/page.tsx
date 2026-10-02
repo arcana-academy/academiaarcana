@@ -9,7 +9,10 @@ import type {
   LearningGapSignal,
   ReviewRecommendation,
 } from "@/domains/adaptive";
-import type { EvidenceProjection } from "@/domains/learning";
+import type {
+  EvidenceProjection,
+  ObjectiveEvidenceProjection,
+} from "@/domains/learning";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import {
   createPracticeItemAction,
@@ -120,6 +123,41 @@ function PracticeCreationForm({ pageId }: { pageId: string }) {
         maxLength={2000}
         placeholder="Por que esta resposta importa? O que revisar depois?"
       />
+      <label htmlFor="practice-assessment-mode">Tipo de evidência</label>
+      <select
+        id="practice-assessment-mode"
+        name="assessmentMode"
+        defaultValue="self-assessment"
+      >
+        <option value="self-assessment">Autoavaliação da recuperação</option>
+        <option value="criterion-referenced">Critérios objetivos</option>
+      </select>
+      <p className="aa-state-copy">
+        Em “Critérios objetivos”, cada linha abaixo será tratada como um termo essencial.
+        Os critérios não aparecem antes da tentativa.
+      </p>
+      <label htmlFor="practice-criteria">
+        Termos essenciais para a avaliação objetiva
+      </label>
+      <textarea
+        id="practice-criteria"
+        name="criterionPhrases"
+        rows={4}
+        maxLength={2000}
+        placeholder={"Um termo ou expressão por linha. Ex.:\ncontração muscular\nATP\nactina"}
+      />
+      <label htmlFor="practice-minimum-attempts">Tentativas objetivas mínimas</label>
+      <select
+        id="practice-minimum-attempts"
+        name="minimumObjectiveAttempts"
+        defaultValue="1"
+      >
+        {[1, 2, 3].map((value) => (
+          <option key={value} value={value}>
+            {value}
+          </option>
+        ))}
+      </select>
       <label htmlFor="practice-difficulty">Dificuldade</label>
       <select id="practice-difficulty" name="difficulty" defaultValue="3">
         {[1, 2, 3, 4, 5].map((value) => (
@@ -170,7 +208,10 @@ function PracticeItemList({
               <strong>{item.prompt}</strong>
               <span className="aa-state-copy">
                 Dificuldade {item.difficulty}/5 ·{" "}
-                {review?.due ? "revisão liberada" : "sem revisão pendente"}
+                {item.assessmentMode === "criterion-referenced"
+                  ? "critérios objetivos"
+                  : "autoavaliação"}{" "}
+                · {review?.due ? "revisão liberada" : "sem revisão pendente"}
               </span>
             </span>
           </Link>
@@ -197,6 +238,10 @@ function PracticeSession({
   const evidence =
     overview.evidence.find(
       (entry: EvidenceProjection) => entry.practiceItemId === item.id,
+    ) ?? null;
+  const objectiveEvidence =
+    overview.objectiveEvidence.find(
+      (entry: ObjectiveEvidenceProjection) => entry.practiceItemId === item.id,
     ) ?? null;
   const gap =
     overview.learningGaps.find(
@@ -228,7 +273,12 @@ function PracticeSession({
           placeholder="Escreva o que você consegue recuperar sem consultar."
         />
         <fieldset>
-          <legend>Como você avalia esta recuperação?</legend>
+          <legend>
+            Como você avalia esta recuperação?
+            {item.assessmentMode === "criterion-referenced"
+              ? " (separado da avaliação objetiva)"
+              : ""}
+          </legend>
           <label>
             <input type="radio" name="outcome" value="strong" required />
             Forte — consegui recuperar os pontos essenciais.
@@ -290,6 +340,33 @@ function PracticeSession({
         </div>
       ) : null}
 
+      {objectiveEvidence && item.assessmentMode === "criterion-referenced" ? (
+        <div className="aa-card aa-card-default" aria-labelledby="objective-evidence-title">
+          <h3 id="objective-evidence-title">Avaliação por critérios</h3>
+          <p>
+            Estado: <strong>{objectiveEvidence.state}</strong>
+            {objectiveEvidence.score === null
+              ? ""
+              : ` · ${formatPercent(objectiveEvidence.score)} dos critérios`}
+          </p>
+          <p>
+            {objectiveEvidence.matchedCriteria}/{objectiveEvidence.totalCriteria} critério(s)
+            atendido(s) · {objectiveEvidence.evidenceCount} tentativa(s) avaliada(s).
+          </p>
+          <p className="aa-state-copy">{objectiveEvidence.reason}</p>
+          {objectiveEvidence.masteryConfirmed ? (
+            <p>
+              <strong>Domínio confirmado neste escopo específico.</strong>
+              {" "}Essa conclusão vale apenas para os critérios desta atividade e versão.
+            </p>
+          ) : (
+            <p className="aa-state-copy">
+              Domínio acadêmico não é confirmado por esta evidência no estado atual.
+            </p>
+          )}
+        </div>
+      ) : null}
+
       {review ? (
         <div className="aa-card aa-card-default">
           <h3>Revisão</h3>
@@ -343,12 +420,19 @@ export default async function PraticaPage({
   const supabase = await createClient();
   const repository = new SupabaseEducationalPracticeRepository(supabase);
 
-  const [pages, items, attempts] = await Promise.all([
+  const [pages, items, attempts, objectiveEvidence] = await Promise.all([
     repository.listPages(claims.sub),
     repository.listPracticeItems(claims.sub),
     repository.listPracticeAttempts(claims.sub),
+    repository.listObjectiveEvidences(claims.sub),
   ]);
-  const overview = buildEducationalOverview(pages, items, attempts);
+  const overview = buildEducationalOverview(
+    pages,
+    items,
+    attempts,
+    new Date(),
+    objectiveEvidence,
+  );
 
   const selectedPage =
     pages.find((page) => page.id === params.pagina) ?? pages[0] ?? null;
@@ -367,7 +451,7 @@ export default async function PraticaPage({
           <p className="aa-state-copy">
             Produza uma resposta antes de consultar a referência. O resultado abaixo
             usa sua autoavaliação como evidência explícita; ele não é um diagnóstico
-            nem uma avaliação semântica automática.
+            nem uma avaliação semântica por IA. Quando configurada, a avaliação objetiva usa apenas os critérios explícitos da atividade.
           </p>
           <nav aria-label="Navegação educacional" className="aa-action-row">
             <Link className="aa-button aa-button-secondary" href="/workspace">
