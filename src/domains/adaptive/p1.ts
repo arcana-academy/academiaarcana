@@ -67,7 +67,7 @@ export function buildLearningGapSignal(
     pageTitle: item.pageTitle,
     evidence: "Duas tentativas recentes com evidência baixa ou uma recuperação insuficiente.",
     reason:
-      "Isso é um sinal para investigação/prática, não um diagnóstico ou conclusão definitiva sobre a aprendizagem.",
+      "Isso é um sinal para investigação/prática, não é um diagnóstico nem uma conclusão definitiva sobre a aprendizagem.",
     actionHref: `/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`,
   };
 }
