@@ -43,6 +43,7 @@ type PracticeAttemptRow = {
   criterion_version: string | null;
   criterion_result: CriterionResult | null;
   criterion_scope: "practice-item" | null;
+  criterion_reference: string | null;
   created_at: string;
 };
 
@@ -83,6 +84,7 @@ function toAttempt(row: PracticeAttemptRow): PracticeAttempt {
     criterionVersion: row.criterion_version,
     criterionResult: row.criterion_result,
     criterionScope: row.criterion_scope,
+    criterionReference: row.criterion_reference,
     createdAt: row.created_at,
   };
 }
