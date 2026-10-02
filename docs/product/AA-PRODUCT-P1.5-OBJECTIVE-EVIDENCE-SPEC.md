@@ -2,7 +2,7 @@
 
 > Autoridade: Chat 01 — Produto.
 >
-> Esta especificação fecha o contrato de Produto para P1.5 sem afirmar que a capacidade técnica já está implementada.
+> Esta especificação define o contrato canônico de Produto da P1.5 V1 e registra a implementação objetiva limitada ao critério suportado.
 
 ## 1. Objetivo
 
@@ -29,7 +29,7 @@ Uma tentativa forte de recuperação pode ser evidência objetiva somente quando
 
 ## 4. Critérios de tarefa
 
-Toda futura avaliação capaz de contribuir para domínio objetivo deverá declarar: competency/context; evidenceType; criterion; scoringPolicy; minimumEvidence; validityScope; createdAt/version.
+Toda avaliação capaz de contribuir para domínio objetivo deverá declarar: competency/context; evidenceType; criterion; scoringPolicy; minimumEvidence; validityScope; createdAt/version.
 
 A ausência desses metadados impede a afirmação de domínio objetivo.
 
@@ -39,7 +39,7 @@ Domínio deve ser sempre limitado ao escopo da evidência: competência, conteú
 
 ## 6. Estados canônicos
 
-A futura representação objetiva deve admitir, no mínimo:
+A representação objetiva V1 admite, no mínimo:
 - unknown — não existe evidência adequada;
 - insufficient — existe evidência, mas não atende ao mínimo;
 - developing — há evidência parcial;
@@ -99,7 +99,7 @@ Não cria diagnóstico, perfil psicológico, nota escolar universal, ranking, cl
 Definir quais atividades podem produzir evidência observável e quais respostas podem ser avaliadas.
 
 ### Learning
-Definir contratos de evidência, agregação, estados e proveniência.
+Manter e ampliar os contratos de evidência, agregação, estados e proveniência sem conflitar com o V1 implementado.
 
 ### Adaptive
 Definir como evidência objetiva pode alimentar revisão/adaptação sem extrapolação.
@@ -115,6 +115,8 @@ Somente quando os domínios definirem o contrato de persistência necessário; p
 
 ## 17. Estado
 
-**P1.5: PARCIAL — ESPECIFICAÇÃO CANÔNICA DEFINIDA; IMPLEMENTAÇÃO OBJETIVA PENDENTE.**
+**P1.5: CONCLUÍDO V1 — evidência objetiva por correspondência exata normalizada, avaliação no servidor, proveniência persistida, mínimo de duas aprovações recentes e confirmação limitada ao escopo da atividade.**
+
+Domínio objetivo mais amplo, incluindo outros tipos de tarefa, permanece uma evolução futura e não deve ser inferido a partir desta implementação.
 
 PI-01/PI-02 permanecem concluídas. Esta especificação não reabre essas decisões.

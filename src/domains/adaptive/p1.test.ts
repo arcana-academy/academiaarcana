@@ -13,6 +13,10 @@ const item: PracticeItem = {
   explanation: null,
   difficulty: 3,
   active: true,
+  evidenceMode: "self_assessment",
+  criterion: null,
+  criterionVersion: null,
+  minimumEvidence: 2,
   createdAt: "2026-09-01T00:00:00.000Z",
   updatedAt: "2026-09-01T00:00:00.000Z",
 };
@@ -31,6 +35,12 @@ const attempt = (
   evidenceScore: score,
   confidence: "partial",
   feedback: "Feedback.",
+  evidenceType: "self-assessment",
+  criterion: null,
+  criterionVersion: null,
+  criterionResult: null,
+  criterionScope: null,
+  criterionReference: null,
   createdAt: `2026-09-${day}T00:00:00.000Z`,
 });
 

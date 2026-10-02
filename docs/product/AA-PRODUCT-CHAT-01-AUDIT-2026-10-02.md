@@ -31,7 +31,7 @@ Referências principais consultadas:
 | Estatísticas educacionais separadas de gamificação | IMPLEMENTADA V1 | /estatisticas |
 | Social funcional completo | PENDENTE | rota/superfície preparada, função real não concluída |
 | Mestre Arcano avançado como tutor/planejador | PLANEJADA / EM EVOLUÇÃO | V1 técnico presente; capacidades avançadas não fechadas |
-| Domínio acadêmico objetivo | PENDENTE / NÃO CONFIRMADO | implementação atual usa autoavaliação |
+| Domínio acadêmico objetivo | IMPLEMENTADO V1, com escopo limitado | correspondência exata normalizada + confirmação contextual |
 | Baseline técnica anterior como estado atual | OBSOLETA COMO EVIDÊNCIA DE STATUS | `technical-baseline.md` declara explicitamente ser snapshot histórico |
 
 ## 3. Conflitos encontrados
@@ -66,7 +66,7 @@ Referências principais consultadas:
 
 **Validação:** P1.5 foi rebaixado para PARCIAL e foi criado o requisito AA-PROD-R021.
 
-**Pendência técnica:** Education/Learning/UI devem reconciliar nomes, estados e testes da implementação com essa terminologia.
+**Correção executada na fase P1.5:** a prática agora possui modo criterion-referenced de correspondência exata; a avaliação é calculada no servidor; a proveniência é persistida; e a confirmação de domínio é limitada à atividade e ao critério utilizado.
 
 ### C-04 — Revisão “adaptativa” excessivamente forte na descrição
 
@@ -130,7 +130,7 @@ Referências principais consultadas:
 
 **INFORMAÇÃO QUE ESTE CHAT FORNECE:** AA-PROD-R008 e AA-PROD-R021.
 
-### PENDÊNCIA INTERDOMÍNIO PI-03
+### PI-03 — EVOLUÇÃO FUTURA
 
 **PROBLEMA:** evolução do modelo de revisão além da heurística V1.
 
@@ -235,12 +235,12 @@ Os seguintes itens permanecem deliberadamente fora de “concluído”:
 | Estados relevantes | PASS |
 | Dependências interdomínio | PASS |
 | Conflitos críticos identificados | PASS |
-| P1 sem falsa promoção de domínio | PASS — PI-01/PI-02 RESOLVIDAS; P1.5 permanece PARCIAL |
+| P1 sem falsa promoção de domínio | PASS — PI-01/PI-02 RESOLVIDAS; P1.5 V1 objetiva implementada e contextual |
 | Documento baseline sincronizado | PASS |
 
 ## 9. Estado final da auditoria
 
-O domínio de Produto está **consolidado como contrato canônico**. PI-01/PI-02 foram executadas e integradas. O único limite educacional deliberadamente aberto é P1.5: domínio acadêmico objetivo ainda requer evidência adequada à tarefa.
+O domínio de Produto está **consolidado como contrato canônico**. PI-01/PI-02 foram executadas e integradas. O limite educacional deliberadamente preservado é a abrangência do domínio objetivo: P1.5 V1 suporta apenas o critério criterion-referenced explicitamente implementado. Novos tipos de evidência podem ser acrescentados futuramente sem alterar a distinção entre autoavaliação e domínio confirmado.
 
 O Produto não possui decisão crítica escondida.
 
@@ -252,4 +252,4 @@ A implementação correspondente foi integrada ao `main` pela PR #459, merge com
 
 ## 11. Próxima ação
 
-Manter P1.5 como PARCIAL e encaminhar a futura definição de evidência objetiva/criterion-referenced para Education + Learning + QA + UI/UX. Em paralelo, PI-03 permanece como evolução P2 da adaptação.
+P1.5 V1 está fechada. O próximo trabalho interdomínio é evolutivo: ampliar tipos de evidência objetiva somente quando houver critério educacional apropriado, mantendo a implementação atual estável. PI-03 permanece como evolução P2 da adaptação.

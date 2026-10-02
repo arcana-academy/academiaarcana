@@ -16,20 +16,22 @@ import {
 import {
   buildEducationalStatistics,
   buildEvidenceProjection,
+  buildObjectiveEvidenceProjection,
   type EducationalStatistics,
   type EvidenceProjection,
+  type ObjectiveEvidenceProjection,
 } from "@/domains/learning";
 import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
   evidence: EvidenceProjection[];
+  objectiveEvidence: ObjectiveEvidenceProjection[];
   learningGaps: LearningGapSignal[];
   profile: EducationalProfile;
   statistics: EducationalStatistics;
 };
 
-/** Builds all educational projections from persisted evidence. */
 /** Builds the complete educational overview from persisted evidence. */
 export function buildEducationalOverview(
   pages: Array<{ id: string; title: string }>,
@@ -51,6 +53,9 @@ export function buildEducationalOverview(
   const evidence = items.map((item) =>
     buildEvidenceProjection(item, attemptsByItem.get(item.id) ?? []),
   );
+  const objectiveEvidence = items.map((item) =>
+    buildObjectiveEvidenceProjection(item, attemptsByItem.get(item.id) ?? []),
+  );
   const learningGaps = items
     .map((item) =>
       buildLearningGapSignal(item, attemptsByItem.get(item.id) ?? []),
@@ -67,13 +72,13 @@ export function buildEducationalOverview(
     items,
     attempts,
     evidence,
+    objectiveEvidence,
     reviews.filter((review) => review.due).length,
   );
 
-  return { reviews, evidence, learningGaps, profile, statistics };
+  return { reviews, evidence, objectiveEvidence, learningGaps, profile, statistics };
 }
 
-/** Loads and assembles the authenticated learner's educational overview. */
 /** Loads educational evidence for an authenticated learner through the repository boundary. */
 export async function getEducationalOverview(
   repository: EducationalPracticeRepository,
@@ -98,13 +103,13 @@ export function createPractice(
     referenceAnswer: string;
     explanation?: string | null;
     difficulty: PracticeDifficulty;
+    evidenceMode?: "self_assessment" | "criterion_exact_match";
   },
 ) {
   return repository.createPracticeItem(input);
 }
 
-/** Converts an explicit retrieval outcome into normalized educational evidence. */
-/** Converts a self-assessed recovery result into a persisted evidence input. */
+/** Converts an explicit self-assessed retrieval outcome into normalized evidence. */
 export function buildAttemptInput(input: {
   answer: string;
   outcome: PracticeOutcome;

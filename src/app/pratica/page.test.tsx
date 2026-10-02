@@ -32,6 +32,27 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
         explanation: "Revise a relação principal.",
         difficulty: 3,
         active: true,
+        evidenceMode: "self_assessment",
+        criterion: null,
+        criterionVersion: null,
+        minimumEvidence: 2,
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      },
+      {
+        id: "item-2",
+        ownerId: "user-1",
+        pageId: "page-1",
+        pageTitle: "Fisiologia",
+        prompt: "Qual é a definição exata?",
+        referenceAnswer: "Resposta objetiva.",
+        explanation: null,
+        difficulty: 2,
+        active: true,
+        evidenceMode: "criterion_exact_match",
+        criterion: "A resposta normalizada deve coincidir exatamente com a resposta de referência.",
+        criterionVersion: "criterion_exact_match_v1",
+        minimumEvidence: 2,
         createdAt: "2026-09-01T00:00:00.000Z",
         updatedAt: "2026-09-01T00:00:00.000Z",
       },
@@ -75,5 +96,22 @@ describe("PraticaPage", () => {
     expect(html).toContain("Forte — consegui recuperar");
     expect(html).toContain("Como você avalia esta recuperação?");
     expect(html).not.toContain("Resposta de referência.");
+  });
+});
+
+
+describe("PraticaPage objective evidence", () => {
+  it("renders criterion-referenced mode without asking for self-assessment", async () => {
+    const html = renderToStaticMarkup(
+      await PraticaPage({
+        searchParams: Promise.resolve({ pagina: "page-1", item: "item-2" }),
+      }),
+    );
+
+    expect(html).toContain("Avaliação objetiva por correspondência exata");
+    expect(html).toContain("A avaliação será calculada automaticamente");
+    expect(html).toContain("Avaliar resposta");
+    expect(html).not.toContain("Como você avalia esta recuperação?");
+    expect(html).not.toContain("Resposta objetiva.");
   });
 });

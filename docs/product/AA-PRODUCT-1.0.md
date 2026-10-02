@@ -117,19 +117,13 @@ A adaptação opera sobre sinais multidimensionais e revisáveis, quando dispon�
 
 ## 8. Limite atual da evidência de aprendizagem
 
-O fluxo P1 implementado registra **autoavaliação explícita da recuperação** como evidência educacional de processo.
+O fluxo P1 registra **autoavaliação explícita da recuperação** como evidência educacional de processo. A partir da P1.5 V1, atividades configuradas com critério `criterion_exact_match_v1` também podem produzir **evidência objetiva limitada ao escopo daquela atividade**.
 
-Essa evidência pode alimentar:
+A autoavaliação pode alimentar revisão, sinais de possível lacuna, perfil educacional revisável, estatísticas e apoio contextual, mas **não confirma domínio objetivo isoladamente**.
 
-- revisão;
-- sinais de possível lacuna;
-- perfil educacional revisável;
-- estatísticas;
-- apoio contextual.
+Na avaliação objetiva V1, domínio só é confirmado quando a atividade possui critério explícito, a avaliação é calculada no servidor e a amostra recente satisfaz o mínimo de duas tentativas aprovadas sem conflito recente. Essa confirmação permanece limitada à atividade/critério e pode ser revisada por novas evidências.
 
-Ela **não deve ser apresentada isoladamente como confirmação objetiva de domínio acadêmico**.
-
-Até existir avaliação criterion-referenced, validação docente ou mecanismo automatizado validado para a tarefa específica, o produto deve usar linguagem como:
+Quando a evidência não sustenta uma conclusão objetiva, o produto deve usar linguagem como:
 
 - “evidência autorreportada”;
 - “sinal atual”;
@@ -250,7 +244,7 @@ O fechamento P1 compreende oito capacidades:
 - P1.2 Recuperação: **CONCLUÍDO V1**
 - P1.3 Revisão: **CONCLUÍDO V1 — política heurística inicial**
 - P1.4 Feedback: **CONCLUÍDO V1**
-- P1.5 Evidência de domínio: **PARCIAL — evidência autorreportada; domínio objetivo ainda NÃO CONFIRMADO**
+- P1.5 Evidência de domínio: **CONCLUÍDO V1 — evidência objetiva limitada a critério de correspondência exata; confirmação permanece contextual e revisável**
 - P1.6 Lacunas: **CONCLUÍDO V1 — sinal revisável**
 - P1.7 Perfil dinâmico: **CONCLUÍDO V1 — sinais limitados ao conjunto atual de evidências**
 - P1.8 Estatísticas: **CONCLUÍDO V1**
@@ -456,13 +450,13 @@ O ciclo pode começar em objetivos representados por tarefas, missões ou contex
 | AA-PROD-B08 | colaboração/social funcional | P2 | PENDENTE |
 | AA-PROD-B09 | Mestre Arcano tutor/planejador avançado | P2/P3 | EM EVOLUÇÃO |
 | AA-PROD-B10 | experiências experimentais | P4 | NÃO INICIADO |
-| AA-PROD-B11 | evidência objetiva/criterion-referenced de domínio | P1 | PENDÊNCIA INTERDOMÍNIO |
+| AA-PROD-B11 | evidência objetiva/criterion-referenced de domínio | P1 | CONCLUÍDO V1 — correspondência exata normalizada, escopo da atividade |
 
 ## 22. Estado atual do Produto
 
 **Fundação P0:** IMPLEMENTADA.
 
-**Núcleo educacional P1:** IMPLEMENTADO V1, com a ressalva formal de que domínio acadêmico objetivo permanece NÃO CONFIRMADO.
+**Núcleo educacional P1:** IMPLEMENTADO V1, incluindo evidência objetiva limitada a atividades criterion-referenced de correspondência exata. Domínio global ou permanente não é inferido.
 
 **Gamificação:** IMPLEMENTADA BÁSICA E SEPARADA DA EVIDÊNCIA EDUCACIONAL.
 
@@ -494,3 +488,4 @@ A condição de “100% do produto” não significa todas as fases P0–P4 impl
 - `docs/product/AA-PRODUCT-MODULES-1.0.md`
 - `docs/product/AA-PRODUCT-REQUIREMENTS-1.0.md`
 - `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-02.md`
+- `docs/product/AA-PRODUCT-P1.5-OBJECTIVE-EVIDENCE-SPEC.md`

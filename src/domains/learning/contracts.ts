@@ -5,6 +5,12 @@
  */
 
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
+export type ObjectiveMasteryState =
+  | "unknown"
+  | "insufficient"
+  | "developing"
+  | "confirmed"
+  | "conflicting";
 
 export type EvidenceProjection = {
   practiceItemId: string;
@@ -19,12 +25,33 @@ export type EvidenceProjection = {
   masteryConfirmed: false;
 };
 
+export type ObjectiveEvidenceProjection = {
+  practiceItemId: string;
+  pageId: string;
+  pageTitle: string;
+  state: ObjectiveMasteryState;
+  score: number | null;
+  attemptCount: number;
+  passingAttemptCount: number;
+  minimumEvidence: number;
+  confidence: EvidenceConfidence;
+  reason: string;
+  source: "criterion-referenced";
+  criterion: string | null;
+  criterionVersion: string | null;
+  scope: "practice-item";
+  masteryConfirmed: boolean;
+};
+
 export type EducationalStatistics = {
   practiceItemCount: number;
   attemptCount: number;
   practicedPageCount: number;
   retrievalSuccessRate: number | null;
   averageEvidenceScore: number | null;
+  objectiveAttemptCount: number;
+  objectivePassRate: number | null;
   reviewDueCount: number;
   itemsWithStrongSelfReportedEvidence: number;
+  itemsWithConfirmedObjectiveMastery: number;
 };
