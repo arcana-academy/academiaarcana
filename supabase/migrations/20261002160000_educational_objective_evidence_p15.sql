@@ -75,26 +75,6 @@ create policy "educational_objective_assessments_insert_own"
     )
   );
 
-create policy "educational_objective_assessments_update_own"
-  on public.educational_objective_assessments for update to authenticated
-  using (owner_id = (select auth.uid()))
-  with check (
-    owner_id = (select auth.uid())
-    and exists (
-      select 1
-      from public.pages p
-      join public.chapters c on c.id = p.chapter_id
-      join public.notebooks n on n.id = c.notebook_id
-      join public.grimoires g on g.id = n.grimoire_id
-      where p.id = educational_objective_assessments.page_id
-        and g.owner_id = (select auth.uid())
-    )
-  );
-
-create policy "educational_objective_assessments_delete_own"
-  on public.educational_objective_assessments for delete to authenticated
-  using (owner_id = (select auth.uid()));
-
 create policy "educational_objective_attempts_select_own"
   on public.educational_objective_attempts for select to authenticated
   using (
@@ -112,7 +92,7 @@ revoke all
      public.educational_objective_attempts
   from anon, authenticated;
 
-grant select, insert, update, delete
+grant select, insert
   on public.educational_objective_assessments
   to authenticated;
 
