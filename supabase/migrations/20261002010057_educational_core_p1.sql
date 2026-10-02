@@ -117,6 +117,6 @@ grant select, insert, update, delete
   on public.educational_practice_items
   to authenticated;
 
-grant select, insert
+grant select
   on public.educational_practice_attempts
   to authenticated;
