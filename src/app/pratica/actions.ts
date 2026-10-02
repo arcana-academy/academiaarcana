@@ -10,6 +10,7 @@ import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
+/** Reads and validates a textual form field while trimming surrounding whitespace. */
 function textField(formData: FormData, name: string, required = true): string {
   const value = formData.get(name);
   if (typeof value !== "string") {
@@ -22,6 +23,7 @@ function textField(formData: FormData, name: string, required = true): string {
   return value.trim();
 }
 
+/** Reads the bounded difficulty value accepted by the educational practice model. */
 function difficultyField(formData: FormData): 1 | 2 | 3 | 4 | 5 {
   const value = Number(formData.get("difficulty") ?? 3);
   if (!Number.isInteger(value) || value < 1 || value > 5) {
@@ -30,6 +32,7 @@ function difficultyField(formData: FormData): 1 | 2 | 3 | 4 | 5 {
   return value as 1 | 2 | 3 | 4 | 5;
 }
 
+/** Creates a practice item owned by the authenticated learner and redirects to it. */
 export async function createPracticeItemAction(formData: FormData) {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
@@ -50,6 +53,7 @@ export async function createPracticeItemAction(formData: FormData) {
   redirect(`/pratica?pagina=${encodeURIComponent(pageId)}&item=${encodeURIComponent(item.id)}`);
 }
 
+/** Records an authenticated retrieval attempt and synchronizes page progress. */
 export async function submitPracticeAttemptAction(formData: FormData) {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
@@ -89,6 +93,7 @@ export async function submitPracticeAttemptAction(formData: FormData) {
 }
 
 
+/** Schedules a review task for an authenticated practice item. */
 export async function planPracticeReviewAction(formData: FormData) {
   const claims = await requireAuthenticatedUser();
   const practiceItemId = textField(formData, "practiceItemId");
