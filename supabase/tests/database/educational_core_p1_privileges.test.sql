@@ -64,12 +64,12 @@ select extensions.ok(
 );
 
 select extensions.ok(
-  has_table_privilege(
+  not has_table_privilege(
     'authenticated',
     'public.educational_practice_attempts',
     'INSERT'
   ),
-  'authenticated can create practice attempts'
+  'authenticated cannot bypass the atomic practice attempt operation'
 );
 
 select extensions.ok(
