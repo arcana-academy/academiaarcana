@@ -188,12 +188,12 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         </FeatureCard>
 
         <FeatureCard
-          title="Domínio objetivo confirmado"
+          title="Critérios objetivos satisfeitos"
           description="Itens em que os critérios objetivos da própria atividade foram satisfeitos."
           icon={<Target size={22} />}
         >
           <p className="aa-state-copy">
-            {educational.statistics.itemsWithConfirmedObjectiveEvidence}
+            {educational.statistics.itemsWithCriteriaSatisfiedObjectiveEvidence}
           </p>
         </FeatureCard>
       </ArcanaFeatureGrid>
