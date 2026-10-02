@@ -18,6 +18,7 @@ import {
 import {
   buildEducationalStatistics,
   buildEvidenceProjection,
+  buildObjectiveEvidenceProjection,
   type EducationalStatistics,
   type EvidenceProjection,
   type ObjectiveEvidenceProjection,
