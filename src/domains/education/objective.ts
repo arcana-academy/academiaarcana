@@ -12,7 +12,7 @@ export type ObjectiveEvaluation = {
 
 /** Normalizes an objective answer without changing its semantic content. */
 export function normalizeObjectiveAnswer(value: string): string {
-  return value.trim().toLocaleLowerCase("pt-BR").replace(/\s+/g, " ");
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 /** Evaluates the bounded V1 normalized exact-match criterion deterministically. */
