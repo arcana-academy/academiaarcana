@@ -100,9 +100,10 @@ Referências principais consultadas:
 
 ## 5. Pendências interdomínio
 
-### PENDÊNCIA INTERDOMÍNIO PI-01
+### PI-01 — RESOLVIDA
 
-**PROBLEMA:** representação de “domínio” ainda usa linguagem mais forte que a proveniência real da evidência.
+
+**RESULTADO:** contratos e apresentação agora distinguem evidência autorreportada de domínio confirmado.
 
 **DOMÍNIO RESPONSÁVEL:** Learning + Education; UI/UX para apresentação.
 
@@ -116,9 +117,10 @@ Referências principais consultadas:
 - “strong-evidence” não deve ser apresentado como confirmação objetiva;
 - domínio objetivo exige critério apropriado à tarefa.
 
-### PENDÊNCIA INTERDOMÍNIO PI-02
+### PI-02 — RESOLVIDA
 
-**PROBLEMA:** testes e métricas devem refletir a nova taxonomia de evidência.
+
+**RESULTADO:** contratos, métricas, UI e testes foram reconciliados com a taxonomia de evidência autorreportada.
 
 **DOMÍNIO RESPONSÁVEL:** Learning + QA + UI/UX.
 
@@ -233,12 +235,12 @@ Os seguintes itens permanecem deliberadamente fora de “concluído”:
 | Estados relevantes | PASS |
 | Dependências interdomínio | PASS |
 | Conflitos críticos identificados | PASS |
-| P1 sem falsa promoção de domínio | PASS COM PENDÊNCIA PI-01/PI-02 |
+| P1 sem falsa promoção de domínio | PASS — PI-01/PI-02 RESOLVIDAS; P1.5 permanece PARCIAL |
 | Documento baseline sincronizado | PASS |
 
 ## 9. Estado final da auditoria
 
-O domínio de Produto está **consolidado como contrato canônico**, mas o fechamento de todas as decisões relacionadas à evidência de domínio ainda depende de implementação/validação em Education, Learning, UI/UX e QA.
+O domínio de Produto está **consolidado como contrato canônico**. PI-01/PI-02 foram executadas e integradas. O único limite educacional deliberadamente aberto é P1.5: domínio acadêmico objetivo ainda requer evidência adequada à tarefa.
 
 O Produto não possui decisão crítica escondida.
 
@@ -246,8 +248,8 @@ As capacidades futuras permanecem explicitamente separadas de V1.
 
 ## 10. Execução PI-01/PI-02
 
-A implementação correspondente foi preparada em PR #459. A promoção de P1.5 continua condicionada à evidência adequada de domínio; a autoavaliação permanece explicitamente autorreportada.
+A implementação correspondente foi integrada ao `main` pela PR #459, merge commit `22b6a688f581d462afd134d7ed1df128e627bb7b`. A promoção de P1.5 continua condicionada à evidência adequada de domínio; a autoavaliação permanece explicitamente autorreportada.
 
 ## 11. Próxima ação
 
-Executar PI-01 e PI-02 nos domínios responsáveis antes de promover P1.5 para CONCLUÍDO e antes de apresentar qualquer métrica atual como “domínio confirmado”.
+Manter P1.5 como PARCIAL e encaminhar a futura definição de evidência objetiva/criterion-referenced para Education + Learning + QA + UI/UX. Em paralelo, PI-03 permanece como evolução P2 da adaptação.
