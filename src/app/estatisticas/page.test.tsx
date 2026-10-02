@@ -11,15 +11,15 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockSupabaseEducationalPracticeRepository {
-    async listPages() {
+    listPages() {
       return [];
     }
 
-    async listPracticeItems() {
+    listPracticeItems() {
       return [];
     }
 
-    async listPracticeAttempts() {
+    listPracticeAttempts() {
       return [];
     }
   }
@@ -29,7 +29,7 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
 
 vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => {
   class MockSupabaseGamificationRepository {
-    async getProfile() {
+    getProfile() {
       return {
         ownerId: "user-1",
         xp: 900,
@@ -39,7 +39,7 @@ vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => 
       };
     }
 
-    async listDailyMissions() {
+    listDailyMissions() {
       return [
         { id: "m1", ownerId: "user-1", code: "a", title: "A", rewardXp: 10, targetDate: "2026-09-29", status: "completed", completedAt: "2026-09-29T09:00:00.000Z" },
       ];
@@ -52,26 +52,6 @@ vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => 
 vi.mock("@/components/layout/AuthenticatedShell", () => ({
   AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
-
-vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
-  class MockEducationalPracticeRepository {
-    async listPages() {
-      return [];
-    }
-
-    async listPracticeItems() {
-      return [];
-    }
-
-    async listPracticeAttempts() {
-      return [];
-    }
-  }
-
-  return {
-    SupabaseEducationalPracticeRepository: MockEducationalPracticeRepository,
-  };
-});
 
 import EstatisticasPage from "./page";
 
