@@ -10,6 +10,21 @@ export type PracticeOutcome = "strong" | "partial" | "insufficient";
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
 export type PracticeAssessmentMode = "self-assessment" | "criterion-referenced";
 
+export type ObjectiveEvidenceRepositoryRecord = {
+  id: string;
+  ownerId: string;
+  practiceAttemptId: string;
+  practiceItemId: string;
+  evidenceType: "criterion-referenced";
+  state: "insufficient" | "developing" | "confirmed" | "conflicting";
+  score: number;
+  matchedCriteria: number;
+  totalCriteria: number;
+  confidence: EvidenceConfidence;
+  criterionVersion: number;
+  createdAt: string;
+};
+
 export type PracticeItem = {
   id: string;
   ownerId: string;
@@ -50,7 +65,7 @@ export interface EducationalPracticeRepository {
   listObjectiveEvidences(
     ownerId: string,
     practiceItemId?: string,
-  ): Promise<import("@/domains/learning").ObjectiveEvidenceRecord[]>;
+  ): Promise<ObjectiveEvidenceRepositoryRecord[]>;
   createPracticeItem(input: {
     ownerId: string;
     pageId: string;
