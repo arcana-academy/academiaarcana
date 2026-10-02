@@ -53,7 +53,7 @@ export type PracticeAttempt = {
 };
 
 export interface EducationalPracticeRepository {
-  listPages(ownerId: string): Promise<Array<{ id: string; title: string }>>;
+  listPages(): Promise<Array<{ id: string; title: string }>>;
   listPracticeItems(ownerId: string, pageId?: string): Promise<PracticeItem[]>;
   listPracticeAttempts(
     ownerId: string,
@@ -78,7 +78,6 @@ export interface EducationalPracticeRepository {
     feedback: string;
   }): Promise<PracticeAttempt>;
   recordCriterionReferencedPracticeAttempt(input: {
-    ownerId: string;
     practiceItemId: string;
     answer: string;
   }): Promise<PracticeAttempt>;
