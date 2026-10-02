@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import type { ObjectiveEvidenceRecord } from "@/domains/learning";
+
 import type {
   EvidenceConfidence,
   EducationalPracticeRepository,
@@ -18,6 +20,10 @@ type PracticeItemRow = {
   reference_answer: string;
   explanation: string | null;
   difficulty: number;
+  assessment_mode: "self-assessment" | "criterion-referenced";
+  criterion_phrases: string[];
+  criterion_version: number;
+  minimum_objective_attempts: number;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -31,6 +37,20 @@ type PracticeAttemptRow = {
   evidence_score: number | string;
   confidence: EvidenceConfidence;
   feedback: string;
+  created_at: string;
+};
+
+type ObjectiveEvidenceRow = {
+  id: string;
+  owner_id: string;
+  practice_attempt_id: string;
+  practice_item_id: string;
+  evidence_type: "criterion-referenced";
+  state: "insufficient" | "developing" | "confirmed" | "conflicting";
+  score: number | string;
+  matched_criteria: number;
+  total_criteria: number;
+  criterion_version: number;
   created_at: string;
 };
 
@@ -48,6 +68,10 @@ function toItem(
     referenceAnswer: row.reference_answer,
     explanation: row.explanation,
     difficulty: row.difficulty as PracticeDifficulty,
+    assessmentMode: row.assessment_mode,
+    criterionPhrases: row.criterion_phrases ?? [],
+    criterionVersion: row.criterion_version,
+    minimumObjectiveAttempts: row.minimum_objective_attempts,
     active: row.active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -135,6 +159,10 @@ export class SupabaseEducationalPracticeRepository
     referenceAnswer: string;
     explanation?: string | null;
     difficulty: PracticeDifficulty;
+    assessmentMode?: "self-assessment" | "criterion-referenced";
+    criterionPhrases?: string[];
+    criterionVersion?: number;
+    minimumObjectiveAttempts?: number;
   }) {
     const { data, error } = await this.supabase
       .from("educational_practice_items")
@@ -145,6 +173,10 @@ export class SupabaseEducationalPracticeRepository
         reference_answer: input.referenceAnswer,
         explanation: input.explanation ?? null,
         difficulty: input.difficulty,
+        assessment_mode: input.assessmentMode ?? "self-assessment",
+        criterion_phrases: input.criterionPhrases ?? [],
+        criterion_version: input.criterionVersion ?? 1,
+        minimum_objective_attempts: input.minimumObjectiveAttempts ?? 1,
       })
       .select("*")
       .single();
@@ -156,6 +188,36 @@ export class SupabaseEducationalPracticeRepository
     if (!pageTitle) throw new Error("Página de prática não encontrada.");
 
     return toItem(data as PracticeItemRow, pageTitle);
+  }
+
+  /** Lists persisted criterion-referenced evidence owned by the learner. */
+  async listObjectiveEvidences(ownerId: string, practiceItemId?: string) {
+    let query = this.supabase
+      .from("educational_objective_evidence")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: true });
+
+    if (practiceItemId) query = query.eq("practice_item_id", practiceItemId);
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+
+    return ((data ?? []) as ObjectiveEvidenceRow[]).map(
+      (row): ObjectiveEvidenceRecord => ({
+        id: row.id,
+        ownerId: row.owner_id,
+        practiceAttemptId: row.practice_attempt_id,
+        practiceItemId: row.practice_item_id,
+        evidenceType: row.evidence_type,
+        state: row.state,
+        score: Number(row.score),
+        matchedCriteria: row.matched_criteria,
+        totalCriteria: row.total_criteria,
+        criterionVersion: row.criterion_version,
+        createdAt: row.created_at,
+      }),
+    );
   }
 
   /** Records evidence and advances page progress in one authorized transaction. */
