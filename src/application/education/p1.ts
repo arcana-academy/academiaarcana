@@ -1,10 +1,28 @@
+import type { EducationalPracticeRepository, PracticeOutcome } from "@/domains/education";
 import type {
-  EducationalOverview,
-  EducationalPracticeRepository,
-  PracticeDifficulty,
-  PracticeOutcome,
-} from "@/domains/education";
-import { buildEducationalOverview } from "@/domains/education/p1";
+  EducationalProfile,
+  LearningGapSignal,
+  ReviewRecommendation,
+} from "@/domains/adaptive";
+import type {
+  EducationalStatistics,
+  MasteryProjection,
+} from "@/domains/learning";
+import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education/p1";
+import { buildEducationalStatistics, buildMasteryProjection } from "@/domains/learning/evidence";
+import {
+  buildEducationalProfile,
+  buildLearningGapSignal,
+  buildReviewRecommendation,
+} from "@/domains/adaptive";
+
+export type EducationalOverview = {
+  reviews: ReviewRecommendation[];
+  mastery: MasteryProjection[];
+  learningGaps: LearningGapSignal[];
+  profile: EducationalProfile;
+  statistics: EducationalStatistics;
+};
 
 export async function getEducationalOverview(
   repository: EducationalPracticeRepository,
@@ -15,8 +33,38 @@ export async function getEducationalOverview(
     repository.listPracticeItems(ownerId),
     repository.listPracticeAttempts(ownerId),
   ]);
+  const attemptsByItem = new Map<string, typeof attempts>();
 
-  return buildEducationalOverview(pages, items, attempts);
+  for (const attempt of attempts) {
+    const current = attemptsByItem.get(attempt.practiceItemId) ?? [];
+    current.push(attempt);
+    attemptsByItem.set(attempt.practiceItemId, current);
+  }
+
+  const reviews = items.map((item) =>
+    buildReviewRecommendation(item, attemptsByItem.get(item.id) ?? []),
+  );
+  const mastery = items.map((item) =>
+    buildMasteryProjection(item, attemptsByItem.get(item.id) ?? []),
+  );
+  const learningGaps = items
+    .map((item) => buildLearningGapSignal(item, attemptsByItem.get(item.id) ?? []))
+    .filter((gap): gap is LearningGapSignal => gap !== null);
+
+  const profile = buildEducationalProfile(
+    pages.length,
+    items,
+    attempts,
+    reviews,
+  );
+  const statistics = buildEducationalStatistics(
+    items,
+    attempts,
+    mastery,
+    reviews.filter((review) => review.due).length,
+  );
+
+  return { reviews, mastery, learningGaps, profile, statistics };
 }
 
 export async function createPractice(
@@ -27,7 +75,7 @@ export async function createPractice(
     prompt: string;
     referenceAnswer: string;
     explanation?: string | null;
-    difficulty: PracticeDifficulty;
+    difficulty: import("@/domains/education").PracticeDifficulty;
   },
 ) {
   return repository.createPracticeItem(input);
@@ -38,26 +86,5 @@ export function buildAttemptInput(input: {
   outcome: PracticeOutcome;
   practiceItemId: string;
 }) {
-  const scoreByOutcome: Record<PracticeOutcome, number> = {
-    strong: 1,
-    partial: 0.6,
-    insufficient: 0.2,
-  };
-  const feedbackByOutcome: Record<PracticeOutcome, string> = {
-    strong:
-      "Você marcou a recuperação como forte. Compare sua resposta com a referência para conferir se consegue explicar a ideia sem consultar o material.",
-    partial:
-      "Você marcou a recuperação como parcial. Compare com a referência, identifique o que faltou e faça uma nova tentativa em outro momento.",
-    insufficient:
-      "Você marcou a recuperação como insuficiente. Isso é evidência para voltar ao conteúdo e praticar novamente; não é um diagnóstico sobre sua capacidade.",
-  };
-
-  return {
-    practiceItemId: input.practiceItemId,
-    answer: input.answer.trim(),
-    outcome: input.outcome,
-    evidenceScore: scoreByOutcome[input.outcome],
-    confidence: "partial" as const,
-    feedback: feedbackByOutcome[input.outcome],
-  };
+  return buildEducationAttemptInput(input);
 }
