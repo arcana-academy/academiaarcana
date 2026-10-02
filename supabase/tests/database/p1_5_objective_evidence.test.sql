@@ -158,10 +158,10 @@ select extensions.is(
     select count(*)::integer
     from public.educational_practice_attempts
     where practice_item_id = '97500000-0000-4000-8000-000000000001'
-      and criterion = 'A resposta normalizada deve coincidir exatamente com a resposta de referência.'
+      and criterion_reference = 'Resposta correta'
   ),
   2,
-  'criterion snapshot is persisted with both attempts'
+  'criterion reference snapshot is persisted with both attempts'
 );
 
 insert into public.educational_practice_items (
@@ -249,7 +249,7 @@ select extensions.throws_ok(
 
 select extensions.throws_ok(
   $query$update public.educational_practice_items
-      set criterion_version = 'criterion_exact_match_v2'
+      set reference_answer = 'Outra resposta de referência'
     where id = '97500000-0000-4000-8000-000000000001'$query$,
   '55000',
   'O critério objetivo não pode ser alterado depois que já houver evidência objetiva registrada.',
