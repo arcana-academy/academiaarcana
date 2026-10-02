@@ -15,15 +15,15 @@ import {
 } from "@/domains/adaptive";
 import {
   buildEducationalStatistics,
-  buildMasteryProjection,
+  buildEvidenceProjection,
   type EducationalStatistics,
-  type MasteryProjection,
+  type EvidenceProjection,
 } from "@/domains/learning";
 import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
-  mastery: MasteryProjection[];
+  evidence: EvidenceProjection[];
   learningGaps: LearningGapSignal[];
   profile: EducationalProfile;
   statistics: EducationalStatistics;
@@ -48,8 +48,8 @@ export function buildEducationalOverview(
   const reviews = items.map((item) =>
     buildReviewRecommendation(item, attemptsByItem.get(item.id) ?? [], now),
   );
-  const mastery = items.map((item) =>
-    buildMasteryProjection(item, attemptsByItem.get(item.id) ?? []),
+  const evidence = items.map((item) =>
+    buildEvidenceProjection(item, attemptsByItem.get(item.id) ?? []),
   );
   const learningGaps = items
     .map((item) =>
@@ -66,11 +66,11 @@ export function buildEducationalOverview(
   const statistics = buildEducationalStatistics(
     items,
     attempts,
-    mastery,
+    evidence,
     reviews.filter((review) => review.due).length,
   );
 
-  return { reviews, mastery, learningGaps, profile, statistics };
+  return { reviews, evidence, learningGaps, profile, statistics };
 }
 
 /** Loads and assembles the authenticated learner's educational overview. */
