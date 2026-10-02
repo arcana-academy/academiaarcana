@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(21);
+select extensions.plan(19);
 
 select extensions.ok(
   relrowsecurity,
@@ -136,53 +136,19 @@ select extensions.ok(
 );
 
 select extensions.ok(
-  not (
-    select prosecdef
-    from pg_proc
-    where pronamespace = 'public'::regnamespace
-      and proname = 'record_educational_practice_attempt'
-      and pronargs = 6
+  prosecdef,
+  'atomic educational attempt operation is SECURITY DEFINER'
+)
+from pg_proc
+where oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
+
+select extensions.ok(
+  (
+    select proc.proconfig @> array['search_path=""']
+    from pg_proc as proc
+    where proc.oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure
   ),
-  'public atomic educational attempt operation is SECURITY INVOKER'
-);
-
-select extensions.ok(
-  (
-    select prosecdef
-    from pg_proc
-    where pronamespace = 'private'::regnamespace
-      and proname = 'record_educational_practice_attempt'
-      and pronargs = 6
-  ),
-  'private atomic educational attempt implementation is SECURITY DEFINER'
-);
-
-select extensions.ok(
-  (
-    select array_to_string(
-      proconfig,
-      ','
-    )
-    from pg_proc
-    where pronamespace = 'public'::regnamespace
-      and proname = 'record_educational_practice_attempt'
-      and pronargs = 6
-  ) = 'search_path=public, pg_catalog',
-  'public atomic educational attempt operation uses a safe search_path'
-);
-
-select extensions.ok(
-  (
-    select array_to_string(
-      proconfig,
-      ','
-    )
-    from pg_proc
-    where pronamespace = 'private'::regnamespace
-      and proname = 'record_educational_practice_attempt'
-      and pronargs = 6
-  ) = 'search_path=""',
-  'private atomic educational attempt implementation uses an empty search_path'
+  'atomic educational attempt operation uses an empty search_path'
 );
 
 select extensions.ok(
@@ -195,6 +161,6 @@ select extensions.ok(
   'practice attempt item foreign key is indexed'
 );
 
-select extensions.finish();
+select * from extensions.finish();
 
 rollback;
