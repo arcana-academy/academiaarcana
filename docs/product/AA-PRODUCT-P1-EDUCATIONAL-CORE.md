@@ -282,9 +282,11 @@ A validação que sustenta este estado inclui:
 
 ### Segurança da evidência educacional
 
-A operação `record_educational_practice_attempt` é a única rota autorizada para registrar tentativas.
+A operação pública `record_educational_practice_attempt` é a única rota autorizada pela aplicação para registrar tentativas.
 
-A função é `SECURITY DEFINER`, usa `search_path = ''`, valida `auth.uid()` e ownership do item, e sua execução é concedida somente a `authenticated`. O privilégio `INSERT` direto na tabela de tentativas permanece revogado para `authenticated`, evitando bypass da atualização atômica de progresso.
+A função pública é `SECURITY INVOKER`, usa `search_path = public, pg_catalog` e pode ser executada somente por `authenticated`. Ela delega a gravação atômica a uma implementação privada, fora da superfície pública da API, que é `SECURITY DEFINER`, usa `search_path = ''`, valida `auth.uid()` e ownership do item e executa as escritas necessárias com privilégios elevados.
+
+O privilégio `INSERT` direto na tabela de tentativas permanece revogado para `authenticated`, evitando bypass da atualização atômica de progresso. A implementação privada também não concede execução a `anon` ou `service_role`.
 
 Este documento permanece como especificação e rastreabilidade de produto; os contratos e decisões técnicas ficam nos domínios e migrações correspondentes.
 
