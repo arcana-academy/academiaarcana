@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(20);
+select extensions.plan(21);
 
 select extensions.ok(
   relrowsecurity,
@@ -136,18 +136,62 @@ select extensions.ok(
 );
 
 select extensions.ok(
-  not prosecdef,
-  'public atomic educational attempt operation is SECURITY INVOKER'
+    not prosecdef,
+    'public atomic educational attempt operation is SECURITY INVOKER'
 )
 from pg_proc
-where oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
+where oid
+    =
+    format(
+        'public.record_educational_practice_attempt(%s)',
+        'uuid, text, text, numeric, text, text'
+    )::regprocedure;
 
 select extensions.ok(
-  prosecdef,
-  'private atomic educational attempt implementation is SECURITY DEFINER'
+    prosecdef,
+    'private atomic educational attempt implementation is SECURITY DEFINER'
 )
 from pg_proc
-where oid = 'private.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
+where oid
+    =
+    format(
+        'private.record_educational_practice_attempt(%s)',
+        'uuid, text, text, numeric, text, text'
+    )::regprocedure;
+
+select extensions.ok(
+    pg_catalog.array_to_string(
+        proconfig,
+        ','
+    )
+    =
+    'search_path=public, pg_catalog',
+    'public atomic educational attempt operation uses a safe search_path'
+)
+from pg_proc
+where oid
+    =
+    format(
+        'public.record_educational_practice_attempt(%s)',
+        'uuid, text, text, numeric, text, text'
+    )::regprocedure;
+
+select extensions.ok(
+    pg_catalog.array_to_string(
+        proconfig,
+        ','
+    )
+    =
+    'search_path=""',
+    'private atomic educational attempt implementation uses an empty search_path'
+)
+from pg_proc
+where oid
+    =
+    format(
+        'private.record_educational_practice_attempt(%s)',
+        'uuid, text, text, numeric, text, text'
+    )::regprocedure;
 
 select extensions.ok(
   to_regclass('public.idx_educational_practice_items_page_id') is not null,
@@ -159,6 +203,6 @@ select extensions.ok(
   'practice attempt item foreign key is indexed'
 );
 
-select * from extensions.finish();
+select extensions.finish() as test_result;
 
 rollback;
