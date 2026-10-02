@@ -27,5 +27,5 @@ export type EducationalStatistics = {
   averageEvidenceScore: number | null;
   reviewDueCount: number;
   itemsWithStrongSelfReportedEvidence: number;
-  itemsWithConfirmedObjectiveEvidence: number;
+  itemsWithCriteriaSatisfiedObjectiveEvidence: number;
 };
