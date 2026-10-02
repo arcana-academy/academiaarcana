@@ -356,12 +356,11 @@ function PracticeSession({
           <p className="aa-state-copy">{objectiveEvidence.reason}</p>
           {objectiveEvidence.masteryConfirmed ? (
             <p>
-              <strong>Domínio confirmado neste escopo específico.</strong>
-              {" "}Essa conclusão vale apenas para os critérios desta atividade e versão.
+              <strong>Critérios objetivos satisfeitos nesta atividade.</strong>
             </p>
           ) : (
             <p className="aa-state-copy">
-              Domínio acadêmico não é confirmado por esta evidência no estado atual.
+              Esses critérios registram desempenho observado nesta atividade; domínio acadêmico não é confirmado por este mecanismo.
             </p>
           )}
         </div>
