@@ -151,6 +151,35 @@ export class SupabaseEducationalPracticeRepository
     return toItem(data as PracticeItemRow, pageTitle);
   }
 
+  async recordPracticeAttemptAndProgress(input: {
+    ownerId: string;
+    practiceItemId: string;
+    answer: string;
+    outcome: PracticeOutcome;
+    evidenceScore: number;
+    confidence: EvidenceConfidence;
+    feedback: string;
+  }) {
+    const { data, error } = await this.supabase.rpc(
+      "record_educational_practice_attempt",
+      {
+        p_practice_item_id: input.practiceItemId,
+        p_answer: input.answer,
+        p_outcome: input.outcome,
+        p_evidence_score: input.evidenceScore,
+        p_confidence: input.confidence,
+        p_feedback: input.feedback,
+      },
+    );
+
+    if (error) throw new Error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || typeof row !== "object") {
+      throw new Error("Resposta inválida ao registrar a prática.");
+    }
+    return toAttempt(row as PracticeAttemptRow);
+  }
+
   async createPracticeAttempt(input: {
     ownerId: string;
     practiceItemId: string;
