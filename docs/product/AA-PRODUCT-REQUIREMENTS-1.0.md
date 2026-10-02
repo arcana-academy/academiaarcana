@@ -80,7 +80,7 @@ Ausência de dados não pode ser representada como zero ou baixo desempenho sem 
 **Comportamento:** cada evidência educacional identifica origem, contexto e confiança.  
 **Aceitação:** autoavaliação aparece como autoavaliação; domínio objetivo não é afirmado sem evidência adequada.  
 **Prioridade:** P1.  
-**Status:** ATIVO; implementação parcial quanto à nomenclatura de domínio.
+**Status:** CONCLUÍDO V1 — proveniência e separação entre autoavaliação e evidência objetiva implementadas.
 
 ### AA-PROD-R009 — Revisão baseada em evidência
 **Objetivo:** direcionar revisão por necessidade educacional.  
@@ -171,9 +171,9 @@ Ausência de dados não pode ser representada como zero ou baixo desempenho sem 
 ### AA-PROD-R021 — Domínio acadêmico objetivo
 **Objetivo:** medir domínio sem sobreinterpretar autoavaliação.  
 **Comportamento:** domínio confirmado só pode ser afirmado por evidência adequada à tarefa.  
-**Aceitação:** sistema distingue autoavaliação, evidência objetiva e ausência de evidência.  
+**Aceitação:** sistema distingue autoavaliação, evidência objetiva e ausência de evidência; V1 oferece critério criterion-referenced por correspondência exata normalizada, com avaliação no servidor e confirmação limitada à atividade.  
 **Prioridade:** P1.  
-**Status:** PENDÊNCIA INTERDOMÍNIO.
+**Status:** CONCLUÍDO V1 — escopo objetivo limitado ao critério suportado.
 
 ## 3. Critério geral de aceitação de Produto
 
