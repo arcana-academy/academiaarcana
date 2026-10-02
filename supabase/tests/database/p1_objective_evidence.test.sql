@@ -138,28 +138,19 @@ select extensions.is(
 );
 
 select extensions.is(
-  (
-    select state
-    from public.educational_objective_evidence
-  ),
+  (select state from public.educational_objective_evidence),
   'developing',
   'first objective pass stays developing when two attempts are required'
 );
 
 select extensions.is(
-  (
-    select score
-    from public.educational_objective_evidence
-  ),
+  (select score from public.educational_objective_evidence),
   1.000,
   'objective score reflects all required phrases'
 );
 
 select extensions.is(
-  (
-    select count(*)::integer
-    from public.educational_objective_evidence
-  ),
+  (select count(*)::integer from public.educational_objective_evidence),
   1,
   'first attempt creates one objective evidence row'
 );
@@ -180,23 +171,13 @@ select extensions.is(
 );
 
 select extensions.is(
-  (
-    select state
-    from public.educational_objective_evidence
-    order by created_at desc
-    limit 1
-  ),
+  (select state from public.educational_objective_evidence order by created_at desc limit 1),
   'criteria-satisfied',
   'second objective pass satisfies explicit criteria without confirming mastery'
 );
 
 select extensions.is(
-  (
-    select confidence
-    from public.educational_objective_evidence
-    order by created_at desc
-    limit 1
-  ),
+  (select confidence from public.educational_objective_evidence order by created_at desc limit 1),
   'strong',
   'criteria-satisfied evidence receives strong evidence quality'
 );
@@ -247,10 +228,7 @@ select set_config(
 set local role authenticated;
 
 select extensions.is(
-  (
-    select count(*)::integer
-    from public.educational_objective_evidence
-  ),
+  (select count(*)::integer from public.educational_objective_evidence),
   0,
   'another owner cannot read objective evidence'
 );
