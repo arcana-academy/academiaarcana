@@ -46,7 +46,7 @@ type ObjectiveEvidenceRow = {
   practice_attempt_id: string;
   practice_item_id: string;
   evidence_type: "criterion-referenced";
-  state: "insufficient" | "developing" | "confirmed" | "conflicting";
+  state: "insufficient" | "developing" | "criteria-satisfied" | "confirmed" | "conflicting";
   score: number | string;
   matched_criteria: number;
   total_criteria: number;
