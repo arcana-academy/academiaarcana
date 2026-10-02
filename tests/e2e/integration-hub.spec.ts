@@ -64,11 +64,19 @@ test.describe("integration hub", () => {
     await expect(
       page.getByRole("heading", { name: "Pesquisa web do Mestre Arcano" }),
     ).toBeVisible();
+    const webResearchSection = page.getByRole("region", {
+      name: "Pesquisa web do Mestre Arcano",
+    });
+    await expect(webResearchSection).toBeVisible();
     await expect(
-      page.getByText("Parallel — Web Research do Mestre Arcano", { exact: true }),
+      webResearchSection.getByRole("heading", {
+        name: "Parallel — Web Research do Mestre Arcano",
+      }),
     ).toBeVisible();
     await expect(
-      page.getByText("Exa — Web Research do Mestre Arcano", { exact: true }),
+      webResearchSection.getByRole("heading", {
+        name: "Exa — Web Research do Mestre Arcano",
+      }),
     ).toBeVisible();
   });
 
