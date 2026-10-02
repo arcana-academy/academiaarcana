@@ -59,7 +59,11 @@ export function buildEvidenceProjection(
   item: PracticeItem,
   attempts: PracticeAttempt[],
 ): EvidenceProjection {
-  if (!attempts.length) {
+  const selfReportedAttempts = attempts.filter(
+    (attempt) => attempt.evidenceType !== "criterion-referenced",
+  );
+
+  if (!selfReportedAttempts.length) {
     return {
       practiceItemId: item.id,
       pageId: item.pageId,
@@ -74,9 +78,9 @@ export function buildEvidenceProjection(
     };
   }
 
-  const recent = recentAttemptsFor(attempts);
+  const recent = recentAttemptsFor(selfReportedAttempts);
   const score = averageEvidenceScoreFor(recent);
-  const repeated = attempts.length >= 3;
+  const repeated = selfReportedAttempts.length >= 3;
   const state = evidenceStateFor(repeated, score);
 
   return {
@@ -86,7 +90,7 @@ export function buildEvidenceProjection(
     state,
     score,
     attemptCount: selfReportedAttempts.length,
-    confidence: confidenceFor(attempts.length),
+    confidence: confidenceFor(selfReportedAttempts.length),
     reason: evidenceReasonFor(state),
     source: "self-assessment",
     masteryConfirmed: false,
