@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { ObjectiveEvidenceRecord } from "@/domains/learning";
 
 import type {
   EvidenceConfidence,
@@ -9,6 +8,7 @@ import type {
   PracticeDifficulty,
   PracticeItem,
   PracticeOutcome,
+  ObjectiveEvidenceRepositoryRecord,
 } from "@/domains/education";
 
 type PageRow = { id: string; title: string };
@@ -205,7 +205,7 @@ export class SupabaseEducationalPracticeRepository
     if (error) throw new Error(error.message);
 
     return ((data ?? []) as ObjectiveEvidenceRow[]).map(
-      (row): ObjectiveEvidenceRecord => ({
+      (row): ObjectiveEvidenceRepositoryRecord => ({
         id: row.id,
         ownerId: row.owner_id,
         practiceAttemptId: row.practice_attempt_id,
