@@ -41,6 +41,7 @@ const record = (
   score,
   matchedCriteria: state === "confirmed" ? 2 : 1,
   totalCriteria: 2,
+  confidence: state === "confirmed" ? "strong" : state === "developing" ? "partial" : "insufficient",
   criterionVersion: version,
   createdAt: "2026-09-" + day + "T00:00:00.000Z",
 });
