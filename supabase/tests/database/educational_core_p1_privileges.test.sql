@@ -140,8 +140,8 @@ select extensions.ok(
     select prosecdef
     from pg_proc
     where oid = to_regprocedure(
-      'public.record_educational_practice_attempt('
-      || 'uuid, text, text, numeric, text, text)'
+        'public.record_educational_practice_attempt('
+        || 'uuid, text, text, numeric, text, text)'
     )
   ),
   'public atomic educational attempt operation is SECURITY INVOKER'
@@ -152,8 +152,8 @@ select extensions.ok(
     select prosecdef
     from pg_proc
     where oid = to_regprocedure(
-      'private.record_educational_practice_attempt('
-      || 'uuid, text, text, numeric, text, text)'
+        'private.record_educational_practice_attempt('
+        || 'uuid, text, text, numeric, text, text)'
     )
   ),
   'private atomic educational attempt implementation is SECURITY DEFINER'
@@ -167,8 +167,8 @@ select extensions.ok(
     )
     from pg_proc
     where oid = to_regprocedure(
-      'public.record_educational_practice_attempt('
-      || 'uuid, text, text, numeric, text, text)'
+        'public.record_educational_practice_attempt('
+        || 'uuid, text, text, numeric, text, text)'
     )
   ) = 'search_path=public, pg_catalog',
   'public atomic educational attempt operation uses a safe search_path'
@@ -182,8 +182,8 @@ select extensions.ok(
     )
     from pg_proc
     where oid = to_regprocedure(
-      'private.record_educational_practice_attempt('
-      || 'uuid, text, text, numeric, text, text)'
+        'private.record_educational_practice_attempt('
+        || 'uuid, text, text, numeric, text, text)'
     )
   ) = 'search_path=""',
   'private atomic educational attempt implementation uses an empty search_path'
@@ -199,6 +199,6 @@ select extensions.ok(
   'practice attempt item foreign key is indexed'
 );
 
-select extensions.finish() as test_result;
+select extensions.finish();
 
 rollback;
