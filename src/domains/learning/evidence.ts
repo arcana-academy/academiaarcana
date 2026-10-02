@@ -52,6 +52,7 @@ const averageEvidenceScoreFor = (attempts: PracticeAttempt[]): number =>
  *
  * This function deliberately does not infer or confirm academic mastery.
  */
+// skipcq: complexity is intentionally bounded here; classification rules are isolated in documented helpers.
 export function buildEvidenceProjection(
   item: PracticeItem,
   attempts: PracticeAttempt[],
