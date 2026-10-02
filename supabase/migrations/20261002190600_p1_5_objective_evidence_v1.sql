@@ -33,7 +33,8 @@ alter table public.educational_practice_attempts
   add column criterion text,
   add column criterion_version text,
   add column criterion_result text,
-  add column criterion_scope text;
+  add column criterion_scope text,
+  add column criterion_reference text;
 
 alter table public.educational_practice_attempts
   add constraint educational_practice_attempts_evidence_type_check
@@ -50,13 +51,15 @@ alter table public.educational_practice_attempts
       and criterion is null
       and criterion_version is null
       and criterion_result is null
-      and criterion_scope is null)
+      and criterion_scope is null
+      and criterion_reference is null)
     or
     (evidence_type = 'criterion-referenced'
       and char_length(trim(criterion)) between 1 and 1000
       and criterion_version is not null
       and criterion_result is not null
-      and criterion_scope = 'practice-item')
+      and criterion_scope = 'practice-item'
+      and char_length(trim(criterion_reference)) between 1 and 5000)
   );
 
 create index idx_educational_practice_attempts_owner_item_type_created
@@ -146,7 +149,8 @@ begin
     criterion,
     criterion_version,
     criterion_result,
-    criterion_scope
+    criterion_scope,
+    criterion_reference
   )
   values (
     v_owner_id,
@@ -165,7 +169,8 @@ begin
     v_criterion,
     v_criterion_version,
     case when v_pass then 'pass' else 'fail' end,
-    'practice-item'
+    'practice-item',
+    pg_catalog.btrim(v_reference_answer)
   )
   returning * into v_attempt;
 
@@ -244,6 +249,7 @@ begin
     or new.criterion is distinct from old.criterion
     or new.criterion_version is distinct from old.criterion_version
     or new.minimum_evidence is distinct from old.minimum_evidence
+    or new.reference_answer is distinct from old.reference_answer
   )
   and exists (
     select 1
