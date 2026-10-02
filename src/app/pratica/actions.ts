@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 
 import { buildAttemptInput } from "@/application/education/p1";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
-import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
 import { StudyTaskService } from "@/application/planning/study-tasks";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
@@ -71,18 +70,10 @@ export async function submitPracticeAttemptAction(formData: FormData) {
     outcome,
   });
 
-  await repository.createPracticeAttempt({
+  await repository.recordPracticeAttemptAndProgress({
     ownerId: claims.sub,
     ...attempt,
   });
-
-  const progressRepository = new SupabasePageProgressRepository(supabase);
-  await progressRepository.setStatus(
-    claims.sub,
-    item.pageId,
-    "in-progress",
-    null,
-  );
 
   revalidatePath("/pratica");
   revalidatePath("/estatisticas");
