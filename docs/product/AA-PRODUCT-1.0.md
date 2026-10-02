@@ -250,7 +250,7 @@ O fechamento P1 compreende oito capacidades:
 - P1.2 Recuperação: **CONCLUÍDO V1**
 - P1.3 Revisão: **CONCLUÍDO V1 — política heurística inicial**
 - P1.4 Feedback: **CONCLUÍDO V1**
-- P1.5 Evidência de domínio: **PARCIAL — evidência autorreportada; domínio objetivo ainda NÃO CONFIRMADO**
+- P1.5 Evidência de domínio: **PARCIAL — evidência autorreportada + critérios objetivos sintáticos V1; domínio acadêmico confirmado ainda NÃO VALIDADO**
 - P1.6 Lacunas: **CONCLUÍDO V1 — sinal revisável**
 - P1.7 Perfil dinâmico: **CONCLUÍDO V1 — sinais limitados ao conjunto atual de evidências**
 - P1.8 Estatísticas: **CONCLUÍDO V1**
@@ -456,13 +456,13 @@ O ciclo pode começar em objetivos representados por tarefas, missões ou contex
 | AA-PROD-B08 | colaboração/social funcional | P2 | PENDENTE |
 | AA-PROD-B09 | Mestre Arcano tutor/planejador avançado | P2/P3 | EM EVOLUÇÃO |
 | AA-PROD-B10 | experiências experimentais | P4 | NÃO INICIADO |
-| AA-PROD-B11 | evidência objetiva/criterion-referenced de domínio | P1 | PENDÊNCIA INTERDOMÍNIO |
+| AA-PROD-B11 | evidência objetiva/criterion-referenced de domínio | P1 | PARCIAL — critérios explícitos V1; confirmação acadêmica pendente |
 
 ## 22. Estado atual do Produto
 
 **Fundação P0:** IMPLEMENTADA.
 
-**Núcleo educacional P1:** IMPLEMENTADO V1, com a ressalva formal de que domínio acadêmico objetivo permanece NÃO CONFIRMADO.
+**Núcleo educacional P1:** IMPLEMENTADO V1, com a ressalva formal de que domínio acadêmico objetivo permanece NÃO CONFIRMADO; a fase atual adiciona evidência objetiva de critérios explícitos, sem promover esses critérios a domínio acadêmico.
 
 **Gamificação:** IMPLEMENTADA BÁSICA E SEPARADA DA EVIDÊNCIA EDUCACIONAL.
 
