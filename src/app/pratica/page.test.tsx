@@ -66,8 +66,10 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
       return Promise.resolve(this.items);
     }
 
+    private readonly attempts: never[] = [];
+
     listPracticeAttempts() {
-      return Promise.resolve([]);
+      return Promise.resolve(this.attempts);
     }
   }
 
