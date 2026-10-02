@@ -40,16 +40,12 @@ export function buildEvidenceProjection(
     recent.reduce((total, attempt) => total + attempt.evidenceScore, 0) /
     recent.length;
   const repeated = attempts.length >= 3;
-  const state = repeated
-    ? score >= 0.9
-      ? "strong-evidence"
-      : score >= 0.7
-        ? "consolidating"
-        : "developing"
-    : "developing";
-  const confidence: EvidenceProjection["confidence"] = repeated
-    ? "strong"
-    : "partial";
+  const stateByScore = ["developing", "consolidating", "strong-evidence"] as const;
+  const scoreBand = Number(score >= 0.7) + Number(score >= 0.9);
+  const state = repeated ? stateByScore[scoreBand] : "developing";
+  const confidence = ["insufficient", "partial", "strong"][
+    Math.min(attempts.length, 3) - 1
+  ] as EvidenceProjection["confidence"];
   const reasonByState = {
     "strong-evidence":
       "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
