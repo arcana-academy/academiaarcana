@@ -1,6 +1,7 @@
 const EXA_API_URL = "https://api.exa.ai/search";
 const DEFAULT_NUM_RESULTS = 5;
 const MAX_NUM_RESULTS = 10;
+const EXA_TIMEOUT_MS = 12_000;
 
 export type ExaSearch = {
   readonly query: string;
@@ -96,6 +97,7 @@ async function requestExa(
       headers: { "Content-Type": "application/json", "x-api-key": apiKey },
       body: buildExaRequestBody(query, numResults),
       cache: "no-store",
+      signal: AbortSignal.timeout(EXA_TIMEOUT_MS),
     });
   } catch {
     throw new Error("Exa could not be reached from the server.");

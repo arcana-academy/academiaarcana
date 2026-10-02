@@ -1,14 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
 import { getIntegrationStatusSnapshot } from "./status";
 
 describe("integration status snapshot", () => {
+  beforeEach(() => {
+    delete process.env.PARALLEL_API_KEY;
+    delete process.env.EXA_API_KEY;
+  });
   it("reports the complete catalog and a verified GitHub connection", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
-      githubVerifier: async () => ({
-        providerId: "github",
-        pluginName: "GitHub",
+      githubVerifier: () =>
+        Promise.resolve({
+          providerId: "github",
+          pluginName: "GitHub",
         status: "connected",
         repository: {
           fullName: "arcana-academy/academiaarcana",
@@ -21,12 +26,30 @@ describe("integration status snapshot", () => {
       }),
     });
 
-    expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length);
+    expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length + 2);
     expect(snapshot.connectedCount).toBe(1);
     expect(snapshot.cataloguedCount).toBe(
-      CHATGPT_PLUGIN_CATALOG.length - 1,
+      CHATGPT_PLUGIN_CATALOG.length + 1,
     );
     expect(snapshot.errorCount).toBe(0);
+    expect(snapshot.serverRuntimeIntegrations).toMatchObject([
+      {
+        providerId: "parallel-web-research",
+        name: "Parallel — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        configuration: "not-configured",
+      },
+      {
+        providerId: "exa-web-research",
+        name: "Exa — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        configuration: "not-configured",
+      },
+    ]);
 
     expect(snapshot.runtimeIntegrations).toMatchObject([
       {
@@ -166,11 +189,106 @@ describe("integration status snapshot", () => {
     });
   });
 
+  it("runs independent provider verifications concurrently", async () => {
+    let started = 0;
+    let release!: () => void;
+    const allStarted = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    const verifier = <T,>(result: T) => async () => {
+      started += 1;
+      if (started === 4) release();
+      await allStarted;
+      return result;
+    };
+
+    const snapshotPromise = getIntegrationStatusSnapshot({
+      githubVerifier: verifier({
+        providerId: "github",
+        pluginName: "GitHub",
+        status: "connected",
+        repository: {
+          fullName: "arcana-academy/academiaarcana",
+          defaultBranch: "main",
+          visibility: "public",
+          private: false,
+          htmlUrl: "https://github.com/arcana-academy/academiaarcana",
+        },
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      dataCampVerifier: verifier({
+        providerId: "datacamp",
+        pluginName: "DataCamp",
+        endpoint: "https://api.datacamp.com",
+        status: "connected",
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      dropboxVerifier: verifier({
+        providerId: "dropbox",
+        pluginName: "Dropbox",
+        accountId: "account-1",
+        status: "connected",
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      airtableVerifier: verifier({
+        providerId: "airtable",
+        baseId: "base-1",
+        tableCount: 1,
+        status: "connected",
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+      dataCampApiKey: "configured",
+      dropboxToken: "configured",
+      airtableToken: "configured",
+      airtableBaseId: "base-1",
+    });
+
+    await allStarted;
+    expect(started).toBe(4);
+    await snapshotPromise;
+  });
+
+  it("surfaces server provider configuration without marking it verified", async () => {
+    process.env.PARALLEL_API_KEY = "configured";
+    process.env.EXA_API_KEY = "configured";
+
+    const snapshot = await getIntegrationStatusSnapshot({
+      githubVerifier: () =>
+        Promise.resolve({
+          providerId: "github",
+        pluginName: "GitHub",
+        status: "connected",
+        repository: {
+          fullName: "arcana-academy/academiaarcana",
+          defaultBranch: "main",
+          visibility: "public",
+          private: false,
+          htmlUrl: "https://github.com/arcana-academy/academiaarcana",
+        },
+        verifiedAt: "2026-09-27T00:00:00.000Z",
+      }),
+    });
+
+    expect(snapshot.serverRuntimeIntegrations).toMatchObject([
+      {
+        providerId: "parallel-web-research",
+        configuration: "configured",
+        status: "catalogued",
+        verification: null,
+      },
+      {
+        providerId: "exa-web-research",
+        configuration: "configured",
+        status: "catalogued",
+        verification: null,
+      },
+    ]);
+  });
+
   it("fails closed for provider errors without exposing provider details", async () => {
     const snapshot = await getIntegrationStatusSnapshot({
-      githubVerifier: async () => {
-        throw new Error("secret network diagnostics");
-      },
+      githubVerifier: () => Promise.reject(new Error("secret network diagnostics")),
     });
 
     const github = snapshot.entries.find((entry) => entry.name === "GitHub");

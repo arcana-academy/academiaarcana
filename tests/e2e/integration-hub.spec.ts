@@ -8,7 +8,7 @@ test.describe("integration hub", () => {
 
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { name: "Hub de integrações da Academia Arcana" })).toBeVisible();
-    await expect(page.getByText("118 plugins registrados")).toBeVisible();
+    await expect(page.getByText("120 integrações registradas")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Conexões verificadas" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ferramentas aplicadas ao ciclo de criação" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Laboratório de simulação e robótica" })).toBeVisible();
@@ -60,6 +60,24 @@ test.describe("integration hub", () => {
         }),
       ).toBeVisible();
     }
+
+    await expect(
+      page.getByRole("heading", { name: "Pesquisa web do Mestre Arcano" }),
+    ).toBeVisible();
+    const webResearchSection = page.getByRole("region", {
+      name: "Pesquisa web do Mestre Arcano",
+    });
+    await expect(webResearchSection).toBeVisible();
+    await expect(
+      webResearchSection.getByRole("heading", {
+        name: "Parallel — Web Research do Mestre Arcano",
+      }),
+    ).toBeVisible();
+    await expect(
+      webResearchSection.getByRole("heading", {
+        name: "Exa — Web Research do Mestre Arcano",
+      }),
+    ).toBeVisible();
   });
 
   test("serves the status API with a connected GitHub provider and catalogued A-Z Dictionary bridge", async ({
@@ -70,8 +88,8 @@ test.describe("integration hub", () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
 
-    expect(body.catalogSize).toBe(118);
-    expect(body.connectedCount + body.cataloguedCount + body.errorCount).toBe(118);
+    expect(body.catalogSize).toBe(120);
+    expect(body.connectedCount + body.cataloguedCount + body.errorCount).toBe(120);
     expect([0, 1]).toContain(body.errorCount);
     expect(body.connectedCount + body.errorCount).toBe(1);
 

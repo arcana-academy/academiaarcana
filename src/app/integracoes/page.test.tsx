@@ -4,10 +4,32 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/infrastructure/integrations/status", () => ({
   getIntegrationStatusSnapshot: vi.fn(async () => ({
     generatedAt: "2026-09-27T00:00:00.000Z",
-    catalogSize: 116,
+    catalogSize: 120,
     connectedCount: 1,
-    cataloguedCount: 115,
+    cataloguedCount: 119,
     errorCount: 0,
+    serverRuntimeIntegrations: [
+      {
+        providerId: "parallel-web-research",
+        name: "Parallel — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        capabilities: ["search"],
+        configuration: "not-configured",
+        verification: null,
+      },
+      {
+        providerId: "exa-web-research",
+        name: "Exa — Web Research do Mestre Arcano",
+        source: "runtime",
+        status: "catalogued",
+        executionMode: "runtime",
+        capabilities: ["search"],
+        configuration: "not-configured",
+        verification: null,
+      },
+    ],
     runtimeIntegrations: [
       {
         providerId: "openai-agents",
@@ -102,11 +124,11 @@ describe("IntegracoesPage", () => {
   it("renders the catalog size and the distinction between verified and catalogued", async () => {
     const html = renderToStaticMarkup(await IntegracoesPage());
 
-    expect(html).toContain("116 plugins registrados");
+    expect(html).toContain("120 integrações registradas");
     expect(html).toContain("Conexões verificadas");
     expect(html).toContain("1");
     expect(html).toContain("Ainda catalogados");
-    expect(html).toContain("115");
+    expect(html).toContain("119");
     expect(html).toContain("Agentic Course Redesign");
     expect(html).toContain("Hospedado no ChatGPT");
     expect(html).toContain(
@@ -126,6 +148,10 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Gerenciar conexão do Trello");
 
     expect(html).toContain("OpenAI Agents");
+    expect(html).toContain("Pesquisa web do Mestre Arcano");
+    expect(html).toContain("Parallel — Web Research do Mestre Arcano");
+    expect(html).toContain("Exa — Web Research do Mestre Arcano");
+    expect(html).toContain("Não configurado");
     expect(html).toContain("gpt-5.6-sol");
     expect(html).toContain("Abrir OpenAI Agents");
     expect(html).toContain("1 Billion Brain Cells");

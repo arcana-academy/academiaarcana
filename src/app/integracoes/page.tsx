@@ -323,6 +323,69 @@ export default async function IntegracoesPage() {
       </section>
 
       <section
+        aria-labelledby="web-research-title"
+        style={{
+          display: "grid",
+          gap: "var(--aa-spacing-md)",
+          marginTop: "var(--aa-spacing-lg)",
+        }}
+      >
+        <div className="aa-card aa-card-elevated">
+          <p
+            style={{
+              color: "var(--aa-accent-primary)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Mestre Arcano · Pesquisa externa
+          </p>
+          <h2 id="web-research-title" style={{ marginTop: 0 }}>
+            Pesquisa web do Mestre Arcano
+          </h2>
+          <p style={{ color: "var(--aa-text-secondary)", maxWidth: "58rem" }}>
+            Parallel e Exa são providers server-side para evidências externas.
+            Eles não são conexões de conta do aluno e nenhuma credencial é exposta
+            ao navegador.
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gap: "var(--aa-spacing-sm)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(18rem, 1fr))",
+            }}
+          >
+            {snapshot.serverRuntimeIntegrations.map((integration) => {
+              const configured = integration.configuration === "configured";
+              return (
+                <article key={integration.providerId} className="aa-card aa-card-default">
+                  <div
+                    style={{
+                      alignItems: "baseline",
+                      display: "flex",
+                      gap: "var(--aa-spacing-sm)",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <h3 style={{ margin: 0 }}>{integration.name}</h3>
+                    <span aria-label={configured ? "Provider configurado" : "Provider não configurado"}>
+                      {configured ? "Configurado" : "Não configurado"}
+                    </span>
+                  </div>
+                  <p style={{ color: "var(--aa-text-secondary)", marginBottom: 0 }}>
+                    Capacidade: {integration.capabilities?.join(", ") ?? "não informada"}.
+                    A verificação acontece somente quando o provider é utilizado.
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section
         aria-labelledby="integrations-summary-title"
         style={{
           display: "grid",
@@ -333,7 +396,7 @@ export default async function IntegracoesPage() {
       >
         <div className="aa-card aa-card-default">
           <h2 id="integrations-summary-title">Catálogo</h2>
-          <p>{snapshot.catalogSize} plugins registrados</p>
+          <p>{snapshot.catalogSize} integrações registradas</p>
         </div>
         <div className="aa-card aa-card-default">
           <h2>Conexões verificadas</h2>

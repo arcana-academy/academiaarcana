@@ -36,9 +36,11 @@ The Blueprint declares environment keys that must be supplied by the Render envi
 
 Secret placeholders use Render's `sync: false` pattern so values remain managed outside Git.
 
-## Health
+## Health and readiness
 
-Render checks `/api/health`. A successful 2xx/3xx response is sufficient for an HTTP health check.
+Render checks `/api/health`, which is intentionally a cheap liveness probe. Render considers an HTTP health check successful for a 2xx or 3xx response.
+
+The application also exposes `/api/ready` as the deep readiness contract. It verifies access to the canonical Supabase Auth health endpoint without exposing credentials. Production smoke tests verify both endpoints after release.
 
 ## Release sequence
 

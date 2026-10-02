@@ -44,7 +44,27 @@ jobs:
           base_url="https://academiaarcana.onrender.com"
           body="$(curl -fsS --max-time 20 "${base_url}/api/health")"
           node -e 'const body=JSON.parse(process.argv[1]); if (body.status !== "ok" || body.service !== "academiaarcana") process.exit(1)' "$body"
-          echo "Production health endpoint is healthy."
+          echo "Production liveness endpoint is healthy."
+
+      - name: Check readiness endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="https://academiaarcana.onrender.com"
+
+          for attempt in {1..12}; do
+            if body="$(curl -fsS --max-time 20 "${base_url}/api/ready")"; then
+              node -e 'const body=JSON.parse(process.argv[1]); if (body.status !== "ok" || body.service !== "academiaarcana" || body.checks?.supabase !== "ok") process.exit(1)' "$body"
+              echo "Production readiness endpoint is healthy."
+              exit 0
+            fi
+
+            echo "Production readiness endpoint not ready (attempt $attempt); retrying..."
+            sleep 10
+          done
+
+          echo "Production readiness check failed."
+          exit 1
 
       - name: Check public runtime routes
         shell: bash
@@ -127,6 +147,20 @@ jobs:
             tarot.verification !== null
           ) {
             throw new Error("Tarot bridge contract failed.");
+          }
+
+          const webResearchProviders = body.serverRuntimeIntegrations ?? [];
+          if (
+            webResearchProviders.length !== 2 ||
+            !webResearchProviders.every(
+              (entry) =>
+                entry.status === "catalogued" &&
+                entry.executionMode === "runtime" &&
+                entry.verification === null &&
+                ["parallel-web-research", "exa-web-research"].includes(entry.providerId),
+            )
+          ) {
+            throw new Error("Web research provider contract failed.");
           }
 
           const bridgedEntries = body.entries.filter(

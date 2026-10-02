@@ -1,6 +1,6 @@
 # Estado de integração — Academia Arcana
 
-Atualizado em 2026-09-29.
+Atualizado em 2026-10-01.
 
 ## Fonte de verdade
 
@@ -33,6 +33,20 @@ O Santuário já compõe:
 - agenda;
 - recomendação adaptativa;
 - Mestre Arcano.
+
+## Pesquisa web do Mestre Arcano
+
+- Parallel e Exa estão registrados como providers server-side do runtime.
+- O catálogo diferencia provider registrado de conexão verificada; nenhuma chave aparece no navegador ou no payload público.
+- O Exa usa timeout determinístico de 12 segundos.
+- A extração continua restrita ao provider Parallel e a URLs HTTP(S) públicas, conforme o contrato do adapter.
+
+## Saúde e prontidão do runtime
+
+- `/api/health` é o probe de liveness barato usado pelo Render.
+- `/api/ready` é o contrato de readiness profundo e verifica o serviço de saúde do Supabase Auth.
+- O smoke de produção valida ambos depois da publicação.
+- O split evita que uma indisponibilidade transitória de uma dependência de dados transforme automaticamente o liveness probe em falha de rollout.
 
 ## Integrações externas concluídas
 
