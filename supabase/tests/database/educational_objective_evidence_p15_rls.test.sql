@@ -92,7 +92,7 @@ select extensions.is(
   (select (public.record_educational_objective_attempt(
     '9c000000-0000-4000-8000-000000000001',
     'Resposta diferente'
-  )).evidence_score),
+  )).evidence_score)::integer,
   0,
   'RPC calcula score objetivo no servidor'
 );
