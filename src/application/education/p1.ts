@@ -4,6 +4,8 @@ import type {
   PracticeItem,
   PracticeOutcome,
   PracticeDifficulty,
+  ObjectiveAssessment,
+  ObjectiveAttempt,
 } from "@/domains/education";
 import {
   buildEducationalProfile,
@@ -18,12 +20,14 @@ import {
   buildEvidenceProjection,
   type EducationalStatistics,
   type EvidenceProjection,
+  type ObjectiveEvidenceProjection,
 } from "@/domains/learning";
 import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
   evidence: EvidenceProjection[];
+  objectiveEvidence: ObjectiveEvidenceProjection[];
   learningGaps: LearningGapSignal[];
   profile: EducationalProfile;
   statistics: EducationalStatistics;
@@ -36,6 +40,8 @@ export function buildEducationalOverview(
   items: PracticeItem[],
   attempts: PracticeAttempt[],
   now = new Date(),
+  objectiveAssessments: ObjectiveAssessment[] = [],
+  objectiveAttempts: ObjectiveAttempt[] = [],
 ): EducationalOverview {
   const attemptsByItem = new Map<string, PracticeAttempt[]>();
 
@@ -44,6 +50,22 @@ export function buildEducationalOverview(
     current.push(attempt);
     attemptsByItem.set(attempt.practiceItemId, current);
   }
+
+  const objectiveAttemptsByAssessment = new Map<string, ObjectiveAttempt[]>();
+
+  for (const attempt of objectiveAttempts) {
+    const current =
+      objectiveAttemptsByAssessment.get(attempt.assessmentId) ?? [];
+    current.push(attempt);
+    objectiveAttemptsByAssessment.set(attempt.assessmentId, current);
+  }
+
+  const objectiveEvidence = objectiveAssessments.map((assessment) =>
+    buildObjectiveEvidenceProjection(
+      assessment,
+      objectiveAttemptsByAssessment.get(assessment.id) ?? [],
+    ),
+  );
 
   const reviews = items.map((item) =>
     buildReviewRecommendation(item, attemptsByItem.get(item.id) ?? [], now),
@@ -68,9 +90,19 @@ export function buildEducationalOverview(
     attempts,
     evidence,
     reviews.filter((review) => review.due).length,
+    objectiveAssessments.length,
+    objectiveAttempts.length,
+    objectiveEvidence,
   );
 
-  return { reviews, evidence, learningGaps, profile, statistics };
+  return {
+    reviews,
+    evidence,
+    objectiveEvidence,
+    learningGaps,
+    profile,
+    statistics,
+  };
 }
 
 /** Loads and assembles the authenticated learner's educational overview. */
@@ -79,13 +111,23 @@ export async function getEducationalOverview(
   repository: EducationalPracticeRepository,
   ownerId: string,
 ): Promise<EducationalOverview> {
-  const [pages, items, attempts] = await Promise.all([
-    repository.listPages(ownerId),
-    repository.listPracticeItems(ownerId),
-    repository.listPracticeAttempts(ownerId),
-  ]);
+  const [pages, items, attempts, objectiveAssessments, objectiveAttempts] =
+    await Promise.all([
+      repository.listPages(ownerId),
+      repository.listPracticeItems(ownerId),
+      repository.listPracticeAttempts(ownerId),
+      repository.listObjectiveAssessments?.(ownerId) ?? [],
+      repository.listObjectiveAttempts?.(ownerId) ?? [],
+    ]);
 
-  return buildEducationalOverview(pages, items, attempts);
+  return buildEducationalOverview(
+    pages,
+    items,
+    attempts,
+    new Date(),
+    objectiveAssessments,
+    objectiveAttempts,
+  );
 }
 
 /** Creates a native retrieval-practice activity through the repository contract. */
@@ -111,4 +153,38 @@ export function buildAttemptInput(input: {
   practiceItemId: string;
 }) {
   return buildEducationAttemptInput(input);
+}
+
+
+/** Creates a bounded criterion-referenced objective assessment. */
+export function createObjectiveAssessment(
+  repository: EducationalPracticeRepository,
+  input: {
+    ownerId: string;
+    pageId: string;
+    prompt: string;
+    referenceAnswer: string;
+    criterion: string;
+    minimumEvidence: number;
+  },
+): Promise<ObjectiveAssessment> {
+  if (!repository.createObjectiveAssessment) {
+    throw new Error("Avaliação objetiva indisponível neste repositório.");
+  }
+  return repository.createObjectiveAssessment(input);
+}
+
+/** Records an objective attempt; the server remains the source of pass/fail. */
+export function recordObjectiveAttempt(
+  repository: EducationalPracticeRepository,
+  input: {
+    ownerId: string;
+    assessmentId: string;
+    answer: string;
+  },
+): Promise<ObjectiveAttempt> {
+  if (!repository.recordObjectiveAttemptAndProgress) {
+    throw new Error("Avaliação objetiva indisponível neste repositório.");
+  }
+  return repository.recordObjectiveAttemptAndProgress(input);
 }
