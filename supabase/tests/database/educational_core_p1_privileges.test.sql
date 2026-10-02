@@ -167,7 +167,7 @@ where pronamespace = 'private'::regnamespace
 
 select extensions.ok(
         array_to_string(proconfig, ',') = 'search_path=""',
-        'private atomic educational attempt implementation uses an empty search_path'
+        'private RPC uses an empty search_path'
 )
 from pg_proc
 where pronamespace = 'private'::regnamespace
