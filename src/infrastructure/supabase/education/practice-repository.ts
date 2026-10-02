@@ -10,6 +10,7 @@ import type {
   PracticeItem,
   PracticeOutcome,
 } from "@/domains/education";
+import { NORMALIZED_EXACT_MATCH_CRITERION } from "@/domains/education";
 
 type PageRow = { id: string; title: string };
 type PracticeItemRow = {
