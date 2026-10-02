@@ -129,8 +129,8 @@ export function buildEducationalStatistics(
     itemsWithStrongSelfReportedEvidence: evidence.filter(
       (entry) => entry.state === "strong-evidence",
     ).length,
-    itemsWithConfirmedObjectiveEvidence: objectiveEvidence.filter(
-      (entry) => entry.masteryConfirmed,
+    itemsWithCriteriaSatisfiedObjectiveEvidence: objectiveEvidence.filter(
+      (entry) => entry.state === "criteria-satisfied",
     ).length,
   };
 }
