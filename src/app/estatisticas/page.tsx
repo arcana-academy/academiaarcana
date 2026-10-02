@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { BarChart3, BookOpen, Sparkles, Target, TrendingUp } from "lucide-react";
 
