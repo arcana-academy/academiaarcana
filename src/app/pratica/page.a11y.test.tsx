@@ -9,6 +9,10 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({})),
 }));
 
+vi.mock("@/components/layout/AuthenticatedShell", () => ({
+  AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockRepository {
     async listPages() {
