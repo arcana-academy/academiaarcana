@@ -1,3 +1,4 @@
+/** Renders the accessible loading state for the educational practice surface. */
 export default function Loading() {
   return (
     <main className="aa-page" aria-busy="true" aria-labelledby="practice-loading-title">
