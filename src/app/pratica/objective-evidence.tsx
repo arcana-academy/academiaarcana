@@ -46,16 +46,12 @@ function ObjectiveAssessmentCreationForm({ pageId }: { pageId: string }) {
         maxLength={5000}
         placeholder="Use este campo como resposta exata esperada."
       />
-      <label htmlFor="objective-criterion">Critério explícito</label>
-      <textarea
-        id="objective-criterion"
-        name="criterion"
-        rows={3}
-        required
-        minLength={1}
-        maxLength={2000}
-        defaultValue="A resposta deve corresponder à resposta de referência após normalização de caixa e espaços."
-      />
+      <div>
+        <span className="aa-state-copy">Critério explícito</span>
+        <p>
+          A resposta deve corresponder à resposta de referência após normalização de caixa e espaços.
+        </p>
+      </div>
       <label htmlFor="objective-minimum">Evidência mínima para confirmação</label>
       <select id="objective-minimum" name="minimumEvidence" defaultValue="2">
         {[1, 2, 3, 4, 5].map((value) => (
