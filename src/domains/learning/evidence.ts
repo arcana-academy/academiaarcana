@@ -1,49 +1,53 @@
 import type {
   EducationalStatistics,
-  MasteryProjection,
+  EvidenceProjection,
 } from "./contracts";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 
 export type LearningEvidenceOverview = {
-  mastery: MasteryProjection[];
+  evidence: EvidenceProjection[];
   statistics: EducationalStatistics;
 };
 
-function confidenceFor(attemptCount: number): MasteryProjection["confidence"] {
+function confidenceFor(attemptCount: number): EvidenceProjection["confidence"] {
   if (attemptCount >= 3) return "strong";
   if (attemptCount > 0) return "partial";
   return "insufficient";
 }
 
-function masteryStateFor(
+function evidenceStateFor(
   attempts: number,
   score: number,
-): MasteryProjection["state"] {
+): EvidenceProjection["state"] {
   if (attempts >= 3 && score >= 0.9) return "strong-evidence";
   if (attempts >= 3 && score >= 0.7) return "consolidating";
   return "developing";
 }
 
-function masteryReasonFor(
+function evidenceReasonFor(
   attempts: number,
-  state: MasteryProjection["state"],
+  state: EvidenceProjection["state"],
 ): string {
   if (state === "strong-evidence") {
-    return "As tentativas recentes apresentam evidência consistente e suficiente para este item.";
+    return "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.";
   }
   if (state === "consolidating") {
-    return "O desempenho recente sugere consolidação, mas pode ser revisado por novas evidências.";
+    return "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências.";
   }
   return attempts < 3
-    ? "Há alguma evidência, mas a amostra ainda é pequena."
-    : "As evidências atuais indicam que este conteúdo ainda merece prática ou revisão.";
+    ? "Há alguma evidência autorreportada, mas a amostra ainda é pequena."
+    : "As evidências autorreportadas atuais indicam que este conteúdo ainda merece prática ou revisão.";
 }
 
-/** Projects item-level mastery only from repeated educational evidence. */
-export function buildMasteryProjection(
+/**
+ * Projects item-level self-reported retrieval evidence.
+ *
+ * This function deliberately does not infer or confirm academic mastery.
+ */
+export function buildEvidenceProjection(
   item: PracticeItem,
   attempts: PracticeAttempt[],
-): MasteryProjection {
+): EvidenceProjection {
   if (!attempts.length) {
     return {
       practiceItemId: item.id,
@@ -54,6 +58,8 @@ export function buildMasteryProjection(
       attemptCount: 0,
       confidence: "insufficient",
       reason: "Ainda não há tentativas suficientes para produzir evidência.",
+      source: "self-assessment",
+      masteryConfirmed: false,
     };
   }
 
@@ -63,7 +69,7 @@ export function buildMasteryProjection(
   const score =
     recent.reduce((total, attempt) => total + attempt.evidenceScore, 0) /
     recent.length;
-  const state = masteryStateFor(attempts.length, score);
+  const state = evidenceStateFor(attempts.length, score);
 
   return {
     practiceItemId: item.id,
@@ -73,33 +79,30 @@ export function buildMasteryProjection(
     score,
     attemptCount: attempts.length,
     confidence: confidenceFor(attempts.length),
-    reason: masteryReasonFor(attempts.length, state),
+    reason: evidenceReasonFor(attempts.length, state),
+    source: "self-assessment",
+    masteryConfirmed: false,
   };
-}
-
-function practicedPageCount(
-  items: PracticeItem[],
-  attempts: PracticeAttempt[],
-): number {
-  const attemptedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
-  return new Set(
-    items
-      .filter((item) => attemptedItemIds.has(item.id))
-      .map((item) => item.pageId),
-  ).size;
 }
 
 /** Calculates learning statistics separately from gamification state. */
 export function buildEducationalStatistics(
   items: PracticeItem[],
   attempts: PracticeAttempt[],
-  mastery: MasteryProjection[],
+  evidence: EvidenceProjection[],
   reviewDueCount: number,
 ): EducationalStatistics {
+  const practicedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
+  const practicedPageCount = new Set(
+    items
+      .filter((item) => practicedItemIds.has(item.id))
+      .map((item) => item.pageId),
+  ).size;
+
   return {
     practiceItemCount: items.length,
     attemptCount: attempts.length,
-    practicedPageCount: practicedPageCount(items, attempts),
+    practicedPageCount,
     retrievalSuccessRate:
       attempts.length === 0
         ? null
@@ -113,7 +116,7 @@ export function buildEducationalStatistics(
             0,
           ) / attempts.length,
     reviewDueCount,
-    masteryWithStrongEvidence: mastery.filter(
+    itemsWithStrongSelfReportedEvidence: evidence.filter(
       (entry) => entry.state === "strong-evidence",
     ).length,
   };
