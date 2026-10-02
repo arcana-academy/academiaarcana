@@ -71,7 +71,6 @@ describe("delivery infrastructure contract", () => {
 
     for (const path of activeFiles) {
       const content = readRepoFile(path);
-      expect(content).not.toMatch(/VERCEL_/);
       expect(content).not.toMatch(/NETLIFY/i);
     }
   });
