@@ -238,19 +238,19 @@ where pronamespace = 'private'::regnamespace
   and pronargs = 2;
 
 select extensions.throws_ok(
-  $select public.record_criterion_referenced_practice_attempt(
+  $query$select public.record_criterion_referenced_practice_attempt(
     '97500000-0000-4000-8000-000000000002',
     'Outra tentativa'
-  )$,
+  )$query$,
   '22023',
   'Esta atividade usa autoavaliação, não avaliação objetiva.',
   'objective RPC refuses an activity configured for self-assessment'
 );
 
 select extensions.throws_ok(
-  $$update public.educational_practice_items
+  $query$update public.educational_practice_items
       set criterion_version = 'criterion_exact_match_v2'
-    where id = '97500000-0000-4000-8000-000000000001'$$,
+    where id = '97500000-0000-4000-8000-000000000001'$query$,
   '55000',
   'O critério objetivo não pode ser alterado depois que já houver evidência objetiva registrada.',
   'criterion configuration is immutable after objective evidence exists'
@@ -276,7 +276,7 @@ select extensions.throws_ok(
   $query$select public.record_criterion_referenced_practice_attempt(
     '97500000-0000-4000-8000-000000000001',
     'Resposta correta'
-  )$$,
+  )$query$,
   'P0002',
   'Atividade de prática não encontrada.',
   'other owner cannot create objective evidence for another learner'
