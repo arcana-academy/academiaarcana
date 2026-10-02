@@ -126,17 +126,6 @@ const objectiveReasonFor = (
   minimumEvidence: number,
 ): string => objectiveReasons[state](minimumEvidence);
 
-const objectiveStateRules = [
-  (passing: number, failing: number, attempts: number, minimum: number) =>
-    attempts === 0,
-  (passing: number, failing: number, attempts: number, minimum: number) =>
-    passing >= minimum && failing === 0,
-  (passing: number, failing: number, attempts: number, minimum: number) =>
-    passing > 0 && failing > 0,
-  (passing: number, failing: number, attempts: number, minimum: number) =>
-    passing > 0,
-] as const;
-
 const objectiveStates: ObjectiveMasteryState[] = [
   "unknown",
   "confirmed",
@@ -151,11 +140,15 @@ const objectiveStateFor = (
   attemptCount: number,
   minimumEvidence: number,
 ): ObjectiveMasteryState => {
-  const ruleIndex = objectiveStateRules.findIndex((rule) =>
-    rule(passing, failing, attemptCount, minimumEvidence),
-  );
+  const conditions = [
+    attemptCount === 0,
+    passing >= minimumEvidence && failing === 0,
+    passing > 0 && failing > 0,
+    passing > 0,
+  ];
+  const ruleIndex = conditions.findIndex(Boolean);
   return objectiveStates[ruleIndex] ?? "insufficient";
-}
+};
 
 const objectiveConfidences: Record<
   ObjectiveMasteryState,
