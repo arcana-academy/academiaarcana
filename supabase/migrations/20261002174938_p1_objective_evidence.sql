@@ -18,9 +18,11 @@ alter table public.educational_practice_items
     check (minimum_objective_attempts between 1 and 10),
   add constraint educational_practice_items_criterion_config_check
     check (
-      (assessment_mode = 'self-assessment' and cardinality(criterion_phrases) = 0)
+      (assessment_mode = 'self-assessment'
+       and cardinality(criterion_phrases) = 0)
       or
-      (assessment_mode = 'criterion-referenced' and cardinality(criterion_phrases) >= 1)
+      (assessment_mode = 'criterion-referenced'
+       and cardinality(criterion_phrases) >= 1)
     );
 
 create table public.educational_objective_evidence (
@@ -33,7 +35,15 @@ create table public.educational_objective_evidence (
   evidence_type text not null default 'criterion-referenced'
     check (evidence_type = 'criterion-referenced'),
   state text not null
-    check (state in ('insufficient', 'developing', 'criteria-satisfied', 'confirmed', 'conflicting')),
+    check (
+      state in (
+        'insufficient',
+        'developing',
+        'criteria-satisfied',
+        'confirmed',
+        'conflicting'
+      )
+    ),
   score numeric(4,3) not null check (score >= 0 and score <= 1),
   matched_criteria integer not null check (matched_criteria >= 0),
   total_criteria integer not null check (total_criteria >= 1),
@@ -48,10 +58,18 @@ create table public.educational_objective_evidence (
 );
 
 create index idx_educational_objective_evidence_owner_item_created
-  on public.educational_objective_evidence(owner_id, practice_item_id, created_at desc);
+  on public.educational_objective_evidence (
+    owner_id,
+    practice_item_id,
+    created_at desc
+  );
 
 create index idx_educational_objective_evidence_item_version
-  on public.educational_objective_evidence(practice_item_id, criterion_version, created_at desc);
+  on public.educational_objective_evidence (
+    practice_item_id,
+    criterion_version,
+    created_at desc
+  );
 
 alter table public.educational_objective_evidence enable row level security;
 
