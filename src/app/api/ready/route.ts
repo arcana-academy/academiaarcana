@@ -8,14 +8,12 @@ const SUPABASE_HEALTH_PATH = "/auth/v1/health";
 const READY_TIMEOUT_MS = 5_000;
 
 /** Creates a cache-free JSON response for the readiness contract. */
-function jsonResponse(body: object, status: number) {
-  return NextResponse.json(body, {
+const jsonResponse = (body: object, status: number) => NextResponse.json(body, {
     status,
     headers: {
       "Cache-Control": "no-store",
     },
   });
-}
 
 /** Checks application readiness against the canonical Supabase service. */
 export async function GET() {
