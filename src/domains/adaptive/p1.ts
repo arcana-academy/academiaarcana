@@ -76,6 +76,23 @@ export function buildLearningGapSignal(
 }
 
 /** Builds dynamic educational signals from the learner's current evidence sample. */
+function profileConfidence(
+  attemptCount: number,
+): "strong" | "partial" | "insufficient" {
+  if (attemptCount >= 3) return "strong";
+  if (attemptCount > 0) return "partial";
+  return "insufficient";
+}
+
+function averageEvidenceScore(attempts: PracticeAttempt[]): number | null {
+  if (!attempts.length) return null;
+  return (
+    attempts.reduce((sum, attempt) => sum + attempt.evidenceScore, 0) /
+    attempts.length
+  );
+}
+
+/** Builds dynamic educational signals from the learner's current evidence sample. */
 export function buildEducationalProfile(
   pageCount: number,
   items: PracticeItem[],
@@ -84,31 +101,31 @@ export function buildEducationalProfile(
 ): EducationalProfile {
   const attemptedPageIds = new Set(
     items
-      .filter((item) => attempts.some((attempt) => attempt.practiceItemId === item.id))
+      .filter((item) =>
+        attempts.some((attempt) => attempt.practiceItemId === item.id),
+      )
       .map((item) => item.pageId),
   );
-  const averageScore =
-    attempts.length === 0
-      ? null
-      : attempts.reduce((sum, attempt) => sum + attempt.evidenceScore, 0) / attempts.length;
+  const averageScore = averageEvidenceScore(attempts);
+  const confidence = profileConfidence(attempts.length);
 
   return {
     practiceCoverage: {
       value: pageCount === 0 ? 0 : (attemptedPageIds.size / pageCount) * 100,
       unit: "percent",
-      confidence: attempts.length >= 3 ? "strong" : attempts.length > 0 ? "partial" : "insufficient",
+      confidence,
       source: "Páginas próprias com pelo menos uma tentativa registrada.",
     },
     retrievalPerformance: {
       value: (averageScore ?? 0) * 100,
       unit: "percent",
-      confidence: attempts.length >= 3 ? "strong" : attempts.length > 0 ? "partial" : "insufficient",
+      confidence,
       source: "Pontuação de evidência das tentativas de recuperação.",
     },
     reviewNeed: {
       value: reviews.filter((review) => review.due).length,
       unit: "count",
-      confidence: attempts.length >= 3 ? "strong" : attempts.length > 0 ? "partial" : "insufficient",
+      confidence,
       source: "Intervalo de revisão derivado do resultado mais recente de cada item.",
     },
     sampleSize: attempts.length,
