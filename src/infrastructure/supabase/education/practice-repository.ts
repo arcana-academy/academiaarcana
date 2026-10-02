@@ -277,7 +277,6 @@ export class SupabaseEducationalPracticeRepository
     pageId: string;
     prompt: string;
     referenceAnswer: string;
-    criterion: string;
     minimumEvidence: number;
   }) {
     const { data, error } = await this.supabase
@@ -287,7 +286,8 @@ export class SupabaseEducationalPracticeRepository
         page_id: input.pageId,
         prompt: input.prompt,
         reference_answer: input.referenceAnswer,
-        criterion: input.criterion,
+        criterion:
+          "A resposta deve corresponder à resposta de referência após normalização de caixa e espaços.",
         scoring_policy: "normalized-exact-match",
         minimum_evidence: input.minimumEvidence,
         validity_scope: "page",
