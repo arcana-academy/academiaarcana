@@ -39,7 +39,7 @@ const record = (
   evidenceType: "criterion-referenced",
   state,
   score,
-  matchedCriteria: state === "confirmed" ? 2 : 1,
+  matchedCriteria: state === "criteria-satisfied" || state === "confirmed" ? 2 : 1,
   totalCriteria: 2,
   confidence: state === "confirmed" ? "strong" : state === "developing" ? "partial" : "insufficient",
   criterionVersion: version,
