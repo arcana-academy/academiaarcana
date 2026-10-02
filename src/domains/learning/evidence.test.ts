@@ -44,6 +44,7 @@ const makeAttempt = (
   criterionVersion: null,
   criterionResult: null,
   criterionScope: null,
+  criterionReference: null,
   createdAt: `2026-09-${day}T00:00:00.000Z`,
 });
 
@@ -99,6 +100,7 @@ describe("learning evidence", () => {
         criterionVersion: objectiveItem.criterionVersion,
         criterionResult: "pass" as const,
         criterionScope: "practice-item" as const,
+        criterionReference: objectiveItem.referenceAnswer,
       },
       {
         ...makeAttempt("a2", 1, "strong", "29"),
@@ -136,6 +138,7 @@ describe("learning evidence", () => {
         criterionVersion: objectiveItem.criterionVersion,
         criterionResult: "fail" as const,
         criterionScope: "practice-item" as const,
+        criterionReference: objectiveItem.referenceAnswer,
       },
       {
         ...makeAttempt("a2", 1, "strong", "29"),
