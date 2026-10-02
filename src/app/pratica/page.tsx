@@ -9,8 +9,15 @@ import type {
   LearningGapSignal,
   ReviewRecommendation,
 } from "@/domains/adaptive";
-import type { EvidenceProjection } from "@/domains/learning";
-import type { PracticeAttempt, PracticeItem } from "@/domains/education";
+import type {
+  EvidenceProjection,
+  ObjectiveEvidenceProjection,
+} from "@/domains/learning";
+import type {
+  PracticeAttempt,
+  PracticeEvidenceMode,
+  PracticeItem,
+} from "@/domains/education";
 import {
   createPracticeItemAction,
   planPracticeReviewAction,
@@ -40,7 +47,10 @@ function formatDate(value: string | null): string {
     : "Ainda não programada";
 }
 
-function practiceItemsForPage(items: PracticeItem[], pageId: string): PracticeItem[] {
+function practiceItemsForPage(
+  items: PracticeItem[],
+  pageId: string,
+): PracticeItem[] {
   return items.filter((item) => item.pageId === pageId);
 }
 
@@ -51,6 +61,24 @@ function attemptsForItem(
   return attempts
     .filter((attempt) => attempt.practiceItemId === itemId)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+function evidenceModeLabel(mode: PracticeEvidenceMode): string {
+  return mode === "criterion_exact_match"
+    ? "Avaliação objetiva por correspondência exata"
+    : "Autoavaliação da recuperação";
+}
+
+function objectiveStateLabel(
+  state: ObjectiveEvidenceProjection["state"],
+): string {
+  return {
+    unknown: "Sem evidência",
+    insufficient: "Evidência insuficiente",
+    developing: "Em desenvolvimento",
+    confirmed: "Domínio confirmado nesta atividade",
+    conflicting: "Evidências em conflito",
+  }[state];
 }
 
 function PageSelector({
@@ -100,7 +128,7 @@ function PracticeCreationForm({ pageId }: { pageId: string }) {
         required
         minLength={1}
         maxLength={1000}
-        placeholder="Ex.: Explique com suas palavras a ideia central desta página."
+        placeholder="Ex.: Qual é o principal conceito desta página?"
       />
       <label htmlFor="practice-reference">Resposta de referência</label>
       <textarea
@@ -110,9 +138,11 @@ function PracticeCreationForm({ pageId }: { pageId: string }) {
         required
         minLength={1}
         maxLength={5000}
-        placeholder="Inclua os pontos essenciais para comparação depois da tentativa."
+        placeholder="Inclua a resposta esperada para comparação depois da tentativa."
       />
-      <label htmlFor="practice-explanation">Explicação e próximo passo (opcional)</label>
+      <label htmlFor="practice-explanation">
+        Explicação e próximo passo (opcional)
+      </label>
       <textarea
         id="practice-explanation"
         name="explanation"
@@ -120,6 +150,24 @@ function PracticeCreationForm({ pageId }: { pageId: string }) {
         maxLength={2000}
         placeholder="Por que esta resposta importa? O que revisar depois?"
       />
+      <label htmlFor="practice-evidence-mode">Modo de avaliação</label>
+      <select
+        id="practice-evidence-mode"
+        name="evidenceMode"
+        defaultValue="self_assessment"
+      >
+        <option value="self_assessment">
+          Autoavaliação da recuperação
+        </option>
+        <option value="criterion_exact_match">
+          Avaliação objetiva — correspondência exata
+        </option>
+      </select>
+      <p className="aa-state-copy">
+        Use a avaliação objetiva apenas quando uma resposta correta puder ser
+        verificada por correspondência exata normalizada. Ela não é adequada para
+        explicações abertas ou respostas equivalentes com redação diferente.
+      </p>
       <label htmlFor="practice-difficulty">Dificuldade</label>
       <select id="practice-difficulty" name="difficulty" defaultValue="3">
         {[1, 2, 3, 4, 5].map((value) => (
@@ -169,13 +217,46 @@ function PracticeItemList({
             <span>
               <strong>{item.prompt}</strong>
               <span className="aa-state-copy">
-                Dificuldade {item.difficulty}/5 ·{" "}
+                {evidenceModeLabel(item.evidenceMode)} · Dificuldade{" "}
+                {item.difficulty}/5 ·{" "}
                 {review?.due ? "revisão liberada" : "sem revisão pendente"}
               </span>
             </span>
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+function ObjectiveEvidenceSection({
+  evidence,
+}: {
+  evidence: ObjectiveEvidenceProjection;
+}) {
+  return (
+    <div className="aa-card aa-card-default" aria-labelledby="objective-title">
+      <h3 id="objective-title">Evidência objetiva desta atividade</h3>
+      <p>
+        Estado: <strong>{objectiveStateLabel(evidence.state)}</strong> ·{" "}
+        {evidence.passingAttemptCount}/{evidence.minimumEvidence} tentativa(s)
+        aprovadas no conjunto recente.
+      </p>
+      <p className="aa-state-copy">{evidence.reason}</p>
+      {evidence.criterion ? (
+        <p>
+          Critério: <strong>{evidence.criterion}</strong>
+        </p>
+      ) : null}
+      {evidence.criterionVersion ? (
+        <p className="aa-state-copy">
+          Versão do critério: {evidence.criterionVersion}
+        </p>
+      ) : null}
+      <p className="aa-state-copy">
+        Escopo: somente esta atividade. O resultado não é uma classificação global
+        do estudante.
+      </p>
     </div>
   );
 }
@@ -194,14 +275,19 @@ function PracticeSession({
     overview.reviews.find(
       (entry: ReviewRecommendation) => entry.practiceItemId === item.id,
     ) ?? null;
-  const evidence =
+  const selfEvidence =
     overview.evidence.find(
       (entry: EvidenceProjection) => entry.practiceItemId === item.id,
+    ) ?? null;
+  const objectiveEvidence =
+    overview.objectiveEvidence.find(
+      (entry: ObjectiveEvidenceProjection) => entry.practiceItemId === item.id,
     ) ?? null;
   const gap =
     overview.learningGaps.find(
       (entry: LearningGapSignal) => entry.practiceItemId === item.id,
     ) ?? null;
+  const objective = item.evidenceMode === "criterion_exact_match";
 
   return (
     <section
@@ -211,9 +297,15 @@ function PracticeSession({
       <p className="aa-eyebrow">Recuperação ativa</p>
       <h2 id="practice-session-title">{item.prompt}</h2>
       <p className="aa-state-copy">
-        Responda primeiro. A referência só aparece depois de existir uma tentativa
-        registrada.
+        {evidenceModeLabel(item.evidenceMode)}. Responda primeiro; a referência só
+        aparece depois de existir uma tentativa registrada.
       </p>
+
+      {objective && item.criterion ? (
+        <p className="aa-state-copy">
+          <strong>Critério:</strong> {item.criterion}
+        </p>
+      ) : null}
 
       <form action={submitPracticeAttemptAction} className="aa-form">
         <input type="hidden" name="practiceItemId" value={item.id} />
@@ -227,23 +319,30 @@ function PracticeSession({
           maxLength={5000}
           placeholder="Escreva o que você consegue recuperar sem consultar."
         />
-        <fieldset>
-          <legend>Como você avalia esta recuperação?</legend>
-          <label>
-            <input type="radio" name="outcome" value="strong" required />
-            Forte — consegui recuperar os pontos essenciais.
-          </label>
-          <label>
-            <input type="radio" name="outcome" value="partial" />
-            Parcial — lembrei parte, mas algo importante faltou.
-          </label>
-          <label>
-            <input type="radio" name="outcome" value="insufficient" />
-            Insuficiente — preciso consultar e tentar novamente.
-          </label>
-        </fieldset>
+        {objective ? (
+          <p className="aa-state-copy">
+            A avaliação será calculada automaticamente pelo critério objetivo
+            registrado para esta atividade.
+          </p>
+        ) : (
+          <fieldset>
+            <legend>Como você avalia esta recuperação?</legend>
+            <label>
+              <input type="radio" name="outcome" value="strong" required />
+              Forte — consegui recuperar os pontos essenciais.
+            </label>
+            <label>
+              <input type="radio" name="outcome" value="partial" />
+              Parcial — lembrei parte, mas algo importante faltou.
+            </label>
+            <label>
+              <input type="radio" name="outcome" value="insufficient" />
+              Insuficiente — preciso consultar e tentar novamente.
+            </label>
+          </fieldset>
+        )}
         <button className="aa-button aa-button-primary" type="submit">
-          Registrar recuperação
+          {objective ? "Avaliar resposta" : "Registrar recuperação"}
         </button>
       </form>
 
@@ -252,9 +351,21 @@ function PracticeSession({
           <h3>Feedback da tentativa</h3>
           <p className="aa-state-copy">{latestAttempt.feedback}</p>
           <p>
-            Resultado: <strong>{latestAttempt.outcome}</strong> · evidência{" "}
+            Tipo de evidência:{" "}
+            <strong>
+              {latestAttempt.evidenceType === "criterion-referenced"
+                ? "criterion-referenced"
+                : "autoavaliação"}
+            </strong>{" "}
+            · resultado <strong>{latestAttempt.outcome}</strong> · evidência{" "}
             <strong>{formatPercent(latestAttempt.evidenceScore)}</strong>.
           </p>
+          {latestAttempt.criterionResult ? (
+            <p>
+              Resultado do critério:{" "}
+              <strong>{latestAttempt.criterionResult}</strong>.
+            </p>
+          ) : null}
           <details>
             <summary>Ver sua resposta e a referência</summary>
             <div className="aa-stack">
@@ -277,16 +388,23 @@ function PracticeSession({
         </div>
       ) : null}
 
-      {evidence ? (
-        <div className="aa-card aa-card-default" aria-labelledby="evidence-state-title">
+      {objective && objectiveEvidence ? (
+        <ObjectiveEvidenceSection evidence={objectiveEvidence} />
+      ) : selfEvidence ? (
+        <div
+          className="aa-card aa-card-default"
+          aria-labelledby="evidence-state-title"
+        >
           <h3 id="evidence-state-title">Evidência autorreportada atual</h3>
           <p>
-            Estado: <strong>{evidence.state}</strong>
-            {evidence.score === null ? "" : ` · ${formatPercent(evidence.score)}`}
+            Estado: <strong>{selfEvidence.state}</strong>
+            {selfEvidence.score === null
+              ? ""
+              : ` · ${formatPercent(selfEvidence.score)}`}
             {" · "}
-            {evidence.attemptCount} tentativa(s).
+            {selfEvidence.attemptCount} tentativa(s).
           </p>
-          <p className="aa-state-copy">{evidence.reason}</p>
+          <p className="aa-state-copy">{selfEvidence.reason}</p>
         </div>
       ) : null}
 
@@ -302,11 +420,19 @@ function PracticeSession({
           {review.nextReviewAt ? (
             <form action={planPracticeReviewAction} className="aa-form">
               <input type="hidden" name="practiceItemId" value={item.id} />
-              <input type="hidden" name="title" value={`Revisar: ${item.prompt}`} />
+              <input
+                type="hidden"
+                name="title"
+                value={`Revisar: ${item.prompt}`}
+              />
               <input
                 type="hidden"
                 name="dueAt"
-                value={review.due ? new Date().toISOString() : review.nextReviewAt}
+                value={
+                  review.due
+                    ? new Date().toISOString()
+                    : review.nextReviewAt
+                }
               />
               <button className="aa-button aa-button-secondary" type="submit">
                 Adicionar ao Cronograma
@@ -365,9 +491,9 @@ export default async function PraticaPage({
           <p className="aa-eyebrow">Núcleo educacional P1</p>
           <h1 id="practice-title">Prática e recuperação</h1>
           <p className="aa-state-copy">
-            Produza uma resposta antes de consultar a referência. O resultado abaixo
-            usa sua autoavaliação como evidência explícita; ele não é um diagnóstico
-            nem uma avaliação semântica automática.
+            Produza uma resposta antes de consultar a referência. A Academia
+            distingue autoavaliação de evidência objetiva e só confirma domínio
+            dentro do escopo de um critério objetivo satisfeito.
           </p>
           <nav aria-label="Navegação educacional" className="aa-action-row">
             <Link className="aa-button aa-button-secondary" href="/workspace">
@@ -380,11 +506,14 @@ export default async function PraticaPage({
         </header>
 
         {pages.length === 0 ? (
-          <section className="aa-card aa-card-default" aria-labelledby="empty-pages-title">
+          <section
+            className="aa-card aa-card-default"
+            aria-labelledby="empty-pages-title"
+          >
             <h2 id="empty-pages-title">Crie um conteúdo para começar</h2>
             <p className="aa-state-copy">
-              A prática é vinculada a uma página própria. Crie uma página no Workspace
-              e volte aqui para registrar uma atividade de recuperação.
+              A prática é vinculada a uma página própria. Crie uma página no
+              Workspace e volte aqui para registrar uma atividade.
             </p>
             <Link className="aa-button aa-button-primary" href="/workspace">
               Abrir Workspace
