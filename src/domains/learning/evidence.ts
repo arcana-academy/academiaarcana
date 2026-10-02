@@ -85,7 +85,7 @@ export function buildEvidenceProjection(
     pageTitle: item.pageTitle,
     state,
     score,
-    attemptCount: attempts.length,
+    attemptCount: selfReportedAttempts.length,
     confidence: confidenceFor(attempts.length),
     reason: evidenceReasonFor(state),
     source: "self-assessment",
@@ -102,6 +102,9 @@ export function buildEducationalStatistics(
   objectiveAttemptCount = 0,
   objectiveEvidence: ObjectiveEvidenceProjection[] = [],
 ): EducationalStatistics {
+  const selfReportedAttempts = attempts.filter(
+    (attempt) => attempt.evidenceType !== "criterion-referenced",
+  );
   const practicedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
   const practicedPageCount = new Set(
     items
@@ -114,23 +117,26 @@ export function buildEducationalStatistics(
     attemptCount: attempts.length,
     practicedPageCount,
     retrievalSuccessRate:
-      attempts.length === 0
+      selfReportedAttempts.length === 0
         ? null
-        : attempts.filter((attempt) => attempt.outcome === "strong").length /
-          attempts.length,
+        : selfReportedAttempts.filter(
+            (attempt) => attempt.outcome === "strong",
+          ).length / selfReportedAttempts.length,
     averageEvidenceScore:
-      attempts.length === 0
+      selfReportedAttempts.length === 0
         ? null
-        : attempts.reduce(
+        : selfReportedAttempts.reduce(
             (sum, attempt) => sum + attempt.evidenceScore,
             0,
-          ) / attempts.length,
+          ) / selfReportedAttempts.length,
     reviewDueCount,
     itemsWithStrongSelfReportedEvidence: evidence.filter(
       (entry) => entry.state === "strong-evidence",
     ).length,
     objectiveAssessmentCount,
-    objectiveAttemptCount,
+    objectiveAttemptCount: objectiveAttemptCount || attempts.filter(
+      (attempt) => attempt.evidenceType === "criterion-referenced",
+    ).length,
     objectiveConfirmedCount: objectiveEvidence.filter(
       (entry) => entry.masteryConfirmed,
     ).length,
