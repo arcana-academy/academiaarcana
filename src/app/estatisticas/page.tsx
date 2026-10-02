@@ -186,6 +186,26 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
             {educational.statistics.itemsWithStrongSelfReportedEvidence}
           </p>
         </FeatureCard>
+
+        <FeatureCard
+          title="Domínios confirmados"
+          description="Avaliações objetivas cujo critério declarado foi satisfeito pelo mínimo de tentativas definido."
+          icon={<Target size={22} />}
+        >
+          <p className="aa-state-copy">
+            {educational.statistics.objectiveConfirmedCount}
+          </p>
+        </FeatureCard>
+
+        <FeatureCard
+          title="Avaliações objetivas"
+          description="Quantidade de tarefas com critério explícito de correspondência exata normalizada."
+          icon={<BookOpen size={22} />}
+        >
+          <p className="aa-state-copy">
+            {educational.statistics.objectiveAssessmentCount}
+          </p>
+        </FeatureCard>
       </ArcanaFeatureGrid>
     </section>
   );
@@ -231,7 +251,7 @@ function ProfileSignals({ educational }: { educational: EducationalOverview }) {
   );
 }
 
-/** Renders item-level mastery projections with explicit evidence counts. */
+/** Renders item-level self-reported evidence projections. */
 function EvidenceSection({ educational }: { educational: EducationalOverview }) {
   return (
     <section className="aa-card aa-card-default" aria-labelledby="mastery-title">
@@ -257,6 +277,52 @@ function EvidenceSection({ educational }: { educational: EducationalOverview }) 
         </ul>
       ) : (
         <p className="aa-state-copy">Sem atividades de prática ainda.</p>
+      )}
+    </section>
+  );
+}
+
+/** Renders criterion-referenced objective evidence with scoped confirmation. */
+function ObjectiveEvidenceSection({
+  educational,
+}: {
+  educational: EducationalOverview;
+}) {
+  return (
+    <section
+      className="aa-card aa-card-default"
+      aria-labelledby="objective-evidence-title"
+    >
+      <h2 id="objective-evidence-title">Evidência objetiva</h2>
+      {educational.objectiveEvidence.length ? (
+        <ul className="aa-list">
+          {educational.objectiveEvidence.map((entry) => (
+            <li className="aa-list-item aa-surface" key={entry.assessmentId}>
+              <div>
+                <strong>{entry.pageTitle}</strong>
+                <p>
+                  {entry.state} · {entry.passingAttemptCount}/{entry.minimumEvidence} aprovações ·{" "}
+                  {entry.attemptCount} tentativa(s) · fonte: critério explícito
+                </p>
+                <span className="aa-state-copy">{entry.reason}</span>
+              </div>
+              <Link
+                href={
+                  "/pratica?pagina=" +
+                  encodeURIComponent(entry.pageId) +
+                  "&avaliacao=" +
+                  encodeURIComponent(entry.assessmentId)
+                }
+              >
+                Avaliar
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="aa-state-copy">
+          Nenhuma avaliação objetiva foi criada ainda. A ausência aqui não significa ausência de aprendizagem.
+        </p>
       )}
     </section>
   );
@@ -357,6 +423,7 @@ export default async function EstatisticasPage() {
         <EducationalStats educational={educational} />
         <ProfileSignals educational={educational} />
         <EvidenceSection educational={educational} />
+        <ObjectiveEvidenceSection educational={educational} />
         <GapsSection educational={educational} />
         <ReviewSection educational={educational} />
       </ArcanaPage>
