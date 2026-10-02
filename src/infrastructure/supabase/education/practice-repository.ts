@@ -187,31 +187,4 @@ export class SupabaseEducationalPracticeRepository
     return toAttempt(row as PracticeAttemptRow);
   }
 
-  /** Legacy repository operation kept for contract compatibility. */
-  async createPracticeAttempt(input: {
-    ownerId: string;
-    practiceItemId: string;
-    answer: string;
-    outcome: PracticeOutcome;
-    evidenceScore: number;
-    confidence: EvidenceConfidence;
-    feedback: string;
-  }) {
-    const { data, error } = await this.supabase
-      .from("educational_practice_attempts")
-      .insert({
-        owner_id: input.ownerId,
-        practice_item_id: input.practiceItemId,
-        answer: input.answer,
-        outcome: input.outcome,
-        evidence_score: input.evidenceScore,
-        confidence: input.confidence,
-        feedback: input.feedback,
-      })
-      .select("*")
-      .single();
-
-    if (error) throw new Error(error.message);
-    return toAttempt(data as PracticeAttemptRow);
-  }
 }
