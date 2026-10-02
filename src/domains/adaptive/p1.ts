@@ -54,7 +54,7 @@ export function buildLearningGapSignal(
   item: PracticeItem,
   attempts: PracticeAttempt[],
 ): LearningGapSignal | null {
-  const recent = [...attempts]
+  const recent = [...selfReportedAttempts(attempts)]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 2);
 
@@ -84,11 +84,18 @@ function profileConfidence(
   return "insufficient";
 }
 
+function selfReportedAttempts(attempts: PracticeAttempt[]): PracticeAttempt[] {
+  return attempts.filter(
+    (attempt) => attempt.evidenceType !== "criterion-referenced",
+  );
+}
+
 function averageEvidenceScore(attempts: PracticeAttempt[]): number | null {
-  if (!attempts.length) return null;
+  const selfReported = selfReportedAttempts(attempts);
+  if (!selfReported.length) return null;
   return (
-    attempts.reduce((sum, attempt) => sum + attempt.evidenceScore, 0) /
-    attempts.length
+    selfReported.reduce((sum, attempt) => sum + attempt.evidenceScore, 0) /
+    selfReported.length
   );
 }
 
@@ -106,8 +113,9 @@ export function buildEducationalProfile(
       )
       .map((item) => item.pageId),
   );
-  const averageScore = averageEvidenceScore(attempts);
-  const confidence = profileConfidence(attempts.length);
+  const selfReported = selfReportedAttempts(attempts);
+  const averageScore = averageEvidenceScore(selfReported);
+  const confidence = profileConfidence(selfReported.length);
 
   return {
     practiceCoverage: {
@@ -128,6 +136,6 @@ export function buildEducationalProfile(
       confidence,
       source: "Intervalo de revisão derivado do resultado mais recente de cada item.",
     },
-    sampleSize: attempts.length,
+    sampleSize: selfReported.length,
   };
 }
