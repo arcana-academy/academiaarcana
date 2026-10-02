@@ -48,6 +48,14 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
     listPracticeAttempts() {
       return Promise.resolve([]);
     }
+
+    listObjectiveAssessments() {
+      return Promise.resolve([]);
+    }
+
+    listObjectiveAttempts() {
+      return Promise.resolve([]);
+    }
   }
 
   return { SupabaseEducationalPracticeRepository: MockRepository };
@@ -57,6 +65,8 @@ vi.mock("./actions", () => ({
   createPracticeItemAction: vi.fn(),
   submitPracticeAttemptAction: vi.fn(),
   planPracticeReviewAction: vi.fn(),
+  createObjectiveAssessmentAction: vi.fn(),
+  submitObjectiveAssessmentAction: vi.fn(),
 }));
 
 import PraticaPage from "./page";
