@@ -48,6 +48,14 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
     listPracticeAttempts() {
       return Promise.resolve([]);
     }
+
+    listObjectiveAssessments() {
+      return Promise.resolve([]);
+    }
+
+    listObjectiveAttempts() {
+      return Promise.resolve([]);
+    }
   }
 
   return { SupabaseEducationalPracticeRepository: MockRepository };
@@ -57,6 +65,8 @@ vi.mock("./actions", () => ({
   createPracticeItemAction: vi.fn(),
   submitPracticeAttemptAction: vi.fn(),
   planPracticeReviewAction: vi.fn(),
+  createObjectiveAssessmentAction: vi.fn(),
+  submitObjectiveAssessmentAction: vi.fn(),
 }));
 
 import PraticaPage from "./page";
@@ -80,6 +90,7 @@ describe("PraticaPage accessibility contract", () => {
     expect(html).toContain("Parcial — lembrei parte, mas algo importante faltou.");
     expect(html).toContain("Insuficiente — preciso consultar e tentar novamente.");
     expect(html).toContain('aria-label="Navegação educacional"');
+    expect(html).toContain("Avaliações com critério explícito");
   });
 
   it("keeps the reference answer out of the initial document", async () => {
