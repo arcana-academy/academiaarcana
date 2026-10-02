@@ -57,7 +57,7 @@ describe("objective evidence", () => {
       score: 1,
       matchedCriteria: 2,
       totalCriteria: 2,
-      state: "confirmed",
+      state: "criteria-satisfied",
     });
   });
 
@@ -91,7 +91,7 @@ describe("objective evidence", () => {
     const projection = buildObjectiveEvidenceProjection(item, [
       record("current", "confirmed", 1, "30", 2),
     ]);
-    expect(projection.masteryConfirmed).toBe(true);
-    expect(projection.state).toBe("confirmed");
+    expect(projection.masteryConfirmed).toBe(false);
+    expect(projection.state).toBe("criteria-satisfied");
   });
 });
