@@ -140,7 +140,8 @@ select extensions.ok(
     'public atomic educational attempt operation is SECURITY INVOKER'
 )
 from pg_catalog.pg_proc
-where oid =
+where oid
+    =
     pg_catalog.to_regprocedure(
         'public.record_educational_practice_attempt(' ||
             'uuid, text, text, numeric, text, text)'
@@ -151,7 +152,8 @@ select extensions.ok(
     'private atomic educational attempt implementation is SECURITY DEFINER'
 )
 from pg_catalog.pg_proc
-where oid =
+where oid
+    =
     pg_catalog.to_regprocedure(
         'private.record_educational_practice_attempt(' ||
             'uuid, text, text, numeric, text, text)'
@@ -164,7 +166,8 @@ select extensions.ok(
             ','
         )
         from pg_catalog.pg_proc
-        where oid =
+        where oid
+            =
             pg_catalog.to_regprocedure(
                 'public.record_educational_practice_attempt(' ||
                     'uuid, text, text, numeric, text, text)'
@@ -180,7 +183,8 @@ select extensions.ok(
             ','
         )
         from pg_catalog.pg_proc
-        where oid =
+        where oid
+            =
             pg_catalog.to_regprocedure(
                 'private.record_educational_practice_attempt(' ||
                     'uuid, text, text, numeric, text, text)'
@@ -199,6 +203,6 @@ select extensions.ok(
   'practice attempt item foreign key is indexed'
 );
 
-select * from extensions.finish();
+select extensions.finish() as result;
 
 rollback;
