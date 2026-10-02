@@ -104,7 +104,7 @@ describe("learning evidence", () => {
       practiceAttemptId: "attempt-1",
       practiceItemId: objectiveItem.id,
       evidenceType: "criterion-referenced",
-      state: "confirmed",
+      state: "criteria-satisfied",
       score: 1,
       matchedCriteria: 2,
       totalCriteria: 2,
@@ -117,8 +117,8 @@ describe("learning evidence", () => {
       [record],
     )[0];
     expect(projection).toMatchObject({
-      state: "confirmed",
-      masteryConfirmed: true,
+      state: "criteria-satisfied",
+      masteryConfirmed: false,
       matchedCriteria: 2,
       totalCriteria: 2,
       source: "criterion-referenced",
