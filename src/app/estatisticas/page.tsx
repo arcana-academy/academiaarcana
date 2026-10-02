@@ -186,6 +186,16 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
             {educational.statistics.itemsWithStrongSelfReportedEvidence}
           </p>
         </FeatureCard>
+
+        <FeatureCard
+          title="Domínio objetivo confirmado"
+          description="Itens em que os critérios objetivos da própria atividade foram satisfeitos."
+          icon={<Target size={22} />}
+        >
+          <p className="aa-state-copy">
+            {educational.statistics.itemsWithConfirmedObjectiveEvidence}
+          </p>
+        </FeatureCard>
       </ArcanaFeatureGrid>
     </section>
   );
@@ -257,6 +267,56 @@ function EvidenceSection({ educational }: { educational: EducationalOverview }) 
         </ul>
       ) : (
         <p className="aa-state-copy">Sem atividades de prática ainda.</p>
+      )}
+    </section>
+  );
+}
+
+/** Renders the criterion-referenced evidence separately from self-assessment. */
+function ObjectiveEvidenceSection({
+  educational,
+}: {
+  educational: EducationalOverview;
+}) {
+  const objective = educational.objectiveEvidence.filter(
+    (entry) => entry.criterionVersion !== null,
+  );
+
+  return (
+    <section
+      className="aa-card aa-card-default"
+      aria-labelledby="objective-evidence-stats-title"
+    >
+      <h2 id="objective-evidence-stats-title">Evidência objetiva por conteúdo</h2>
+      <p className="aa-state-copy">
+        Esta seção usa somente critérios explícitos configurados na atividade. A
+        autoavaliação, XP e streak não alteram estes resultados.
+      </p>
+      {objective.length ? (
+        <ul className="aa-list">
+          {objective.map((entry) => (
+            <li className="aa-list-item aa-surface" key={entry.practiceItemId}>
+              <div>
+                <strong>{entry.pageTitle}</strong>
+                <p>
+                  {entry.state} ·{" "}
+                  {entry.score === null ? "sem avaliação" : percent(entry.score)} ·{" "}
+                  {entry.matchedCriteria}/{entry.totalCriteria} critério(s) atendido(s)
+                </p>
+                <span className="aa-state-copy">{entry.reason}</span>
+              </div>
+              <Link
+                href={"/pratica?pagina=" + encodeURIComponent(entry.pageId) + "&item=" + encodeURIComponent(entry.practiceItemId)}
+              >
+                Abrir atividade
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="aa-state-copy">
+          Nenhuma atividade com critérios objetivos foi configurada ainda.
+        </p>
       )}
     </section>
   );
@@ -356,6 +416,7 @@ export default async function EstatisticasPage() {
         />
         <EducationalStats educational={educational} />
         <ProfileSignals educational={educational} />
+        <ObjectiveEvidenceSection educational={educational} />
         <EvidenceSection educational={educational} />
         <GapsSection educational={educational} />
         <ReviewSection educational={educational} />
