@@ -19,7 +19,6 @@ import {
   buildObjectiveEvidenceOverview,
   type EducationalStatistics,
   type EvidenceProjection,
-  type ObjectiveEvidenceRecord,
 } from "@/domains/learning";
 import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
