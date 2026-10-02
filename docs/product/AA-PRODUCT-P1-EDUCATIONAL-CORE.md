@@ -99,7 +99,7 @@ O resultado de uma atividade deve poder apresentar feedback relacionado ao objet
 
 ### Objetivo
 
-Separar atividade de domínio acadêmico.
+Separar atividade, critérios satisfeitos, evidência objetiva e domínio acadêmico confirmado.
 
 ### Requisito
 
@@ -268,7 +268,7 @@ Essa ordem é uma sequência operacional recomendada para reduzir dependências;
 
 ## P1.17 — Estado
 
-Os itens P1.1–P1.8 estão **CONCLUÍDOS** na implementação corrente da Academia Arcana.
+Os itens P1.1–P1.8 estão **CONCLUÍDOS V1** na implementação corrente da Academia Arcana, com P1.5 permanecendo parcial quanto à confirmação de domínio acadêmico. A implementação objetiva atual registra apenas satisfação de critérios explícitos da atividade.
 
 A validação que sustenta este estado inclui:
 
