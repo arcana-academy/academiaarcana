@@ -15,8 +15,8 @@ vi.mock("@/components/layout/AuthenticatedShell", () => ({
 
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockRepository {
-    async listPages() {
-      return [{ id: "page-1", title: "Fisiologia" }];
+    listPages() {
+      return Promise.resolve( [{ id: "page-1", title: "Fisiologia" }];
     }
     async listPracticeItems() {
       return [{
