@@ -136,7 +136,7 @@ select extensions.ok(
 );
 
 select extensions.ok(
-    not prosecdef,
+    not proc.prosecdef,
     'public atomic educational attempt operation is SECURITY INVOKER'
 )
 from pg_catalog.pg_proc as proc
