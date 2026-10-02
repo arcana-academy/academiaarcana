@@ -114,7 +114,7 @@ export class SupabaseEducationalPracticeRepository
   constructor(private readonly supabase: SupabaseClient) {}
 
   /** Lists pages visible to the authenticated owner through RLS. */
-  async listPages(ownerId: string) {
+  async listPages() {
     const { data, error } = await this.supabase
       .from("pages")
       .select("id, title")
@@ -141,7 +141,7 @@ export class SupabaseEducationalPracticeRepository
     const rows = (data ?? []) as PracticeItemRow[];
     if (!rows.length) return [];
 
-    const pages = await this.listPages(ownerId);
+    const pages = await this.listPages();
     const titles = new Map(pages.map((page) => [page.id, page.title]));
 
     return rows
@@ -195,7 +195,7 @@ export class SupabaseEducationalPracticeRepository
 
     if (error) throw new Error(error.message);
 
-    const pages = await this.listPages(input.ownerId);
+    const pages = await this.listPages();
     const pageTitle = pages.find((page) => page.id === input.pageId)?.title;
     if (!pageTitle) throw new Error("Página de prática não encontrada.");
 
@@ -234,11 +234,9 @@ export class SupabaseEducationalPracticeRepository
 
   /** Records criterion-referenced evidence with server-side evaluation. */
   async recordCriterionReferencedPracticeAttempt(input: {
-    ownerId: string;
     practiceItemId: string;
     answer: string;
   }) {
-    void input.ownerId;
     const { data, error } = await this.supabase.rpc(
       "record_criterion_referenced_practice_attempt",
       {
