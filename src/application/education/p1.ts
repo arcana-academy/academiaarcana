@@ -23,10 +23,7 @@ import {
   type EvidenceProjection,
   type ObjectiveEvidenceProjection,
 } from "@/domains/learning";
-import {
-  buildAttemptInput as buildEducationAttemptInput,
-  NORMALIZED_EXACT_MATCH_CRITERION,
-} from "@/domains/education";
+import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
