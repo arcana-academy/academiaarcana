@@ -52,6 +52,7 @@ describe("canonical infrastructure provider policy", () => {
 
     for (const path of activeFiles) {
       const content = readRepoFile(path);
+      expect(content).not.toMatch(/VERCEL/i);
       expect(content).not.toMatch(/NETLIFY/i);
     }
   });
