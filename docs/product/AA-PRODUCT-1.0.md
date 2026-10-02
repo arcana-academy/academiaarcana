@@ -1,475 +1,496 @@
-# AA-PRODUCT-1.0 — Baseline Operacional de Produto
+# AA-PRODUCT-1.0 — Baseline Canônica de Produto
 
-> Autoridade: Prompt 01 — Produto, subordinado à Constituição Master da Academia Arcana (Prompt 00).
+> Autoridade: Chat 01 — Produto, subordinado à Constituição Master da Academia Arcana (Prompt 00).
 >
-> Este documento transforma o contrato de produto em uma linha de base operacional verificável no repositório. Não substitui a Constituição Master e não redefine arquitetura técnica, banco, segurança, Design System, UI visual, infraestrutura, integrações ou CI/CD.
+> Este documento define o contrato de Produto atual e deve ser a referência operacional para os demais chats. Ele não redefine arquitetura, banco, segurança, Design System, UI visual, infraestrutura, integrações ou CI/CD.
 
-## 1. Identidade do produto
+## 1. Identidade
 
-A Academia Arcana é uma plataforma educacional gamificada, adaptativa, acessível e personalizável, criada para apoiar o processo completo de aprendizagem.
+A Academia Arcana é uma plataforma educacional gamificada, adaptativa, acessível e personalizável, criada para apoiar o processo de aprendizagem de ponta a ponta.
 
-A fantasia é linguagem de experiência e motivação. A finalidade central permanece educacional.
+A fantasia arcana é uma linguagem de experiência, orientação e motivação. Ela não substitui a finalidade educacional nem transforma gamificação em medida de aprendizagem.
 
-O produto deve ajudar o estudante a:
+## 2. Problema e transformação
 
-- compreender o que precisa aprender;
-- organizar objetivos e conteúdos;
+### Problema
+
+Estudantes precisam transformar intenção em aprendizagem efetiva, mas frequentemente encontram fragmentação entre conteúdo, planejamento, prática, revisão, feedback e acompanhamento do progresso.
+
+### Transformação pretendida
+
+A Academia Arcana transforma o estudo em uma jornada contextualizada na qual o estudante consegue:
+
+- organizar conhecimento e objetivos;
 - transformar intenção em ações;
-- estudar e praticar;
+- estudar e praticar ativamente;
 - receber feedback;
-- revisar;
+- revisar com base em evidências disponíveis;
 - acompanhar progresso real;
-- reconhecer lacunas;
+- identificar sinais de possível lacuna;
 - refletir sobre a própria aprendizagem;
 - adaptar estratégias;
-- desenvolver autonomia.
+- manter autonomia sobre suas escolhas.
 
-## 2. Ciclo canônico de aprendizagem
+## 3. Proposta de valor
 
-O produto é organizado pelo ciclo:
+A proposta de valor canônica é integrar organização, execução, aprendizagem ativa, feedback, revisão, evidência de progresso e adaptação em uma experiência única, acessível e personalizável.
+
+### Diferenciais de produto
+
+1. Organização do conhecimento e da execução no mesmo contexto.
+2. Aprendizagem ativa separada de atividade gamificada.
+3. Adaptação baseada em sinais revisáveis, sem rotulação rígida.
+4. Neurodesign e acessibilidade tratados como propriedades estruturais da experiência.
+5. Mestre Arcano como apoio contextual, não como autoridade sobre o estudante.
+6. Fantasia integrada à experiência sem deslocar o propósito educacional.
+
+### O que a Academia Arcana não pretende ser
+
+- apenas uma biblioteca de conteúdo;
+- apenas um gerenciador de tarefas;
+- apenas um cronômetro de foco;
+- apenas um aplicativo de gamificação;
+- um sistema de diagnóstico clínico ou psicológico;
+- um classificador permanente de pessoas;
+- um sistema que substitui o julgamento do estudante;
+- um motor de “domínio” que transforma sinais fracos em certeza.
+
+## 4. Público e princípios de inclusão
+
+A plataforma é desenhada para diferentes perfis de estudantes e deve oferecer personalização e acessibilidade sem pressupor uma classificação cognitiva permanente.
+
+O design pode priorizar pessoas que se beneficiam de previsibilidade, flexibilidade, redução de carga cognitiva e controle de estímulos, mas essas necessidades não devem ser tratadas como rótulos obrigatórios.
+
+## 5. Ciclo canônico de aprendizagem
 
 `Objetivo → Planejamento → Estudo → Prática → Feedback → Revisão → Progresso → Adaptação`
 
-Nenhum módulo deve ser desenvolvido isoladamente de forma que quebre esse ciclo.
+### Regra
 
-## 3. Princípios educacionais
+O ciclo é um modelo de produto, não uma exigência de que cada etapa tenha uma tela própria.
 
-Quando aplicável e proporcional ao contexto, a Academia Arcana deve considerar:
+No estado atual, **Objetivo** é um conceito que pode ser representado por intenção de estudo, tarefa, missão ou contexto de aprendizagem. Gestão explícita de objetivos como recurso independente é evolução futura (P2), não uma lacuna arquitetural.
 
+Nenhum módulo novo deve quebrar a relação causal desse ciclo.
+
+## 6. Fundamentos educacionais
+
+Quando aplicável e proporcional ao contexto, o produto considera:
+
+- aprendizagem ativa;
 - prática de recuperação;
-- espaçamento;
+- prática distribuída/espaçamento;
 - interleaving;
 - elaboração;
 - prática deliberada;
 - feedback;
 - metacognição;
-- carga cognitiva;
-- planejamento;
-- monitoramento;
 - autorregulação;
-- aprendizagem ativa.
+- planejamento e monitoramento;
+- carga cognitiva.
 
-Nenhuma estratégia deve ser tratada como universal sem base suficiente para essa generalização.
+Esses mecanismos não são tratados como universalmente superiores em qualquer contexto. Cada aplicação deve considerar objetivo, conteúdo, tarefa, contexto e evidência disponível.
 
-## 4. Modelo adaptativo
+## 7. Modelo adaptativo canônico
 
-A adaptação trabalha com sinais multidimensionais e revisáveis, incluindo, conforme disponibilidade:
+A adaptação opera sobre sinais multidimensionais e revisáveis, quando disponíveis e legítimos para o produto:
 
-- conhecimento;
-- desempenho;
+- conhecimento/evidência educacional;
+- desempenho observado;
 - dificuldade;
-- histórico;
+- histórico de prática;
 - ritmo;
-- objetivos;
-- contexto;
+- objetivo/contexto;
 - preferências;
 - padrões de estudo;
 - progresso;
 - necessidade de revisão.
 
-O produto não deve fixar o estudante em rótulos permanentes.
+### Regras de inferência
 
-A linguagem correta é baseada em evidência e incerteza:
+- fato observado e inferência devem permanecer separados;
+- ausência de dados não é equivalente a desempenho baixo;
+- baixa evidência produz baixa confiança;
+- sinais podem mudar com novas evidências;
+- nenhuma classificação permanente deve ser criada apenas por padrão comportamental;
+- recomendações são suporte e não ordens.
 
-> os dados atuais sugerem um padrão
+## 8. Limite atual da evidência de aprendizagem
 
-e não:
+O fluxo P1 implementado registra **autoavaliação explícita da recuperação** como evidência educacional de processo.
 
-> este estudante é assim.
+Essa evidência pode alimentar:
 
-## 5. Autonomia
+- revisão;
+- sinais de possível lacuna;
+- perfil educacional revisável;
+- estatísticas;
+- apoio contextual.
 
-Recomendações são suporte, não ordens.
+Ela **não deve ser apresentada isoladamente como confirmação objetiva de domínio acadêmico**.
 
-O sistema pode recomendar, sugerir, lembrar, organizar, adaptar e explicar, mas o estudante deve manter controle sobre suas escolhas quando isso for compatível com a segurança e as regras do produto.
+Até existir avaliação criterion-referenced, validação docente ou mecanismo automatizado validado para a tarefa específica, o produto deve usar linguagem como:
 
-## 6. Público
+- “evidência autorreportada”;
+- “sinal atual”;
+- “autoavaliação da recuperação”;
+- “evidência insuficiente”.
 
-A Academia Arcana deve servir a diferentes perfis de estudantes.
+Evitar tratar “strong” como sinônimo de “domínio confirmado”.
 
-Personalização, acessibilidade e Neurodesign existem para ampliar compreensão, previsibilidade, conforto e controle — não para criar uma classificação humana rígida.
+## 9. Escopo consolidado
 
-## 7. Domínios de produto
+### DENTRO DO PRODUTO
 
-| Área | Papel de produto | Estado observado |
+- organização de conhecimento;
+- Workspace e hierarquia Grimório → Caderno → Capítulo → Página;
+- planejamento e execução de estudo;
+- prática e recuperação ativa;
+- feedback e revisão;
+- progresso educacional;
+- gamificação de apoio;
+- personalização;
+- acessibilidade e Neurodesign;
+- estatísticas educacionais;
+- sinais adaptativos;
+- Santuário;
+- Mestre Arcano dentro dos limites definidos;
+- social quando a capacidade estiver implementada.
+
+### FORA DO PRODUTO
+
+- diagnóstico clínico;
+- avaliação psicológica;
+- classificação humana rígida;
+- vigilância irrestrita do estudante;
+- manipulação obrigatória por gamificação;
+- acesso autônomo e irrestrito do Mestre Arcano a dados ou ações críticas.
+
+### FUTURO
+
+- gestão explícita de objetivos;
+- social funcional completo;
+- colaboração avançada;
+- planejamento sofisticado;
+- adaptação mais rica;
+- mecanismos avançados de metacognição;
+- capacidades avançadas do Mestre Arcano;
+- experiências multimodais e imersivas.
+
+### EXPERIMENTAL
+
+- hipóteses de aprendizagem ainda não validadas no contexto do produto;
+- novas mecânicas de interação sem impacto no núcleo;
+- recursos P4 somente quando houver hipótese, experimento e critério de avaliação explícitos.
+
+## 10. Mapa oficial de áreas e módulos
+
+O catálogo detalhado está em `docs/product/AA-PRODUCT-MODULES-1.0.md`.
+
+Áreas canônicas de experiência:
+
+| Área/módulo | Estado atual | Prioridade |
 |---|---|---|
-| Santuário | entrada contextual, retomada e orientação | IMPLEMENTADO |
-| Academia | ponto de entrada para a experiência educacional | IMPLEMENTADO COMO PORTAL |
-| Grimórios | organização de conhecimento | IMPLEMENTADO |
-| Capítulos | estrutura intermediária de conhecimento | IMPLEMENTADO NO WORKSPACE |
-| Páginas | unidade de conteúdo/registro | IMPLEMENTADO |
-| Missões | transformar objetivos/eventos em ações reconhecíveis | IMPLEMENTADO EM FORMA BÁSICA |
-| Cronograma | planejamento temporal e execução de tarefas | IMPLEMENTADO |
-| Foco | sessões de estudo concentrado | IMPLEMENTADO |
-| Streak | continuidade de atividade | IMPLEMENTADO |
-| Estatísticas | leitura de progresso e atividade | IMPLEMENTADO EM FORMA BÁSICA |
-| Conquistas | reconhecimento de marcos | IMPLEMENTADO EM FORMA BÁSICA |
-| Amigos | interação social opcional | SUPERFÍCIE PREPARADA; FUNÇÃO REAL PENDENTE |
-| Perfil | identidade e estado do usuário | IMPLEMENTADO EM FORMA BÁSICA |
-| Personalização | controle da experiência visual/cognitiva | IMPLEMENTADO EM FORMA BÁSICA |
-| Configurações | controle de preferências e integrações | IMPLEMENTADO EM FORMA BÁSICA |
-| Mestre Arcano | inteligência contextual para apoio à aprendizagem | IMPLEMENTADO TECNICAMENTE; CAPACIDADE EDUCACIONAL AINDA EM EVOLUÇÃO |
+| Santuário | IMPLEMENTADO | P0 |
+| Academia | IMPLEMENTADO COMO PORTAL | P0 |
+| Grimórios | IMPLEMENTADO | P0 |
+| Workspace | IMPLEMENTADO | P0 |
+| Cadernos | IMPLEMENTADO COMO ESTRUTURA | P0 |
+| Capítulos | IMPLEMENTADO | P0 |
+| Páginas | IMPLEMENTADO | P0 |
+| Prática | IMPLEMENTADO V1 | P1 |
+| Cronograma | IMPLEMENTADO | P0 |
+| Foco | IMPLEMENTADO | P0 |
+| Missões | IMPLEMENTADO BÁSICO | P0/P1 |
+| Streak | IMPLEMENTADO | P0/P1 |
+| Estatísticas | IMPLEMENTADO V1, com estatísticas educacionais | P1 |
+| Conquistas | IMPLEMENTADO BÁSICO | P1 |
+| Amigos | SUPERFÍCIE PREPARADA; FUNÇÃO REAL PENDENTE | P2 |
+| Perfil | IMPLEMENTADO BÁSICO | P0 |
+| Personalização | IMPLEMENTADO BÁSICO | P0/P1 |
+| Configurações | IMPLEMENTADO BÁSICO | P0 |
+| Mestre Arcano | IMPLEMENTADO TECNICAMENTE; CAPACIDADE EDUCACIONAL AVANÇADA EM EVOLUÇÃO | P1/P2/P3 |
 
-### Regra de interpretação
+`Flonts` permanece como camada/runtime de apoio definida pela arquitetura, não como módulo de navegação independente neste baseline.
 
-A existência de uma rota não significa que a capacidade educacional esteja concluída.
+## 11. Estado P0 — Fundação
 
-Uma superfície pode estar:
-
-- implementada;
-- parcialmente implementada;
-- preparada;
-- bloqueada por dependência externa;
-- ainda pertencente ao backlog.
-
-Não declarar uma capacidade como concluída somente por existir uma página.
-
-## 8. Estado real do produto observado no main
-
-### Núcleo P0 já materializado
-
-O repositório apresenta evidência de:
+P0 é considerado **IMPLEMENTADO COMO FUNDAÇÃO OPERACIONAL** quando inclui, de forma verificável:
 
 - autenticação e acesso protegido;
+- organização Grimório/Caderno/Capítulo/Página;
 - Workspace;
-- Grimórios, notebooks, capítulos e páginas;
-- persistência e ordenação da hierarquia;
-- tarefas de estudo no Cronograma;
-- sessões de Foco;
-- Santuário autenticado;
-- missões derivadas de estado de gamificação;
-- XP, nível e streak;
-- conquistas;
-- preferências de movimento;
-- temas/personalização;
-- integração de calendário e ferramentas externas em superfícies já conectadas.
+- Santuário;
+- planejamento;
+- Foco;
+- gamificação básica;
+- perfil;
+- personalização;
+- configurações;
+- acessibilidade estrutural.
 
-### P0 ainda não deve ser considerado totalmente fechado do ponto de vista educacional
+P0 não significa que todas as capacidades educacionais avançadas estejam completas.
 
-Ainda faltam evidências de que o produto, como experiência completa, já entrega:
+## 12. Estado P1 — Núcleo educacional
 
-- prática de recuperação de forma nativa e sistemática;
-- revisão espaçada baseada em estado real de aprendizagem;
-- avaliação educacional estruturada;
-- feedback educacional suficientemente rico;
-- detecção de lacunas de conhecimento além de sinais de atividade/gamificação;
-- adaptação educacional multidimensional operacionalizada de ponta a ponta.
+O fechamento P1 compreende oito capacidades:
 
-Esses itens são requisitos de produto, não devem ser considerados resolvidos apenas porque existem gamificação, páginas, tarefas ou recomendações.
+1. prática educacional nativa;
+2. recuperação;
+3. feedback educacional;
+4. revisão baseada em evidência;
+5. evidência de aprendizagem;
+6. sinalização de possíveis lacunas;
+7. perfil educacional dinâmico;
+8. estatísticas educacionais.
 
-## 9. P1 — Experiência educacional essencial
+### Estado de Produto em 2026-10-02
 
-P1 deve concentrar as capacidades que transformam o núcleo de organização em uma experiência de aprendizagem efetiva:
+- P1.1 Prática: **CONCLUÍDO V1**
+- P1.2 Recuperação: **CONCLUÍDO V1**
+- P1.3 Revisão: **CONCLUÍDO V1 — política heurística inicial**
+- P1.4 Feedback: **CONCLUÍDO V1**
+- P1.5 Evidência de domínio: **PARCIAL — evidência autorreportada; domínio objetivo ainda NÃO CONFIRMADO**
+- P1.6 Lacunas: **CONCLUÍDO V1 — sinal revisável**
+- P1.7 Perfil dinâmico: **CONCLUÍDO V1 — sinais limitados ao conjunto atual de evidências**
+- P1.8 Estatísticas: **CONCLUÍDO V1**
 
-### P1.1 — Prática
+A especificação detalhada e os critérios de fechamento estão em `docs/product/AA-PRODUCT-P1-EDUCATIONAL-CORE.md`.
 
-O estudante deve conseguir praticar ativamente o conteúdo, e não somente armazená-lo ou visualizá-lo.
+## 13. Gamificação responsável
 
-### P1.2 — Recuperação
+A gamificação existe para:
 
-Devem existir mecanismos para verificar o que o estudante consegue recuperar sem depender apenas de releitura.
+- tornar o progresso visível;
+- reforçar continuidade;
+- reconhecer marcos;
+- facilitar feedback;
+- apoiar objetivos reais de estudo.
 
-### P1.3 — Revisão
+### Regras
 
-O produto deve apoiar revisão baseada em necessidade e evidência, evitando recomendar revisão apenas porque uma data passou.
+- XP, nível, missão, streak e conquista não significam domínio acadêmico;
+- falha em prática não deve produzir punição gamificada automática;
+- streak não pode bloquear conteúdo ou funcionalidades;
+- perder continuidade não apaga evidência educacional;
+- competição social não é requisito para aprender;
+- mecânicas que aumentem pressão sem valor educacional devem ser removidas ou tratadas como experimentais.
 
-### P1.4 — Feedback
+## 14. Personalização
 
-O estudante deve receber informação útil sobre o resultado da prática e sobre o próximo passo.
+A personalização é dividida em:
 
-### P1.5 — Domínio
+### Visual
+Tema, aparência, apresentação e elementos decorativos.
 
-Atividade, XP e streak não podem ser usados como sinônimos de domínio acadêmico.
+### Funcional
+Organização de superfícies e preferências operacionais.
 
-### P1.6 — Adaptação educacional
+### Educacional
+Preferências e sugestões relacionadas a estudo, prática, revisão e planejamento.
 
-As recomendações devem combinar contexto, histórico, desempenho e objetivo, quando esses sinais estiverem disponíveis e forem confiáveis.
+### Cognitiva
+Controle de estímulos, previsibilidade, densidade, linguagem e apresentação para reduzir carga desnecessária.
 
-### P1.7 — Estatísticas educacionais
+### Temporal
+Ritmo, pausas, horários, sessões e janelas de estudo.
 
-As estatísticas devem evoluir de métricas predominantemente de gamificação para indicadores educacionais verificáveis.
+### Regra de controle
 
-## 10. P2 — Evolução
+O usuário deve compreender o que mudou, poder ajustar o que é controlável e ter reversibilidade quando tecnicamente aplicável.
 
-P2 pode aprofundar:
+## 15. Acessibilidade e Neurodesign
 
-- modelos educacionais por contexto;
-- planejamentos mais sofisticados;
-- visualizações de progressão;
-- personalização funcional mais ampla;
-- recursos de colaboração;
-- automações educacionais;
-- integrações de apoio que preservem a fonte de verdade da Academia Arcana.
+Baseline: **WCAG 2.2 AA**.
 
-## 11. P3 — Diferenciais
-
-P3 inclui diferenciais avançados, como:
-
-- adaptação mais sofisticada;
-- experiências multimodais;
-- capacidades avançadas do Mestre Arcano;
-- mecanismos de metacognição mais ricos;
-- experiências imersivas conectadas à aprendizagem.
-
-## 12. P4 — Experimental
-
-P4 é reservado a experimentos que possam ser testados sem comprometer a coerência do produto.
-
-Um experimento não altera o núcleo do produto sem evidência suficiente.
-
-## 13. Mestre Arcano — regra de produto
-
-O Mestre Arcano deve:
-
-- apoiar planejamento;
-- sugerir revisão;
-- ajudar na retomada;
-- explicar;
-- propor exercícios;
-- contextualizar decisões;
-- apoiar metacognição;
-- trabalhar com dados reais e explicitamente autorizados.
-
-O Mestre Arcano não deve:
-
-- inventar estado do estudante;
-- tratar inferências como fatos;
-- substituir o processo de aprendizagem;
-- alterar dados críticos sem autorização;
-- transformar atividade ou gamificação em prova de domínio.
-
-## 14. Gamificação responsável
-
-Gamificação deve aumentar:
-
-- visibilidade de progresso;
-- feedback;
-- continuidade;
-- motivação para objetivos reais.
-
-Gamificação não deve criar:
-
-- punição artificial;
-- vergonha;
-- pressão desnecessária;
-- competição permanente;
-- bloqueios artificiais de produto.
-
-Streak é um indicador, não uma medida de valor pessoal ou de domínio.
-
-## 15. Personalização
-
-A personalização deve poder atuar em:
-
-- visual;
-- funcional;
-- educacional;
-- cognitivo;
-- temporal.
-
-A personalização precisa ser controlável e compreensível.
-
-## 16. Acessibilidade e Neurodesign
-
-Acessibilidade é requisito de produto.
-
-O produto deve considerar, entre outros:
+A experiência deve considerar:
 
 - previsibilidade;
-- diferentes formas de interação;
-- diferentes formas de apresentação;
-- controle de estímulos;
+- navegação por teclado;
 - foco visível;
-- compatibilidade com tecnologias assistivas;
-- redução de carga cognitiva;
-- controle de movimento;
-- preferências individuais.
+- sem dependência exclusiva de cor;
+- suporte a tecnologias assistivas;
+- escala tipográfica;
+- contraste;
+- redução de movimento;
+- controle de estímulos;
+- linguagem clara;
+- recuperação de erro;
+- estados vazios e de carregamento compreensíveis.
 
-Neurodesign não deve ser usado como diagnóstico ou rotulagem clínica.
+Neurodesign é um princípio de design e interação, não diagnóstico.
 
-## 17. Critério de conclusão de produto
+## 16. Mestre Arcano
 
-Uma funcionalidade só está concluída quando houver, no mínimo:
+### Pode
 
-1. problema claro;
-2. usuário definido;
-3. objetivo educacional ou de produto explícito;
-4. comportamento esperado;
-5. estados relevantes;
-6. critérios de aceitação;
-7. dependências identificadas;
-8. validação adequada;
-9. integração com o ciclo da Academia Arcana;
-10. nenhuma lacuna conhecida que impeça o comportamento prometido.
+- explicar;
+- contextualizar;
+- organizar;
+- recomendar;
+- sugerir revisão;
+- apoiar planejamento;
+- propor exercícios;
+- apoiar metacognição;
+- trabalhar com contexto real e autorizado;
+- usar fontes externas quando habilitadas, tratando-as como evidência externa a ser verificada.
 
-## 18. Diferenciação entre estados
+### Não pode
 
-### IDEIA
+- inventar dados;
+- inventar progresso;
+- inventar fontes;
+- transformar inferência em fato;
+- atribuir domínio sem evidência adequada;
+- substituir a agência do estudante;
+- alterar estado crítico sem autorização apropriada;
+- acessar dados indiscriminadamente;
+- usar ferramentas como atalho para contornar fronteiras de segurança.
 
-Possibilidade ainda não analisada.
+O Mestre Arcano atual deve ser descrito como **assistente contextual V1**. Tutor/planejador avançado é P2/P3.
 
-### HIPÓTESE
+## 17. Priorização canônica
 
-Suposição que precisa de validação.
+### P0 — Foundation
+Fundação de aprendizagem e navegação: Santuário, Academia/portal, Grimórios, Workspace, Cadernos, Capítulos, Páginas, Cronograma, Foco, Perfil, Configurações, acessibilidade e personalização-base.
 
-### PROPOSTA
+### P1 — Essential
+Prática, recuperação, feedback, revisão, evidência educacional, lacunas, perfil educacional, estatísticas, gamificação necessária ao núcleo.
 
-Solução sugerida, ainda não aprovada.
+### P2 — Evolution
+Social funcional, colaboração, gestão explícita de objetivos, planejamento avançado, personalização funcional mais ampla e adaptação educacional mais sofisticada.
 
-### REQUISITO
+### P3 — Differential
+Mestre Arcano avançado, experiências multimodais, metacognição avançada e experiências imersivas ligadas à aprendizagem.
 
-Comportamento que o produto deve possuir.
+### P4 — Experimental
+Hipóteses e experiências isoladas com critério de validação.
 
-### DECISÃO
+## 18. Requisitos e rastreabilidade
 
-Escolha formalmente adotada.
+Os requisitos verificáveis estão em `docs/product/AA-PRODUCT-REQUIREMENTS-1.0.md`.
 
-### IMPLEMENTAÇÃO
+Uma capacidade só pode ser marcada como implementada quando:
 
-Código/configuração que materializa uma decisão.
+1. problema e usuário estejam definidos;
+2. comportamento esteja definido;
+3. estados relevantes estejam definidos;
+4. critérios de aceitação sejam observáveis;
+5. dependências estejam registradas;
+6. acessibilidade esteja coberta;
+7. exista evidência real ou estado vazio explícito;
+8. a relação com o ciclo de aprendizagem seja comprovada;
+9. limitações e incertezas estejam visíveis;
+10. não haja conflito crítico de Produto conhecido.
 
-Uma etapa não substitui a anterior.
+## 19. Dependências interdomínio
 
-## 19. Decisões canônicas
+Produto define **o que** deve acontecer e os limites de comportamento.
 
-### AA-PROD-001 — Ciclo principal do produto
+Outros chats/domínios recebem:
 
-**Contexto:** o produto possui múltiplos módulos e poderia evoluir como um conjunto fragmentado de ferramentas.
+- requisito;
+- regra de negócio;
+- terminologia canônica;
+- estados;
+- critérios de aceitação;
+- fonte de verdade;
+- dependências;
+- restrições.
 
-**Problema:** ausência de um eixo comum poderia transformar a Academia Arcana em um agregador de funcionalidades.
+Produto não decide implementação técnica.
 
-**Decisão:** todos os módulos relevantes devem reforçar o ciclo:
+## 20. Decisões canônicas
 
-`Objetivo → Planejamento → Estudo → Prática → Feedback → Revisão → Progresso → Adaptação`
+### AA-PROD-001 — Ciclo principal
+O produto é organizado pelo ciclo `Objetivo → Planejamento → Estudo → Prática → Feedback → Revisão → Progresso → Adaptação`.
 
 **Status:** ATIVA.
 
 ### AA-PROD-002 — Rota não equivale a produto concluído
-
-**Contexto:** várias áreas já possuem rotas e superfícies.
-
-**Problema:** uma página funcional pode mascarar ausência de capacidade educacional real.
-
-**Decisão:** o estado do produto será determinado pelo comportamento entregue, e não pela existência da rota.
+A existência de uma rota não prova a existência da capacidade de produto correspondente.
 
 **Status:** ATIVA.
 
 ### AA-PROD-003 — Gamificação não é domínio acadêmico
-
-**Contexto:** XP, níveis, streak e conquistas são úteis para progressão e feedback.
-
-**Problema:** métricas de atividade podem ser confundidas com aprendizagem.
-
-**Decisão:** atividade, progressão gamificada e domínio acadêmico devem permanecer conceitos distintos.
+XP, streak, nível, missão e conquista são sinais de atividade/progressão, não de domínio.
 
 **Status:** ATIVA.
 
 ### AA-PROD-004 — Perfil educacional é revisável
-
-**Contexto:** adaptação depende de dados incompletos e mutáveis.
-
-**Decisão:** inferências devem ser probabilísticas/revisáveis e não podem virar rótulos permanentes.
+Sinais educacionais são dinâmicos, contextuais e revisáveis.
 
 **Status:** ATIVA.
 
 ### AA-PROD-005 — Autonomia
-
-**Contexto:** um sistema adaptativo pode facilmente virar prescritivo.
-
-**Decisão:** recomendações devem preservar controle e compreensão por parte do estudante.
+Recomendações apoiam escolhas e não devem sequestrar a decisão do estudante.
 
 **Status:** ATIVA.
 
-## 20. Backlog de fechamento do produto
+### AA-PROD-006 — Proveniência da evidência
+Toda métrica ou inferência educacional deve identificar sua origem e nível de confiança; autoavaliação não é domínio objetivo.
+
+**Status:** ATIVA.
+
+### AA-PROD-007 — V1 adaptativa é limitada
+Revisão e recomendação adaptativas atuais são heurísticas bounded V1; não constituem um modelo universal de aprendizagem.
+
+**Status:** ATIVA.
+
+### AA-PROD-008 — Objetivo é conceito, não tela obrigatória
+O ciclo pode começar em objetivos representados por tarefas, missões ou contexto. Gestão explícita de objetivos é P2.
+
+**Status:** ATIVA.
+
+## 21. Backlog canônico
 
 | ID | Capacidade | Prioridade | Estado |
 |---|---|---|---|
-| AA-PROD-B01 | prática educacional nativa | P1 | PENDENTE |
-| AA-PROD-B02 | recuperação de aprendizagem | P1 | PENDENTE |
-| AA-PROD-B03 | revisão adaptativa baseada em evidência | P1 | PENDENTE |
-| AA-PROD-B04 | feedback educacional estruturado | P1 | PENDENTE |
-| AA-PROD-B05 | sinalização de lacunas de conhecimento | P1 | PENDENTE |
-| AA-PROD-B06 | perfil educacional dinâmico operacional | P1 | PENDENTE |
-| AA-PROD-B07 | estatísticas educacionais além de gamificação | P1 | PENDENTE |
+| AA-PROD-B01 | prática educacional nativa | P1 | CONCLUÍDO V1 |
+| AA-PROD-B02 | recuperação de aprendizagem | P1 | CONCLUÍDO V1 |
+| AA-PROD-B03 | revisão baseada em evidência | P1 | CONCLUÍDO V1 — heurística |
+| AA-PROD-B04 | feedback educacional estruturado | P1 | CONCLUÍDO V1 |
+| AA-PROD-B05 | sinalização de possíveis lacunas | P1 | CONCLUÍDO V1 |
+| AA-PROD-B06 | perfil educacional dinâmico | P1 | CONCLUÍDO V1 |
+| AA-PROD-B07 | estatísticas educacionais | P1 | CONCLUÍDO V1 |
 | AA-PROD-B08 | colaboração/social funcional | P2 | PENDENTE |
-| AA-PROD-B09 | aprofundamento do Mestre Arcano como tutor/planejador | P2/P3 | EVOLUÇÃO |
+| AA-PROD-B09 | Mestre Arcano tutor/planejador avançado | P2/P3 | EM EVOLUÇÃO |
 | AA-PROD-B10 | experiências experimentais | P4 | NÃO INICIADO |
+| AA-PROD-B11 | evidência objetiva/criterion-referenced de domínio | P1 | PENDÊNCIA INTERDOMÍNIO |
 
-## 21. Não incluir automaticamente
+## 22. Estado atual do Produto
 
-Novos recursos não devem entrar no produto apenas por:
+**Fundação P0:** IMPLEMENTADA.
 
-- tendência;
-- disponibilidade de tecnologia;
-- presença de um plugin;
-- facilidade de implementação;
-- estética;
-- desejo de aumentar o número de funcionalidades.
+**Núcleo educacional P1:** IMPLEMENTADO V1, com a ressalva formal de que domínio acadêmico objetivo permanece NÃO CONFIRMADO.
 
-A regra é:
+**Gamificação:** IMPLEMENTADA BÁSICA E SEPARADA DA EVIDÊNCIA EDUCACIONAL.
 
-`valor educacional × valor de produto × manutenção × complexidade × risco`
+**Adaptação:** IMPLEMENTADA V1, limitada ao conjunto de sinais atualmente disponíveis.
 
-A expansão precisa ser deliberada.
+**Social:** PENDENTE.
 
-## 22. Dependências interdomínio
+**Mestre Arcano:** TECNICAMENTE IMPLEMENTADO; CAPACIDADES AVANÇADAS PENDENTES.
 
-Quando uma decisão de produto exigir:
-
-- arquitetura;
-- banco;
-- segurança;
-- Design System;
-- UI/UX;
-- infraestrutura;
-- integração externa;
-- testes;
-- documentação;
-
-o requisito deve ser encaminhado ao domínio correspondente.
-
-Este documento não autoriza implementação fora do domínio Produto.
+**Produto completo de longo alcance:** NÃO CONCLUÍDO, por conter P2/P3/P4 futuros.
 
 ## 23. Critério de encerramento do Chat 01
 
-O Chat 01 pode considerar uma demanda de produto encerrada quando:
+O Chat 01 pode encerrar uma demanda quando:
 
-- o problema foi definido;
-- a decisão está registrada;
-- o escopo está delimitado;
-- as dependências estão identificadas;
-- os critérios de aceitação estão claros;
-- não existem ambiguidades relevantes sobre o comportamento pretendido.
+- o problema estiver definido;
+- a decisão estiver registrada;
+- o escopo estiver delimitado;
+- os módulos afetados estiverem classificados;
+- os requisitos estiverem verificáveis;
+- as dependências estiverem explícitas;
+- conflitos críticos de Produto estiverem resolvidos ou formalmente encaminhados.
 
-A implementação técnica e a validação operacional continuam pertencendo aos domínios responsáveis.
+A condição de “100% do produto” não significa todas as fases P0–P4 implementadas; significa que o domínio de Produto possui contrato claro, rastreável e sem decisões ocultas.
 
-## 24. Estado atual
+## 24. Referências de Produto
 
-**Produto:** CONSOLIDADO COMO BASELINE.
-
-**Núcleo operacional:** IMPLEMENTADO PARCIALMENTE.
-
-**Núcleo educacional completo:** PENDENTE.
-
-**Gamificação:** IMPLEMENTADA EM NÍVEL BÁSICO.
-
-**Adaptação educacional:** EM EVOLUÇÃO.
-
-**Mestre Arcano:** IMPLEMENTADO TECNICAMENTE; EVOLUÇÃO EDUCACIONAL PENDENTE.
-
-**Social:** PREPARADO; FUNCIONALIDADE REAL PENDENTE.
-
-**Estatísticas educacionais:** PENDENTES.
-
-**Conclusão:** o produto já possui uma fundação funcional coerente, mas ainda não deve ser declarado 100% concluído como plataforma educacional. O próximo fechamento de Produto deve atacar primeiro AA-PROD-B01–B07, sem expandir P2–P4 antes de consolidar o núcleo educacional.
-
-## 25. Relação com a arquitetura
-
-A arquitetura operacional deve receber este baseline como contexto de Produto, sem reinterpretar suas responsabilidades.
-
-Referência técnica atual:
-
-`docs/architecture/AA-ARCHITECTURE-1.0.md`
-
-A arquitetura define como implementar dentro das fronteiras aprovadas; este documento define o comportamento e a intenção do produto.
-
+- `docs/product/AA-PRODUCT-P1-EDUCATIONAL-CORE.md`
+- `docs/product/AA-PRODUCT-MODULES-1.0.md`
+- `docs/product/AA-PRODUCT-REQUIREMENTS-1.0.md`
+- `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-02.md`
