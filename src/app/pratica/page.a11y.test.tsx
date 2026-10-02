@@ -2,25 +2,27 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
-  requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+  requireAuthenticatedUser: vi.fn().mockResolvedValue({ sub: "user-1" }),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({})),
+  createClient: vi.fn().mockResolvedValue({}),
 }));
 
 vi.mock("@/components/layout/AuthenticatedShell", () => ({
-  AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  AuthenticatedShell: ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => <div>{children}</div>,
 }));
 
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockRepository {
-    listPages() {
-      return Promise.resolve( [{ id: "page-1", title: "Fisiologia" }];
-    }
+    private readonly pages = [{ id: "page-1", title: "Fisiologia" }];
 
-    async listPracticeItems() {
-      return [{
+    private readonly items = [
+      {
         id: "item-1",
         ownerId: "user-1",
         pageId: "page-1",
@@ -32,11 +34,19 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
         active: true,
         createdAt: "2026-09-01T00:00:00.000Z",
         updatedAt: "2026-09-01T00:00:00.000Z",
-      }];
+      },
+    ];
+
+    listPages() {
+      return Promise.resolve(this.pages);
     }
 
-    async listPracticeAttempts() {
-      return [];
+    listPracticeItems() {
+      return Promise.resolve(this.items);
+    }
+
+    listPracticeAttempts() {
+      return Promise.resolve([]);
     }
   }
 
@@ -55,7 +65,7 @@ describe("PraticaPage accessibility contract", () => {
   it("exposes a labelled structure, associated controls and non-colour-only states", async () => {
     const html = renderToStaticMarkup(
       await PraticaPage({
-        searchParams: Promise.resolve({ pagina: "page-1" }),
+        searchParams: Promise.resolve({ pagina: "page-1", item: "item-1" }),
       }),
     );
 
@@ -75,7 +85,7 @@ describe("PraticaPage accessibility contract", () => {
   it("keeps the reference answer out of the initial document", async () => {
     const html = renderToStaticMarkup(
       await PraticaPage({
-        searchParams: Promise.resolve({ pagina: "page-1" }),
+        searchParams: Promise.resolve({ pagina: "page-1", item: "item-1" }),
       }),
     );
 
