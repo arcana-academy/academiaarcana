@@ -527,7 +527,7 @@ export default async function PraticaPage({
   const repository = new SupabaseEducationalPracticeRepository(supabase);
 
   const [pages, items, attempts] = await Promise.all([
-    repository.listPages(claims.sub),
+    repository.listPages(),
     repository.listPracticeItems(claims.sub),
     repository.listPracticeAttempts(claims.sub),
   ]);
