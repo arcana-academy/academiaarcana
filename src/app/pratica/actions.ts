@@ -3,7 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { buildAttemptInput } from "@/application/education/p1";
+import {
+  buildAttemptInput,
+  createObjectiveAssessment,
+} from "@/application/education/p1";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { StudyTaskService } from "@/application/planning/study-tasks";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
@@ -51,6 +54,65 @@ export async function createPracticeItemAction(formData: FormData) {
   revalidatePath("/pratica");
   revalidatePath("/estatisticas");
   redirect(`/pratica?pagina=${encodeURIComponent(pageId)}&item=${encodeURIComponent(item.id)}`);
+}
+
+/** Creates a bounded criterion-referenced exact-match assessment. */
+export async function createObjectiveAssessmentAction(formData: FormData) {
+  const claims = await requireAuthenticatedUser();
+  const pageId = textField(formData, "pageId");
+  const minimumEvidence = Number(formData.get("minimumEvidence") ?? 2);
+
+  if (
+    !Number.isInteger(minimumEvidence) ||
+    minimumEvidence < 1 ||
+    minimumEvidence > 5
+  ) {
+    throw new Error("A evidência mínima deve estar entre 1 e 5 tentativas.");
+  }
+
+  const supabase = await createClient();
+  const repository = new SupabaseEducationalPracticeRepository(supabase);
+
+  const assessment = await createObjectiveAssessment(repository, {
+    ownerId: claims.sub,
+    pageId,
+    prompt: textField(formData, "prompt"),
+    referenceAnswer: textField(formData, "referenceAnswer"),
+    criterion: textField(formData, "criterion"),
+    minimumEvidence,
+  });
+
+  revalidatePath("/pratica");
+  revalidatePath("/estatisticas");
+  redirect(
+    "/pratica?pagina=" +
+      encodeURIComponent(pageId) +
+      "&avaliacao=" +
+      encodeURIComponent(assessment.id),
+  );
+}
+
+/** Records an objective attempt; pass/fail is computed inside the database. */
+export async function submitObjectiveAssessmentAction(formData: FormData) {
+  const claims = await requireAuthenticatedUser();
+  const assessmentId = textField(formData, "assessmentId");
+  const answer = textField(formData, "answer");
+
+  const supabase = await createClient();
+  const repository = new SupabaseEducationalPracticeRepository(supabase);
+  await repository.recordObjectiveAttemptAndProgress({
+    ownerId: claims.sub,
+    assessmentId,
+    answer,
+  });
+
+  revalidatePath("/pratica");
+  revalidatePath("/estatisticas");
+  revalidatePath("/workspace");
+  revalidatePath("/santuario");
+  redirect(
+    "/pratica?avaliacao=" + encodeURIComponent(assessmentId),
+  );
 }
 
 /** Records an authenticated retrieval attempt and synchronizes page progress. */
