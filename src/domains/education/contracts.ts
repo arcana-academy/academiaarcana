@@ -8,6 +8,38 @@
 export type PracticeDifficulty = 1 | 2 | 3 | 4 | 5;
 export type PracticeOutcome = "strong" | "partial" | "insufficient";
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
+export type ObjectiveScoringPolicy = "normalized-exact-match";
+export type ObjectiveAttemptOutcome = "pass" | "fail";
+
+export type ObjectiveAssessment = {
+  id: string;
+  ownerId: string;
+  pageId: string;
+  pageTitle: string;
+  prompt: string;
+  referenceAnswer: string;
+  criterion: string;
+  scoringPolicy: ObjectiveScoringPolicy;
+  minimumEvidence: number;
+  validityScope: "page";
+  criterionVersion: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ObjectiveAttempt = {
+  id: string;
+  ownerId: string;
+  assessmentId: string;
+  answer: string;
+  outcome: ObjectiveAttemptOutcome;
+  evidenceScore: number;
+  confidence: "strong";
+  feedback: string;
+  criterionVersion: number;
+  createdAt: string;
+};
 
 export type PracticeItem = {
   id: string;
