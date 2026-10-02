@@ -158,8 +158,8 @@ begin
       message = 'Avaliação objetiva não encontrada.';
   end if;
 
-  if pg_catalog.regexp_replace(pg_catalog.lower(pg_catalog.btrim(p_answer)), '\\s+', ' ', 'g')
-     = pg_catalog.regexp_replace(pg_catalog.lower(pg_catalog.btrim(v_reference_answer)), '\\s+', ' ', 'g')
+  if pg_catalog.regexp_replace(pg_catalog.lower(pg_catalog.btrim(p_answer)), '\s+', ' ', 'g')
+     = pg_catalog.regexp_replace(pg_catalog.lower(pg_catalog.btrim(v_reference_answer)), '\s+', ' ', 'g')
   then
     v_outcome := 'pass';
     v_score := 1;
