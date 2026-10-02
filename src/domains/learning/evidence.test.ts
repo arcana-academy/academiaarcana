@@ -108,6 +108,7 @@ describe("learning evidence", () => {
       score: 1,
       matchedCriteria: 2,
       totalCriteria: 2,
+      confidence: "strong",
       criterionVersion: 1,
       createdAt: "2026-09-30T00:00:00.000Z",
     };
