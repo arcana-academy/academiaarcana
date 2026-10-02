@@ -165,13 +165,19 @@ function PracticeItemList({
             key={item.id}
             className="aa-list-item aa-surface"
             role="listitem"
-            href={`/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`}
+            href={
+              item.evidenceMode === "criterion_exact_match"
+                ? `/pratica?pagina=${encodeURIComponent(item.pageId)}&avaliacao=${encodeURIComponent(item.id)}`
+                : `/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`
+            }
             aria-current={selectedItemId === item.id ? "page" : undefined}
           >
             <span>
               <strong>{item.prompt}</strong>
               <span className="aa-state-copy">
-                Dificuldade {item.difficulty}/5 ·{" "}
+                {item.evidenceMode === "criterion_exact_match"
+                  ? "Avaliação objetiva"
+                  : `Dificuldade ${item.difficulty}/5`} ·{" "}
                 {review?.due ? "revisão liberada" : "sem revisão pendente"}
               </span>
             </span>
