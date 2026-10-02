@@ -9,9 +9,27 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({})),
 }));
 
+vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
+  class MockSupabaseEducationalPracticeRepository {
+    listPages() {
+      return [];
+    }
+
+    listPracticeItems() {
+      return [];
+    }
+
+    listPracticeAttempts() {
+      return [];
+    }
+  }
+
+  return { SupabaseEducationalPracticeRepository: MockSupabaseEducationalPracticeRepository };
+});
+
 vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => {
   class MockSupabaseGamificationRepository {
-    async getProfile() {
+    getProfile() {
       return {
         ownerId: "user-1",
         xp: 900,
@@ -21,7 +39,7 @@ vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => 
       };
     }
 
-    async listDailyMissions() {
+    listDailyMissions() {
       return [
         { id: "m1", ownerId: "user-1", code: "a", title: "A", rewardXp: 10, targetDate: "2026-09-29", status: "completed", completedAt: "2026-09-29T09:00:00.000Z" },
       ];

@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
+  Brain,
   BookOpen,
   CalendarDays,
   Flame,
@@ -20,6 +21,7 @@ export type AuthenticatedRouteHref =
   | "/grimorios"
   | "/santuario"
   | "/workspace"
+  | "/pratica"
   | "/cronograma"
   | "/missoes"
   | "/foco"
@@ -68,6 +70,12 @@ export const navigationItems: ReadonlyArray<NavigationItem> = [
     label: "Cronograma",
     description: "Planejamento",
     icon: CalendarDays,
+  },
+  {
+    href: "/pratica",
+    label: "Prática",
+    description: "Recuperação e revisão",
+    icon: Brain,
   },
   {
     href: "/missoes",

@@ -329,6 +329,9 @@ export function PageEditor({
             ? "Página em andamento."
             : "Página ainda não iniciada."}
       </p>
+      <a href={`/pratica?pagina=${encodeURIComponent(page.id)}`}>
+        Praticar este conteúdo
+      </a>
       {progressError ? <p role="alert">{progressError}</p> : null}
 
       <PageMoveControls
