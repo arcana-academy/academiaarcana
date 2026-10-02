@@ -160,19 +160,30 @@ describe("learning evidence", () => {
     });
   });
 
-  it("keeps statistics separate from XP and includes objective confirmations", () => {
-    const attempts = [makeAttempt("a1", 1, "strong", "29")];
+  it("keeps objective statistics separate from self-reported statistics", () => {
+    const attempts = [
+      makeAttempt("a1", 1, "strong", "28"),
+      {
+        ...makeAttempt("a2", 0, "insufficient", "29"),
+        evidenceType: "criterion-referenced" as const,
+        criterion: "critério",
+        criterionVersion: "criterion_exact_match_v1",
+        criterionResult: "fail" as const,
+        criterionScope: "practice-item" as const,
+      },
+    ];
     const evidence = [buildEvidenceProjection(item, attempts)];
     const objectiveEvidence = [buildObjectiveEvidenceProjection(item, attempts)];
     expect(
       buildEducationalStatistics([item], attempts, evidence, objectiveEvidence, 0),
     ).toMatchObject({
       practiceItemCount: 1,
-      attemptCount: 1,
+      attemptCount: 2,
       retrievalSuccessRate: 1,
+      averageEvidenceScore: 1,
+      objectiveAttemptCount: 1,
+      objectivePassRate: 0,
       itemsWithStrongSelfReportedEvidence: 0,
-      objectiveAttemptCount: 0,
-      objectivePassRate: null,
       itemsWithConfirmedObjectiveMastery: 0,
     });
   });
