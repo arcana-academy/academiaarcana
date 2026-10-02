@@ -87,7 +87,7 @@ describe("learning evidence", () => {
       attemptCount: 1,
       retrievalSuccessRate: 1,
       itemsWithStrongSelfReportedEvidence: 0,
-      itemsWithConfirmedObjectiveEvidence: 0,
+      itemsWithCriteriaSatisfiedObjectiveEvidence: 0,
     });
   });
 
