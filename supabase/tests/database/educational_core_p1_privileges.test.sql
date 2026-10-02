@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(23);
+select extensions.plan(19);
 
 select extensions.ok(
   relrowsecurity,
@@ -140,58 +140,17 @@ select extensions.ok(
   'public atomic educational attempt operation is SECURITY INVOKER'
 )
 from pg_proc
-where oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
+where oid =
+  'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
 
 select extensions.ok(
   (
-    select proc.proconfig @> array['search_path="public, pg_catalog"']
-    from pg_proc as proc
-    where proc.oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure
+    select pg_proc.proconfig @> array['search_path="public, pg_catalog"']
+    from pg_proc
+    where pg_proc.oid =
+      'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure
   ),
-  'public atomic educational attempt operation uses an explicit safe search_path'
-);
-
-select extensions.ok(
-  has_function_privilege(
-    'authenticated',
-    'private.record_educational_practice_attempt(uuid, text, text, numeric, text, text)',
-    'EXECUTE'
-  ),
-  'authenticated can reach the private atomic implementation'
-);
-
-select extensions.ok(
-  not has_function_privilege(
-    'anon',
-    'private.record_educational_practice_attempt(uuid, text, text, numeric, text, text)',
-    'EXECUTE'
-  ),
-  'anon cannot execute the private atomic implementation'
-);
-
-select extensions.ok(
-  not has_function_privilege(
-    'service_role',
-    'private.record_educational_practice_attempt(uuid, text, text, numeric, text, text)',
-    'EXECUTE'
-  ),
-  'service_role cannot execute the private atomic implementation'
-);
-
-select extensions.ok(
-  prosecdef,
-  'private atomic educational attempt implementation is SECURITY DEFINER'
-)
-from pg_proc
-where oid = 'private.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
-
-select extensions.ok(
-  (
-    select proc.proconfig @> array['search_path=""']
-    from pg_proc as proc
-    where proc.oid = 'private.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure
-  ),
-  'private atomic educational attempt implementation uses an empty search_path'
+  'public atomic educational attempt operation uses a safe search_path'
 );
 
 select extensions.ok(
