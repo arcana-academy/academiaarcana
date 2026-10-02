@@ -13,3 +13,6 @@ enabled = true
 [[analyzers]]
 name = "sql"
 enabled = true
+
+  [analyzers.meta]
+  tab_space_size = 2
