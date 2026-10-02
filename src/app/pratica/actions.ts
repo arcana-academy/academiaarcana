@@ -12,7 +12,11 @@ import { createClient } from "@/lib/supabase/server";
 
 function textField(formData: FormData, name: string, required = true): string {
   const value = formData.get(name);
-  if (typeof value !== "string" || (required && !value.trim())) {
+  if (typeof value !== "string") {
+    if (!required) return "";
+    throw new Error(`O campo ${name} é obrigatório.`);
+  }
+  if (required && !value.trim()) {
     throw new Error(`O campo ${name} é obrigatório.`);
   }
   return value.trim();
