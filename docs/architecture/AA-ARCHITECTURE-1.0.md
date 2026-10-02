@@ -729,11 +729,26 @@ The policy is implemented in `src/core/architecture/provider-policy.ts` and prot
 
 The policy applies to operational architecture. It does not prohibit SaaS tools whose role is materially different from these four infrastructure responsibilities. It does prohibit using an equivalent platform as a second source-control system, CI/CD system, production runtime or application data backend.
 
+### GitHub Pages retained as a complementary repository surface
+
+GitHub Pages is intentionally retained as an enabled **repository publication surface**, separate from the Academia Arcana application runtime.
+
+Its architectural status is:
+
+- **GitHub Pages:** complementary publication surface for repository/static documentation content when applicable;
+- **Render:** sole canonical application hosting and production runtime;
+- **GitHub Actions:** sole canonical CI/CD and Quality Gate platform;
+- **Supabase:** sole canonical application data/authentication backend.
+
+GitHub Pages must not be used to publish, operate or promote the Next.js production application. Its existence therefore does not create a second production runtime.
+
+The `GitHub Pages` exclusion in the application-runtime policy remains intentional: it prevents future operational use as an application host without prohibiting this explicitly approved repository publication surface.
+
 State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
 
 ---
 
-## 24. Final canonical state
+## 25. Final canonical state
 
 **AA-ARCHITECTURE-1.0 = CANÔNICO**
 
