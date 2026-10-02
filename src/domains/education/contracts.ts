@@ -59,4 +59,13 @@ export interface EducationalPracticeRepository {
     confidence: EvidenceConfidence;
     feedback: string;
   }): Promise<PracticeAttempt>;
+  recordPracticeAttemptAndProgress(input: {
+    ownerId: string;
+    practiceItemId: string;
+    answer: string;
+    outcome: PracticeOutcome;
+    evidenceScore: number;
+    confidence: EvidenceConfidence;
+    feedback: string;
+  }): Promise<PracticeAttempt>;
 }
