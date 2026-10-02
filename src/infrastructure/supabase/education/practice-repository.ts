@@ -286,8 +286,7 @@ export class SupabaseEducationalPracticeRepository
         page_id: input.pageId,
         prompt: input.prompt,
         reference_answer: input.referenceAnswer,
-        criterion:
-          "A resposta deve corresponder à resposta de referência após normalização de caixa e espaços.",
+        criterion: NORMALIZED_EXACT_MATCH_CRITERION,
         scoring_policy: "normalized-exact-match",
         minimum_evidence: input.minimumEvidence,
         validity_scope: "page",
