@@ -8,6 +8,7 @@
 export type PracticeDifficulty = 1 | 2 | 3 | 4 | 5;
 export type PracticeOutcome = "strong" | "partial" | "insufficient";
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
+export type PracticeAssessmentMode = "self-assessment" | "criterion-referenced";
 
 export type PracticeItem = {
   id: string;
@@ -18,6 +19,10 @@ export type PracticeItem = {
   referenceAnswer: string;
   explanation: string | null;
   difficulty: PracticeDifficulty;
+  assessmentMode: PracticeAssessmentMode;
+  criterionPhrases: string[];
+  criterionVersion: number;
+  minimumObjectiveAttempts: number;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -49,6 +54,10 @@ export interface EducationalPracticeRepository {
     referenceAnswer: string;
     explanation?: string | null;
     difficulty: PracticeDifficulty;
+    assessmentMode?: PracticeAssessmentMode;
+    criterionPhrases?: string[];
+    criterionVersion?: number;
+    minimumObjectiveAttempts?: number;
   }): Promise<PracticeItem>;
   recordPracticeAttemptAndProgress(input: {
     ownerId: string;
