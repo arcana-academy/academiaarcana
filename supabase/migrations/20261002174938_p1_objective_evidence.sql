@@ -177,9 +177,9 @@ begin
       );
 
       if v_normalized_phrase <> ''
-        and pg_catalog.position(
+        and pg_catalog.strpos(
+          ' ' || v_normalized_answer || ' ',
           ' ' || v_normalized_phrase || ' '
-          in ' ' || v_normalized_answer || ' '
         ) > 0 then
         v_matched_criteria := v_matched_criteria + 1;
       end if;
