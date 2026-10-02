@@ -9,6 +9,33 @@ export type LearningEvidenceOverview = {
   statistics: EducationalStatistics;
 };
 
+/** Derives confidence from the number of persisted retrieval attempts. */
+const confidenceFor = (attemptCount: number): EvidenceProjection["confidence"] =>
+  ["insufficient", "partial", "strong"][Math.min(attemptCount, 3) - 1] as EvidenceProjection["confidence"];
+
+/** Classifies self-reported evidence without confirming academic mastery. */
+const evidenceStateFor = (
+  repeated: boolean,
+  score: number,
+): EvidenceProjection["state"] => {
+  const stateByScore = ["developing", "consolidating", "strong-evidence"] as const;
+  const scoreBand = Number(score >= 0.7) + Number(score >= 0.9);
+  return repeated ? stateByScore[scoreBand] : "developing";
+};
+
+/** Explains the evidence state and its epistemic limit. */
+const evidenceReasonFor = (
+  state: EvidenceProjection["state"],
+): string =>
+  ({
+    "strong-evidence":
+      "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
+    consolidating:
+      "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências.",
+    developing:
+      "As evidências autorreportadas atuais ainda merecem prática ou revisão; este sinal não confirma domínio acadêmico.",
+  })[state];
+
 /**
  * Projects item-level self-reported retrieval evidence.
  *
@@ -40,20 +67,7 @@ export function buildEvidenceProjection(
     recent.reduce((total, attempt) => total + attempt.evidenceScore, 0) /
     recent.length;
   const repeated = attempts.length >= 3;
-  const stateByScore = ["developing", "consolidating", "strong-evidence"] as const;
-  const scoreBand = Number(score >= 0.7) + Number(score >= 0.9);
-  const state = repeated ? stateByScore[scoreBand] : "developing";
-  const confidence = ["insufficient", "partial", "strong"][
-    Math.min(attempts.length, 3) - 1
-  ] as EvidenceProjection["confidence"];
-  const reasonByState = {
-    "strong-evidence":
-      "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
-    consolidating:
-      "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências.",
-    developing:
-      "As evidências autorreportadas atuais ainda merecem prática ou revisão; este sinal não confirma domínio acadêmico.",
-  } as const;
+  const state = evidenceStateFor(repeated, score);
 
   return {
     practiceItemId: item.id,
@@ -62,8 +76,8 @@ export function buildEvidenceProjection(
     state,
     score,
     attemptCount: attempts.length,
-    confidence,
-    reason: reasonByState[state],
+    confidence: confidenceFor(attempts.length),
+    reason: evidenceReasonFor(state),
     source: "self-assessment",
     masteryConfirmed: false,
   };
