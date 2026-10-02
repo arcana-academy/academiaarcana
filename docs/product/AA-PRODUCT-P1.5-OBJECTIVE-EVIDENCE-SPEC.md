@@ -16,7 +16,7 @@ O sistema nunca deve promover automaticamente uma autoavaliação para domínio 
 |---|---|---|
 | self-assessment | estudante relata sua própria recuperação/desempenho | NÃO |
 | retrieval-observed | resultado observável de uma tentativa com critério definido | SOMENTE se a tarefa possuir critério apropriado |
-| criterion-referenced | resultado comparado a critérios explícitos da competência/tarefa | SIM, quando os critérios forem satisfeitos |
+| criterion-referenced | resultado comparado a critérios explícitos da competência/tarefa | SIM, somente quando o critério estiver validado para inferir domínio |
 | teacher-validated | validação explícita por avaliador autorizado | SIM, conforme política da tarefa |
 | insufficient | evidência ausente ou insuficiente | NÃO |
 | conflicting | evidências relevantes entram em conflito | NÃO automaticamente |
@@ -25,7 +25,7 @@ O sistema nunca deve promover automaticamente uma autoavaliação para domínio 
 
 **Domínio confirmado é uma conclusão derivada de evidência adequada à tarefa, não um atributo bruto de uma tentativa.**
 
-Uma tentativa forte de recuperação pode ser evidência objetiva somente quando o tipo de tarefa permite inferir a competência avaliada, existe critério explícito e verificável, a resposta pode ser comparada ao critério, o contexto é conhecido e a amostra mínima exigida foi satisfeita.
+Uma tentativa forte de recuperação pode ser evidência objetiva somente quando o tipo de tarefa permite inferir a competência avaliada, existe critério explícito e verificável, a resposta pode ser comparada ao critério, o contexto é conhecido e a amostra mínima exigida foi satisfeita. Ainda assim, critérios meramente sintáticos, como presença de termos obrigatórios, não comprovam por si só compreensão ou domínio acadêmico.
 
 ## 4. Critérios de tarefa
 
@@ -46,7 +46,7 @@ A futura representação objetiva deve admitir, no mínimo:
 - confirmed — critérios objetivos/validados foram satisfeitos;
 - conflicting — evidências relevantes divergem.
 
-strong-evidence continua reservado à evidência autorreportada forte e não deve ser usado como sinônimo de confirmed.
+strong-evidence continua reservado à evidência autorreportada forte e não deve ser usado como sinônimo de confirmed. O estado criteria-satisfied representa apenas o atendimento dos critérios explícitos da atividade; não equivale a domínio acadêmico confirmado.
 
 ## 7. Proveniência obrigatória
 
@@ -115,6 +115,6 @@ Somente quando os domínios definirem o contrato de persistência necessário; p
 
 ## 17. Estado
 
-**P1.5: PARCIAL — ESPECIFICAÇÃO CANÔNICA DEFINIDA; IMPLEMENTAÇÃO OBJETIVA PENDENTE.**
+**P1.5: PARCIAL — infraestrutura de evidência objetiva implementada V1; confirmação de domínio acadêmico permanece pendente de critério validado.**
 
 PI-01/PI-02 permanecem concluídas. Esta especificação não reabre essas decisões.
