@@ -139,54 +139,40 @@ select extensions.ok(
 );
 
 select extensions.ok(
-        not (
-            select prosecdef
-            from pg_proc
-            where pronamespace = 'public'::regnamespace
-                and proname = 'record_educational_practice_attempt'
-                and pronargs = 6
-        ),
+        not prosecdef,
         'public atomic educational attempt operation is SECURITY INVOKER'
-);
+)
+from pg_proc
+where pronamespace = 'public'::regnamespace
+    and proname = 'record_educational_practice_attempt'
+    and pronargs = 6;
 
 select extensions.ok(
-        (
-            select array_to_string(
-                proconfig,
-                ','
-            )
-            from pg_proc
-            where pronamespace = 'public'::regnamespace
-                and proname = 'record_educational_practice_attempt'
-                and pronargs = 6
-        ) = 'search_path=public, pg_catalog',
+        array_to_string(proconfig, ',') = 'search_path=public, pg_catalog',
         'public atomic educational attempt operation uses a safe search_path'
-);
+)
+from pg_proc
+where pronamespace = 'public'::regnamespace
+    and proname = 'record_educational_practice_attempt'
+    and pronargs = 6;
 
 select extensions.ok(
-        (
-            select prosecdef
-            from pg_proc
-            where pronamespace = 'private'::regnamespace
-                and proname = 'record_educational_practice_attempt'
-                and pronargs = 6
-        ),
+        prosecdef,
         'private atomic educational attempt implementation is SECURITY DEFINER'
-);
+)
+from pg_proc
+where pronamespace = 'private'::regnamespace
+    and proname = 'record_educational_practice_attempt'
+    and pronargs = 6;
 
 select extensions.ok(
-        (
-            select array_to_string(
-                proconfig,
-                ','
-            )
-            from pg_proc
-            where pronamespace = 'private'::regnamespace
-                and proname = 'record_educational_practice_attempt'
-                and pronargs = 6
-        ) = 'search_path=""',
+        array_to_string(proconfig, ',') = 'search_path=""',
         'private atomic educational attempt implementation uses an empty search_path'
-);
+)
+from pg_proc
+where pronamespace = 'private'::regnamespace
+    and proname = 'record_educational_practice_attempt'
+    and pronargs = 6;
 
 select extensions.ok(
         has_schema_privilege(
