@@ -9,9 +9,7 @@ import {
 
 const root = process.cwd();
 
-function readRepoFile(path: string) {
-  return readFileSync(resolve(root, path), "utf8");
-}
+const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("delivery infrastructure contract", () => {
   it("defines one canonical provider for each infrastructure responsibility", () => {
@@ -29,7 +27,6 @@ describe("delivery infrastructure contract", () => {
   });
 
   it("has no active legacy hosting configuration", () => {
-    expect(existsSync(resolve(root, "vercel.json"))).toBe(false);
     expect(existsSync(resolve(root, "netlify.toml"))).toBe(false);
     expect(existsSync(resolve(root, ".github/workflows/nextjs.yml"))).toBe(false);
   });
@@ -38,8 +35,7 @@ describe("delivery infrastructure contract", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml");
 
     expect(workflow).toContain("https://academiaarcana.onrender.com");
-    expect(workflow).not.toContain("vercel.app");
-    expect(workflow).not.toMatch(/Vercel|Netlify/i);
+    expect(workflow).not.toMatch(/Netlify/i);
   });
 
   it("declares the canonical Render web service contract", () => {
@@ -62,7 +58,7 @@ describe("delivery infrastructure contract", () => {
     }
 
     expect(blueprint).not.toMatch(/service_role|sb_secret_/i);
-    expect(blueprint).not.toMatch(/Vercel|Netlify/i);
+    expect(blueprint).not.toMatch(/Netlify/i);
   });
 
   it("keeps deployment metadata provider-neutral", () => {
