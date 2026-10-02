@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache";
 
 import { buildAttemptInput } from "@/application/education/p1";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
+import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
+import { StudyTaskService } from "@/application/planning/study-tasks";
+import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
@@ -73,9 +76,50 @@ export async function submitPracticeAttemptAction(formData: FormData) {
     ...attempt,
   });
 
+  const progressRepository = new SupabasePageProgressRepository(supabase);
+  await progressRepository.setStatus(
+    claims.sub,
+    item.pageId,
+    "in-progress",
+    null,
+  );
+
   revalidatePath("/pratica");
   revalidatePath("/estatisticas");
+  revalidatePath("/workspace");
+  revalidatePath("/santuario");
   redirect(
     `/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`,
   );
 }
+
+
+export async function planPracticeReviewAction(formData: FormData) {
+  const claims = await requireAuthenticatedUser();
+  const practiceItemId = textField(formData, "practiceItemId");
+  const dueAtRaw = textField(formData, "dueAt", false);
+  const title = textField(formData, "title");
+
+  if (!dueAtRaw) {
+    throw new Error("A data da revisão é obrigatória.");
+  }
+
+  const supabase = await createClient();
+  const repository = new SupabaseEducationalPracticeRepository(supabase);
+  const item = (await repository.listPracticeItems(claims.sub)).find(
+    (candidate) => candidate.id === practiceItemId,
+  );
+  if (!item) throw new Error("Atividade de prática não encontrada.");
+
+  const taskService = new StudyTaskService(new SupabaseStudyTaskRepository(supabase));
+  await taskService.create({
+    ownerId: claims.sub,
+    title: title || `Revisar: ${item.prompt}`,
+    dueAt: new Date(dueAtRaw).toISOString(),
+  });
+
+  revalidatePath("/pratica");
+  revalidatePath("/cronograma");
+  revalidatePath("/santuario");
+  revalidatePath("/estatisticas");
+};
