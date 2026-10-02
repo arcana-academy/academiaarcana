@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   EvidenceConfidence,
   EducationalPracticeRepository,
+  ObjectiveAssessment,
+  ObjectiveAttempt,
   PracticeAttempt,
   PracticeDifficulty,
   PracticeItem,
@@ -21,6 +23,33 @@ type PracticeItemRow = {
   active: boolean;
   created_at: string;
   updated_at: string;
+};
+type ObjectiveAssessmentRow = {
+  id: string;
+  owner_id: string;
+  page_id: string;
+  prompt: string;
+  reference_answer: string;
+  criterion: string;
+  scoring_policy: "normalized-exact-match";
+  minimum_evidence: number;
+  validity_scope: "page";
+  criterion_version: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+type ObjectiveAttemptRow = {
+  id: string;
+  owner_id: string;
+  assessment_id: string;
+  answer: string;
+  outcome: "pass" | "fail";
+  evidence_score: number | string;
+  confidence: "strong";
+  feedback: string;
+  criterion_version: number;
+  created_at: string;
 };
 type PracticeAttemptRow = {
   id: string;
@@ -51,6 +80,45 @@ function toItem(
     active: row.active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+/** Maps a database objective-assessment row into the domain contract. */
+function toObjectiveAssessment(
+  row: ObjectiveAssessmentRow,
+  pageTitle: string,
+): ObjectiveAssessment {
+  return {
+    id: row.id,
+    ownerId: row.owner_id,
+    pageId: row.page_id,
+    pageTitle,
+    prompt: row.prompt,
+    referenceAnswer: row.reference_answer,
+    criterion: row.criterion,
+    scoringPolicy: row.scoring_policy,
+    minimumEvidence: row.minimum_evidence,
+    validityScope: row.validity_scope,
+    criterionVersion: row.criterion_version,
+    active: row.active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+/** Maps a database objective-attempt row into the domain contract. */
+function toObjectiveAttempt(row: ObjectiveAttemptRow): ObjectiveAttempt {
+  return {
+    id: row.id,
+    ownerId: row.owner_id,
+    assessmentId: row.assessment_id,
+    answer: row.answer,
+    outcome: row.outcome,
+    evidenceScore: Number(row.evidence_score),
+    confidence: row.confidence,
+    feedback: row.feedback,
+    criterionVersion: row.criterion_version,
+    createdAt: row.created_at,
   };
 }
 
@@ -127,6 +195,51 @@ export class SupabaseEducationalPracticeRepository
     return ((data ?? []) as PracticeAttemptRow[]).map(toAttempt);
   }
 
+  /** Lists active objective assessments owned by the learner. */
+  async listObjectiveAssessments(ownerId: string, pageId?: string) {
+    let query = this.supabase
+      .from("educational_objective_assessments")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .eq("active", true)
+      .order("created_at", { ascending: true });
+
+    if (pageId) query = query.eq("page_id", pageId);
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const rows = (data ?? []) as ObjectiveAssessmentRow[];
+    if (!rows.length) return [];
+
+    const pages = await this.listPages(ownerId);
+    const titles = new Map(pages.map((page) => [page.id, page.title]));
+
+    return rows
+      .filter((row) => titles.has(row.page_id))
+      .map((row) =>
+        toObjectiveAssessment(
+          row,
+          titles.get(row.page_id) ?? "Página",
+        ),
+      );
+  }
+
+  /** Lists immutable objective evidence owned by the learner. */
+  async listObjectiveAttempts(ownerId: string, assessmentId?: string) {
+    let query = this.supabase
+      .from("educational_objective_attempts")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: true });
+
+    if (assessmentId) query = query.eq("assessment_id", assessmentId);
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as ObjectiveAttemptRow[]).map(toObjectiveAttempt);
+  }
+
   /** Creates an activity only when the page ownership policy permits it. */
   async createPracticeItem(input: {
     ownerId: string;
@@ -156,6 +269,62 @@ export class SupabaseEducationalPracticeRepository
     if (!pageTitle) throw new Error("Página de prática não encontrada.");
 
     return toItem(data as PracticeItemRow, pageTitle);
+  }
+
+  /** Creates a deterministic criterion-referenced assessment. */
+  async createObjectiveAssessment(input: {
+    ownerId: string;
+    pageId: string;
+    prompt: string;
+    referenceAnswer: string;
+    criterion: string;
+    minimumEvidence: number;
+  }) {
+    const { data, error } = await this.supabase
+      .from("educational_objective_assessments")
+      .insert({
+        owner_id: input.ownerId,
+        page_id: input.pageId,
+        prompt: input.prompt,
+        reference_answer: input.referenceAnswer,
+        criterion: input.criterion,
+        scoring_policy: "normalized-exact-match",
+        minimum_evidence: input.minimumEvidence,
+        validity_scope: "page",
+        criterion_version: 1,
+      })
+      .select("*")
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    const pages = await this.listPages(input.ownerId);
+    const pageTitle = pages.find((page) => page.id === input.pageId)?.title;
+    if (!pageTitle) throw new Error("Página de avaliação não encontrada.");
+
+    return toObjectiveAssessment(data as ObjectiveAssessmentRow, pageTitle);
+  }
+
+  /** Records objective evidence; outcome and score are computed server-side. */
+  async recordObjectiveAttemptAndProgress(input: {
+    ownerId: string;
+    assessmentId: string;
+    answer: string;
+  }) {
+    const { data, error } = await this.supabase.rpc(
+      "record_educational_objective_attempt",
+      {
+        p_assessment_id: input.assessmentId,
+        p_answer: input.answer,
+      },
+    );
+
+    if (error) throw new Error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || typeof row !== "object") {
+      throw new Error("Resposta inválida ao registrar a avaliação objetiva.");
+    }
+    return toObjectiveAttempt(row as ObjectiveAttemptRow);
   }
 
   /** Records evidence and advances page progress in one authorized transaction. */
