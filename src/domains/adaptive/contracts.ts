@@ -2,6 +2,9 @@ export type AdaptiveSignal = {
   progressPercentage: number | null;
   openMissionCount: number;
   scheduledTaskCount: number;
+  educationalReviewDueCount?: number;
+  educationalAverageEvidence?: number | null;
+  educationalLearningGapCount?: number;
 };
 
 export type AdaptiveRecommendation = {
@@ -11,7 +14,55 @@ export type AdaptiveRecommendation = {
   href: string;
 };
 
+export type ReviewRecommendation = {
+  practiceItemId: string;
+  due: boolean;
+  nextReviewAt: string | null;
+  reason: string;
+};
+
+export type LearningGapSignal = {
+  practiceItemId: string;
+  pageId: string;
+  pageTitle: string;
+  evidence: string;
+  reason: string;
+  actionHref: string;
+};
+
+export type EducationalSignal = {
+  value: number;
+  unit: "percent" | "count";
+  confidence: "strong" | "partial" | "insufficient";
+  source: string;
+};
+
+export type EducationalProfile = {
+  practiceCoverage: EducationalSignal;
+  retrievalPerformance: EducationalSignal;
+  reviewNeed: EducationalSignal;
+  sampleSize: number;
+};
+
 export function getAdaptiveRecommendation(signal: AdaptiveSignal): AdaptiveRecommendation {
+  if ((signal.educationalReviewDueCount ?? 0) > 0) {
+    return {
+      title: "Revise o que já foi praticado",
+      message: "Há uma revisão liberada por evidência de recuperação anterior.",
+      reason: "A recomendação usa o histórico educacional disponível, em vez de apenas atividade ou gamificação.",
+      href: "/estatisticas#review-title",
+    };
+  }
+
+  if ((signal.educationalLearningGapCount ?? 0) > 0) {
+    return {
+      title: "Investigue um ponto difícil",
+      message: "Existe um sinal de possível lacuna baseado em tentativas recentes.",
+      reason: "O sinal é revisável e não representa um diagnóstico.",
+      href: "/estatisticas#gaps-title",
+    };
+  }
+
   if (signal.progressPercentage !== null && signal.progressPercentage < 25) {
     return {
       title: "Comece pequeno",
