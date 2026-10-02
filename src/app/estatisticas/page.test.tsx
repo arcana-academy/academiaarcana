@@ -9,6 +9,24 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({})),
 }));
 
+vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
+  class MockSupabaseEducationalPracticeRepository {
+    async listPages() {
+      return [];
+    }
+
+    async listPracticeItems() {
+      return [];
+    }
+
+    async listPracticeAttempts() {
+      return [];
+    }
+  }
+
+  return { SupabaseEducationalPracticeRepository: MockSupabaseEducationalPracticeRepository };
+});
+
 vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => {
   class MockSupabaseGamificationRepository {
     async getProfile() {
