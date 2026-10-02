@@ -2,7 +2,7 @@
 
 > Autoridade: Chat 01 — Produto.
 >
-> Esta especificação fecha o contrato de Produto para P1.5 sem afirmar que a capacidade técnica já está implementada.
+> Esta especificação define o contrato canônico de Produto da P1.5 V1 e registra a implementação objetiva limitada ao critério suportado.
 
 ## 1. Objetivo
 
@@ -115,6 +115,8 @@ Somente quando os domínios definirem o contrato de persistência necessário; p
 
 ## 17. Estado
 
-**P1.5: PARCIAL — ESPECIFICAÇÃO CANÔNICA DEFINIDA; IMPLEMENTAÇÃO OBJETIVA PENDENTE.**
+**P1.5: CONCLUÍDO V1 — evidência objetiva por correspondência exata normalizada, avaliação no servidor, proveniência persistida, mínimo de duas aprovações recentes e confirmação limitada ao escopo da atividade.**
+
+Domínio objetivo mais amplo, incluindo outros tipos de tarefa, permanece uma evolução futura e não deve ser inferido a partir desta implementação.
 
 PI-01/PI-02 permanecem concluídas. Esta especificação não reabre essas decisões.
