@@ -273,7 +273,7 @@ select set_config(
 set local role authenticated;
 
 select extensions.throws_ok(
-  $$select public.record_criterion_referenced_practice_attempt(
+  $query$select public.record_criterion_referenced_practice_attempt(
     '97500000-0000-4000-8000-000000000001',
     'Resposta correta'
   )$$,
