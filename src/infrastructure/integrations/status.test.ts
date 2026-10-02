@@ -219,12 +219,14 @@ describe("integration status snapshot", () => {
       }),
       dataCampVerifier: verifier({
         providerId: "datacamp",
+        pluginName: "DataCamp",
         endpoint: "https://api.datacamp.com",
         status: "connected",
         verifiedAt: "2026-09-27T00:00:00.000Z",
       }),
       dropboxVerifier: verifier({
         providerId: "dropbox",
+        pluginName: "Dropbox",
         accountId: "account-1",
         status: "connected",
         verifiedAt: "2026-09-27T00:00:00.000Z",
