@@ -1,5 +1,6 @@
 -- P1.5 objective evidence V1.
--- Adds an explicit criterion-referenced mode with server-side exact-match evaluation.
+-- Adds an explicit criterion-referenced mode with server-side
+-- exact-match evaluation.
 -- Existing practice remains self-assessment by default.
 
 alter table public.educational_practice_items
@@ -15,7 +16,9 @@ alter table public.educational_practice_items
 alter table public.educational_practice_items
   add constraint educational_practice_items_criterion_contract_check
   check (
-    (evidence_mode = 'self_assessment' and criterion is null and criterion_version is null)
+    (evidence_mode = 'self_assessment'
+      and criterion is null
+      and criterion_version is null)
     or
     (
       evidence_mode = 'criterion_exact_match'
@@ -63,7 +66,12 @@ alter table public.educational_practice_attempts
   );
 
 create index idx_educational_practice_attempts_owner_item_type_created
-  on public.educational_practice_attempts(owner_id, practice_item_id, evidence_type, created_at desc);
+  on public.educational_practice_attempts(
+    owner_id,
+    practice_item_id,
+    evidence_type,
+    created_at desc
+  );
 
 create or replace function private.record_criterion_referenced_practice_attempt(
   p_practice_item_id uuid,
@@ -92,14 +100,20 @@ begin
       message = 'Não autenticado.';
   end if;
 
-  if p_answer is null or pg_catalog.char_length(pg_catalog.btrim(p_answer)) = 0 then
+  if p_answer is null
+    or pg_catalog.char_length(pg_catalog.btrim(p_answer)) = 0
+  then
     raise exception using
       errcode = '22023',
       message = 'A resposta é obrigatória.';
   end if;
 
   select page_id, evidence_mode, criterion, criterion_version, reference_answer
-    into v_page_id, v_evidence_mode, v_criterion, v_criterion_version, v_reference_answer
+    into v_page_id,
+      v_evidence_mode,
+      v_criterion,
+      v_criterion_version,
+      v_reference_answer
     from public.educational_practice_items
    where id = p_practice_item_id
      and owner_id = v_owner_id
@@ -161,9 +175,11 @@ begin
     'strong',
     case
       when v_pass
-        then 'A resposta atendeu ao critério objetivo desta atividade por correspondência exata normalizada.'
+        then 'A resposta atendeu ao critério objetivo desta atividade por '
+          'correspondência exata normalizada.'
       else
-        'A resposta não atendeu ao critério objetivo desta atividade. Consulte a referência e tente novamente.'
+        'A resposta não atendeu ao critério objetivo desta atividade. '
+        'Consulte a referência e tente novamente.'
     end,
     'criterion-referenced',
     v_criterion,
@@ -205,9 +221,11 @@ begin
 end;
 $function$;
 
-revoke all on function private.record_criterion_referenced_practice_attempt(uuid, text)
+revoke all on function
+  private.record_criterion_referenced_practice_attempt(uuid, text)
   from public, anon, service_role;
-grant execute on function private.record_criterion_referenced_practice_attempt(uuid, text)
+grant execute on function
+  private.record_criterion_referenced_practice_attempt(uuid, text)
   to authenticated;
 
 create or replace function public.record_criterion_referenced_practice_attempt(
@@ -232,12 +250,15 @@ begin
 end;
 $function$;
 
-revoke all on function public.record_criterion_referenced_practice_attempt(uuid, text)
+revoke all on function
+  public.record_criterion_referenced_practice_attempt(uuid, text)
   from public, anon, service_role;
-grant execute on function public.record_criterion_referenced_practice_attempt(uuid, text)
+grant execute on function
+  public.record_criterion_referenced_practice_attempt(uuid, text)
   to authenticated;
 
-create or replace function private.prevent_criterion_item_mutation_after_evidence()
+create or replace function
+  private.prevent_criterion_item_mutation_after_evidence()
 returns trigger
 language plpgsql
 security definer
@@ -259,7 +280,8 @@ begin
   ) then
     raise exception using
       errcode = '55000',
-      message = 'O critério objetivo não pode ser alterado depois que já houver evidência objetiva registrada.';
+      message = 'O critério objetivo não pode ser alterado depois que já houver '
+        'evidência objetiva registrada.';
   end if;
   return new;
 end;
