@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(19);
+select extensions.plan(21);
 
 select extensions.ok(
   relrowsecurity,
@@ -136,19 +136,57 @@ select extensions.ok(
 );
 
 select extensions.ok(
-  prosecdef,
-  'atomic educational attempt operation is SECURITY DEFINER'
+    not prosecdef,
+    'public atomic educational attempt operation is SECURITY INVOKER'
 )
-from pg_proc
-where oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
+from pg_catalog.pg_proc
+where oid =
+    pg_catalog.to_regprocedure(
+        'public.record_educational_practice_attempt(' ||
+            'uuid, text, text, numeric, text, text)'
+    );
 
 select extensions.ok(
-  (
-    select proc.proconfig @> array['search_path=""']
-    from pg_proc as proc
-    where proc.oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure
-  ),
-  'atomic educational attempt operation uses an empty search_path'
+    prosecdef,
+    'private atomic educational attempt implementation is SECURITY DEFINER'
+)
+from pg_catalog.pg_proc
+where oid =
+    pg_catalog.to_regprocedure(
+        'private.record_educational_practice_attempt(' ||
+            'uuid, text, text, numeric, text, text)'
+    );
+
+select extensions.ok(
+    (
+        select pg_catalog.array_to_string(
+            proconfig,
+            ','
+        )
+        from pg_catalog.pg_proc
+        where oid =
+            pg_catalog.to_regprocedure(
+                'public.record_educational_practice_attempt(' ||
+                    'uuid, text, text, numeric, text, text)'
+            )
+    ) = 'search_path=public, pg_catalog',
+    'public atomic educational attempt operation uses a safe search_path'
+);
+
+select extensions.ok(
+    (
+        select pg_catalog.array_to_string(
+            proconfig,
+            ','
+        )
+        from pg_catalog.pg_proc
+        where oid =
+            pg_catalog.to_regprocedure(
+                'private.record_educational_practice_attempt(' ||
+                    'uuid, text, text, numeric, text, text)'
+            )
+    ) = 'search_path=""',
+    'private atomic educational attempt implementation uses an empty search_path'
 );
 
 select extensions.ok(
