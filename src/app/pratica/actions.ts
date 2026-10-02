@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { buildAttemptInput } from "@/application/education/p1";
+import type { PracticeAssessmentMode } from "@/domains/education";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { StudyTaskService } from "@/application/planning/study-tasks";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
@@ -32,6 +33,44 @@ function difficultyField(formData: FormData): 1 | 2 | 3 | 4 | 5 {
   return value as 1 | 2 | 3 | 4 | 5;
 }
 
+function assessmentModeField(formData: FormData): PracticeAssessmentMode {
+  const value = formData.get("assessmentMode");
+  if (value !== "self-assessment" && value !== "criterion-referenced") {
+    throw new Error("Modo de avaliação inválido.");
+  }
+  return value;
+}
+
+function criterionPhrasesField(
+  formData: FormData,
+  assessmentMode: PracticeAssessmentMode,
+): string[] {
+  const raw = formData.get("criterionPhrases");
+  const phrases =
+    typeof raw === "string"
+      ? raw
+          .split(/\\r?\\n/)
+          .map((phrase) => phrase.trim())
+          .filter(Boolean)
+      : [];
+
+  if (assessmentMode === "criterion-referenced" && phrases.length === 0) {
+    throw new Error(
+      "Adicione pelo menos um termo essencial para a avaliação por critérios.",
+    );
+  }
+
+  return [...new Set(phrases)];
+}
+
+function minimumObjectiveAttemptsField(formData: FormData): number {
+  const value = Number(formData.get("minimumObjectiveAttempts") ?? 1);
+  if (!Number.isInteger(value) || value < 1 || value > 10) {
+    throw new Error("A quantidade mínima de tentativas objetivas deve estar entre 1 e 10.");
+  }
+  return value;
+}
+
 /** Creates a practice item owned by the authenticated learner and redirects to it. */
 export async function createPracticeItemAction(formData: FormData) {
   const claims = await requireAuthenticatedUser();
@@ -39,6 +78,8 @@ export async function createPracticeItemAction(formData: FormData) {
   const repository = new SupabaseEducationalPracticeRepository(supabase);
 
   const pageId = textField(formData, "pageId");
+  const assessmentMode = assessmentModeField(formData);
+  const criterionPhrases = criterionPhrasesField(formData, assessmentMode);
   const item = await repository.createPracticeItem({
     ownerId: claims.sub,
     pageId,
@@ -46,6 +87,10 @@ export async function createPracticeItemAction(formData: FormData) {
     referenceAnswer: textField(formData, "referenceAnswer"),
     explanation: textField(formData, "explanation", false) || null,
     difficulty: difficultyField(formData),
+    assessmentMode,
+    criterionPhrases,
+    criterionVersion: 1,
+    minimumObjectiveAttempts: minimumObjectiveAttemptsField(formData),
   });
 
   revalidatePath("/pratica");
