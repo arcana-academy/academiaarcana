@@ -298,6 +298,37 @@ function PracticeAttemptDetails({
   );
 }
 
+/** Renders the submitted response and the persisted reference snapshot. */
+function PracticeAttemptDetails({
+  attempt,
+  item,
+}: {
+  attempt: PracticeAttempt;
+  item: PracticeItem;
+}) {
+  return (
+    <details>
+      <summary>Ver sua resposta e a referência</summary>
+      <div className="aa-stack">
+        <div>
+          <h4>Sua resposta</h4>
+          <p>{attempt.answer}</p>
+        </div>
+        <div>
+          <h4>Referência</h4>
+          <p>{attempt.criterionReference ?? item.referenceAnswer}</p>
+        </div>
+        {item.explanation ? (
+          <div>
+            <h4>Explicação / próximo passo</h4>
+            <p>{item.explanation}</p>
+          </div>
+        ) : null}
+      </div>
+    </details>
+  );
+}
+
 /** Renders the latest attempt feedback and its evidence provenance. */
 function PracticeAttemptFeedback({
   attempt,
@@ -470,6 +501,30 @@ function PracticeGapPanel({ gap }: { gap: LearningGapSignal | null }) {
       </Link>
     </aside>
   );
+}
+
+/** Renders the objective criterion notice when the activity declares one. */
+function PracticeCriterionNotice({ item }: { item: PracticeItem }) {
+  if (item.evidenceMode !== "criterion_exact_match" || !item.criterion) {
+    return null;
+  }
+
+  return (
+    <p className="aa-state-copy">
+      <strong>Critério:</strong> {item.criterion}
+    </p>
+  );
+}
+
+/** Renders feedback only when an attempt is available. */
+function PracticeFeedbackSlot({
+  attempt,
+  item,
+}: {
+  attempt: PracticeAttempt | undefined;
+  item: PracticeItem;
+}) {
+  return attempt ? <PracticeAttemptFeedback attempt={attempt} item={item} /> : null;
 }
 
 /** Renders the objective criterion notice when the activity declares one. */
