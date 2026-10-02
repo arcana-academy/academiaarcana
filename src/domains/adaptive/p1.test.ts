@@ -40,6 +40,7 @@ const attempt = (
   criterionVersion: null,
   criterionResult: null,
   criterionScope: null,
+  criterionReference: null,
   createdAt: `2026-09-${day}T00:00:00.000Z`,
 });
 
