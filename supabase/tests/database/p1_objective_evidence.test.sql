@@ -218,7 +218,7 @@ select extensions.throws_ok(
     '97500000-0000-4000-8000-000000000001',
     '97500000-0000-4000-8000-000000000001',
     'criterion-referenced',
-    'confirmed',
+    'criteria-satisfied',
     1,
     2,
     2,
