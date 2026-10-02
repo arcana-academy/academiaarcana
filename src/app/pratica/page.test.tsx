@@ -52,6 +52,10 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
     listPracticeAttempts() {
       return Promise.resolve([]);
     }
+
+    listObjectiveEvidences() {
+      return Promise.resolve([]);
+    }
   }
 
   return { SupabaseEducationalPracticeRepository: MockRepository };
