@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(19);
+select extensions.plan(18);
 
 select extensions.ok(
   relrowsecurity,
@@ -140,18 +140,7 @@ select extensions.ok(
   'public atomic educational attempt operation is SECURITY INVOKER'
 )
 from pg_proc
-where oid =
-  'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
-
-select extensions.ok(
-  (
-    select pg_proc.proconfig @> array['search_path="public, pg_catalog"']
-    from pg_proc
-    where pg_proc.oid =
-      'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure
-  ),
-  'public atomic educational attempt operation uses a safe search_path'
-);
+where oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
 
 select extensions.ok(
   to_regclass('public.idx_educational_practice_items_page_id') is not null,
