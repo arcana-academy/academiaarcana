@@ -1,8 +1,8 @@
 /**
- * Contracts for the P1 educational core.
+ * Contracts owned by the Education domain for native practice and retrieval.
  *
- * Activity, evidence and gamification remain separate concepts. These types
- * model only observable educational practice and its derived projections.
+ * Educational evidence, review scheduling and adaptive signals are exposed by
+ * the Learning and Adaptive domains rather than being merged into this contract.
  */
 
 export type PracticeDifficulty = 1 | 2 | 3 | 4 | 5;
@@ -33,69 +33,6 @@ export type PracticeAttempt = {
   confidence: EvidenceConfidence;
   feedback: string;
   createdAt: string;
-};
-
-export type ReviewRecommendation = {
-  practiceItemId: string;
-  due: boolean;
-  nextReviewAt: string | null;
-  reason: string;
-};
-
-export type MasteryProjection = {
-  practiceItemId: string;
-  pageId: string;
-  pageTitle: string;
-  state:
-    | "unknown"
-    | "developing"
-    | "consolidating"
-    | "strong-evidence";
-  score: number | null;
-  attemptCount: number;
-  confidence: EvidenceConfidence;
-  reason: string;
-};
-
-export type LearningGapSignal = {
-  practiceItemId: string;
-  pageId: string;
-  pageTitle: string;
-  evidence: string;
-  reason: string;
-  actionHref: string;
-};
-
-export type EducationalSignal = {
-  value: number;
-  unit: "percent" | "count";
-  confidence: EvidenceConfidence;
-  source: string;
-};
-
-export type EducationalProfile = {
-  practiceCoverage: EducationalSignal;
-  retrievalPerformance: EducationalSignal;
-  reviewNeed: EducationalSignal;
-  sampleSize: number;
-};
-
-export type EducationalStatistics = {
-  practiceItemCount: number;
-  attemptCount: number;
-  practicedPageCount: number;
-  retrievalSuccessRate: number | null;
-  averageEvidenceScore: number | null;
-  reviewDueCount: number;
-  masteryWithStrongEvidence: number;
-};
-
-export type EducationalOverview = {
-  reviews: ReviewRecommendation[];
-  mastery: MasteryProjection[];
-  learningGaps: LearningGapSignal[];
-  profile: EducationalProfile;
-  statistics: EducationalStatistics;
 };
 
 export interface EducationalPracticeRepository {
