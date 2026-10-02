@@ -50,6 +50,7 @@ type ObjectiveEvidenceRow = {
   score: number | string;
   matched_criteria: number;
   total_criteria: number;
+  confidence: "strong" | "partial" | "insufficient";
   criterion_version: number;
   created_at: string;
 };
@@ -214,6 +215,7 @@ export class SupabaseEducationalPracticeRepository
         score: Number(row.score),
         matchedCriteria: row.matched_criteria,
         totalCriteria: row.total_criteria,
+        confidence: row.confidence,
         criterionVersion: row.criterion_version,
         createdAt: row.created_at,
       }),
