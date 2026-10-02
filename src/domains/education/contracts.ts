@@ -48,6 +48,7 @@ export type PracticeAttempt = {
   criterionVersion: string | null;
   criterionResult: CriterionResult | null;
   criterionScope: "practice-item" | null;
+  criterionReference: string | null;
   createdAt: string;
 };
 
