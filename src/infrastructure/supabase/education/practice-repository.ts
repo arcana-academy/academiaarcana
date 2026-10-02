@@ -5,8 +5,11 @@ import type {
   EducationalPracticeRepository,
   PracticeAttempt,
   PracticeDifficulty,
+  PracticeEvidenceMode,
+  PracticeEvidenceType,
   PracticeItem,
   PracticeOutcome,
+  CriterionResult,
 } from "@/domains/education";
 
 type PageRow = { id: string; title: string };
@@ -19,6 +22,10 @@ type PracticeItemRow = {
   explanation: string | null;
   difficulty: number;
   active: boolean;
+  evidence_mode: PracticeEvidenceMode;
+  criterion: string | null;
+  criterion_version: string | null;
+  minimum_evidence: number;
   created_at: string;
   updated_at: string;
 };
@@ -31,14 +38,16 @@ type PracticeAttemptRow = {
   evidence_score: number | string;
   confidence: EvidenceConfidence;
   feedback: string;
+  evidence_type: PracticeEvidenceType;
+  criterion: string | null;
+  criterion_version: string | null;
+  criterion_result: CriterionResult | null;
+  criterion_scope: "practice-item" | null;
   created_at: string;
 };
 
 /** Maps a database practice-item row into the domain contract. */
-function toItem(
-  row: PracticeItemRow,
-  pageTitle: string,
-): PracticeItem {
+function toItem(row: PracticeItemRow, pageTitle: string): PracticeItem {
   return {
     id: row.id,
     ownerId: row.owner_id,
@@ -49,6 +58,10 @@ function toItem(
     explanation: row.explanation,
     difficulty: row.difficulty as PracticeDifficulty,
     active: row.active,
+    evidenceMode: row.evidence_mode,
+    criterion: row.criterion,
+    criterionVersion: row.criterion_version,
+    minimumEvidence: row.minimum_evidence,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -65,6 +78,11 @@ function toAttempt(row: PracticeAttemptRow): PracticeAttempt {
     evidenceScore: Number(row.evidence_score),
     confidence: row.confidence,
     feedback: row.feedback,
+    evidenceType: row.evidence_type,
+    criterion: row.criterion,
+    criterionVersion: row.criterion_version,
+    criterionResult: row.criterion_result,
+    criterionScope: row.criterion_scope,
     createdAt: row.created_at,
   };
 }
@@ -127,7 +145,7 @@ export class SupabaseEducationalPracticeRepository
     return ((data ?? []) as PracticeAttemptRow[]).map(toAttempt);
   }
 
-  /** Creates an activity only when the page ownership policy permits it. */
+  /** Creates a practice activity with an explicit evaluation mode. */
   async createPracticeItem(input: {
     ownerId: string;
     pageId: string;
@@ -135,7 +153,10 @@ export class SupabaseEducationalPracticeRepository
     referenceAnswer: string;
     explanation?: string | null;
     difficulty: PracticeDifficulty;
+    evidenceMode?: PracticeEvidenceMode;
   }) {
+    const evidenceMode = input.evidenceMode ?? "self_assessment";
+    const objective = evidenceMode === "criterion_exact_match";
     const { data, error } = await this.supabase
       .from("educational_practice_items")
       .insert({
@@ -145,6 +166,12 @@ export class SupabaseEducationalPracticeRepository
         reference_answer: input.referenceAnswer,
         explanation: input.explanation ?? null,
         difficulty: input.difficulty,
+        evidence_mode: evidenceMode,
+        criterion: objective
+          ? "A resposta normalizada deve coincidir exatamente com a resposta de referência."
+          : null,
+        criterion_version: objective ? "criterion_exact_match_v1" : null,
+        minimum_evidence: 2,
       })
       .select("*")
       .single();
@@ -158,7 +185,7 @@ export class SupabaseEducationalPracticeRepository
     return toItem(data as PracticeItemRow, pageTitle);
   }
 
-  /** Records evidence and advances page progress in one authorized transaction. */
+  /** Records self-reported evidence and advances page progress atomically. */
   async recordPracticeAttemptAndProgress(input: {
     ownerId: string;
     practiceItemId: string;
@@ -168,6 +195,7 @@ export class SupabaseEducationalPracticeRepository
     confidence: EvidenceConfidence;
     feedback: string;
   }) {
+    void input.ownerId;
     const { data, error } = await this.supabase.rpc(
       "record_educational_practice_attempt",
       {
@@ -188,4 +216,26 @@ export class SupabaseEducationalPracticeRepository
     return toAttempt(row as PracticeAttemptRow);
   }
 
+  /** Records criterion-referenced evidence with server-side evaluation. */
+  async recordCriterionReferencedPracticeAttempt(input: {
+    ownerId: string;
+    practiceItemId: string;
+    answer: string;
+  }) {
+    void input.ownerId;
+    const { data, error } = await this.supabase.rpc(
+      "record_criterion_referenced_practice_attempt",
+      {
+        p_practice_item_id: input.practiceItemId,
+        p_answer: input.answer,
+      },
+    );
+
+    if (error) throw new Error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || typeof row !== "object") {
+      throw new Error("Resposta inválida ao registrar a avaliação objetiva.");
+    }
+    return toAttempt(row as PracticeAttemptRow);
+  }
 }
