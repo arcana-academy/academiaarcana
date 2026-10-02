@@ -83,6 +83,7 @@ function objectiveStateLabel(
   }[state];
 }
 
+/** Selects a learner-owned page and shows its practice activity count. */
 function PageSelector({
   pages,
   items,
@@ -117,6 +118,7 @@ function PageSelector({
   );
 }
 
+/** Renders the form for creating self-assessment or objective practice. */
 function PracticeCreationForm({ pageId }: { pageId: string }) {
   return (
     <form action={createPracticeItemAction} className="aa-form">
@@ -185,6 +187,7 @@ function PracticeCreationForm({ pageId }: { pageId: string }) {
   );
 }
 
+/** Renders practice activities for the selected learner-owned page. */
 function PracticeItemList({
   items,
   selectedItemId,
@@ -264,6 +267,7 @@ function ObjectiveEvidenceSection({
   );
 }
 
+/** Renders the latest attempt feedback and its evidence provenance. */
 function PracticeAttemptFeedback({
   attempt,
   item,
