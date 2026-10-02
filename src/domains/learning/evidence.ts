@@ -1,6 +1,7 @@
 import type {
   EducationalStatistics,
   EvidenceProjection,
+  ObjectiveEvidenceProjection,
 } from "./contracts";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 
@@ -97,6 +98,9 @@ export function buildEducationalStatistics(
   attempts: PracticeAttempt[],
   evidence: EvidenceProjection[],
   reviewDueCount: number,
+  objectiveAssessmentCount = 0,
+  objectiveAttemptCount = 0,
+  objectiveEvidence: ObjectiveEvidenceProjection[] = [],
 ): EducationalStatistics {
   const practicedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
   const practicedPageCount = new Set(
@@ -124,6 +128,11 @@ export function buildEducationalStatistics(
     reviewDueCount,
     itemsWithStrongSelfReportedEvidence: evidence.filter(
       (entry) => entry.state === "strong-evidence",
+    ).length,
+    objectiveAssessmentCount,
+    objectiveAttemptCount,
+    objectiveConfirmedCount: objectiveEvidence.filter(
+      (entry) => entry.masteryConfirmed,
     ).length,
   };
 }
