@@ -73,22 +73,38 @@ from pg_class
 where oid = 'public.educational_objective_evidence'::regclass;
 
 select extensions.ok(
-  has_table_privilege('authenticated', 'public.educational_objective_evidence', 'SELECT'),
+  has_table_privilege(
+    'authenticated',
+    'public.educational_objective_evidence',
+    'SELECT'
+  ),
   'authenticated can read own objective evidence through RLS'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_evidence', 'INSERT'),
+  not has_table_privilege(
+    'authenticated',
+    'public.educational_objective_evidence',
+    'INSERT'
+  ),
   'authenticated cannot forge objective evidence rows'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_evidence', 'UPDATE'),
+  not has_table_privilege(
+    'authenticated',
+    'public.educational_objective_evidence',
+    'UPDATE'
+  ),
   'authenticated cannot rewrite objective evidence'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_evidence', 'DELETE'),
+  not has_table_privilege(
+    'authenticated',
+    'public.educational_objective_evidence',
+    'DELETE'
+  ),
   'authenticated cannot delete objective evidence'
 );
 
