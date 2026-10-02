@@ -6,20 +6,8 @@ export type ObjectiveEvidenceState =
   | "confirmed"
   | "conflicting";
 
-export type ObjectiveEvidenceRecord = {
-  id: string;
-  ownerId: string;
-  practiceAttemptId: string;
-  practiceItemId: string;
-  evidenceType: "criterion-referenced";
-  state: ObjectiveEvidenceState;
-  score: number;
-  matchedCriteria: number;
-  totalCriteria: number;
-  confidence: "strong" | "partial" | "insufficient";
-  criterionVersion: number;
-  createdAt: string;
-};
+export type ObjectiveEvidenceRecord = import("@/domains/education").ObjectiveEvidenceRepositoryRecord;
+
 
 export type ObjectiveEvidenceProjection = {
   practiceItemId: string;
