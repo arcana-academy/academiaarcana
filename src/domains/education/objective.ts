@@ -1,5 +1,8 @@
 import type { ObjectiveAttemptOutcome, ObjectiveScoringPolicy } from "./contracts";
 
+export const NORMALIZED_EXACT_MATCH_CRITERION =
+  "A resposta deve corresponder à resposta de referência após normalização de caixa e espaços.";
+
 export type ObjectiveEvaluation = {
   outcome: ObjectiveAttemptOutcome;
   evidenceScore: number;
