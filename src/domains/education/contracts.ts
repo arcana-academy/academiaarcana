@@ -8,6 +8,13 @@
 export type PracticeDifficulty = 1 | 2 | 3 | 4 | 5;
 export type PracticeOutcome = "strong" | "partial" | "insufficient";
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
+export type PracticeEvidenceMode =
+  | "self_assessment"
+  | "criterion_exact_match";
+export type PracticeEvidenceType =
+  | "self-assessment"
+  | "criterion-referenced";
+export type CriterionResult = "pass" | "fail";
 
 export type PracticeItem = {
   id: string;
@@ -19,6 +26,10 @@ export type PracticeItem = {
   explanation: string | null;
   difficulty: PracticeDifficulty;
   active: boolean;
+  evidenceMode: PracticeEvidenceMode;
+  criterion: string | null;
+  criterionVersion: string | null;
+  minimumEvidence: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -32,6 +43,11 @@ export type PracticeAttempt = {
   evidenceScore: number;
   confidence: EvidenceConfidence;
   feedback: string;
+  evidenceType: PracticeEvidenceType;
+  criterion: string | null;
+  criterionVersion: string | null;
+  criterionResult: CriterionResult | null;
+  criterionScope: "practice-item" | null;
   createdAt: string;
 };
 
@@ -49,6 +65,7 @@ export interface EducationalPracticeRepository {
     referenceAnswer: string;
     explanation?: string | null;
     difficulty: PracticeDifficulty;
+    evidenceMode?: PracticeEvidenceMode;
   }): Promise<PracticeItem>;
   recordPracticeAttemptAndProgress(input: {
     ownerId: string;
@@ -58,5 +75,10 @@ export interface EducationalPracticeRepository {
     evidenceScore: number;
     confidence: EvidenceConfidence;
     feedback: string;
+  }): Promise<PracticeAttempt>;
+  recordCriterionReferencedPracticeAttempt(input: {
+    ownerId: string;
+    practiceItemId: string;
+    answer: string;
   }): Promise<PracticeAttempt>;
 }
