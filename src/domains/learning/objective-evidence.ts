@@ -76,27 +76,127 @@ export function evaluateRequiredPhrases(
   };
 }
 
+export type ObjectiveEvidenceProjection = {
+  practiceItemId: string;
+  pageId: string;
+  pageTitle: string;
+  state: "unknown" | ObjectiveEvidenceState;
+  score: number | null;
+  evidenceCount: number;
+  matchedCriteria: number;
+  totalCriteria: number;
+  criterionVersion: number | null;
+  source: "criterion-referenced";
+  masteryConfirmed: boolean;
+  reason: string;
+};
+
+function normalizeCriterionText(value: string): string {
+  return value
+    .toLocaleLowerCase("pt-BR")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+/** Evaluates a deterministic required-phrases criterion without semantic inference. */
+export function evaluateRequiredPhrases(
+  answer: string,
+  phrases: string[],
+): {
+  score: number;
+  matchedCriteria: number;
+  totalCriteria: number;
+  state: Exclude<ObjectiveEvidenceState, "conflicting">;
+} {
+  const normalizedAnswer = normalizeCriterionText(answer);
+  const normalizedPhrases = [...new Set(
+    phrases.map(normalizeCriterionText).filter(Boolean),
+  )];
+
+  if (!normalizedPhrases.length) {
+    return {
+      score: 0,
+      matchedCriteria: 0,
+      totalCriteria: 0,
+      state: "insufficient",
+    };
+  }
+
+  const paddedAnswer = ` ${normalizedAnswer} `;
+  const matchedCriteria = normalizedPhrases.filter((phrase) =>
+    paddedAnswer.includes(` ${phrase} `),
+  ).length;
+  const score = matchedCriteria / normalizedPhrases.length;
+
+  return {
+    score,
+    matchedCriteria,
+    totalCriteria: normalizedPhrases.length,
+    state:
+      score === 1
+        ? "criteria-satisfied"
+        : score >= 0.5
+          ? "developing"
+          : "insufficient",
+  };
+}
+
+/** Builds the empty objective projection for an unconfigured or unevaluated item. */
+function unknownObjectiveEvidence(
+  item: PracticeItem,
+  reason: string,
+  criterionVersion: number | null,
+  totalCriteria: number,
+  evidenceCount = 0,
+): ObjectiveEvidenceProjection {
+  return {
+    practiceItemId: item.id,
+    pageId: item.pageId,
+    pageTitle: item.pageTitle,
+    state: "unknown",
+    score: null,
+    evidenceCount,
+    matchedCriteria: 0,
+    totalCriteria,
+    criterionVersion,
+    source: "criterion-referenced",
+    masteryConfirmed: false,
+    reason,
+  };
+}
+
+/** Returns a learner-facing reason that matches the objective evidence state. */
+function objectiveEvidenceReason(
+  state: ObjectiveEvidenceState,
+): string {
+  switch (state) {
+    case "confirmed":
+      return "Os critérios objetivos validados desta atividade foram satisfeitos.";
+    case "criteria-satisfied":
+      return "Todos os critérios explícitos desta atividade foram atendidos. Isso é evidência objetiva de desempenho nesta tarefa, mas não confirma domínio acadêmico por si só.";
+    case "developing":
+      return "Parte dos critérios objetivos foi satisfeita; o sinal permanece em desenvolvimento.";
+    case "conflicting":
+      return "As evidências objetivas relevantes estão em conflito; domínio não é confirmado automaticamente.";
+    default:
+      return "Os critérios objetivos não foram suficientemente satisfeitos nesta tentativa.";
+  }
+}
+
 /** Projects the latest criterion-referenced result for the current criterion version. */
 export function buildObjectiveEvidenceProjection(
   item: PracticeItem,
   evidences: ObjectiveEvidenceRecord[],
 ): ObjectiveEvidenceProjection {
-  if (item.assessmentMode !== "criterion-referenced" || !item.criterionPhrases.length) {
-    return {
-      practiceItemId: item.id,
-      pageId: item.pageId,
-      pageTitle: item.pageTitle,
-      state: "unknown",
-      score: null,
-      evidenceCount: 0,
-      matchedCriteria: 0,
-      totalCriteria: 0,
-      criterionVersion: null,
-      source: "criterion-referenced",
-      masteryConfirmed: false,
-      reason:
-        "Esta atividade usa autoavaliação; ainda não existe evidência objetiva configurada.",
-    };
+  const criteria = item.criterionPhrases;
+  if (item.assessmentMode !== "criterion-referenced" || !criteria.length) {
+    return unknownObjectiveEvidence(
+      item,
+      "Esta atividade usa autoavaliação; ainda não existe evidência objetiva configurada.",
+      null,
+      0,
+    );
   }
 
   const current = evidences
@@ -105,21 +205,12 @@ export function buildObjectiveEvidenceProjection(
 
   const latest = current[0];
   if (!latest) {
-    return {
-      practiceItemId: item.id,
-      pageId: item.pageId,
-      pageTitle: item.pageTitle,
-      state: "unknown",
-      score: null,
-      evidenceCount: 0,
-      matchedCriteria: 0,
-      totalCriteria: item.criterionPhrases.length,
-      criterionVersion: item.criterionVersion,
-      source: "criterion-referenced",
-      masteryConfirmed: false,
-      reason:
-        "Os critérios objetivos estão configurados, mas ainda não há uma tentativa avaliada por eles.",
-    };
+    return unknownObjectiveEvidence(
+      item,
+      "Os critérios objetivos estão configurados, mas ainda não há uma tentativa avaliada por eles.",
+      item.criterionVersion,
+      criteria.length,
+    );
   }
 
   return {
@@ -134,15 +225,8 @@ export function buildObjectiveEvidenceProjection(
     criterionVersion: latest.criterionVersion,
     source: "criterion-referenced",
     masteryConfirmed: latest.state === "confirmed",
-    reason:
-      latest.state === "confirmed"
-        ? "Os critérios objetivos validados desta atividade foram satisfeitos."
-        : latest.state === "criteria-satisfied"
-          ? "Todos os critérios explícitos desta atividade foram atendidos. Isso é evidência objetiva de desempenho nesta tarefa, mas não confirma domínio acadêmico por si só."
-        : latest.state === "developing"
-          ? "Parte dos critérios objetivos foi satisfeita; o sinal permanece em desenvolvimento."
-          : latest.state === "conflicting"
-            ? "As evidências objetivas relevantes estão em conflito; domínio não é confirmado automaticamente."
-            : "Os critérios objetivos não foram suficientemente satisfeitos nesta tentativa.",
+    reason: objectiveEvidenceReason(latest.state),
   };
 }
+
+
