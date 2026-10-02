@@ -1,13 +1,15 @@
 import Link from "next/link";
 
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
-import { getEducationalOverview } from "@/application/education/p1";
+import {
+  buildEducationalOverview,
+  type EducationalOverview,
+} from "@/application/education/p1";
 import type {
-  EducationalOverview,
   LearningGapSignal,
   MasteryProjection,
   ReviewRecommendation,
-} from "@/application/education/p1";
+} from "@/domains/adaptive";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import {
   createPracticeItemAction,
@@ -346,13 +348,7 @@ export default async function PraticaPage({
     repository.listPracticeItems(claims.sub),
     repository.listPracticeAttempts(claims.sub),
   ]);
-  const overview = getEducationalOverview
-    ? await getEducationalOverview(repository, claims.sub)
-    : null;
-
-  if (!overview) {
-    throw new Error("Educational overview unavailable.");
-  }
+  const overview = buildEducationalOverview(pages, items, attempts);
 
   const selectedPage =
     pages.find((page) => page.id === params.pagina) ?? pages[0] ?? null;
