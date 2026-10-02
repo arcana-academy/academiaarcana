@@ -39,22 +39,26 @@ export function buildEvidenceProjection(
   const score =
     recent.reduce((total, attempt) => total + attempt.evidenceScore, 0) /
     recent.length;
-  const confidence =
-    attempts.length >= 3 ? "strong" : attempts.length > 0 ? "partial" : "insufficient";
-  const state =
-    attempts.length >= 3 && score >= 0.9
+  const repeated = attempts.length >= 3;
+  const state = repeated
+    ? score >= 0.9
       ? "strong-evidence"
-      : attempts.length >= 3 && score >= 0.7
+      : score >= 0.7
         ? "consolidating"
-        : "developing";
-  const reason =
-    state === "strong-evidence"
-      ? "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico."
-      : state === "consolidating"
-        ? "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências."
-        : attempts.length < 3
-          ? "Há alguma evidência autorreportada, mas a amostra ainda é pequena."
-          : "As evidências autorreportadas atuais indicam que este conteúdo ainda merece prática ou revisão.";
+        : "developing"
+    : "developing";
+  const confidence: EvidenceProjection["confidence"] = repeated
+    ? "strong"
+    : "partial";
+  const reasonByState = {
+    "strong-evidence":
+      "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.",
+    consolidating:
+      "As autoavaliações recentes sugerem consolidação, mas o sinal é autorreportado e pode mudar com novas evidências.",
+    developing: repeated
+      ? "As evidências autorreportadas atuais indicam que este conteúdo ainda merece prática ou revisão."
+      : "Há alguma evidência autorreportada, mas a amostra ainda é pequena.",
+  } as const;
 
   return {
     practiceItemId: item.id,
@@ -64,12 +68,11 @@ export function buildEvidenceProjection(
     score,
     attemptCount: attempts.length,
     confidence,
-    reason,
+    reason: reasonByState[state],
     source: "self-assessment",
     masteryConfirmed: false,
   };
 }
-
 /** Calculates learning statistics separately from gamification state. */
 export function buildEducationalStatistics(
   items: PracticeItem[],
