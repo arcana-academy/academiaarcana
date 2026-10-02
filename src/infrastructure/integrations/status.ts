@@ -262,27 +262,86 @@ function chatgptBridgeUrl(pluginName: string): string | undefined {
   )?.appUrl;
 }
 
-export async function getIntegrationStatusSnapshot({
-  githubVerifier = verifyGitHubConnection,
-  dataCampVerifier = verifyDataCampConnection,
-  dropboxVerifier = verifyDropboxConnection,
-  dataCampApiKey = process.env.DATACAMP_API_KEY,
-  dropboxToken = process.env.DROPBOX_RUNTIME_TOKEN,
-  airtableVerifier = verifyAirtableConnection,
-  airtableToken = process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN,
-  airtableBaseId = process.env.AIRTABLE_BASE_ID,
+const resolveGitHubEntry = async (
+  verifier: () => Promise<GitHubConnectionVerification>,
+): Promise<IntegrationStatusEntry> => {
+  try {
+    return githubVerificationEntry(await verifier());
+  } catch {
+    return {
+      name: "GitHub",
+      source: "chatgpt-catalog",
+      status: "error",
+      executionMode: "runtime",
+      verification: null,
+    };
+  }
+};
+
+const resolveDataCampEntry = async (
+  verifier: () => Promise<DataCampConnectionVerification>,
+  apiKey: string | undefined,
+): Promise<IntegrationStatusEntry> => {
+  if (!apiKey?.trim()) return dataCampCatalogEntry();
+  try {
+    return dataCampVerificationEntry(await verifier());
+  } catch {
+    return dataCampErrorEntry();
+  }
+};
+
+const resolveDropboxEntry = async (
+  verifier: (token?: string) => Promise<DropboxConnectionVerification>,
+  token: string | undefined,
+): Promise<IntegrationStatusEntry> => {
+  if (!token?.trim()) return dropboxCatalogEntry();
+  try {
+    return dropboxVerificationEntry(await verifier(token));
+  } catch {
+    return dropboxErrorEntry();
+  }
+};
+
+const resolveAirtableEntry = async (
+  verifier: () => Promise<AirtableConnectionVerification>,
+  token: string | undefined,
+  baseId: string | undefined,
+): Promise<IntegrationStatusEntry> => {
+  if (!token?.trim() || !baseId?.trim()) return airtableCatalogEntry();
+  try {
+    return airtableVerificationEntry(await verifier());
+  } catch {
+    return airtableErrorEntry();
+  }
+};
+
+const resolveVerifiedEntries = async ({
+  githubVerifier,
+  dataCampVerifier,
+  dataCampApiKey,
+  dropboxVerifier,
+  dropboxToken,
+  airtableVerifier,
+  airtableToken,
+  airtableBaseId,
 }: {
-  readonly githubVerifier?: () => Promise<GitHubConnectionVerification>;
-  readonly dataCampVerifier?: () => Promise<DataCampConnectionVerification>;
-  readonly dropboxVerifier?: (
-    token?: string,
-  ) => Promise<DropboxConnectionVerification>;
-  readonly airtableVerifier?: () => Promise<AirtableConnectionVerification>;
+  readonly githubVerifier: () => Promise<GitHubConnectionVerification>;
+  readonly dataCampVerifier: () => Promise<DataCampConnectionVerification>;
   readonly dataCampApiKey?: string;
+  readonly dropboxVerifier: (token?: string) => Promise<DropboxConnectionVerification>;
   readonly dropboxToken?: string;
+  readonly airtableVerifier: () => Promise<AirtableConnectionVerification>;
   readonly airtableToken?: string;
   readonly airtableBaseId?: string;
-} = {}): Promise<IntegrationStatusSnapshot> {
+}): Promise<{
+  readonly githubEntry: IntegrationStatusEntry;
+  readonly dataCampEntry: IntegrationStatusEntry;
+  readonly dropboxEntry: IntegrationStatusEntry;
+  readonly airtableEntry: IntegrationStatusEntry;
+  readonly runtimeIntegration: Awaited<
+    ReturnType<typeof getOpenAIAgentsRuntimeSnapshot>
+  >;
+}> => {
   const [
     githubEntry,
     dataCampEntry,
@@ -290,49 +349,34 @@ export async function getIntegrationStatusSnapshot({
     airtableEntry,
     runtimeIntegration,
   ] = await Promise.all([
-    (async () => {
-      try {
-        return githubVerificationEntry(await githubVerifier());
-      } catch {
-        return {
-          name: "GitHub",
-          source: "chatgpt-catalog" as const,
-          status: "error" as const,
-          executionMode: "runtime" as const,
-          verification: null,
-        };
-      }
-    })(),
-    (async () => {
-      if (!dataCampApiKey?.trim()) return dataCampCatalogEntry();
-      try {
-        return dataCampVerificationEntry(await dataCampVerifier());
-      } catch {
-        return dataCampErrorEntry();
-      }
-    })(),
-    (async () => {
-      if (!dropboxToken?.trim()) return dropboxCatalogEntry();
-      try {
-        return dropboxVerificationEntry(await dropboxVerifier(dropboxToken));
-      } catch {
-        return dropboxErrorEntry();
-      }
-    })(),
-    (async () => {
-      if (!airtableToken?.trim() || !airtableBaseId?.trim()) {
-        return airtableCatalogEntry();
-      }
-      try {
-        return airtableVerificationEntry(await airtableVerifier());
-      } catch {
-        return airtableErrorEntry();
-      }
-    })(),
+    resolveGitHubEntry(githubVerifier),
+    resolveDataCampEntry(dataCampVerifier, dataCampApiKey),
+    resolveDropboxEntry(dropboxVerifier, dropboxToken),
+    resolveAirtableEntry(airtableVerifier, airtableToken, airtableBaseId),
     getOpenAIAgentsRuntimeSnapshot(),
   ]);
 
-  const entries = CHATGPT_PLUGIN_CATALOG.map((plugin) => {
+  return {
+    githubEntry,
+    dataCampEntry,
+    dropboxEntry,
+    airtableEntry,
+    runtimeIntegration,
+  };
+};
+
+const buildCatalogEntries = ({
+  githubEntry,
+  dataCampEntry,
+  dropboxEntry,
+  airtableEntry,
+}: {
+  readonly githubEntry: IntegrationStatusEntry;
+  readonly dataCampEntry: IntegrationStatusEntry;
+  readonly dropboxEntry: IntegrationStatusEntry;
+  readonly airtableEntry: IntegrationStatusEntry;
+}): IntegrationStatusEntry[] =>
+  CHATGPT_PLUGIN_CATALOG.map((plugin) => {
     if (plugin.name === "GitHub") return githubEntry;
     if (plugin.name === "DataCamp") return dataCampEntry;
     if (plugin.name === "Dropbox") return dropboxEntry;
@@ -359,7 +403,6 @@ export async function getIntegrationStatusSnapshot({
       };
     }
     if (plugin.name === "Airtable") return airtableEntry;
-
     if (plugin.name === "Asana") {
       return {
         name: "Asana",
@@ -371,7 +414,6 @@ export async function getIntegrationStatusSnapshot({
         verification: null,
       };
     }
-
     if (plugin.name === "Trello") {
       return {
         name: "Trello",
@@ -416,6 +458,51 @@ export async function getIntegrationStatusSnapshot({
         : {}),
       verification: null,
     };
+  });
+
+export async function getIntegrationStatusSnapshot({
+  githubVerifier = verifyGitHubConnection,
+  dataCampVerifier = verifyDataCampConnection,
+  dropboxVerifier = verifyDropboxConnection,
+  dataCampApiKey = process.env.DATACAMP_API_KEY,
+  dropboxToken = process.env.DROPBOX_RUNTIME_TOKEN,
+  airtableVerifier = verifyAirtableConnection,
+  airtableToken = process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN,
+  airtableBaseId = process.env.AIRTABLE_BASE_ID,
+}: {
+  readonly githubVerifier?: () => Promise<GitHubConnectionVerification>;
+  readonly dataCampVerifier?: () => Promise<DataCampConnectionVerification>;
+  readonly dropboxVerifier?: (
+    token?: string,
+  ) => Promise<DropboxConnectionVerification>;
+  readonly airtableVerifier?: () => Promise<AirtableConnectionVerification>;
+  readonly dataCampApiKey?: string;
+  readonly dropboxToken?: string;
+  readonly airtableToken?: string;
+  readonly airtableBaseId?: string;
+} = {}): Promise<IntegrationStatusSnapshot> {
+  const {
+    githubEntry,
+    dataCampEntry,
+    dropboxEntry,
+    airtableEntry,
+    runtimeIntegration,
+  } = await resolveVerifiedEntries({
+    githubVerifier,
+    dataCampVerifier,
+    dataCampApiKey,
+    dropboxVerifier,
+    dropboxToken,
+    airtableVerifier,
+    airtableToken,
+    airtableBaseId,
+  });
+
+  const entries = buildCatalogEntries({
+    githubEntry,
+    dataCampEntry,
+    dropboxEntry,
+    airtableEntry,
   });
 
   const serverRuntimeIntegrations = [
