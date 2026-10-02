@@ -136,62 +136,58 @@ select extensions.ok(
 );
 
 select extensions.ok(
-    not prosecdef,
-    'public atomic educational attempt operation is SECURITY INVOKER'
-)
-from pg_proc
-where oid
-    =
-    format(
-        'public.record_educational_practice_attempt(%s)',
-        'uuid, text, text, numeric, text, text'
-    )::regprocedure;
-
-select extensions.ok(
-    prosecdef,
-    'private atomic educational attempt implementation is SECURITY DEFINER'
-)
-from pg_proc
-where oid
-    =
-    format(
-        'private.record_educational_practice_attempt(%s)',
-        'uuid, text, text, numeric, text, text'
-    )::regprocedure;
-
-select extensions.ok(
-    pg_catalog.array_to_string(
-        proconfig,
-        ','
+  not (
+    select prosecdef
+    from pg_proc
+    where oid = to_regprocedure(
+      'public.record_educational_practice_attempt('
+      || 'uuid, text, text, numeric, text, text)'
     )
-    =
-    'search_path=public, pg_catalog',
-    'public atomic educational attempt operation uses a safe search_path'
-)
-from pg_proc
-where oid
-    =
-    format(
-        'public.record_educational_practice_attempt(%s)',
-        'uuid, text, text, numeric, text, text'
-    )::regprocedure;
+  ),
+  'public atomic educational attempt operation is SECURITY INVOKER'
+);
 
 select extensions.ok(
-    pg_catalog.array_to_string(
-        proconfig,
-        ','
+  (
+    select prosecdef
+    from pg_proc
+    where oid = to_regprocedure(
+      'private.record_educational_practice_attempt('
+      || 'uuid, text, text, numeric, text, text)'
     )
-    =
-    'search_path=""',
-    'private atomic educational attempt implementation uses an empty search_path'
-)
-from pg_proc
-where oid
-    =
-    format(
-        'private.record_educational_practice_attempt(%s)',
-        'uuid, text, text, numeric, text, text'
-    )::regprocedure;
+  ),
+  'private atomic educational attempt implementation is SECURITY DEFINER'
+);
+
+select extensions.ok(
+  (
+    select array_to_string(
+      proconfig,
+      ','
+    )
+    from pg_proc
+    where oid = to_regprocedure(
+      'public.record_educational_practice_attempt('
+      || 'uuid, text, text, numeric, text, text)'
+    )
+  ) = 'search_path=public, pg_catalog',
+  'public atomic educational attempt operation uses a safe search_path'
+);
+
+select extensions.ok(
+  (
+    select array_to_string(
+      proconfig,
+      ','
+    )
+    from pg_proc
+    where oid = to_regprocedure(
+      'private.record_educational_practice_attempt('
+      || 'uuid, text, text, numeric, text, text)'
+    )
+  ) = 'search_path=""',
+  'private atomic educational attempt implementation uses an empty search_path'
+);
 
 select extensions.ok(
   to_regclass('public.idx_educational_practice_items_page_id') is not null,
