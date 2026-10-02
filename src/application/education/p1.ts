@@ -23,7 +23,10 @@ import {
   type EvidenceProjection,
   type ObjectiveEvidenceProjection,
 } from "@/domains/learning";
-import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
+import {
+  buildAttemptInput as buildEducationAttemptInput,
+  NORMALIZED_EXACT_MATCH_CRITERION,
+} from "@/domains/education";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
@@ -165,7 +168,6 @@ export function createObjectiveAssessment(
     pageId: string;
     prompt: string;
     referenceAnswer: string;
-    criterion: string;
     minimumEvidence: number;
   },
 ): Promise<ObjectiveAssessment> {
