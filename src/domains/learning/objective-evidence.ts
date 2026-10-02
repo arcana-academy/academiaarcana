@@ -3,6 +3,7 @@ import type { PracticeItem } from "@/domains/education";
 export type ObjectiveEvidenceState =
   | "insufficient"
   | "developing"
+  | "criteria-satisfied"
   | "confirmed"
   | "conflicting";
 
