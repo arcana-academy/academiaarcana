@@ -99,8 +99,8 @@ export function buildEducationalStatistics(
   items: PracticeItem[],
   attempts: PracticeAttempt[],
   evidence: EvidenceProjection[],
-  objectiveEvidence: ObjectiveEvidenceProjection[] = [],
   reviewDueCount: number,
+  objectiveEvidence: ObjectiveEvidenceProjection[] = [],
 ): EducationalStatistics {
   const practicedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
   const practicedPageCount = new Set(
