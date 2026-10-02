@@ -74,6 +74,14 @@ export interface EducationalPracticeRepository {
     ownerId: string,
     practiceItemId?: string,
   ): Promise<PracticeAttempt[]>;
+  listObjectiveAssessments?(
+    ownerId: string,
+    pageId?: string,
+  ): Promise<ObjectiveAssessment[]>;
+  listObjectiveAttempts?(
+    ownerId: string,
+    assessmentId?: string,
+  ): Promise<ObjectiveAttempt[]>;
   createPracticeItem(input: {
     ownerId: string;
     pageId: string;
@@ -91,4 +99,17 @@ export interface EducationalPracticeRepository {
     confidence: EvidenceConfidence;
     feedback: string;
   }): Promise<PracticeAttempt>;
+  createObjectiveAssessment?(input: {
+    ownerId: string;
+    pageId: string;
+    prompt: string;
+    referenceAnswer: string;
+    criterion: string;
+    minimumEvidence: number;
+  }): Promise<ObjectiveAssessment>;
+  recordObjectiveAttemptAndProgress?(input: {
+    ownerId: string;
+    assessmentId: string;
+    answer: string;
+  }): Promise<ObjectiveAttempt>;
 }
