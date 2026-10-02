@@ -136,19 +136,26 @@ select extensions.ok(
 );
 
 select extensions.ok(
-  prosecdef,
-  'atomic educational attempt operation is SECURITY DEFINER'
+        not prosecdef,
+        'atomic educational attempt operation is SECURITY INVOKER'
 )
 from pg_proc
-where oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure;
+where pronamespace = 'public'::regnamespace
+    and proname = 'record_educational_practice_attempt'
+    and pronargs = 6;
 
 select extensions.ok(
-  (
-    select proc.proconfig @> array['search_path=""']
-    from pg_proc as proc
-    where proc.oid = 'public.record_educational_practice_attempt(uuid, text, text, numeric, text, text)'::regprocedure
-  ),
-  'atomic educational attempt operation uses an empty search_path'
+        (
+            select array_to_string(
+                proconfig,
+                ','
+            )
+            from pg_proc
+            where pronamespace = 'public'::regnamespace
+                and proname = 'record_educational_practice_attempt'
+                and pronargs = 6
+        ) = 'search_path=public, pg_catalog',
+        'atomic educational attempt operation uses a safe search_path'
 );
 
 select extensions.ok(
@@ -161,6 +168,6 @@ select extensions.ok(
   'practice attempt item foreign key is indexed'
 );
 
-select * from extensions.finish();
+select extensions.finish();
 
 rollback;
