@@ -7,9 +7,9 @@ import {
 } from "@/application/education/p1";
 import type {
   LearningGapSignal,
-  MasteryProjection,
   ReviewRecommendation,
 } from "@/domains/adaptive";
+import type { MasteryProjection } from "@/domains/learning";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import {
   createPracticeItemAction,
