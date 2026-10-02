@@ -17,3 +17,33 @@ describe("adaptive recommendations", () => {
       .toBe("Explore no seu ritmo");
   });
 });
+
+  it("prioritizes an educational review signal when one is due", () => {
+    expect(
+      getAdaptiveRecommendation({
+        progressPercentage: 100,
+        openMissionCount: 0,
+        scheduledTaskCount: 0,
+        educationalReviewDueCount: 1,
+      }),
+    ).toMatchObject({
+      title: "Revise o que já foi praticado",
+      href: "/estatisticas#review-title",
+    });
+  });
+
+  it("prioritizes a learning-gap signal when no review is due", () => {
+    expect(
+      getAdaptiveRecommendation({
+        progressPercentage: 100,
+        openMissionCount: 0,
+        scheduledTaskCount: 0,
+        educationalReviewDueCount: 0,
+        educationalLearningGapCount: 1,
+      }),
+    ).toMatchObject({
+      title: "Investigue um ponto difícil",
+      href: "/estatisticas#gaps-title",
+    });
+  });
+
