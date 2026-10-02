@@ -18,7 +18,7 @@ import {
   type EducationalStatistics,
   type MasteryProjection,
 } from "@/domains/learning";
-import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education/p1";
+import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/education";
 
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
