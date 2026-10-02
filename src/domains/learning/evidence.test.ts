@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
-import { buildEducationalStatistics, buildEvidenceProjection } from "./evidence";
+import {
+  buildEducationalStatistics,
+  buildEvidenceProjection,
+  buildObjectiveEvidenceOverview,
+} from "./evidence";
+import type { ObjectiveEvidenceRecord } from "./objective-evidence";
 
 const item: PracticeItem = {
   id: "item-1",
@@ -82,6 +87,40 @@ describe("learning evidence", () => {
       attemptCount: 1,
       retrievalSuccessRate: 1,
       itemsWithStrongSelfReportedEvidence: 0,
+      itemsWithConfirmedObjectiveEvidence: 0,
+    });
+  });
+
+  it("projects objective confirmation separately from self-reported evidence", () => {
+    const objectiveItem = {
+      ...item,
+      assessmentMode: "criterion-referenced" as const,
+      criterionPhrases: ["ATP", "contração muscular"],
+      minimumObjectiveAttempts: 1,
+    };
+    const record: ObjectiveEvidenceRecord = {
+      id: "objective-1",
+      ownerId: "user-1",
+      practiceAttemptId: "attempt-1",
+      practiceItemId: objectiveItem.id,
+      evidenceType: "criterion-referenced",
+      state: "confirmed",
+      score: 1,
+      matchedCriteria: 2,
+      totalCriteria: 2,
+      criterionVersion: 1,
+      createdAt: "2026-09-30T00:00:00.000Z",
+    };
+    const projection = buildObjectiveEvidenceOverview(
+      [objectiveItem],
+      [record],
+    )[0];
+    expect(projection).toMatchObject({
+      state: "confirmed",
+      masteryConfirmed: true,
+      matchedCriteria: 2,
+      totalCriteria: 2,
+      source: "criterion-referenced",
     });
   });
 });
