@@ -2,24 +2,27 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
-  requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+  requireAuthenticatedUser: vi.fn().mockResolvedValue({ sub: "user-1" }),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({})),
+  createClient: vi.fn().mockResolvedValue({}),
 }));
 
 vi.mock("@/components/layout/AuthenticatedShell", () => ({
-  AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  AuthenticatedShell: ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => <div>{children}</div>,
 }));
 
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockRepository {
-    listPages() {
-      return Promise.resolve( [{ id: "page-1", title: "Fisiologia" }];
-    }
-    async listPracticeItems() {
-      return [{
+    private readonly pages = [{ id: "page-1", title: "Fisiologia" }];
+
+    private readonly items = [
+      {
         id: "item-1",
         ownerId: "user-1",
         pageId: "page-1",
@@ -31,18 +34,29 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
         active: true,
         createdAt: "2026-09-01T00:00:00.000Z",
         updatedAt: "2026-09-01T00:00:00.000Z",
-      }];
+      },
+    ];
+
+    listPages() {
+      return Promise.resolve(this.pages);
     }
-    async listPracticeAttempts() {
-      return [];
+
+    listPracticeItems() {
+      return Promise.resolve(this.items);
+    }
+
+    listPracticeAttempts() {
+      return Promise.resolve([]);
     }
   }
+
   return { SupabaseEducationalPracticeRepository: MockRepository };
 });
 
 vi.mock("./actions", () => ({
   createPracticeItemAction: vi.fn(),
   submitPracticeAttemptAction: vi.fn(),
+  planPracticeReviewAction: vi.fn(),
 }));
 
 import PraticaPage from "./page";
@@ -59,6 +73,7 @@ describe("PraticaPage", () => {
     expect(html).toContain("Recuperação ativa");
     expect(html).toContain("Sua resposta");
     expect(html).toContain("Forte — consegui recuperar");
+    expect(html).toContain("Como você avalia esta recuperação?");
     expect(html).not.toContain("Resposta de referência.");
   });
 });
