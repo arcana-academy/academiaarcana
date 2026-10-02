@@ -268,7 +268,23 @@ Essa ordem é uma sequência operacional recomendada para reduzir dependências;
 
 ## P1.17 — Estado
 
-Todos os itens P1.1–P1.8 permanecem **PENDENTES** no baseline atual.
+Os itens P1.1–P1.8 estão **CONCLUÍDOS** na implementação corrente da Academia Arcana.
 
-Este documento fecha a especificação de Produto dessas capacidades, mas não declara sua implementação concluída.
+A validação que sustenta este estado inclui:
+
+- prática e recuperação nativas na superfície `/pratica`;
+- evidência de tentativa separada de XP, streak e demais sinais de gamificação;
+- recomendações de revisão e sinais adaptativos revisáveis;
+- estatísticas educacionais distintas das estatísticas de gamificação;
+- validação de ownership e RLS no Supabase;
+- gravação de evidência por operação atômica autenticada;
+- testes unitários, de acessibilidade, integração de banco e E2E cobrindo o núcleo P1.
+
+### Segurança da evidência educacional
+
+A operação `record_educational_practice_attempt` é a única rota autorizada para registrar tentativas.
+
+A função é `SECURITY DEFINER`, usa `search_path = ''`, valida `auth.uid()` e ownership do item, e sua execução é concedida somente a `authenticated`. O privilégio `INSERT` direto na tabela de tentativas permanece revogado para `authenticated`, evitando bypass da atualização atômica de progresso.
+
+Este documento permanece como especificação e rastreabilidade de produto; os contratos e decisões técnicas ficam nos domínios e migrações correspondentes.
 
