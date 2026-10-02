@@ -29,6 +29,7 @@ export type EducationalOverview = {
   statistics: EducationalStatistics;
 };
 
+/** Builds all educational projections from persisted evidence. */
 export function buildEducationalOverview(
   pages: Array<{ id: string; title: string }>,
   items: PracticeItem[],
@@ -71,6 +72,7 @@ export function buildEducationalOverview(
   return { reviews, mastery, learningGaps, profile, statistics };
 }
 
+/** Loads and assembles the authenticated learner's educational overview. */
 export async function getEducationalOverview(
   repository: EducationalPracticeRepository,
   ownerId: string,
@@ -84,7 +86,8 @@ export async function getEducationalOverview(
   return buildEducationalOverview(pages, items, attempts);
 }
 
-export async function createPractice(
+/** Creates a native retrieval-practice activity through the repository contract. */
+export function createPractice(
   repository: EducationalPracticeRepository,
   input: {
     ownerId: string;
@@ -98,6 +101,7 @@ export async function createPractice(
   return repository.createPracticeItem(input);
 }
 
+/** Converts an explicit retrieval outcome into normalized educational evidence. */
 export function buildAttemptInput(input: {
   answer: string;
   outcome: PracticeOutcome;
