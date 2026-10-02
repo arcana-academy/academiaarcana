@@ -76,7 +76,8 @@ export class SupabaseEducationalPracticeRepository
   constructor(private readonly supabase: SupabaseClient) {}
 
   /** Lists pages visible to the authenticated owner through RLS. */
-  async listPages(_ownerId: string) {
+  async listPages(ownerId: string) {
+    void ownerId;
     const { data, error } = await this.supabase
       .from("pages")
       .select("id, title")
