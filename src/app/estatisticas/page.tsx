@@ -186,6 +186,16 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
             {educational.statistics.itemsWithStrongSelfReportedEvidence}
           </p>
         </FeatureCard>
+
+        <FeatureCard
+          title="Domínio objetivo confirmado"
+          description="Atividades criterion-referenced cuja amostra recente satisfez o mínimo de tentativas aprovadas, sem conflito recente."
+          icon={<Target size={22} />}
+        >
+          <p className="aa-state-copy">
+            {educational.statistics.itemsWithConfirmedObjectiveMastery}
+          </p>
+        </FeatureCard>
       </ArcanaFeatureGrid>
     </section>
   );
@@ -231,7 +241,7 @@ function ProfileSignals({ educational }: { educational: EducationalOverview }) {
   );
 }
 
-/** Renders item-level mastery projections with explicit evidence counts. */
+/** Renders item-level self-reported evidence with explicit provenance. */
 function EvidenceSection({ educational }: { educational: EducationalOverview }) {
   return (
     <section className="aa-card aa-card-default" aria-labelledby="mastery-title">
@@ -257,6 +267,57 @@ function EvidenceSection({ educational }: { educational: EducationalOverview }) 
         </ul>
       ) : (
         <p className="aa-state-copy">Sem atividades de prática ainda.</p>
+      )}
+    </section>
+  );
+}
+
+/** Renders bounded criterion-referenced mastery projections. */
+function ObjectiveEvidenceSection({
+  educational,
+}: {
+  educational: EducationalOverview;
+}) {
+  const objective = educational.objectiveEvidence.filter(
+    (entry) => entry.criterionVersion !== null,
+  );
+
+  return (
+    <section
+      className="aa-card aa-card-default"
+      aria-labelledby="objective-evidence-title"
+    >
+      <h2 id="objective-evidence-title">Domínio por evidência objetiva</h2>
+      <p className="aa-state-copy">
+        “Confirmado” aqui significa apenas que o critério objetivo desta atividade
+        foi satisfeito. Não representa domínio global nem permanente do estudante.
+      </p>
+      {objective.length ? (
+        <ul className="aa-list">
+          {objective.map((entry) => (
+            <li className="aa-list-item aa-surface" key={entry.practiceItemId}>
+              <div>
+                <strong>{entry.pageTitle}</strong>
+                <p>
+                  {entry.state} · {entry.passingAttemptCount}/{entry.minimumEvidence} aprovadas ·{" "}
+                  fonte: criterion-referenced
+                </p>
+                <span className="aa-state-copy">
+                  {entry.reason}
+                </span>
+              </div>
+              <Link
+                href={`/pratica?pagina=${encodeURIComponent(entry.pageId)}&item=${encodeURIComponent(entry.practiceItemId)}`}
+              >
+                Ver atividade
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="aa-state-copy">
+          Ainda não existem atividades configuradas para avaliação objetiva.
+        </p>
       )}
     </section>
   );
@@ -357,6 +418,7 @@ export default async function EstatisticasPage() {
         <EducationalStats educational={educational} />
         <ProfileSignals educational={educational} />
         <EvidenceSection educational={educational} />
+        <ObjectiveEvidenceSection educational={educational} />
         <GapsSection educational={educational} />
         <ReviewSection educational={educational} />
       </ArcanaPage>
