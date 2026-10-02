@@ -9,28 +9,25 @@ export type LearningEvidenceOverview = {
   statistics: EducationalStatistics;
 };
 
-/** Derives confidence from the number of persisted retrieval attempts. */
-function confidenceFor(attemptCount: number): EvidenceProjection["confidence"] {
+const confidenceFor = (attemptCount: number): EvidenceProjection["confidence"] => {
   if (attemptCount >= 3) return "strong";
   if (attemptCount > 0) return "partial";
   return "insufficient";
-}
+};
 
-/** Classifies the strength of self-reported evidence without confirming mastery. */
-function evidenceStateFor(
+const evidenceStateFor = (
   attempts: number,
   score: number,
-): EvidenceProjection["state"] {
+): EvidenceProjection["state"] => {
   if (attempts >= 3 && score >= 0.9) return "strong-evidence";
   if (attempts >= 3 && score >= 0.7) return "consolidating";
   return "developing";
-}
+};
 
-/** Explains the current self-reported evidence state and its epistemic limit. */
-function evidenceReasonFor(
+const evidenceReasonFor = (
   attempts: number,
   state: EvidenceProjection["state"],
-): string {
+): string => {
   if (state === "strong-evidence") {
     return "As autoavaliações recentes apresentam evidência autorreportada consistente. Isso não confirma domínio acadêmico.";
   }
@@ -40,7 +37,7 @@ function evidenceReasonFor(
   return attempts < 3
     ? "Há alguma evidência autorreportada, mas a amostra ainda é pequena."
     : "As evidências autorreportadas atuais indicam que este conteúdo ainda merece prática ou revisão.";
-}
+};
 
 /**
  * Projects item-level self-reported retrieval evidence.
