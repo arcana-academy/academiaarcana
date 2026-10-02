@@ -280,7 +280,8 @@ begin
   ) then
     raise exception using
       errcode = '55000',
-      message = 'O critério objetivo não pode ser alterado depois que já houver '
+      message = 'O critério objetivo não pode ser alterado depois que '
+        'já houver '
         'evidência objetiva registrada.';
   end if;
   return new;
