@@ -36,6 +36,17 @@ const evidenceReasonFor = (
       "As evidências autorreportadas atuais ainda merecem prática ou revisão; este sinal não confirma domínio acadêmico.",
   })[state];
 
+/** Returns the five most recent attempts used for the current evidence signal. */
+const recentAttemptsFor = (attempts: PracticeAttempt[]): PracticeAttempt[] =>
+  [...attempts]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 5);
+
+/** Calculates the mean explicit self-assessment evidence score. */
+const averageEvidenceScoreFor = (attempts: PracticeAttempt[]): number =>
+  attempts.reduce((total, attempt) => total + attempt.evidenceScore, 0) /
+  attempts.length;
+
 /**
  * Projects item-level self-reported retrieval evidence.
  *
@@ -60,12 +71,8 @@ export function buildEvidenceProjection(
     };
   }
 
-  const recent = [...attempts]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 5);
-  const score =
-    recent.reduce((total, attempt) => total + attempt.evidenceScore, 0) /
-    recent.length;
+  const recent = recentAttemptsFor(attempts);
+  const score = averageEvidenceScoreFor(recent);
   const repeated = attempts.length >= 3;
   const state = evidenceStateFor(repeated, score);
 
