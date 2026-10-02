@@ -33,7 +33,7 @@ create table public.educational_objective_evidence (
   evidence_type text not null default 'criterion-referenced'
     check (evidence_type = 'criterion-referenced'),
   state text not null
-    check (state in ('insufficient', 'developing', 'confirmed', 'conflicting')),
+    check (state in ('insufficient', 'developing', 'criteria-satisfied', 'confirmed', 'conflicting')),
   score numeric(4,3) not null check (score >= 0 and score <= 1),
   matched_criteria integer not null check (matched_criteria >= 0),
   total_criteria integer not null check (total_criteria >= 1),
@@ -197,7 +197,7 @@ begin
 
     if v_matched_criteria = v_total_criteria
       and v_objective_attempt_count >= v_minimum_objective_attempts then
-      v_objective_state := 'confirmed';
+      v_objective_state := 'criteria-satisfied';
       v_objective_confidence := 'strong';
     elsif v_objective_score >= 0.5 then
       v_objective_state := 'developing';
