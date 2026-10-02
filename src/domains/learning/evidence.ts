@@ -9,6 +9,36 @@ export type LearningEvidenceOverview = {
   statistics: EducationalStatistics;
 };
 
+function confidenceFor(attemptCount: number): MasteryProjection["confidence"] {
+  if (attemptCount >= 3) return "strong";
+  if (attemptCount > 0) return "partial";
+  return "insufficient";
+}
+
+function masteryStateFor(
+  attempts: number,
+  score: number,
+): MasteryProjection["state"] {
+  if (attempts >= 3 && score >= 0.9) return "strong-evidence";
+  if (attempts >= 3 && score >= 0.7) return "consolidating";
+  return "developing";
+}
+
+function masteryReasonFor(
+  attempts: number,
+  state: MasteryProjection["state"],
+): string {
+  if (state === "strong-evidence") {
+    return "As tentativas recentes apresentam evidência consistente e suficiente para este item.";
+  }
+  if (state === "consolidating") {
+    return "O desempenho recente sugere consolidação, mas pode ser revisado por novas evidências.";
+  }
+  return attempts < 3
+    ? "Há alguma evidência, mas a amostra ainda é pequena."
+    : "As evidências atuais indicam que este conteúdo ainda merece prática ou revisão.";
+}
+
 /** Projects item-level mastery only from repeated educational evidence. */
 export function buildMasteryProjection(
   item: PracticeItem,
@@ -30,41 +60,33 @@ export function buildMasteryProjection(
   const recent = [...attempts]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 5);
-  const score = recent.reduce((total, a) => total + a.evidenceScore, 0) / recent.length;
-  const confidence = attempts.length >= 3 ? "strong" : "partial";
-  const base = {
+  const score =
+    recent.reduce((total, attempt) => total + attempt.evidenceScore, 0) /
+    recent.length;
+  const state = masteryStateFor(attempts.length, score);
+
+  return {
     practiceItemId: item.id,
     pageId: item.pageId,
     pageTitle: item.pageTitle,
+    state,
     score,
     attemptCount: attempts.length,
-    confidence: confidence as MasteryProjection["confidence"],
+    confidence: confidenceFor(attempts.length),
+    reason: masteryReasonFor(attempts.length, state),
   };
+}
 
-  if (attempts.length >= 3 && score >= 0.9) {
-    return {
-      ...base,
-      state: "strong-evidence",
-      reason: "As tentativas recentes apresentam evidência consistente e suficiente para este item.",
-    };
-  }
-
-  if (attempts.length >= 3 && score >= 0.7) {
-    return {
-      ...base,
-      state: "consolidating",
-      reason: "O desempenho recente sugere consolidação, mas pode ser revisado por novas evidências.",
-    };
-  }
-
-  return {
-    ...base,
-    state: "developing",
-    reason:
-      attempts.length < 3
-        ? "Há alguma evidência, mas a amostra ainda é pequena."
-        : "As evidências atuais indicam que este conteúdo ainda merece prática ou revisão.",
-  };
+function practicedPageCount(
+  items: PracticeItem[],
+  attempts: PracticeAttempt[],
+): number {
+  const attemptedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
+  return new Set(
+    items
+      .filter((item) => attemptedItemIds.has(item.id))
+      .map((item) => item.pageId),
+  ).size;
 }
 
 /** Calculates learning statistics separately from gamification state. */
@@ -74,24 +96,25 @@ export function buildEducationalStatistics(
   mastery: MasteryProjection[],
   reviewDueCount: number,
 ): EducationalStatistics {
-  const attemptedPages = new Set(
-    items
-      .filter((item) => attempts.some((attempt) => attempt.practiceItemId === item.id))
-      .map((item) => item.pageId),
-  );
   return {
     practiceItemCount: items.length,
     attemptCount: attempts.length,
-    practicedPageCount: attemptedPages.size,
+    practicedPageCount: practicedPageCount(items, attempts),
     retrievalSuccessRate:
       attempts.length === 0
         ? null
-        : attempts.filter((a) => a.outcome === "strong").length / attempts.length,
+        : attempts.filter((attempt) => attempt.outcome === "strong").length /
+          attempts.length,
     averageEvidenceScore:
       attempts.length === 0
         ? null
-        : attempts.reduce((sum, a) => sum + a.evidenceScore, 0) / attempts.length,
+        : attempts.reduce(
+            (sum, attempt) => sum + attempt.evidenceScore,
+            0,
+          ) / attempts.length,
     reviewDueCount,
-    masteryWithStrongEvidence: mastery.filter((entry) => entry.state === "strong-evidence").length,
+    masteryWithStrongEvidence: mastery.filter(
+      (entry) => entry.state === "strong-evidence",
+    ).length,
   };
 }
