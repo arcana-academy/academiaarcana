@@ -170,8 +170,8 @@ select extensions.is(
     order by created_at desc
     limit 1
   ),
-  'confirmed',
-  'second objective pass confirms the configured criterion'
+  'criteria-satisfied',
+  'second objective pass satisfies explicit criteria without confirming mastery'
 );
 
 select extensions.is(
@@ -182,7 +182,7 @@ select extensions.is(
     limit 1
   ),
   'strong',
-  'confirmed objective evidence receives strong confidence'
+  'criteria-satisfied evidence receives strong evidence quality'
 );
 
 select extensions.throws_ok(
