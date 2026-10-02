@@ -34,7 +34,7 @@ const record = (
 ): ObjectiveEvidenceRecord => ({
   id,
   ownerId: "user-1",
-  practiceAttemptId: "attempt-" + id,
+  practiceAttemptId: `attempt-${id}`,
   practiceItemId: item.id,
   evidenceType: "criterion-referenced",
   state,
@@ -43,7 +43,7 @@ const record = (
   totalCriteria: 2,
   confidence: state === "confirmed" ? "strong" : state === "developing" ? "partial" : "insufficient",
   criterionVersion: version,
-  createdAt: "2026-09-" + day + "T00:00:00.000Z",
+  createdAt: `2026-09-${day}T00:00:00.000Z`,
 });
 
 describe("objective evidence", () => {
