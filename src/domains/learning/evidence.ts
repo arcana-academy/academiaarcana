@@ -9,6 +9,7 @@ export type LearningEvidenceOverview = {
   statistics: EducationalStatistics;
 };
 
+/** Projects item-level mastery only from repeated educational evidence. */
 export function buildMasteryProjection(
   item: PracticeItem,
   attempts: PracticeAttempt[],
@@ -66,6 +67,7 @@ export function buildMasteryProjection(
   };
 }
 
+/** Calculates learning statistics separately from gamification state. */
 export function buildEducationalStatistics(
   items: PracticeItem[],
   attempts: PracticeAttempt[],
