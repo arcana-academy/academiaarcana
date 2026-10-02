@@ -29,7 +29,7 @@ Uma tentativa forte de recuperação pode ser evidência objetiva somente quando
 
 ## 4. Critérios de tarefa
 
-Toda futura avaliação capaz de contribuir para domínio objetivo deverá declarar: competency/context; evidenceType; criterion; scoringPolicy; minimumEvidence; validityScope; createdAt/version.
+Toda avaliação capaz de contribuir para domínio objetivo deverá declarar: competency/context; evidenceType; criterion; scoringPolicy; minimumEvidence; validityScope; createdAt/version.
 
 A ausência desses metadados impede a afirmação de domínio objetivo.
 
@@ -39,7 +39,7 @@ Domínio deve ser sempre limitado ao escopo da evidência: competência, conteú
 
 ## 6. Estados canônicos
 
-A futura representação objetiva deve admitir, no mínimo:
+A representação objetiva V1 admite, no mínimo:
 - unknown — não existe evidência adequada;
 - insufficient — existe evidência, mas não atende ao mínimo;
 - developing — há evidência parcial;
@@ -99,7 +99,7 @@ Não cria diagnóstico, perfil psicológico, nota escolar universal, ranking, cl
 Definir quais atividades podem produzir evidência observável e quais respostas podem ser avaliadas.
 
 ### Learning
-Definir contratos de evidência, agregação, estados e proveniência.
+Manter e ampliar os contratos de evidência, agregação, estados e proveniência sem conflitar com o V1 implementado.
 
 ### Adaptive
 Definir como evidência objetiva pode alimentar revisão/adaptação sem extrapolação.
