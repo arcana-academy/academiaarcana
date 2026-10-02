@@ -6,6 +6,25 @@
 
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
 
+export type ObjectiveEvidenceProjection = {
+  assessmentId: string;
+  pageId: string;
+  pageTitle: string;
+  state: "unknown" | "insufficient" | "developing" | "confirmed" | "conflicting";
+  score: number | null;
+  attemptCount: number;
+  passingAttemptCount: number;
+  confidence: EvidenceConfidence;
+  source: "criterion-referenced";
+  criterion: string;
+  scoringPolicy: "normalized-exact-match";
+  minimumEvidence: number;
+  criterionVersion: number;
+  validityScope: "page";
+  reason: string;
+  masteryConfirmed: boolean;
+};
+
 export type EvidenceProjection = {
   practiceItemId: string;
   pageId: string;
@@ -27,4 +46,7 @@ export type EducationalStatistics = {
   averageEvidenceScore: number | null;
   reviewDueCount: number;
   itemsWithStrongSelfReportedEvidence: number;
+  objectiveAssessmentCount: number;
+  objectiveAttemptCount: number;
+  objectiveConfirmedCount: number;
 };
