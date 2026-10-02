@@ -16,6 +16,7 @@ export type ObjectiveEvidenceRecord = {
   score: number;
   matchedCriteria: number;
   totalCriteria: number;
+  confidence: "strong" | "partial" | "insufficient";
   criterionVersion: number;
   createdAt: string;
 };
