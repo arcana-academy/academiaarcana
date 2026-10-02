@@ -63,12 +63,14 @@ function attemptsForItem(
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+/** Returns the learner-facing label for a practice evidence mode. */
 function evidenceModeLabel(mode: PracticeEvidenceMode): string {
   return mode === "criterion_exact_match"
     ? "Avaliação objetiva por correspondência exata"
     : "Autoavaliação da recuperação";
 }
 
+/** Returns the learner-facing label for an objective evidence state. */
 function objectiveStateLabel(
   state: ObjectiveEvidenceProjection["state"],
 ): string {
@@ -229,6 +231,7 @@ function PracticeItemList({
   );
 }
 
+/** Renders the bounded objective-evidence summary for one activity. */
 function ObjectiveEvidenceSection({
   evidence,
 }: {
@@ -261,6 +264,198 @@ function ObjectiveEvidenceSection({
   );
 }
 
+function PracticeAttemptFeedback({
+  attempt,
+  item,
+}: {
+  attempt: PracticeAttempt;
+  item: PracticeItem;
+}) {
+  return (
+    <div className="aa-card aa-card-default" aria-live="polite">
+      <h3>Feedback da tentativa</h3>
+      <p className="aa-state-copy">{attempt.feedback}</p>
+      <p>
+        Tipo de evidência:{" "}
+        <strong>
+          {attempt.evidenceType === "criterion-referenced"
+            ? "criterion-referenced"
+            : "autoavaliação"}
+        </strong>{" "}
+        · resultado <strong>{attempt.outcome}</strong> · evidência{" "}
+        <strong>{formatPercent(attempt.evidenceScore)}</strong>.
+      </p>
+      {attempt.criterionResult ? (
+        <p>
+          Resultado do critério: <strong>{attempt.criterionResult}</strong>.
+        </p>
+      ) : null}
+      <details>
+        <summary>Ver sua resposta e a referência</summary>
+        <div className="aa-stack">
+          <div>
+            <h4>Sua resposta</h4>
+            <p>{attempt.answer}</p>
+          </div>
+          <div>
+            <h4>Referência</h4>
+            <p>{item.referenceAnswer}</p>
+          </div>
+          {item.explanation ? (
+            <div>
+              <h4>Explicação / próximo passo</h4>
+              <p>{item.explanation}</p>
+            </div>
+          ) : null}
+        </div>
+      </details>
+    </div>
+  );
+}
+
+/** Renders the answer form for self-assessment or objective evaluation. */
+function PracticeAnswerForm({ item }: { item: PracticeItem }) {
+  const objective = item.evidenceMode === "criterion_exact_match";
+
+  return (
+    <form action={submitPracticeAttemptAction} className="aa-form">
+      <input type="hidden" name="practiceItemId" value={item.id} />
+      <label htmlFor="practice-answer">Sua resposta</label>
+      <textarea
+        id="practice-answer"
+        name="answer"
+        rows={8}
+        required
+        minLength={1}
+        maxLength={5000}
+        placeholder="Escreva o que você consegue recuperar sem consultar."
+      />
+      {objective ? (
+        <p className="aa-state-copy">
+          A avaliação será calculada automaticamente pelo critério objetivo
+          registrado para esta atividade.
+        </p>
+      ) : (
+        <fieldset>
+          <legend>Como você avalia esta recuperação?</legend>
+          <label>
+            <input type="radio" name="outcome" value="strong" required />
+            Forte — consegui recuperar os pontos essenciais.
+          </label>
+          <label>
+            <input type="radio" name="outcome" value="partial" />
+            Parcial — lembrei parte, mas algo importante faltou.
+          </label>
+          <label>
+            <input type="radio" name="outcome" value="insufficient" />
+            Insuficiente — preciso consultar e tentar novamente.
+          </label>
+        </fieldset>
+      )}
+      <button className="aa-button aa-button-primary" type="submit">
+        {objective ? "Avaliar resposta" : "Registrar recuperação"}
+      </button>
+    </form>
+  );
+}
+
+/** Renders the current evidence panel using the correct provenance source. */
+function PracticeEvidencePanel({
+  item,
+  selfEvidence,
+  objectiveEvidence,
+}: {
+  item: PracticeItem;
+  selfEvidence: EvidenceProjection | null;
+  objectiveEvidence: ObjectiveEvidenceProjection | null;
+}) {
+  if (item.evidenceMode === "criterion_exact_match" && objectiveEvidence) {
+    return <ObjectiveEvidenceSection evidence={objectiveEvidence} />;
+  }
+
+  if (!selfEvidence) return null;
+
+  return (
+    <div
+      className="aa-card aa-card-default"
+      aria-labelledby="evidence-state-title"
+    >
+      <h3 id="evidence-state-title">Evidência autorreportada atual</h3>
+      <p>
+        Estado: <strong>{selfEvidence.state}</strong>
+        {selfEvidence.score === null
+          ? ""
+          : ` · ${formatPercent(selfEvidence.score)}`}
+        {" · "}
+        {selfEvidence.attemptCount} tentativa(s).
+      </p>
+      <p className="aa-state-copy">{selfEvidence.reason}</p>
+    </div>
+  );
+}
+
+/** Renders the review recommendation and optional scheduling action. */
+function PracticeReviewPanel({
+  item,
+  review,
+}: {
+  item: PracticeItem;
+  review: ReviewRecommendation | null;
+}) {
+  if (!review) return null;
+
+  return (
+    <div className="aa-card aa-card-default">
+      <h3>Revisão</h3>
+      <p className="aa-state-copy">{review.reason}</p>
+      <p>
+        {review.due
+          ? "A revisão deste item está liberada."
+          : `Próxima revisão: ${formatDate(review.nextReviewAt)}.`}
+      </p>
+      {review.nextReviewAt ? (
+        <form action={planPracticeReviewAction} className="aa-form">
+          <input type="hidden" name="practiceItemId" value={item.id} />
+          <input
+            type="hidden"
+            name="title"
+            value={`Revisar: ${item.prompt}`}
+          />
+          <input
+            type="hidden"
+            name="dueAt"
+            value={review.due ? new Date().toISOString() : review.nextReviewAt}
+          />
+          <button className="aa-button aa-button-secondary" type="submit">
+            Adicionar ao Cronograma
+          </button>
+        </form>
+      ) : (
+        <p className="aa-state-copy">
+          A revisão será programável depois que existir uma tentativa registrada.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Renders the learning-gap signal without treating it as a diagnosis. */
+function PracticeGapPanel({ gap }: { gap: LearningGapSignal | null }) {
+  if (!gap) return null;
+
+  return (
+    <aside className="aa-card aa-card-default" aria-labelledby="gap-title">
+      <h3 id="gap-title">Possível lacuna de aprendizagem</h3>
+      <p>{gap.evidence}</p>
+      <p className="aa-state-copy">{gap.reason}</p>
+      <Link className="aa-button aa-button-secondary" href={gap.actionHref}>
+        Investigar com nova prática
+      </Link>
+    </aside>
+  );
+}
+
+/** Renders one practice session while keeping evidence and gamification separate. */
 function PracticeSession({
   item,
   attempts,
@@ -272,16 +467,12 @@ function PracticeSession({
 }) {
   const latestAttempt = attempts[0] ?? null;
   const review =
-    overview.reviews.find(
-      (entry: ReviewRecommendation) => entry.practiceItemId === item.id,
-    ) ?? null;
+    overview.reviews.find((entry) => entry.practiceItemId === item.id) ?? null;
   const selfEvidence =
-    overview.evidence.find(
-      (entry: EvidenceProjection) => entry.practiceItemId === item.id,
-    ) ?? null;
+    overview.evidence.find((entry) => entry.practiceItemId === item.id) ?? null;
   const objectiveEvidence =
     overview.objectiveEvidence.find(
-      (entry: ObjectiveEvidenceProjection) => entry.practiceItemId === item.id,
+      (entry) => entry.practiceItemId === item.id,
     ) ?? null;
   const gap =
     overview.learningGaps.find(
@@ -307,155 +498,17 @@ function PracticeSession({
         </p>
       ) : null}
 
-      <form action={submitPracticeAttemptAction} className="aa-form">
-        <input type="hidden" name="practiceItemId" value={item.id} />
-        <label htmlFor="practice-answer">Sua resposta</label>
-        <textarea
-          id="practice-answer"
-          name="answer"
-          rows={8}
-          required
-          minLength={1}
-          maxLength={5000}
-          placeholder="Escreva o que você consegue recuperar sem consultar."
-        />
-        {objective ? (
-          <p className="aa-state-copy">
-            A avaliação será calculada automaticamente pelo critério objetivo
-            registrado para esta atividade.
-          </p>
-        ) : (
-          <fieldset>
-            <legend>Como você avalia esta recuperação?</legend>
-            <label>
-              <input type="radio" name="outcome" value="strong" required />
-              Forte — consegui recuperar os pontos essenciais.
-            </label>
-            <label>
-              <input type="radio" name="outcome" value="partial" />
-              Parcial — lembrei parte, mas algo importante faltou.
-            </label>
-            <label>
-              <input type="radio" name="outcome" value="insufficient" />
-              Insuficiente — preciso consultar e tentar novamente.
-            </label>
-          </fieldset>
-        )}
-        <button className="aa-button aa-button-primary" type="submit">
-          {objective ? "Avaliar resposta" : "Registrar recuperação"}
-        </button>
-      </form>
-
+      <PracticeAnswerForm item={item} />
       {latestAttempt ? (
-        <div className="aa-card aa-card-default" aria-live="polite">
-          <h3>Feedback da tentativa</h3>
-          <p className="aa-state-copy">{latestAttempt.feedback}</p>
-          <p>
-            Tipo de evidência:{" "}
-            <strong>
-              {latestAttempt.evidenceType === "criterion-referenced"
-                ? "criterion-referenced"
-                : "autoavaliação"}
-            </strong>{" "}
-            · resultado <strong>{latestAttempt.outcome}</strong> · evidência{" "}
-            <strong>{formatPercent(latestAttempt.evidenceScore)}</strong>.
-          </p>
-          {latestAttempt.criterionResult ? (
-            <p>
-              Resultado do critério:{" "}
-              <strong>{latestAttempt.criterionResult}</strong>.
-            </p>
-          ) : null}
-          <details>
-            <summary>Ver sua resposta e a referência</summary>
-            <div className="aa-stack">
-              <div>
-                <h4>Sua resposta</h4>
-                <p>{latestAttempt.answer}</p>
-              </div>
-              <div>
-                <h4>Referência</h4>
-                <p>{item.referenceAnswer}</p>
-              </div>
-              {item.explanation ? (
-                <div>
-                  <h4>Explicação / próximo passo</h4>
-                  <p>{item.explanation}</p>
-                </div>
-              ) : null}
-            </div>
-          </details>
-        </div>
+        <PracticeAttemptFeedback attempt={latestAttempt} item={item} />
       ) : null}
-
-      {objective && objectiveEvidence ? (
-        <ObjectiveEvidenceSection evidence={objectiveEvidence} />
-      ) : selfEvidence ? (
-        <div
-          className="aa-card aa-card-default"
-          aria-labelledby="evidence-state-title"
-        >
-          <h3 id="evidence-state-title">Evidência autorreportada atual</h3>
-          <p>
-            Estado: <strong>{selfEvidence.state}</strong>
-            {selfEvidence.score === null
-              ? ""
-              : ` · ${formatPercent(selfEvidence.score)}`}
-            {" · "}
-            {selfEvidence.attemptCount} tentativa(s).
-          </p>
-          <p className="aa-state-copy">{selfEvidence.reason}</p>
-        </div>
-      ) : null}
-
-      {review ? (
-        <div className="aa-card aa-card-default">
-          <h3>Revisão</h3>
-          <p className="aa-state-copy">{review.reason}</p>
-          <p>
-            {review.due
-              ? "A revisão deste item está liberada."
-              : `Próxima revisão: ${formatDate(review.nextReviewAt)}.`}
-          </p>
-          {review.nextReviewAt ? (
-            <form action={planPracticeReviewAction} className="aa-form">
-              <input type="hidden" name="practiceItemId" value={item.id} />
-              <input
-                type="hidden"
-                name="title"
-                value={`Revisar: ${item.prompt}`}
-              />
-              <input
-                type="hidden"
-                name="dueAt"
-                value={
-                  review.due
-                    ? new Date().toISOString()
-                    : review.nextReviewAt
-                }
-              />
-              <button className="aa-button aa-button-secondary" type="submit">
-                Adicionar ao Cronograma
-              </button>
-            </form>
-          ) : (
-            <p className="aa-state-copy">
-              A revisão será programável depois que existir uma tentativa registrada.
-            </p>
-          )}
-        </div>
-      ) : null}
-
-      {gap ? (
-        <aside className="aa-card aa-card-default" aria-labelledby="gap-title">
-          <h3 id="gap-title">Possível lacuna de aprendizagem</h3>
-          <p>{gap.evidence}</p>
-          <p className="aa-state-copy">{gap.reason}</p>
-          <Link className="aa-button aa-button-secondary" href={gap.actionHref}>
-            Investigar com nova prática
-          </Link>
-        </aside>
-      ) : null}
+      <PracticeEvidencePanel
+        item={item}
+        selfEvidence={selfEvidence}
+        objectiveEvidence={objectiveEvidence}
+      />
+      <PracticeReviewPanel item={item} review={review} />
+      <PracticeGapPanel gap={gap} />
     </section>
   );
 }
