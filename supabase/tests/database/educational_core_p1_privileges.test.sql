@@ -233,13 +233,13 @@ select extensions.ok(
 
 select extensions.ok(
         to_regclass('public.idx_educational_practice_items_page_id')
-            is not null,
+        is not null,
         'practice item page foreign key is indexed'
 );
 
 select extensions.ok(
         to_regclass('public.idx_educational_practice_attempts_practice_item_id')
-            is not null,
+        is not null,
         'practice attempt item foreign key is indexed'
 );
 
