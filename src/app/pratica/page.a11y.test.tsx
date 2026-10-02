@@ -20,7 +20,19 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
     }
 
     async listPracticeItems() {
-      return [];
+      return [{
+        id: "item-1",
+        ownerId: "user-1",
+        pageId: "page-1",
+        pageTitle: "Fisiologia",
+        prompt: "Explique a ideia central.",
+        referenceAnswer: "Resposta de referência.",
+        explanation: "Revise a relação principal.",
+        difficulty: 3,
+        active: true,
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }];
     }
 
     async listPracticeAttempts() {
@@ -67,6 +79,6 @@ describe("PraticaPage accessibility contract", () => {
       }),
     );
 
-    expect(html).not.toContain("Resposta de referência");
+    expect(html).not.toContain("Resposta de referência.");
   });
 });
