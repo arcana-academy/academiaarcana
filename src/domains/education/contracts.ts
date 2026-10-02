@@ -50,15 +50,6 @@ export interface EducationalPracticeRepository {
     explanation?: string | null;
     difficulty: PracticeDifficulty;
   }): Promise<PracticeItem>;
-  createPracticeAttempt(input: {
-    ownerId: string;
-    practiceItemId: string;
-    answer: string;
-    outcome: PracticeOutcome;
-    evidenceScore: number;
-    confidence: EvidenceConfidence;
-    feedback: string;
-  }): Promise<PracticeAttempt>;
   recordPracticeAttemptAndProgress(input: {
     ownerId: string;
     practiceItemId: string;
