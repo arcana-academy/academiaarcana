@@ -1,8 +1,6 @@
 import Link from "next/link";
 
-import {
-  buildEducationalOverview,
-} from "@/domains/education/p1";
+import { buildEducationalOverview } from "@/application/education/p1";
 import {
   createPracticeItemAction,
   submitPracticeAttemptAction,
