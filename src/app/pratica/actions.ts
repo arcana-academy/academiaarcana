@@ -49,7 +49,7 @@ function criterionPhrasesField(
   const phrases =
     typeof raw === "string"
       ? raw
-          .split(/\\r?\\n/)
+          .split(/\r?\n/)
           .map((phrase) => phrase.trim())
           .filter(Boolean)
       : [];
@@ -66,7 +66,9 @@ function criterionPhrasesField(
 function minimumObjectiveAttemptsField(formData: FormData): number {
   const value = Number(formData.get("minimumObjectiveAttempts") ?? 1);
   if (!Number.isInteger(value) || value < 1 || value > 10) {
-    throw new Error("A quantidade mínima de tentativas objetivas deve estar entre 1 e 10.");
+    throw new Error(
+      "A quantidade mínima de tentativas objetivas deve estar entre 1 e 10.",
+    );
   }
   return value;
 }
