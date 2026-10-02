@@ -58,7 +58,7 @@ describe("adaptive P1 signals", () => {
       attempt("a1", 0.2, "insufficient", "29"),
       attempt("a2", 0.2, "insufficient", "30"),
     ]);
-    expect(gap?.reason).toContain("não é um diagnóstico");
+    expect(gap?.reason).toContain("não um diagnóstico");
   });
 
   it("distinguishes no data from weak evidence in the educational profile", () => {
