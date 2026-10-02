@@ -104,7 +104,6 @@ export interface EducationalPracticeRepository {
     pageId: string;
     prompt: string;
     referenceAnswer: string;
-    criterion: string;
     minimumEvidence: number;
   }): Promise<ObjectiveAssessment>;
   recordObjectiveAttemptAndProgress?(input: {
