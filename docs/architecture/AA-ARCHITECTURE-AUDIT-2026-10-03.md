@@ -4,7 +4,7 @@
 > Autoridade: Chat 02 — Arquitetura, subordinado à AA-CONSTITUTION-1.0.
 > Repositório: `arcana-academy/academiaarcana`
 > Branch auditada: `main`
-> Commit operacional observado: `7124e7265e311c4c36e72dfe74f71891de6f76eb`
+> Commit operacional observado no início da auditoria: `7124e7265e311c4c36e72dfe74f71891de6f76eb`\n> Atualização desta auditoria: `09b2bdbab6f73621ab0a4efc3e6efc15abf5425f` (main)
 > Escopo: arquitetura técnica, boundaries, infraestrutura, CI/CD, Supabase/RLS, segurança arquitetural, contratos e riscos de operação.
 > Método: evidência do repositório + estado real de Render + estado real de Supabase.
 
@@ -424,7 +424,7 @@ A auditoria confirmou a preservação das principais propriedades arquiteturais:
 
 ---
 
-## 18. Estado final do domínio — Arquitetura
+## 18. Sincronização do estado de integrações\n\nDurante a continuidade da auditoria, foi identificada e corrigida uma divergência de representação: cinco integrações com adaptadores de runtime já implementados (Notion, Outlook Calendar, Asana, Trello e Todoist) eram expostas pelo status público como `catalogued`. O modelo agora distingue `catalogued`, `implemented`, `connected` e `error`; implementação não é apresentada como conexão autenticada.\n\nEstado: **CORRIGIDO + DOCUMENTADO**\n\n## 19. Estado final do domínio — Arquitetura
 
 **CONCLUÍDO:** SIM
 
@@ -452,7 +452,7 @@ A auditoria confirmou a preservação das principais propriedades arquiteturais:
 
 **P0 AINDA ABERTOS:** #31 — Segurança; #33 — Dados; #37 — CI/CD, cada um com lacunas operacionais explicitamente rastreadas.
 
-**TRABALHO RESTANTE DENTRO DO DOMÍNIO ARQUITETURA:** nenhum bloqueante identificado.
+**TRABALHO RESTANTE DENTRO DO DOMÍNIO ARQUITETURA:** nenhum bloqueante estrutural identificado; permanecem pendências externas/operacionais explicitamente listadas e a PR #486 de CSP aguardando revisão/merge e nova validação de produção.
 
 **PRONTO PARA O PRÓXIMO DOMÍNIO:** SIM, condicionado apenas à comunicação das dependências externas acima.
 
