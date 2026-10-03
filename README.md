@@ -15,7 +15,7 @@ It defines the product purpose, canonical learning cycle, educational model, mod
 - Next.js + App Router
 - React
 - TypeScript (strict)
-- Tailwind CSS
+- Semantic CSS design system (custom properties and `aa-*` component classes)
 - Lucide React
 - Supabase (authentication and data integration)
 - Vitest + Testing Library
