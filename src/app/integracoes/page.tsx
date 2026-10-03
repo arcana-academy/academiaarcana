@@ -16,19 +16,21 @@ type IntegrationExecutionMode =
   | "chatgpt-hosted"
   | "catalog-only";
 
-function statusLabel(status: "catalogued" | "connected" | "error") {
+function statusLabel(status: "catalogued" | "implemented" | "connected" | "error") {
   switch (status) {
     case "connected":
       return "Verificado";
     case "error":
       return "Erro na verificação";
+    case "implemented":
+      return "Implementado";
     default:
       return "Catalogado";
   }
 }
 
 function statusDescription(
-  status: "catalogued" | "connected" | "error",
+  status: "catalogued" | "implemented" | "connected" | "error",
   executionMode: IntegrationExecutionMode,
 ) {
   if (executionMode === "chatgpt-hosted") {
@@ -39,6 +41,8 @@ function statusDescription(
       return "A conexão externa foi verificada em runtime.";
     case "error":
       return "A conexão externa falhou na última verificação.";
+    case "implemented":
+      return "O adapter de runtime está implementado; a conexão externa ainda não foi verificada para esta conta.";
     default:
       return executionMode === "runtime"
         ? "O adapter de runtime existe; a conexão de conta é verificada no contexto autenticado."
