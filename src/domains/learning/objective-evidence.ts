@@ -5,13 +5,18 @@ import type {
 import type { ObjectiveEvidenceProjection } from "./contracts";
 
 function stateFor(
-  attemptCount: number,
+  attempts: ObjectiveAttempt[],
   passingAttemptCount: number,
   minimumEvidence: number,
 ): ObjectiveEvidenceProjection["state"] {
-  if (attemptCount === 0) return "unknown";
+  if (attempts.length === 0) return "unknown";
+
+  const hasPass = passingAttemptCount > 0;
+  const hasFail = attempts.some((attempt) => attempt.outcome === "fail");
+
+  if (hasPass && hasFail) return "conflicting";
   if (passingAttemptCount >= minimumEvidence) return "confirmed";
-  if (passingAttemptCount > 0) return "developing";
+  if (hasPass) return "developing";
   return "insufficient";
 }
 
@@ -55,7 +60,7 @@ export function buildObjectiveEvidenceProjection(
     (attempt) => attempt.outcome === "pass",
   ).length;
   const state = stateFor(
-    attempts.length,
+    attempts,
     passingAttemptCount,
     assessment.minimumEvidence,
   );
