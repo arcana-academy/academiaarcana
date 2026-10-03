@@ -10,7 +10,7 @@ import type {
   ReviewRecommendation,
 } from "@/domains/adaptive";
 import type { EvidenceProjection } from "@/domains/learning";
-import type { PracticeAttempt, PracticeItem } from "@/domains/education";
+import type { ObjectiveAttempt, ObjectiveAssessment, PracticeAttempt, PracticeItem } from "@/domains/education";
 import {
   createPracticeItemAction,
   createObjectiveAssessmentAction,
