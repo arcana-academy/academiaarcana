@@ -2,6 +2,9 @@ name: Academia Arcana Production Smoke
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Academia Arcana Quality Gate"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -13,6 +16,7 @@ concurrency:
 jobs:
   smoke:
     name: Production Smoke
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
