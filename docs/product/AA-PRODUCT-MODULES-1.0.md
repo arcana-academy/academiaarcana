@@ -263,7 +263,7 @@
 **Usuário:** estudante autenticado.  
 **Função principal:** assistente contextual V1.  
 **Entradas:** contexto autorizado, perguntas do estudante, fontes autorizadas.  
-**Saídas:** explicações, sugestões, recomendações, exercícios propostos e contexto.  
+**Saídas:** explicações, sugestões, recomendações, exercícios propostos e contexto. Pode adaptar o apoio dentro do contexto autorizado e dos sinais V1 disponíveis.  
 **Dependências:** intelligence + domínios consumidores.  
 **Regras:** sem invenção de dados; sem superusuário; fontes externas são evidência não confiável até verificação; ações críticas exigem autorização.  
 **Prioridade:** P1/P2/P3.  
