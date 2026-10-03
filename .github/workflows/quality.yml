@@ -48,6 +48,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Canonical infrastructure guard
         run: node scripts/verify-canonical-infrastructure.cjs
 
