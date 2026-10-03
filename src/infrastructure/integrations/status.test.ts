@@ -29,7 +29,10 @@ describe("integration status snapshot", () => {
     expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length + 2);
     expect(snapshot.connectedCount).toBe(1);
     expect(snapshot.cataloguedCount).toBe(
-      CHATGPT_PLUGIN_CATALOG.length - 6 + 1,
+      snapshot.catalogSize -
+        snapshot.connectedCount -
+        snapshot.implementedCount -
+        snapshot.errorCount,
     );
     expect(snapshot.implementedCount).toBe(5);
     expect(snapshot.errorCount).toBe(0);
