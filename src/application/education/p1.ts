@@ -28,7 +28,6 @@ import { buildAttemptInput as buildEducationAttemptInput } from "@/domains/educa
 export type EducationalOverview = {
   reviews: ReviewRecommendation[];
   evidence: EvidenceProjection[];
-  objectiveAssessments: ObjectiveAssessment[];
   objectiveEvidence: ObjectiveEvidenceProjection[];
   learningGaps: LearningGapSignal[];
   profile: EducationalProfile;
