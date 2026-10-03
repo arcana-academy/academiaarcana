@@ -757,6 +757,20 @@ Architecture decision: **AA-ARCH-002**.
 
 State: **APROVADA PARA SINCRONIZAÇÃO DOCUMENTAL**.
 
+### 24.3 Historical document precedence — AA-ARCH-003
+
+Documents under `docs/superpowers/plans/`, `docs/superpowers/specs/` and other explicitly historical/strategic records may preserve technology assumptions that existed when they were written.
+
+Those documents are **not operational architecture authorities** unless explicitly promoted by a subsequent canonical architecture decision.
+
+Therefore, historical references such as a plan's “Tech Stack: Tailwind CSS” do not override AA-ARCH-001. The operational source of truth remains this document plus the repository implementation and its architecture tests.
+
+Any future adoption of Tailwind CSS as an operational dependency requires a new explicit architecture decision, implementation, testing and governance synchronization.
+
+Architecture decision: **AA-ARCH-003**.
+
+State: **CANÔNICO + DOCUMENTADO + VALIDADO**.
+
 ---
 
 ## 25. Final canonical state
