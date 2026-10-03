@@ -22,7 +22,7 @@ A auditoria encontrou:
 - RPCs de produto públicas relevantes operando como **SECURITY INVOKER**; implementações privilegiadas permanecem em schema privado.
 - Deploy atual do Render em estado **live**, usando o repositório GitHub correto, branch `main`, `autoDeployTrigger: checksPass`, build `npm ci && npm run build`, start `npm start` e health check `/api/health`.
 - O Supabase está em estado **ACTIVE_HEALTHY**.
-- O único alerta de segurança externo relevante observado no Supabase Advisor é **Leaked Password Protection desabilitado**. Essa configuração pertence ao serviço de Auth e não possui mutação exposta pela ferramenta disponível neste fluxo; portanto permanece como **bloqueio operacional externo**, não como defeito estrutural do código.
+- O único alerta de segurança externo relevante observado no Supabase Advisor é **Leaked Password Protection desabilitado**. Essa configuração pertence ao serviço de Auth e não possui mutação administrativa exposta pelas ferramentas disponíveis neste fluxo; portanto permanece como **bloqueio operacional externo**, não como defeito estrutural do código.
 
 ---
 
@@ -153,13 +153,11 @@ O código confirma o uso de `twMerge` em `src/lib/utils.ts`.
 
 Estado: **CANÔNICO + IMPLEMENTADO + VALIDADO**
 
-### Divergência documental residual
+### Governança documental
 
-O Prompt 02 fornecido para este chat ainda lista “Tailwind CSS” na stack oficial. A decisão AA-ARCH-001 do repositório é mais específica e é a referência técnica atual.
+AA-ARCH-001 resolve a base operacional como CSS semântico autoral. AA-ARCH-002 registra a necessidade de sincronização do Prompt 02 pelo Chat 00. AA-ARCH-003 estabelece que documentos históricos não substituem a arquitetura operacional canônica.
 
-Isso deve ser sincronizado pelo Chat 00 na próxima revisão do Prompt 02, para evitar duas descrições canônicas concorrentes.
-
-Estado: **PENDÊNCIA DOCUMENTAL, NÃO TÉCNICA**
+Estado: **CANÔNICO + DOCUMENTADO**
 
 ---
 
@@ -255,9 +253,14 @@ Estado: **SEGURANÇA ESTRUTURAL SATISFATÓRIA PARA O ESCOPO AUDITADO**
 O repositório possui:
 
 - `quality.yml`
+- `database-tests.yml`
 - `production-smoke.yml`
 - `autofix.yml`
 - `anti-dark-pattern.yml`
+- `codeql.yml`
+- `gitleaks.yml`
+- `dependency-review.yml`
+- `scorecard.yml`
 
 O Quality Gate inclui:
 
@@ -276,19 +279,23 @@ Estado: **IMPLEMENTADO**
 
 ### Evidência atual do PR de auditoria
 
-No PR #475, os status expostos pelo GitHub connector foram todos **SUCCESS**:
+O head `bec5917a0df93b3a77374ca3489abdf5f694b5a3` concluiu com sucesso:
 
+- Quality Gate;
+- Database Tests;
+- CodeQL;
+- Gitleaks;
+- Dependency Review;
+- autofix.ci;
 - AccessLint;
-- pre-commit.ci - pr;
+- pre-commit.ci;
 - CommitCheck;
 - CodeRabbit;
 - qlty check.
 
-A interface utilizada não expõe o painel completo dos Checks internos do workflow `Quality Gate`; portanto não foi atribuída artificialmente uma aprovação individual a cada job não visível.
+O conector utilizado não expõe o painel completo dos Checks internos, mas os runs individuais foram consultados e seus jobs terminaram em SUCCESS.
 
-A existência e o conteúdo do workflow permanecem confirmados, e o Render possui deploy operacional do commit base.
-
-Estado: **VALIDADO DENTRO DA EVIDÊNCIA DISPONÍVEL**
+Estado: **VALIDADO**
 
 ---
 
@@ -387,11 +394,12 @@ Estado: **BLOQUEIO EXTERNO**
 
 **Nenhuma pendência arquitetural crítica identificada.**
 
-### Fora do alcance direto deste ciclo
+### Cross-domain / operacional
 
 1. Ativação de Leaked Password Protection no Supabase Auth.
 2. Sincronização do texto do Prompt 02 pelo Chat 00.
-3. Evidência completa dos Checks do GitHub Actions, por limitação do conector utilizado.
+3. Exercícios de rollback, backup/restore, RTO/RPO, disaster recovery, incident response, alertas, recovery de credenciais e reconciliação de Storage permanecem no backlog operacional #268.
+4. P0 de segurança (#31), dados (#33) e CI/CD (#37) permanecem abertos onde ainda existe evidência operacional não executada ou não observável diretamente.
 
 Nenhuma dessas pendências justifica alterar a arquitetura estrutural atual.
 
@@ -439,6 +447,10 @@ A auditoria confirmou a preservação das principais propriedades arquiteturais:
 **PENDÊNCIAS ARQUITETURAIS CRÍTICAS:** nenhuma.
 
 **BLOQUEIO EXTERNO:** Leaked Password Protection do Supabase Auth.
+
+**P0 FECHADOS NESTA RODADA:** #30 — Fundação técnica; #32 — Arquitetura modular.
+
+**P0 AINDA ABERTOS:** #31 — Segurança; #33 — Dados; #37 — CI/CD, cada um com lacunas operacionais explicitamente rastreadas.
 
 **TRABALHO RESTANTE DENTRO DO DOMÍNIO ARQUITETURA:** nenhum bloqueante identificado.
 
