@@ -1,22 +1,20 @@
-import type {
-  ObjectiveAssessment,
-  ObjectiveAttempt,
-} from "@/domains/education";
+import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import type { ObjectiveEvidenceProjection } from "./contracts";
 
+function objectiveAttemptsFor(attempts: PracticeAttempt[]): PracticeAttempt[] {
+  return attempts.filter(
+    (attempt) => attempt.evidenceType === "criterion-referenced",
+  );
+}
+
 function stateFor(
-  attempts: ObjectiveAttempt[],
+  attemptCount: number,
   passingAttemptCount: number,
   minimumEvidence: number,
 ): ObjectiveEvidenceProjection["state"] {
-  if (attempts.length === 0) return "unknown";
-
-  const hasPass = passingAttemptCount > 0;
-  const hasFail = attempts.some((attempt) => attempt.outcome === "fail");
-
-  if (hasPass && hasFail) return "conflicting";
+  if (attemptCount === 0) return "unknown";
   if (passingAttemptCount >= minimumEvidence) return "confirmed";
-  if (hasPass) return "developing";
+  if (passingAttemptCount > 0) return "developing";
   return "insufficient";
 }
 
@@ -32,7 +30,7 @@ function reasonFor(
         passingAttemptCount +
         " tentativa(s), atingindo o mínimo objetivo de " +
         minimumEvidence +
-        "."
+        " para esta atividade."
       );
     case "developing":
       return (
@@ -43,49 +41,57 @@ function reasonFor(
         "."
       );
     case "insufficient":
-      return "As tentativas registradas não satisfizeram o critério objetivo desta tarefa.";
+      return "As tentativas objetivas registradas não satisfizeram o critério desta atividade.";
     case "conflicting":
       return "Há evidências conflitantes que impedem uma confirmação automática.";
     default:
-      return "Ainda não há evidência objetiva registrada para esta tarefa.";
+      return "Ainda não há evidência objetiva registrada para esta atividade.";
   }
 }
 
-/** Projects criterion-referenced evidence only within the assessment's declared scope. */
+/** Projects objective evidence only within the criterion-bearing practice item. */
 export function buildObjectiveEvidenceProjection(
-  assessment: ObjectiveAssessment,
-  attempts: ObjectiveAttempt[],
+  item: PracticeItem,
+  attempts: PracticeAttempt[],
 ): ObjectiveEvidenceProjection {
-  const passingAttemptCount = attempts.filter(
-    (attempt) => attempt.outcome === "pass",
+  const objectiveAttempts = objectiveAttemptsFor(attempts);
+  const passingAttemptCount = objectiveAttempts.filter(
+    (attempt) => attempt.criterionResult === "pass",
   ).length;
+  const minimumEvidence = item.minimumEvidence ?? 2;
   const state = stateFor(
-    attempts,
+    objectiveAttempts.length,
     passingAttemptCount,
-    assessment.minimumEvidence,
+    minimumEvidence,
   );
   const score =
-    attempts.length === 0
+    objectiveAttempts.length === 0
       ? null
-      : attempts.reduce((sum, attempt) => sum + attempt.evidenceScore, 0) /
-        attempts.length;
+      : objectiveAttempts.reduce(
+          (sum, attempt) => sum + attempt.evidenceScore,
+          0,
+        ) / objectiveAttempts.length;
+  const criterionVersion = item.criterionVersion ?? "1";
 
   return {
-    assessmentId: assessment.id,
-    pageId: assessment.pageId,
-    pageTitle: assessment.pageTitle,
+    practiceItemId: item.id,
+    pageId: item.pageId,
+    pageTitle: item.pageTitle,
     state,
     score,
-    attemptCount: attempts.length,
+    attemptCount: objectiveAttempts.length,
     passingAttemptCount,
-    confidence: attempts.length ? "strong" : "insufficient",
+    confidence:
+      objectiveAttempts.length > 0 ? "strong" : "insufficient",
     source: "criterion-referenced",
-    criterion: assessment.criterion,
-    scoringPolicy: assessment.scoringPolicy,
-    minimumEvidence: assessment.minimumEvidence,
-    criterionVersion: assessment.criterionVersion,
-    validityScope: assessment.validityScope,
-    reason: reasonFor(state, passingAttemptCount, assessment.minimumEvidence),
+    criterion:
+      item.criterion ??
+      "Critério objetivo não informado para esta atividade.",
+    scoringPolicy: "normalized-exact-match",
+    minimumEvidence,
+    criterionVersion,
+    validityScope: "practice-item",
+    reason: reasonFor(state, passingAttemptCount, minimumEvidence),
     masteryConfirmed: state === "confirmed",
   };
 }
