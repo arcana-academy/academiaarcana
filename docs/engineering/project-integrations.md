@@ -27,17 +27,18 @@ A future direct Adobe provider belongs behind `src/infrastructure/integrations/a
 
 ## ChatGPT catalog
 
-The repository contains the 118 plugin names supplied for the project as a catalog. The runtime status surface also registers two server-side web-research providers (Parallel and Exa), so the integration-status endpoint exposes 120 entries in total. Catalog presence is deliberately different from a live provider connection.
+The repository contains the 118 plugin names supplied for the project as a catalog. The runtime status surface also registers two server-side web-research providers (Parallel and Exa), so the integration-status endpoint exposes 120 entries in total. The status model now distinguishes `catalogued`, `implemented`, `connected` and `error` so runtime implementation is not confused with live connection verification. Catalog presence is deliberately different from a live provider connection.
 
 The application exposes `/integracoes` and `GET /api/integrations/status` so the current state is inspectable at runtime:
 
-- `catalogued`: the supplied plugin name exists in the catalog, but no live external connection has been verified.
+- `catalogued`: the supplied plugin exists in the catalog, with no application runtime adapter claimed.
+- `implemented`: an application runtime adapter/contracts/routes exist, but no live per-user/provider verification has succeeded in the current status snapshot.
 - `connected`: a provider-specific runtime verification has succeeded.
-- `error`: the provider-specific verification was attempted but failed.
+- `error`: a provider-specific verification was attempted but failed.
 
 The first implemented provider verification is GitHub. It is a public, read-only API verification of `arcana-academy/academiaarcana`; it does **not** represent a user's GitHub account OAuth authorization.
 
-A provider may move from `catalogued` to a real authenticated integration only after its documented API/OAuth/MCP mechanism, scopes, credentials and server-side adapter have been implemented and verified.
+A provider may move from `catalogued` to `implemented` once its documented API/OAuth/MCP mechanism, server-side adapter and security boundary are implemented. It moves to `connected` only after provider-specific live verification succeeds. This distinction prevents an implemented integration from being falsely reported as merely catalogued or as connected without evidence.
 
 ### Mestre Arcano web research
 
