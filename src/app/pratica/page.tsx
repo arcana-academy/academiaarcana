@@ -165,13 +165,19 @@ function PracticeItemList({
             key={item.id}
             className="aa-list-item aa-surface"
             role="listitem"
-            href={`/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`}
+            href={
+              item.evidenceMode === "criterion_exact_match"
+                ? `/pratica?pagina=${encodeURIComponent(item.pageId)}&avaliacao=${encodeURIComponent(item.id)}`
+                : `/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`
+            }
             aria-current={selectedItemId === item.id ? "page" : undefined}
           >
             <span>
               <strong>{item.prompt}</strong>
               <span className="aa-state-copy">
-                Dificuldade {item.difficulty}/5 ·{" "}
+                {item.evidenceMode === "criterion_exact_match"
+                  ? "Avaliação objetiva"
+                  : `Dificuldade ${item.difficulty}/5`} ·{" "}
                 {review?.due ? "revisão liberada" : "sem revisão pendente"}
               </span>
             </span>
@@ -345,30 +351,25 @@ export default async function PraticaPage({
   const supabase = await createClient();
   const repository = new SupabaseEducationalPracticeRepository(supabase);
 
-  const [pages, items, attempts, objectiveAssessments, objectiveAttempts] =
-    await Promise.all([
-      repository.listPages(claims.sub),
-      repository.listPracticeItems(claims.sub),
-      repository.listPracticeAttempts(claims.sub),
-      repository.listObjectiveAssessments(claims.sub),
-      repository.listObjectiveAttempts(claims.sub),
-    ]);
-  const overview = buildEducationalOverview(
-    pages,
-    items,
-    attempts,
-    new Date(),
-    objectiveAssessments,
-    objectiveAttempts,
-  );
+  const [pages, items, attempts] = await Promise.all([
+    repository.listPages(claims.sub),
+    repository.listPracticeItems(claims.sub),
+    repository.listPracticeAttempts(claims.sub),
+  ]);
+  const overview = buildEducationalOverview(pages, items, attempts);
 
   const selectedPage =
     pages.find((page) => page.id === params.pagina) ?? pages[0] ?? null;
   const pageItems = selectedPage
     ? practiceItemsForPage(items, selectedPage.id)
     : [];
+  const selfAssessmentItems = pageItems.filter(
+    (item) => item.evidenceMode !== "criterion_exact_match",
+  );
   const selectedItem =
-    pageItems.find((item) => item.id === params.item) ?? pageItems[0] ?? null;
+    selfAssessmentItems.find((item) => item.id === params.item) ??
+    selfAssessmentItems[0] ??
+    null;
 
   return (
     <AuthenticatedShell currentPath="/pratica">
@@ -437,9 +438,9 @@ export default async function PraticaPage({
             {selectedPage ? (
               <ObjectiveEvidenceSection
                 pageId={selectedPage.id}
-                assessments={objectiveAssessments}
-                attempts={objectiveAttempts}
-                selectedAssessmentId={params.avaliacao}
+                items={pageItems}
+                attempts={attempts}
+                selectedObjectiveItemId={params.avaliacao}
                 evidence={overview.objectiveEvidence}
               />
             ) : null}

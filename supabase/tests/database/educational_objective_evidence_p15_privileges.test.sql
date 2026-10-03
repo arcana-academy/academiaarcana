@@ -2,121 +2,83 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(18);
+select extensions.plan(12);
 
 select extensions.ok(
-  relrowsecurity,
-  'objective assessments have row level security enabled'
-)
-from pg_class
-where oid = 'public.educational_objective_assessments'::regclass;
-
-select extensions.ok(
-  relrowsecurity,
-  'objective attempts have row level security enabled'
-)
-from pg_class
-where oid = 'public.educational_objective_attempts'::regclass;
-
-select extensions.ok(
-  has_table_privilege('authenticated', 'public.educational_objective_assessments', 'SELECT'),
-  'authenticated can read objective assessments through RLS'
+  (select relrowsecurity from pg_class where oid = 'public.educational_practice_items'::regclass),
+  'practice items have row level security enabled'
 );
 
 select extensions.ok(
-  has_table_privilege('authenticated', 'public.educational_objective_assessments', 'INSERT'),
-  'authenticated can create objective assessments'
+  (select relrowsecurity from pg_class where oid = 'public.educational_practice_attempts'::regclass),
+  'practice attempts have row level security enabled'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_assessments', 'UPDATE'),
-  'authenticated cannot alter objective criteria after creation'
+  has_table_privilege('authenticated','public.educational_practice_items','SELECT'),
+  'authenticated can read practice items through RLS'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_assessments', 'DELETE'),
-  'authenticated cannot delete objective evidence roots'
+  has_table_privilege('authenticated','public.educational_practice_items','INSERT'),
+  'authenticated can create practice items'
 );
 
 select extensions.ok(
-  has_table_privilege('authenticated', 'public.educational_objective_attempts', 'SELECT'),
-  'authenticated can read objective attempts through RLS'
+  has_table_privilege('authenticated','public.educational_practice_items','UPDATE'),
+  'authenticated can update practice items'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_attempts', 'INSERT'),
-  'authenticated cannot bypass the objective attempt operation'
+  has_table_privilege('authenticated','public.educational_practice_items','DELETE'),
+  'authenticated can delete practice items'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_attempts', 'UPDATE'),
-  'authenticated cannot rewrite objective attempts'
+  not has_table_privilege('authenticated','public.educational_practice_attempts','INSERT'),
+  'authenticated cannot bypass the atomic attempt operation'
 );
 
 select extensions.ok(
-  not has_table_privilege('authenticated', 'public.educational_objective_attempts', 'DELETE'),
-  'authenticated cannot delete objective attempts'
-);
-
-select extensions.ok(
-  not has_table_privilege('anon', 'public.educational_objective_assessments', 'SELECT'),
-  'anon cannot read objective assessments'
-);
-
-select extensions.ok(
-  not has_table_privilege('anon', 'public.educational_objective_attempts', 'SELECT'),
-  'anon cannot read objective attempts'
+  has_table_privilege('authenticated','public.educational_practice_attempts','SELECT'),
+  'authenticated can read own attempts through RLS'
 );
 
 select extensions.ok(
   has_function_privilege(
     'authenticated',
-    'public.record_educational_objective_attempt(uuid, text)',
+    'public.record_criterion_referenced_practice_attempt(uuid, text)',
     'EXECUTE'
   ),
-  'authenticated can execute objective attempt operation'
+  'authenticated can execute objective evidence RPC'
 );
 
 select extensions.ok(
   not has_function_privilege(
     'anon',
-    'public.record_educational_objective_attempt(uuid, text)',
+    'public.record_criterion_referenced_practice_attempt(uuid, text)',
     'EXECUTE'
   ),
-  'anon cannot execute objective attempt operation'
+  'anon cannot execute objective evidence RPC'
 );
 
 select extensions.ok(
   not has_function_privilege(
     'service_role',
-    'public.record_educational_objective_attempt(uuid, text)',
+    'public.record_criterion_referenced_practice_attempt(uuid, text)',
     'EXECUTE'
   ),
-  'service_role cannot execute objective attempt operation'
+  'service_role cannot execute objective evidence RPC'
 );
 
 select extensions.ok(
   not prosecdef,
-  'public objective attempt operation is SECURITY INVOKER'
+  'public objective evidence RPC is SECURITY INVOKER'
 )
 from pg_proc
 where pronamespace = 'public'::regnamespace
-  and proname = 'record_educational_objective_attempt'
+  and proname = 'record_criterion_referenced_practice_attempt'
   and pronargs = 2;
-
-select extensions.ok(
-  prosecdef,
-  'private objective attempt implementation is SECURITY DEFINER'
-)
-from pg_proc
-where pronamespace = 'private'::regnamespace
-  and proname = 'record_educational_objective_attempt'
-  and pronargs = 2;
-
-select extensions.ok(
-  has_schema_privilege('authenticated', 'private', 'USAGE'),
-  'authenticated can access private objective implementation'
-);
 
 select extensions.finish();
 

@@ -59,7 +59,11 @@ export function buildEvidenceProjection(
   item: PracticeItem,
   attempts: PracticeAttempt[],
 ): EvidenceProjection {
-  if (!attempts.length) {
+  const selfReportedAttempts = attempts.filter(
+    (attempt) => attempt.evidenceType !== "criterion-referenced",
+  );
+
+  if (!selfReportedAttempts.length) {
     return {
       practiceItemId: item.id,
       pageId: item.pageId,
@@ -74,9 +78,9 @@ export function buildEvidenceProjection(
     };
   }
 
-  const recent = recentAttemptsFor(attempts);
+  const recent = recentAttemptsFor(selfReportedAttempts);
   const score = averageEvidenceScoreFor(recent);
-  const repeated = attempts.length >= 3;
+  const repeated = selfReportedAttempts.length >= 3;
   const state = evidenceStateFor(repeated, score);
 
   return {
@@ -85,8 +89,8 @@ export function buildEvidenceProjection(
     pageTitle: item.pageTitle,
     state,
     score,
-    attemptCount: attempts.length,
-    confidence: confidenceFor(attempts.length),
+    attemptCount: selfReportedAttempts.length,
+    confidence: confidenceFor(selfReportedAttempts.length),
     reason: evidenceReasonFor(state),
     source: "self-assessment",
     masteryConfirmed: false,
@@ -102,6 +106,9 @@ export function buildEducationalStatistics(
   objectiveAttemptCount = 0,
   objectiveEvidence: ObjectiveEvidenceProjection[] = [],
 ): EducationalStatistics {
+  const selfReportedAttempts = attempts.filter(
+    (attempt) => attempt.evidenceType !== "criterion-referenced",
+  );
   const practicedItemIds = new Set(attempts.map((attempt) => attempt.practiceItemId));
   const practicedPageCount = new Set(
     items
@@ -111,26 +118,29 @@ export function buildEducationalStatistics(
 
   return {
     practiceItemCount: items.length,
-    attemptCount: attempts.length,
+    attemptCount: selfReportedAttempts.length,
     practicedPageCount,
     retrievalSuccessRate:
-      attempts.length === 0
+      selfReportedAttempts.length === 0
         ? null
-        : attempts.filter((attempt) => attempt.outcome === "strong").length /
-          attempts.length,
+        : selfReportedAttempts.filter(
+            (attempt) => attempt.outcome === "strong",
+          ).length / selfReportedAttempts.length,
     averageEvidenceScore:
-      attempts.length === 0
+      selfReportedAttempts.length === 0
         ? null
-        : attempts.reduce(
+        : selfReportedAttempts.reduce(
             (sum, attempt) => sum + attempt.evidenceScore,
             0,
-          ) / attempts.length,
+          ) / selfReportedAttempts.length,
     reviewDueCount,
     itemsWithStrongSelfReportedEvidence: evidence.filter(
       (entry) => entry.state === "strong-evidence",
     ).length,
     objectiveAssessmentCount,
-    objectiveAttemptCount,
+    objectiveAttemptCount: objectiveAttemptCount || attempts.filter(
+      (attempt) => attempt.evidenceType === "criterion-referenced",
+    ).length,
     objectiveConfirmedCount: objectiveEvidence.filter(
       (entry) => entry.masteryConfirmed,
     ).length,

@@ -1,20 +1,24 @@
-import type {
-  ObjectiveAssessment,
-  ObjectiveAttempt,
-} from "@/domains/education";
+import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import type { ObjectiveEvidenceProjection } from "@/domains/learning";
-import { createObjectiveAssessmentAction, submitObjectiveAssessmentAction } from "./actions";
+import {
+  createObjectiveAssessmentAction,
+  submitObjectiveAssessmentAction,
+} from "./actions";
 
 function percent(value: number | null): string {
   return value === null ? "Sem dados" : Math.round(value * 100) + "%";
 }
 
-function attemptsFor(
-  attempts: ObjectiveAttempt[],
-  assessmentId: string,
-): ObjectiveAttempt[] {
+function attemptsForItem(
+  attempts: PracticeAttempt[],
+  practiceItemId: string,
+): PracticeAttempt[] {
   return attempts
-    .filter((attempt) => attempt.assessmentId === assessmentId)
+    .filter(
+      (attempt) =>
+        attempt.practiceItemId === practiceItemId &&
+        attempt.evidenceType === "criterion-referenced",
+    )
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
@@ -46,12 +50,6 @@ function ObjectiveAssessmentCreationForm({ pageId }: { pageId: string }) {
         maxLength={5000}
         placeholder="Use este campo como resposta exata esperada."
       />
-      <div>
-        <span className="aa-state-copy">Critério explícito</span>
-        <p>
-          A resposta deve corresponder à resposta de referência após normalização de caixa e espaços.
-        </p>
-      </div>
       <label htmlFor="objective-minimum">Evidência mínima para confirmação</label>
       <select id="objective-minimum" name="minimumEvidence" defaultValue="2">
         {[1, 2, 3, 4, 5].map((value) => (
@@ -68,29 +66,30 @@ function ObjectiveAssessmentCreationForm({ pageId }: { pageId: string }) {
 }
 
 function ObjectiveAssessmentSession({
-  assessment,
+  item,
   attempts,
   evidence,
 }: {
-  assessment: ObjectiveAssessment;
-  attempts: ObjectiveAttempt[];
+  item: PracticeItem;
+  attempts: PracticeAttempt[];
   evidence: ObjectiveEvidenceProjection | null;
 }) {
   const latest = attempts[0] ?? null;
 
   return (
-    <section className="aa-card aa-card-elevated" aria-labelledby="objective-session-title">
+    <section
+      className="aa-card aa-card-elevated"
+      aria-labelledby="objective-session-title"
+    >
       <p className="aa-eyebrow">Evidência criterion-referenced · V1</p>
-      <h2 id="objective-session-title">{assessment.prompt}</h2>
+      <h2 id="objective-session-title">{item.prompt}</h2>
+      <p className="aa-state-copy">Critério: {item.criterion}</p>
       <p className="aa-state-copy">
-        Critério: {assessment.criterion}
-      </p>
-      <p className="aa-state-copy">
-        Confirmação limitada ao conteúdo desta página e ao critério desta avaliação.
+        A confirmação fica limitada ao escopo desta atividade objetiva; ela não é uma afirmação global sobre o estudante.
       </p>
 
       <form action={submitObjectiveAssessmentAction} className="aa-form">
-        <input type="hidden" name="assessmentId" value={assessment.id} />
+        <input type="hidden" name="practiceItemId" value={item.id} />
         <label htmlFor="objective-answer">Sua resposta</label>
         <textarea
           id="objective-answer"
@@ -111,7 +110,10 @@ function ObjectiveAssessmentSession({
           <h3>Resultado objetivo da tentativa</h3>
           <p>{latest.feedback}</p>
           <p>
-            Resultado: <strong>{latest.outcome === "pass" ? "aprovada" : "não aprovada"}</strong>
+            Resultado:{" "}
+            <strong>
+              {latest.criterionResult === "pass" ? "aprovada" : "não aprovada"}
+            </strong>
             {" · "}
             evidência <strong>{percent(latest.evidenceScore)}</strong>
             {" · "}
@@ -126,7 +128,7 @@ function ObjectiveAssessmentSession({
               </div>
               <div>
                 <h4>Referência da avaliação</h4>
-                <p>{assessment.referenceAnswer}</p>
+                <p>{item.referenceAnswer}</p>
               </div>
             </div>
           </details>
@@ -134,7 +136,10 @@ function ObjectiveAssessmentSession({
       ) : null}
 
       {evidence ? (
-        <div className="aa-card aa-card-default" aria-labelledby="objective-evidence-title">
+        <div
+          className="aa-card aa-card-default"
+          aria-labelledby="objective-evidence-title"
+        >
           <h3 id="objective-evidence-title">Estado da evidência objetiva</h3>
           <p>
             Estado: <strong>{evidence.state}</strong>
@@ -149,7 +154,7 @@ function ObjectiveAssessmentSession({
           </p>
           {evidence.masteryConfirmed ? (
             <p>
-              <strong>Domínio confirmado para o escopo desta avaliação.</strong>
+              <strong>Domínio confirmado para esta atividade objetiva.</strong>
             </p>
           ) : null}
         </div>
@@ -160,27 +165,30 @@ function ObjectiveAssessmentSession({
 
 export function ObjectiveEvidenceSection({
   pageId,
-  assessments,
+  items,
   attempts,
-  selectedAssessmentId,
+  selectedObjectiveItemId,
   evidence,
 }: {
   pageId: string;
-  assessments: ObjectiveAssessment[];
-  attempts: ObjectiveAttempt[];
-  selectedAssessmentId?: string;
+  items: PracticeItem[];
+  attempts: PracticeAttempt[];
+  selectedObjectiveItemId?: string;
   evidence: ObjectiveEvidenceProjection[];
 }) {
-  const pageAssessments = assessments.filter(
-    (assessment) => assessment.pageId === pageId,
+  const objectiveItems = items.filter(
+    (item) => item.pageId === pageId && item.evidenceMode === "criterion_exact_match",
   );
   const selected =
-    pageAssessments.find(
-      (assessment) => assessment.id === selectedAssessmentId,
-    ) ?? pageAssessments[0] ?? null;
+    objectiveItems.find((item) => item.id === selectedObjectiveItemId) ??
+    objectiveItems[0] ??
+    null;
 
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="objective-title">
+    <section
+      className="aa-card aa-card-default"
+      aria-labelledby="objective-title"
+    >
       <p className="aa-eyebrow">Evidência objetiva</p>
       <h2 id="objective-title">Avaliações com critério explícito</h2>
       <p className="aa-state-copy">
@@ -188,23 +196,33 @@ export function ObjectiveEvidenceSection({
         Ela não avalia significado, qualidade de explicação ou competência ampla.
       </p>
 
-      {pageAssessments.length ? (
-        <div role="list" className="aa-list" aria-label="Avaliações objetivas deste conteúdo">
-          {pageAssessments.map((assessment) => {
+      {objectiveItems.length ? (
+        <div
+          role="list"
+          className="aa-list"
+          aria-label="Avaliações objetivas deste conteúdo"
+        >
+          {objectiveItems.map((item) => {
             const entry = evidence.find(
-              (candidate) => candidate.assessmentId === assessment.id,
+              (candidate) => candidate.practiceItemId === item.id,
             );
             return (
               <a
-                key={assessment.id}
+                key={item.id}
                 className="aa-list-item aa-surface"
-                href={"/pratica?pagina=" + encodeURIComponent(pageId) + "&avaliacao=" + encodeURIComponent(assessment.id)}
-                aria-current={selected?.id === assessment.id ? "page" : undefined}
+                href={
+                  "/pratica?pagina=" +
+                  encodeURIComponent(pageId) +
+                  "&avaliacao=" +
+                  encodeURIComponent(item.id)
+                }
+                aria-current={selected?.id === item.id ? "page" : undefined}
               >
                 <span>
-                  <strong>{assessment.prompt}</strong>
+                  <strong>{item.prompt}</strong>
                   <span className="aa-state-copy">
-                    {entry?.state ?? "unknown"} · mínimo {assessment.minimumEvidence} aprovações
+                    {entry?.state ?? "unknown"} · mínimo{" "}
+                    {item.minimumEvidence ?? 2} aprovações
                   </span>
                 </span>
               </a>
@@ -212,17 +230,19 @@ export function ObjectiveEvidenceSection({
           })}
         </div>
       ) : (
-        <p className="aa-state-copy">Este conteúdo ainda não tem uma avaliação objetiva.</p>
+        <p className="aa-state-copy">
+          Este conteúdo ainda não tem uma avaliação objetiva.
+        </p>
       )}
 
       <ObjectiveAssessmentCreationForm pageId={pageId} />
 
       {selected ? (
         <ObjectiveAssessmentSession
-          assessment={selected}
-          attempts={attemptsFor(attempts, selected.id)}
+          item={selected}
+          attempts={attemptsForItem(attempts, selected.id)}
           evidence={
-            evidence.find((entry) => entry.assessmentId === selected.id) ?? null
+            evidence.find((entry) => entry.practiceItemId === selected.id) ?? null
           }
         />
       ) : null}

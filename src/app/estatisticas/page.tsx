@@ -297,7 +297,7 @@ function ObjectiveEvidenceSection({
       {educational.objectiveEvidence.length ? (
         <ul className="aa-list">
           {educational.objectiveEvidence.map((entry) => (
-            <li className="aa-list-item aa-surface" key={entry.assessmentId}>
+            <li className="aa-list-item aa-surface" key={entry.practiceItemId}>
               <div>
                 <strong>{entry.pageTitle}</strong>
                 <p>
@@ -311,7 +311,7 @@ function ObjectiveEvidenceSection({
                   "/pratica?pagina=" +
                   encodeURIComponent(entry.pageId) +
                   "&avaliacao=" +
-                  encodeURIComponent(entry.assessmentId)
+                  encodeURIComponent(entry.practiceItemId)
                 }
               >
                 Avaliar

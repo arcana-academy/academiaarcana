@@ -1,21 +1,25 @@
-import type { ObjectiveAttemptOutcome, ObjectiveScoringPolicy } from "./contracts";
+import type {
+  ObjectiveScoringPolicy,
+  PracticeOutcome,
+} from "./contracts";
 
 export const NORMALIZED_EXACT_MATCH_CRITERION =
   "A resposta deve corresponder à resposta de referência após normalização de caixa e espaços.";
 
 export type ObjectiveEvaluation = {
-  outcome: ObjectiveAttemptOutcome;
+  outcome: PracticeOutcome;
   evidenceScore: number;
   confidence: "strong";
+  criterionResult: "pass" | "fail";
   feedback: string;
 };
 
-/** Normalizes an objective answer without changing its semantic content. */
+/** Normalizes the bounded V1 objective answer criterion deterministically. */
 export function normalizeObjectiveAnswer(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-/** Evaluates the bounded V1 normalized exact-match criterion deterministically. */
+/** Evaluates the canonical normalized exact-match criterion. */
 export function evaluateObjectiveExactMatch(
   answer: string,
   referenceAnswer: string,
@@ -28,19 +32,13 @@ export function evaluateObjectiveExactMatch(
   const passed =
     normalizeObjectiveAnswer(answer) === normalizeObjectiveAnswer(referenceAnswer);
 
-  return passed
-    ? {
-        outcome: "pass",
-        evidenceScore: 1,
-        confidence: "strong",
-        feedback:
-          "A resposta satisfez o critério de correspondência exata normalizada.",
-      }
-    : {
-        outcome: "fail",
-        evidenceScore: 0,
-        confidence: "strong",
-        feedback:
-          "A resposta não satisfez o critério de correspondência exata normalizada. Isso é evidência sobre esta tarefa, não uma conclusão global sobre sua aprendizagem.",
-      };
+  return {
+    outcome: passed ? "strong" : "insufficient",
+    evidenceScore: passed ? 1 : 0,
+    confidence: "strong",
+    criterionResult: passed ? "pass" : "fail",
+    feedback: passed
+      ? "A resposta atendeu ao critério objetivo desta atividade por correspondência exata normalizada."
+      : "A resposta não atendeu ao critério objetivo desta atividade. Isso é evidência sobre esta tarefa, não uma conclusão global sobre sua aprendizagem.",
+  };
 }
