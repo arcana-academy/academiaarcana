@@ -10,11 +10,14 @@ import type {
   ReviewRecommendation,
 } from "@/domains/adaptive";
 import type { EvidenceProjection } from "@/domains/learning";
-import type { PracticeAttempt, PracticeItem } from "@/domains/education";
+import type { ObjectiveAssessment, PracticeAttempt, PracticeItem } from "@/domains/education";
+import type { ObjectiveEvidenceProjection } from "@/domains/learning";
 import {
   createPracticeItemAction,
   planPracticeReviewAction,
   submitPracticeAttemptAction,
+  createObjectiveAssessmentAction,
+  submitObjectiveAssessmentAction,
 } from "./actions";
 import { ObjectiveEvidenceSection } from "./objective-evidence";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
@@ -336,6 +339,83 @@ function PracticeSession({
   );
 }
 
+function ObjectiveAssessmentCreationForm({ pageId }: { pageId: string }) {
+  return (
+    <form action={createObjectiveAssessmentAction} className="aa-form">
+      <h3>Adicionar avaliação objetiva</h3>
+      <p className="aa-state-copy">
+        V1 usa somente correspondência exata normalizada. Isso produz evidência
+        objetiva sobre esta tarefa, não uma avaliação semântica geral.
+      </p>
+      <input type="hidden" name="pageId" value={pageId} />
+      <label htmlFor="objective-prompt">Pergunta ou desafio objetivo</label>
+      <textarea id="objective-prompt" name="prompt" rows={3} required maxLength={1000} />
+      <label htmlFor="objective-reference">Resposta de referência</label>
+      <textarea id="objective-reference" name="referenceAnswer" rows={4} required maxLength={5000} />
+      <label htmlFor="objective-minimum">Tentativas aprovadas necessárias</label>
+      <input id="objective-minimum" name="minimumEvidence" type="number" min={1} max={10} defaultValue={2} required />
+      <button className="aa-button aa-button-secondary" type="submit">
+        Criar avaliação objetiva
+      </button>
+    </form>
+  );
+}
+
+function ObjectiveAssessmentSection({
+  assessments,
+  evidence,
+  selectedPageId,
+}: {
+  assessments: ObjectiveAssessment[];
+  evidence: ObjectiveEvidenceProjection[];
+  selectedPageId: string;
+}) {
+  const pageAssessments = assessments.filter((entry) => entry.pageId === selectedPageId);
+  if (!pageAssessments.length) {
+    return (
+      <section className="aa-card aa-card-default" aria-labelledby="objective-title">
+        <h3 id="objective-title">Evidência objetiva</h3>
+        <p className="aa-state-copy">
+          Ainda não há uma avaliação criterion-referenced para este conteúdo.
+        </p>
+        <ObjectiveAssessmentCreationForm pageId={selectedPageId} />
+      </section>
+    );
+  }
+
+  return (
+    <section className="aa-card aa-card-default" aria-labelledby="objective-title">
+      <h3 id="objective-title">Evidência objetiva</h3>
+      <p className="aa-state-copy">
+        O resultado é calculado pelo critério declarado e permanece limitado ao escopo da tarefa.
+      </p>
+      {pageAssessments.map((assessment) => {
+        const projection = evidence.find((entry) => entry.assessmentId === assessment.id);
+        return (
+          <div className="aa-card aa-card-default" key={assessment.id}>
+            <h4>{assessment.prompt}</h4>
+            <p>{assessment.criterion}</p>
+            <p>
+              Estado: <strong>{projection?.state ?? "unknown"}</strong> ·{" "}
+              {projection?.attemptCount ?? 0} tentativa(s) · mínimo {assessment.minimumEvidence}
+            </p>
+            <p className="aa-state-copy">{projection?.reason ?? "Ainda não há evidência objetiva."}</p>
+            {projection?.masteryConfirmed ? (
+              <p><strong>Domínio confirmado neste escopo de avaliação.</strong></p>
+            ) : null}
+            <form action={submitObjectiveAssessmentAction} className="aa-form">
+              <input type="hidden" name="assessmentId" value={assessment.id} />
+              <label htmlFor={`objective-answer-${assessment.id}`}>Sua resposta</label>
+              <textarea id={`objective-answer-${assessment.id}`} name="answer" rows={5} required maxLength={5000} />
+              <button className="aa-button aa-button-primary" type="submit">Registrar evidência objetiva</button>
+            </form>
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
 /** Renders the authenticated native-retrieval practice experience. */
 export default async function PraticaPage({
   searchParams,
@@ -423,6 +503,11 @@ export default async function PraticaPage({
                   overview={overview}
                 />
                 <PracticeCreationForm pageId={selectedPage.id} />
+                <ObjectiveAssessmentSection
+                  assessments={overview.objectiveAssessments}
+                  evidence={overview.objectiveEvidence}
+                  selectedPageId={selectedPage.id}
+                />
               </section>
             ) : null}
 
