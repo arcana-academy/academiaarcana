@@ -6,6 +6,8 @@ const requiredTokenPaths = [
   "surfaces.panel",
   "surfaces.elevated",
   "surfaces.inset",
+  "surfaces.floating",
+  "surfaces.modal",
   "text.primary",
   "text.secondary",
   "text.muted",
