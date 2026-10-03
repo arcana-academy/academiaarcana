@@ -1382,3 +1382,136 @@ p {
     flex-basis: 2.8rem;
   }
 }
+
+
+.aa-feedback-page {
+  max-width: 72rem;
+  width: min(100% - 2rem, 72rem);
+  align-content: start;
+  padding-top: clamp(2rem, 6vw, 4rem);
+  padding-bottom: clamp(2rem, 6vw, 4rem);
+}
+
+.aa-feedback-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+
+.aa-feedback-card,
+.aa-feedback-aside {
+  min-width: 0;
+}
+
+.aa-feedback-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.aa-feedback-title {
+  max-width: 40rem;
+  margin: 0.75rem 0 0;
+  font-size: clamp(2rem, 5vw, 3.35rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.aa-feedback-lede {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  color: var(--aa-text-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.aa-feedback-mark {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  color: var(--aa-accent-gold-soft);
+}
+
+.aa-feedback-form {
+  display: grid;
+  gap: calc(var(--aa-spacing-md) * var(--aa-density-scale));
+}
+
+.aa-feedback-textarea {
+  min-height: 11rem;
+  padding-block: calc(var(--aa-spacing-sm) * var(--aa-density-scale));
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.aa-feedback-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--aa-border-default);
+}
+
+.aa-feedback-status {
+  min-height: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.aa-feedback-status-error {
+  margin: 0;
+  color: var(--aa-status-danger);
+}
+
+.aa-feedback-status-success {
+  margin: 0;
+  color: var(--aa-status-success);
+}
+
+.aa-feedback-aside {
+  background: var(--aa-surfaces-panel);
+}
+
+.aa-feedback-aside-eyebrow {
+  margin-bottom: 0.75rem;
+  color: var(--aa-text-muted);
+}
+
+.aa-feedback-aside-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.1;
+}
+
+.aa-feedback-aside-copy {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  color: var(--aa-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.aa-feedback-aside-copy p {
+  margin: 0;
+}
+
+@media (max-width: 52rem) {
+  .aa-feedback-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 36rem) {
+  .aa-feedback-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .aa-feedback-form-footer .aa-button {
+    width: 100%;
+  }
+}

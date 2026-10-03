@@ -45,26 +45,26 @@ export default function FeedbackPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--aa-color-background)] px-4 py-10 text-[var(--aa-color-foreground)] sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-        <section className="rounded-3xl border border-[var(--aa-color-border)] bg-[var(--aa-color-surface)] p-6 shadow-xl sm:p-8">
-          <div className="mb-8 flex items-start justify-between gap-4">
+    <main className="aa-public-page aa-feedback-page">
+      <div className="aa-feedback-grid">
+        <section className="aa-card aa-card-elevated aa-feedback-card">
+          <div className="aa-feedback-header">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--aa-color-primary)]">
+              <p className="aa-eyebrow">
                 Feedback Hub
               </p>
-              <h1 className="mt-3 max-w-xl text-4xl font-semibold tracking-tight sm:text-5xl">
+              <h1 className="aa-feedback-title">
                 Uma escuta que vira direção.
               </h1>
-              <p className="mt-4 max-w-xl text-base leading-7 text-[var(--aa-color-muted-foreground)]">
+              <p className="aa-feedback-lede">
                 Conte o que está funcionando, o que está difícil e onde a Academia
                 Arcana pode evoluir.
               </p>
             </div>
-            <Sparkles aria-hidden="true" className="mt-1 shrink-0 text-[var(--aa-color-primary)]" />
+            <Sparkles aria-hidden="true" className="aa-feedback-mark" />
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-5" noValidate>
+          <form onSubmit={onSubmit} className="aa-feedback-form" noValidate>
             <Input
               name="name"
               label="Nome"
@@ -97,15 +97,15 @@ export default function FeedbackPage() {
                 minLength={1}
                 maxLength={2000}
                 required
-                className="aa-input min-h-44 resize-y"
+                className="aa-input aa-feedback-textarea"
               />
               <p className="aa-field-description">Até 2.000 caracteres.</p>
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-[var(--aa-color-border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <div aria-live="polite" className="min-h-5 text-sm">
-                {error ? <p role="alert" className="text-[var(--aa-color-danger)]">{error}</p> : null}
-                {status ? <p className="text-[var(--aa-color-success)]">{status}</p> : null}
+            <div className="aa-feedback-form-footer">
+              <div aria-live="polite" className="aa-feedback-status">
+                {error ? <p role="alert" className="aa-feedback-status-error">{error}</p> : null}
+                {status ? <p className="aa-feedback-status-success">{status}</p> : null}
               </div>
               <Button type="submit" size="lg" loading={loading} disabled={loading}>
                 <MessageSquareText aria-hidden="true" size={18} />
@@ -115,14 +115,14 @@ export default function FeedbackPage() {
           </form>
         </section>
 
-        <aside className="rounded-3xl border border-[var(--aa-color-border)] bg-[var(--aa-color-surface)]/80 p-6 sm:p-8" aria-labelledby="feedback-context">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--aa-color-muted-foreground)]">
+        <aside className="aa-card aa-card-default aa-feedback-aside" aria-labelledby="feedback-context">
+          <p className="aa-eyebrow aa-feedback-aside-eyebrow">
             Contexto
           </p>
-          <h2 id="feedback-context" className="mt-3 text-2xl font-semibold">
+          <h2 id="feedback-context" className="aa-feedback-aside-title">
             Cada resposta chega com intenção.
           </h2>
-          <div className="mt-6 space-y-3 text-sm leading-6 text-[var(--aa-color-muted-foreground)]">
+          <div className="aa-feedback-aside-copy">
             <p>O nome é opcional; e-mail e mensagem são validados antes do armazenamento.</p>
             <p>As respostas ficam vinculadas ao usuário autenticado e protegidas pelo RLS do Supabase.</p>
             <p>O envio não expõe chaves privilegiadas no navegador.</p>
