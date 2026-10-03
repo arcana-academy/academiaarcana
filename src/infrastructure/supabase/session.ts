@@ -3,8 +3,11 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getPublicRuntimeConfig } from "@/core/config";
 
-export async function updateSupabaseSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+export async function updateSupabaseSession(
+  request: NextRequest,
+  requestHeaders: Headers = new Headers(request.headers),
+) {
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
   const { supabaseUrl, supabasePublishableKey } = getPublicRuntimeConfig();
 
   const supabase = createServerClient(supabaseUrl, supabasePublishableKey, {
@@ -17,7 +20,7 @@ export async function updateSupabaseSession(request: NextRequest) {
           request.cookies.set(name, value);
         });
 
-        response = NextResponse.next({ request });
+        response = NextResponse.next({ request: { headers: requestHeaders } });
 
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
