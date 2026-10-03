@@ -225,7 +225,7 @@ function ObjectiveEvidenceSection({ educational }: { educational: EducationalOve
           <li className="aa-list-item aa-surface" key={entry.assessmentId}>
             <div>
               <strong>{entry.pageTitle}</strong>
-              <p>{entry.state} · {entry.attemptCount} tentativa(s) · {entry.passingAttemptCount} aprovada(s)}</p>
+              <p>{entry.state} · {entry.attemptCount} tentativa(s) · {entry.passingAttemptCount} aprovada(s)</p>
               <span className="aa-state-copy">{entry.reason}</span>
               <span className="aa-state-copy">Fonte: critério objetivo · versão {entry.criterionVersion} · escopo: {entry.validityScope}</span>
             </div>
