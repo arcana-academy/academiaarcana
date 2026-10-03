@@ -118,7 +118,7 @@ export function buildEducationalStatistics(
 
   return {
     practiceItemCount: items.length,
-    attemptCount: attempts.length,
+    attemptCount: selfReportedAttempts.length,
     practicedPageCount,
     retrievalSuccessRate:
       selfReportedAttempts.length === 0
