@@ -72,6 +72,20 @@ describe("criterion-referenced evidence projection", () => {
     });
   });
 
+  it("marks mixed pass and fail evidence as conflicting", () => {
+    expect(
+      buildObjectiveEvidenceProjection(assessment, [
+        attempt("a1", "pass"),
+        attempt("a2", "pass"),
+        attempt("a3", "fail"),
+      ]),
+    ).toMatchObject({
+      state: "conflicting",
+      passingAttemptCount: 2,
+      masteryConfirmed: false,
+    });
+  });
+
   it("does not confirm mastery from failures", () => {
     expect(
       buildObjectiveEvidenceProjection(assessment, [

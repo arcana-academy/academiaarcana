@@ -173,7 +173,7 @@ Ausência de dados não pode ser representada como zero ou baixo desempenho sem 
 **Comportamento:** domínio confirmado só pode ser afirmado por evidência adequada à tarefa.  
 **Aceitação:** sistema distingue autoavaliação, evidência objetiva e ausência de evidência.  
 **Prioridade:** P1.  
-**Status:** PENDÊNCIA INTERDOMÍNIO.
+**Status:** V1 IMPLEMENTADO — limitado a evidência criterion-referenced explícita; avaliação semântica ampla permanece fora do escopo.
 
 ## 3. Critério geral de aceitação de Produto
 
