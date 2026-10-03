@@ -77,9 +77,9 @@ describe("Supabase persistence error propagation", () => {
         ownerId: "user-1",
         practiceItemId: "practice-1",
         answer: "answer",
-        outcome: "completed",
+        outcome: "strong",
         evidenceScore: 2,
-        confidence: "high",
+        confidence: "strong",
         feedback: "feedback",
       }),
     ).rejects.toThrow("practice rpc failed");
