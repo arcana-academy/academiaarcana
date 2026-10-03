@@ -15,4 +15,5 @@ name = "sql"
 enabled = true
 
   [analyzers.meta]
+  max_line_length = 120
   tab_space_size = 2
