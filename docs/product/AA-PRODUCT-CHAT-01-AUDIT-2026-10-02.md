@@ -31,7 +31,7 @@ Referências principais consultadas:
 | Estatísticas educacionais separadas de gamificação | IMPLEMENTADA V1 | /estatisticas |
 | Social funcional completo | PENDENTE | rota/superfície preparada, função real não concluída |
 | Mestre Arcano avançado como tutor/planejador | PLANEJADA / EM EVOLUÇÃO | V1 técnico presente; capacidades avançadas não fechadas |
-| Domínio acadêmico objetivo | PENDENTE / NÃO CONFIRMADO | implementação atual usa autoavaliação |
+| Domínio acadêmico objetivo | IMPLEMENTADO V1 | avaliação criterion-referenced limitada a normalized-exact-match; domínio global continua fora do escopo |
 | Baseline técnica anterior como estado atual | OBSOLETA COMO EVIDÊNCIA DE STATUS | `technical-baseline.md` declara explicitamente ser snapshot histórico |
 
 ## 3. Conflitos encontrados
@@ -64,7 +64,7 @@ Referências principais consultadas:
 
 **Correção de Produto executada:** a decisão canônica passa a classificar esses dados como **evidência autorreportada**, adequada para sinais, revisão e exploração, mas insuficiente para afirmar domínio objetivo isoladamente.
 
-**Validação:** P1.5 foi rebaixado para PARCIAL e foi criado o requisito AA-PROD-R021.
+**Validação histórica:** P1.5 foi inicialmente rebaixado para PARCIAL e AA-PROD-R021 foi criado. A implementação objetiva V1 posterior agora satisfaz o critério de promoção, mantendo limites explícitos.
 
 **Pendência técnica:** Education/Learning/UI devem reconciliar nomes, estados e testes da implementação com essa terminologia.
 
@@ -91,7 +91,7 @@ Referências principais consultadas:
 3. Requisitos canônicos e critérios de aceitação consolidados.
 4. Prática/Workspace/Caderno incorporados ao mapa oficial.
 5. Limite da autoavaliação formalizado.
-6. P1.5 reclassificado como PARCIAL quanto a domínio objetivo.
+6. P1.5 promovido para CONCLUÍDO V1 com escopo criterion-referenced limitado.
 7. Revisão V1 reclassificada como heurística, não como modelo universal.
 8. Objetivo formalizado como conceito transversal V1.
 9. Gamificação explicitamente separada de domínio.
@@ -235,12 +235,12 @@ Os seguintes itens permanecem deliberadamente fora de “concluído”:
 | Estados relevantes | PASS |
 | Dependências interdomínio | PASS |
 | Conflitos críticos identificados | PASS |
-| P1 sem falsa promoção de domínio | PASS — PI-01/PI-02 RESOLVIDAS; P1.5 permanece PARCIAL |
+| P1 sem falsa promoção de domínio | PASS — PI-01/PI-02 RESOLVIDAS; P1.5 CONCLUÍDO V1 com escopo limitado |
 | Documento baseline sincronizado | PASS |
 
 ## 9. Estado final da auditoria
 
-O domínio de Produto está **consolidado como contrato canônico**. PI-01/PI-02 foram executadas e integradas. O único limite educacional deliberadamente aberto é P1.5: domínio acadêmico objetivo ainda requer evidência adequada à tarefa.
+O domínio de Produto está **consolidado como contrato canônico**. PI-01/PI-02 foram executadas e integradas. P1.5 agora possui uma implementação objetiva V1 limitada, enquanto avaliação semântica ampla, validação docente e domínio global permanecem fora do escopo.
 
 O Produto não possui decisão crítica escondida.
 
@@ -252,4 +252,4 @@ A implementação correspondente foi integrada ao `main` pela PR #459, merge com
 
 ## 11. Próxima ação
 
-Manter P1.5 como PARCIAL e encaminhar a futura definição de evidência objetiva/criterion-referenced para Education + Learning + QA + UI/UX. Em paralelo, PI-03 permanece como evolução P2 da adaptação.
+P1.5 está concluído V1. Encaminhar somente a evolução futura da cobertura objetiva para Education + Learning + QA + UI/UX (novas políticas de avaliação, semântica, validação docente e escopos adicionais). PI-03 permanece como evolução P2 da adaptação.
