@@ -41,6 +41,19 @@ const attempt = (
   criterionResult: result,
   criterionScope: "practice-item",
   criterionReference: item.referenceAnswer,
+  it("surfaces conflicting evidence instead of confirming mastery", () => {
+    expect(
+      buildObjectiveEvidenceProjection(item, [
+        attempt("a1", "pass"),
+        attempt("a2", "fail"),
+      ]),
+    ).toMatchObject({
+      state: "conflicting",
+      passingAttemptCount: 1,
+      masteryConfirmed: false,
+    });
+  });
+
 });
 
 describe("criterion-referenced evidence projection", () => {
