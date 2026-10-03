@@ -244,7 +244,7 @@ O fechamento P1 compreende oito capacidades:
 7. perfil educacional dinâmico;
 8. estatísticas educacionais.
 
-### Estado de Produto em 2026-10-02
+### Estado de Produto em 2026-10-03
 
 - P1.1 Prática: **CONCLUÍDO V1**
 - P1.2 Recuperação: **CONCLUÍDO V1**
@@ -327,6 +327,7 @@ Neurodesign é um princípio de design e interação, não diagnóstico.
 - explicar;
 - contextualizar;
 - organizar;
+- adaptar apoio, explicações e recomendações dentro do contexto autorizado e dos sinais disponíveis;
 - recomendar;
 - sugerir revisão;
 - apoiar planejamento;
@@ -442,6 +443,13 @@ O ciclo pode começar em objetivos representados por tarefas, missões ou contex
 
 **Status:** ATIVA.
 
+### AA-PROD-009 — Fonte canônica de prioridade e status do Produto
+Prioridade, maturidade e status atual de uma capacidade são definidos pelo contrato canônico em docs/product/. Issues, planos, prompts históricos e páginas de acompanhamento que não estejam vinculados a uma decisão ou requisito canônico são evidência contextual ou backlog operacional, não fonte concorrente de verdade.
+
+Quando houver divergência, o Chat 01 consolida o estado de Produto e registra explicitamente a divergência, preservando o histórico sem permitir que um registro legado reclassifique silenciosamente uma capacidade.
+
+**Status:** ATIVA.
+
 ## 21. Backlog canônico
 
 | ID | Capacidade | Prioridade | Estado |
@@ -494,3 +502,4 @@ A condição de “100% do produto” não significa todas as fases P0–P4 impl
 - `docs/product/AA-PRODUCT-MODULES-1.0.md`
 - `docs/product/AA-PRODUCT-REQUIREMENTS-1.0.md`
 - `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-02.md`
+- `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-03.md`
