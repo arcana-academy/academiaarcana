@@ -41,6 +41,9 @@ const attempt = (
   criterionResult: result,
   criterionScope: "practice-item",
   criterionReference: item.referenceAnswer,
+});
+
+describe("criterion-referenced evidence projection", () => {
   it("surfaces conflicting evidence instead of confirming mastery", () => {
     expect(
       buildObjectiveEvidenceProjection(item, [
@@ -54,9 +57,6 @@ const attempt = (
     });
   });
 
-});
-
-describe("criterion-referenced evidence projection", () => {
   it("stays unknown without objective attempts", () => {
     expect(buildObjectiveEvidenceProjection(item, [])).toMatchObject({
       state: "unknown",
