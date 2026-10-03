@@ -8,7 +8,7 @@ vi.mock("@/lib/supabase/proxy", () => ({
   updateSession: mocks.updateSession,
 }));
 
-import { proxy } from "../proxy";
+import { proxy } from "../../proxy";
 
 describe("proxy security headers", () => {
   beforeEach(() => {
