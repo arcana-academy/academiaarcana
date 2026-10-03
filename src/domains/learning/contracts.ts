@@ -1,16 +1,21 @@
 /**
- * Public contracts for the learning domain.
+ * Public contracts for learning projections.
  *
- * Educational evidence is intentionally distinguished from confirmed mastery.
+ * Self-reported evidence and criterion-referenced evidence remain separate.
  */
 
 export type EvidenceConfidence = "strong" | "partial" | "insufficient";
 
 export type ObjectiveEvidenceProjection = {
-  assessmentId: string;
+  practiceItemId: string;
   pageId: string;
   pageTitle: string;
-  state: "unknown" | "insufficient" | "developing" | "confirmed" | "conflicting";
+  state:
+    | "unknown"
+    | "insufficient"
+    | "developing"
+    | "confirmed"
+    | "conflicting";
   score: number | null;
   attemptCount: number;
   passingAttemptCount: number;
@@ -19,8 +24,8 @@ export type ObjectiveEvidenceProjection = {
   criterion: string;
   scoringPolicy: "normalized-exact-match";
   minimumEvidence: number;
-  criterionVersion: number;
-  validityScope: "page";
+  criterionVersion: string;
+  validityScope: "practice-item";
   reason: string;
   masteryConfirmed: boolean;
 };
