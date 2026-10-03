@@ -51,6 +51,9 @@ jobs:
       - name: Canonical infrastructure guard
         run: node scripts/verify-canonical-infrastructure.cjs
 
+      - name: Git diff check
+        run: git diff --check
+
       - name: Lint
         run: npm run lint
 
