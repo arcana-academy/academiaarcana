@@ -272,19 +272,21 @@ As ações críticas do workflow estão pinadas por SHA.
 
 Estado: **IMPLEMENTADO**
 
-### Limitação de evidência
+### Evidência atual do PR de auditoria
 
-A interface do conector GitHub utilizada nesta auditoria expôs o status de commit do pre-commit.ci, mas não o painel completo de Checks do GitHub Actions.
+No PR #475, os status expostos pelo GitHub connector foram todos **SUCCESS**:
 
-Portanto:
+- AccessLint;
+- pre-commit.ci - pr;
+- CommitCheck;
+- CodeRabbit;
+- qlty check.
 
-- existência e conteúdo dos workflows: **CONFIRMADOS**;
-- existência do deploy Render correspondente: **CONFIRMADA**;
-- sucesso de cada job do Quality Gate no commit operacional: **não inferido sem evidência direta do painel de Checks**.
+A interface utilizada não expõe o painel completo dos Checks internos do workflow `Quality Gate`; portanto não foi atribuída artificialmente uma aprovação individual a cada job não visível.
 
-Isso não invalida o CI; apenas impede uma falsa afirmação de “PASS” para cada job sem a evidência apropriada.
+A existência e o conteúdo do workflow permanecem confirmados, e o Render possui deploy operacional do commit base.
 
-Estado: **VALIDAÇÃO PARCIAL DE EVIDÊNCIA**
+Estado: **VALIDADO DENTRO DA EVIDÊNCIA DISPONÍVEL**
 
 ---
 
