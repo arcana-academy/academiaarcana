@@ -32,6 +32,7 @@ export type EducationalOverview = {
   learningGaps: LearningGapSignal[];
   profile: EducationalProfile;
   statistics: EducationalStatistics;
+  objectiveEvidence: ObjectiveEvidenceProjection[];
 };
 
 /** Builds all educational projections from persisted evidence. */
