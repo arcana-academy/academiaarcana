@@ -299,35 +299,6 @@ function PracticeAttemptDetails({
 }
 
 /** Renders the submitted response and the persisted reference snapshot. */
-function PracticeAttemptDetails({
-  attempt,
-  item,
-}: {
-  attempt: PracticeAttempt;
-  item: PracticeItem;
-}) {
-  return (
-    <details>
-      <summary>Ver sua resposta e a referência</summary>
-      <div className="aa-stack">
-        <div>
-          <h4>Sua resposta</h4>
-          <p>{attempt.answer}</p>
-        </div>
-        <div>
-          <h4>Referência</h4>
-          <p>{attempt.criterionReference ?? item.referenceAnswer}</p>
-        </div>
-        {item.explanation ? (
-          <div>
-            <h4>Explicação / próximo passo</h4>
-            <p>{item.explanation}</p>
-          </div>
-        ) : null}
-      </div>
-    </details>
-  );
-}
 
 /** Renders the latest attempt feedback and its evidence provenance. */
 function PracticeAttemptFeedback({
@@ -528,27 +499,18 @@ function PracticeFeedbackSlot({
 }
 
 /** Renders the objective criterion notice when the activity declares one. */
-function PracticeCriterionNotice({ item }: { item: PracticeItem }) {
-  if (item.evidenceMode !== "criterion_exact_match" || !item.criterion) {
-    return null;
-  }
-
-  return (
-    <p className="aa-state-copy">
-      <strong>Critério:</strong> {item.criterion}
-    </p>
-  );
-}
 
 /** Renders feedback only when an attempt is available. */
-function PracticeFeedbackSlot({
-  attempt,
-  item,
-}: {
-  attempt: PracticeAttempt | undefined;
-  item: PracticeItem;
-}) {
-  return attempt ? <PracticeAttemptFeedback attempt={attempt} item={item} /> : null;
+
+/** Selects persisted signals for a practice session outside the render function. */
+function practiceSessionSignals(item: PracticeItem, attempts: PracticeAttempt[], overview: EducationalOverview) {
+  return {
+    latestAttempt: attempts[0],
+    review: overview.reviews.find((entry) => entry.practiceItemId === item.id) ?? null,
+    selfEvidence: overview.evidence.find((entry) => entry.practiceItemId === item.id) ?? null,
+    objectiveEvidence: overview.objectiveEvidence.find((entry) => entry.practiceItemId === item.id) ?? null,
+    gap: overview.learningGaps.find((entry) => entry.practiceItemId === item.id) ?? null,
+  };
 }
 
 /** Renders one practice session while keeping evidence and gamification separate. */
@@ -561,19 +523,7 @@ function PracticeSession({
   attempts: PracticeAttempt[];
   overview: EducationalOverview;
 }) {
-  const latestAttempt = attempts[0];
-  const review = overview.reviews.find(
-    (entry) => entry.practiceItemId === item.id,
-  );
-  const selfEvidence = overview.evidence.find(
-    (entry) => entry.practiceItemId === item.id,
-  );
-  const objectiveEvidence = overview.objectiveEvidence.find(
-    (entry) => entry.practiceItemId === item.id,
-  );
-  const gap = overview.learningGaps.find(
-    (entry) => entry.practiceItemId === item.id,
-  );
+  const { latestAttempt, review, selfEvidence, objectiveEvidence, gap } = practiceSessionSignals(item, attempts, overview);
 
   return (
     <section
