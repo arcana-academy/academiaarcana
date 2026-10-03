@@ -8,7 +8,7 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `ae53e2d5dec033ac4d00fca6d938e0aa9926fa83`
+**Baseline commit at synchronization:** `ab7b531b063fe2370c91c2a32136b721b50209a2`
 
 Status vocabulary:
 
@@ -731,9 +731,17 @@ The policy applies to operational architecture. It does not prohibit SaaS tools 
 
 State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
 
+### 24.1 Stack-conformance note — Tailwind CSS
+
+The architectural stack names Tailwind CSS as an approved frontend technology. The current repository, however, does not contain an operational Tailwind CSS configuration or a direct `tailwindcss` dependency; the implemented visual layer currently uses authored CSS custom properties and semantic `aa-*` classes, with `tailwind-merge` retained only as a class-name merge utility.
+
+State: **PENDENTE — ARCHITECTURAL CONFORMANCE DECISION REQUIRED**.
+
+This is intentionally not auto-corrected: introducing Tailwind or removing it from the official stack would change an architectural contract and should be decided explicitly rather than inferred from implementation convenience.
+
 ---
 
-## 24. Final canonical state
+## 25. Final canonical state
 
 **AA-ARCHITECTURE-1.0 = CANÔNICO**
 
