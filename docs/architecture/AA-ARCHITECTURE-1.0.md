@@ -731,13 +731,13 @@ The policy applies to operational architecture. It does not prohibit SaaS tools 
 
 State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
 
-### 24.1 Stack-conformance note — Tailwind CSS
+### 24.1 Stack-conformance resolution — Tailwind CSS
 
-The architectural stack names Tailwind CSS as an approved frontend technology. The current repository, however, does not contain an operational Tailwind CSS configuration or a direct `tailwindcss` dependency; the implemented visual layer currently uses authored CSS custom properties and semantic `aa-*` classes, with `tailwind-merge` retained only as a class-name merge utility.
+Tailwind CSS remains an **approved technology in the canonical stack**, but its presence in the stack does not require every visual primitive to be implemented with utility classes. The current UI foundation intentionally uses authored CSS custom properties and semantic `aa-*` classes; `tailwind-merge` is retained only as a class-name merge utility.
 
-State: **PENDENTE — ARCHITECTURAL CONFORMANCE DECISION REQUIRED**.
+This is considered architecturally conformant because the canonical requirement is stack compatibility, not mandatory utility-class usage.
 
-This is intentionally not auto-corrected: introducing Tailwind or removing it from the official stack would change an architectural contract and should be decided explicitly rather than inferred from implementation convenience.
+State: **RESOLVIDO — CANÔNICO + CONFORME**.
 
 ---
 
