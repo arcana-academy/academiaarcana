@@ -20,9 +20,10 @@ describe("objective evidence", () => {
         "normalized-exact-match",
       ),
     ).toMatchObject({
-      outcome: "pass",
+      outcome: "strong",
       evidenceScore: 1,
       confidence: "strong",
+      criterionResult: "pass",
     });
   });
 
@@ -34,9 +35,10 @@ describe("objective evidence", () => {
         "normalized-exact-match",
       ),
     ).toMatchObject({
-      outcome: "fail",
+      outcome: "insufficient",
       evidenceScore: 0,
       confidence: "strong",
+      criterionResult: "fail",
     });
   });
 });
