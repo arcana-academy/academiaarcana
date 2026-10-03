@@ -73,7 +73,7 @@ export async function createObjectiveAssessmentAction(formData: FormData) {
   const supabase = await createClient();
   const repository = new SupabaseEducationalPracticeRepository(supabase);
 
-  const assessment = await createObjectiveAssessment(repository, {
+  const item = await createObjectiveAssessment(repository, {
     ownerId: claims.sub,
     pageId,
     prompt: textField(formData, "prompt"),
@@ -87,21 +87,21 @@ export async function createObjectiveAssessmentAction(formData: FormData) {
     "/pratica?pagina=" +
       encodeURIComponent(pageId) +
       "&avaliacao=" +
-      encodeURIComponent(assessment.id),
+      encodeURIComponent(item.id),
   );
 }
 
 /** Records an objective attempt; pass/fail is computed inside the database. */
 export async function submitObjectiveAssessmentAction(formData: FormData) {
   const claims = await requireAuthenticatedUser();
-  const assessmentId = textField(formData, "assessmentId");
+  const practiceItemId = textField(formData, "practiceItemId");
   const answer = textField(formData, "answer");
 
   const supabase = await createClient();
   const repository = new SupabaseEducationalPracticeRepository(supabase);
-  await repository.recordObjectiveAttemptAndProgress({
+  await repository.recordCriterionReferencedPracticeAttempt({
     ownerId: claims.sub,
-    assessmentId,
+    practiceItemId,
     answer,
   });
 
@@ -109,8 +109,16 @@ export async function submitObjectiveAssessmentAction(formData: FormData) {
   revalidatePath("/estatisticas");
   revalidatePath("/workspace");
   revalidatePath("/santuario");
+  const item = (await repository.listPracticeItems(claims.sub)).find(
+    (candidate) => candidate.id === practiceItemId,
+  );
+  if (!item) throw new Error("Atividade de prática objetiva não encontrada.");
+
   redirect(
-    "/pratica?avaliacao=" + encodeURIComponent(assessmentId),
+    "/pratica?pagina=" +
+      encodeURIComponent(item.pageId) +
+      "&avaliacao=" +
+      encodeURIComponent(item.id),
   );
 }
 
