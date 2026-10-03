@@ -8,13 +8,18 @@ function objectiveAttemptsFor(attempts: PracticeAttempt[]): PracticeAttempt[] {
 }
 
 function stateFor(
-  attemptCount: number,
+  attempts: PracticeAttempt[],
   passingAttemptCount: number,
   minimumEvidence: number,
 ): ObjectiveEvidenceProjection["state"] {
-  if (attemptCount === 0) return "unknown";
+  if (attempts.length === 0) return "unknown";
+
+  const hasPass = passingAttemptCount > 0;
+  const hasFail = attempts.some((attempt) => attempt.criterionResult === "fail");
+
+  if (hasPass && hasFail) return "conflicting";
   if (passingAttemptCount >= minimumEvidence) return "confirmed";
-  if (passingAttemptCount > 0) return "developing";
+  if (hasPass) return "developing";
   return "insufficient";
 }
 
@@ -60,7 +65,7 @@ export function buildObjectiveEvidenceProjection(
   ).length;
   const minimumEvidence = item.minimumEvidence ?? 2;
   const state = stateFor(
-    objectiveAttempts.length,
+    objectiveAttempts,
     passingAttemptCount,
     minimumEvidence,
   );
