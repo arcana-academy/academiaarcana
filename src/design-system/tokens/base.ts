@@ -14,8 +14,8 @@ export const baseTokens: ThemeTokens = {
     inverse: "#211D28",
   },
   border: {
-    default: "#51475A",
-    strong: "#75687F",
+    default: "#9689A0",
+    strong: "#A099A8",
   },
   accent: {
     primary: "#B9A4CF",
@@ -24,7 +24,7 @@ export const baseTokens: ThemeTokens = {
   status: {
     success: "#86B89A",
     warning: "#D0B477",
-    danger: "#C8848B",
+    danger: "#CA888E",
     info: "#86A8C4",
   },
   focus: {

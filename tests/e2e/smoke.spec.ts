@@ -34,3 +34,23 @@ test("application root serves the public entrypoint for unauthenticated users", 
 
   await expect(page.locator("footer")).toBeVisible();
 });
+
+test("keeps keyboard focus visible on the public entrypoint", async ({ page }) => {
+  await page.goto("/");
+
+  await page.keyboard.press("Tab");
+
+  const focused = page.locator(":focus-visible");
+  await expect(focused).toBeVisible();
+
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const element = document.activeElement;
+        return element instanceof HTMLElement
+          ? window.getComputedStyle(element).outlineWidth
+          : "0px";
+      }),
+    )
+    .toBe("3px");
+});
