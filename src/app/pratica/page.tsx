@@ -13,7 +13,9 @@ import type { EvidenceProjection } from "@/domains/learning";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import {
   createPracticeItemAction,
+  createObjectiveAssessmentAction,
   planPracticeReviewAction,
+  submitObjectiveAssessmentAction,
   submitPracticeAttemptAction,
 } from "./actions";
 import { ObjectiveEvidenceSection } from "./objective-evidence";
@@ -182,7 +184,44 @@ function PracticeItemList({
   );
 }
 
-function PracticeSession({
+
+function ObjectiveAssessmentSession({
+  assessment,
+  attempts,
+  evidence,
+}: {
+  assessment: import("@/domains/education").ObjectiveAssessment;
+  attempts: import("@/domains/education").ObjectiveAttempt[];
+  evidence: EvidenceProjection | import("@/domains/learning").ObjectiveEvidenceProjection;
+}) {
+  const latest = attempts[attempts.length - 1] ?? null;
+  return (
+    <section className="aa-card aa-card-elevated" aria-labelledby="objective-title">
+      <p className="aa-eyebrow">Evidência objetiva V1</p>
+      <h2 id="objective-title">{assessment.prompt}</h2>
+      <p className="aa-state-copy">{assessment.criterion}</p>
+      <p className="aa-state-copy">
+        Critério: correspondência exata normalizada · mínimo: {assessment.minimumEvidence} tentativa(s).
+      </p>
+      <form action={submitObjectiveAssessmentAction} className="aa-form">
+        <input type="hidden" name="assessmentId" value={assessment.id} />
+        <label htmlFor="objective-answer">Sua resposta</label>
+        <textarea id="objective-answer" name="answer" rows={6} required minLength={1} maxLength={5000} />
+        <button className="aa-button aa-button-primary" type="submit">Avaliar segundo o critério</button>
+      </form>
+      <div className="aa-card aa-card-default" aria-live="polite">
+        <h3>Estado da evidência</h3>
+        <p><strong>{evidence.state}</strong> · {evidence.attemptCount} tentativa(s) · {evidence.passingAttemptCount} aprovada(s).</p>
+        <p className="aa-state-copy">{evidence.reason}</p>
+        {evidence.masteryConfirmed ? (
+          <p>Os critérios declarados desta avaliação foram satisfeitos. Esta conclusão vale apenas para o escopo declarado.</p>
+        ) : null}
+        {latest ? <p className="aa-state-copy">Última tentativa: {latest.feedback}</p> : null}
+      </div>
+    </section>
+  );
+}
+\nfunction PracticeSession({
   item,
   attempts,
   overview,
@@ -369,6 +408,8 @@ export default async function PraticaPage({
     : [];
   const selectedItem =
     pageItems.find((item) => item.id === params.item) ?? pageItems[0] ?? null;
+  const objectiveAssessment = overview.objectiveEvidence.find((entry) => entry.assessmentId === params.avaliacao) ?? null;
+  const objectiveAssessments = overview.objectiveEvidence;
 
   return (
     <AuthenticatedShell currentPath="/pratica">
@@ -424,6 +465,42 @@ export default async function PraticaPage({
                 />
                 <PracticeCreationForm pageId={selectedPage.id} />
               </section>
+            ) : null}
+
+            {objectiveAssessments.length ? (
+              <section className="aa-card aa-card-default" aria-labelledby="objective-list-title">
+                <h2 id="objective-list-title">Avaliações objetivas</h2>
+                <ul className="aa-list">
+                  {objectiveAssessments.map((entry) => (
+                    <li className="aa-list-item aa-surface" key={entry.assessmentId}>
+                      <div><strong>{entry.pageTitle}</strong><p>{entry.state} · {entry.passingAttemptCount}/{entry.minimumEvidence} aprovada(s)</p><span className="aa-state-copy">{entry.reason}</span></div>
+                      <Link href={`/pratica?pagina=${encodeURIComponent(entry.pageId)}&avaliacao=${encodeURIComponent(entry.assessmentId)}`}>Abrir</Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {objectiveAssessment ? (
+              <ObjectiveAssessmentSession
+                assessment={{
+                  id: objectiveAssessment.assessmentId,
+                  ownerId: claims.sub,
+                  pageId: objectiveAssessment.pageId,
+                  pageTitle: objectiveAssessment.pageTitle,
+                  prompt: objectiveAssessment.criterion,
+                  referenceAnswer: "",
+                  criterion: objectiveAssessment.criterion,
+                  scoringPolicy: objectiveAssessment.scoringPolicy,
+                  minimumEvidence: objectiveAssessment.minimumEvidence,
+                  validityScope: objectiveAssessment.validityScope,
+                  criterionVersion: objectiveAssessment.criterionVersion,
+                  active: true,
+                  createdAt: "", updatedAt: "",
+                }}
+                attempts={[]}
+                evidence={objectiveAssessment}
+              />
             ) : null}
 
             {selectedItem ? (
