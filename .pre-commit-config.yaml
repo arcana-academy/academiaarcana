@@ -4,5 +4,5 @@ repos:
       - id: git-diff-check
         name: git diff check
         entry: python -c "import subprocess; raise SystemExit(subprocess.call(['git', 'diff', '--check']))"
-        language: python
+        language: system
         pass_filenames: false
