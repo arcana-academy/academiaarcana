@@ -110,6 +110,7 @@ function readPath(value: unknown, path: string): unknown {
 }
 
 describe("Academia Arcana theme presets", () => {
+  // Contrast tests cover both locally overridden and shared status tokens.
   test("registers the curated reference-derived theme set", () => {
     expect(THEME_IDS).toEqual(approvedThemeIds);
     expect(Object.keys(themePresets)).toHaveLength(approvedThemeIds.length);
