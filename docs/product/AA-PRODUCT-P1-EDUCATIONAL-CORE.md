@@ -99,11 +99,11 @@ O resultado de uma atividade deve poder apresentar feedback relacionado ao objet
 
 ### Objetivo
 
-Separar atividade de domínio acadêmico.
+Separar atividade de domínio acadêmico e permitir uma primeira confirmação objetiva limitada ao escopo de uma tarefa criterion-referenced.
 
 ### Requisito
 
-O produto deve manter uma representação de domínio baseada em evidências educacionais disponíveis.
+O produto deve manter representações distintas para evidência autorreportada e evidência objetiva. A V1 objetiva usa uma única política determinística: correspondência exata normalizada, com critério explícito, versão do critério, escopo da página e mínimo configurável de tentativas aprovadas.
 
 ### Critérios de aceitação
 
