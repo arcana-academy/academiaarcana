@@ -81,7 +81,8 @@ create policy "educational_objective_attempts_select_own"
     )
   );
 
-revoke all on public.educational_objective_assessments, public.educational_objective_attempts from anon, authenticated;
+revoke all on public.educational_objective_assessments, public.educational_objective_attempts from anon;
+revoke insert, update, delete on public.educational_objective_attempts from authenticated;
 grant select, insert on public.educational_objective_assessments to authenticated;
 grant select on public.educational_objective_attempts to authenticated;
 
