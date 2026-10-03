@@ -73,7 +73,7 @@ function createPreset(
 const sharedStatus = {
   success: "#86B89A",
   warning: "#D0B477",
-  danger: "#C8848B",
+  danger: "#CA888E",
   info: "#86A8C4",
 };
 
