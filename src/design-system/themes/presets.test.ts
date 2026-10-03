@@ -184,6 +184,28 @@ describe("Academia Arcana theme presets", () => {
     }
   });
 
+
+  test("keeps button text combinations at or above 4.5:1", () => {
+    for (const themeId of THEME_IDS) {
+      const preset = themePresets[themeId];
+
+      expect(
+        contrastRatio(preset.text.inverse, preset.accent.primary),
+        `${themeId}.primary button`,
+      ).toBeGreaterThanOrEqual(4.5);
+
+      expect(
+        contrastRatio(preset.text.primary, preset.surfaces.elevated),
+        `${themeId}.secondary button`,
+      ).toBeGreaterThanOrEqual(4.5);
+
+      expect(
+        contrastRatio(preset.text.inverse, preset.status.danger),
+        `${themeId}.danger button`,
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   test("keeps reference-derived presets independent of vendor-specific token structure", () => {
     for (const themeId of THEME_IDS.slice(10)) {
       const preset = themePresets[themeId];
