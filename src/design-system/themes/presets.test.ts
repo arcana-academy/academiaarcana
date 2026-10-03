@@ -168,6 +168,22 @@ describe("Academia Arcana theme presets", () => {
     }
   });
 
+
+  test("keeps status colors at or above 4.5:1 against every theme surface", () => {
+    for (const themeId of THEME_IDS) {
+      const preset = themePresets[themeId];
+
+      for (const statusColor of Object.values(preset.status)) {
+        for (const surface of Object.values(preset.surfaces)) {
+          expect(
+            contrastRatio(statusColor, surface),
+            `${themeId}.status vs ${surface}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+  });
+
   test("keeps reference-derived presets independent of vendor-specific token structure", () => {
     for (const themeId of THEME_IDS.slice(10)) {
       const preset = themePresets[themeId];
