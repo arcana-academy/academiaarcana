@@ -86,6 +86,7 @@ export type IntegrationStatusSnapshot = {
   readonly catalogSize: number;
   readonly connectedCount: number;
   readonly cataloguedCount: number;
+  readonly implementedCount: number;
   readonly errorCount: number;
   readonly entries: readonly IntegrationStatusEntry[];
   readonly runtimeIntegrations: readonly Awaited<
@@ -388,7 +389,7 @@ const buildCatalogEntries = ({
       return {
         name: "Notion",
         source: "runtime" as const,
-        status: "catalogued" as const,
+        status: "implemented" as const,
         executionMode: "runtime" as const,
         providerId: "notion",
         capabilities: ["read", "write", "search", "metadata"],
@@ -399,7 +400,7 @@ const buildCatalogEntries = ({
       return {
         name: "Outlook Calendar",
         source: "runtime" as const,
-        status: "catalogued" as const,
+        status: "implemented" as const,
         executionMode: "runtime" as const,
         providerId: "outlook-calendar",
         capabilities: ["read", "write", "search", "calendar"],
@@ -411,7 +412,7 @@ const buildCatalogEntries = ({
       return {
         name: "Asana",
         source: "runtime" as const,
-        status: "catalogued" as const,
+        status: "implemented" as const,
         executionMode: "runtime" as const,
         providerId: ASANA_PROVIDER_ID,
         capabilities: ["read", "write", "search"],
@@ -422,7 +423,7 @@ const buildCatalogEntries = ({
       return {
         name: "Trello",
         source: "runtime" as const,
-        status: "catalogued" as const,
+        status: "implemented" as const,
         executionMode: "runtime" as const,
         providerId: "trello",
         capabilities: ["read", "write", "search", "metadata"],
@@ -437,7 +438,12 @@ const buildCatalogEntries = ({
     return {
       name: plugin.name,
       source: plugin.source,
-      status: "catalogued" as const,
+      status:
+        isAgenticCourseRedesign || isTarteel
+          ? ("catalogued" as const)
+          : plugin.name === "Todoist"
+            ? ("implemented" as const)
+            : ("catalogued" as const),
       executionMode:
         isAgenticCourseRedesign || isTarteel
           ? ("chatgpt-hosted" as const)
@@ -526,6 +532,7 @@ export async function getIntegrationStatusSnapshot({
     catalogSize: allEntries.length,
     connectedCount: allEntries.filter((entry) => entry.status === "connected").length,
     cataloguedCount: allEntries.filter((entry) => entry.status === "catalogued").length,
+    implementedCount: allEntries.filter((entry) => entry.status === "implemented").length,
     errorCount: allEntries.filter((entry) => entry.status === "error").length,
     entries: allEntries,
     runtimeIntegrations: [runtimeIntegration],
