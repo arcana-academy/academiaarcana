@@ -4,8 +4,14 @@ export const dynamic = "force-dynamic";
 
 /** Return a non-sensitive liveness response for the Render health check. */
 export function GET() {
+  const revision = process.env.RENDER_GIT_COMMIT || process.env.NEXT_PUBLIC_HONEYBADGER_REVISION;
+
   return NextResponse.json(
-    { status: "ok", service: "academiaarcana" },
+    {
+      status: "ok",
+      service: "academiaarcana",
+      ...(revision ? { revision } : {}),
+    },
     { status: 200, headers: { "Cache-Control": "no-store" } },
   );
 }
