@@ -226,6 +226,8 @@ Estado: **CANÔNICO + IMPLEMENTADO + VALIDADO**
 
 ## 9. Funções privilegiadas
 
+A inspeção adicional confirmou que a única `SECURITY DEFINER` encontrada no schema `public`, `public.rls_auto_enable()`, é uma função de evento de DDL e possui ACL restrita a `postgres` e `service_role`; ela não está exposta a `anon` ou `authenticated`. Portanto não foi classificada como superfície privilegiada pública.
+
 A inspeção do banco encontrou as funções SECURITY DEFINER relevantes do produto em schema privado, enquanto as RPCs públicas de produto observadas operam como SECURITY INVOKER.
 
 Esse desenho é compatível com a regra arquitetural de não expor diretamente um caminho privilegiado a `anon`/cliente.
