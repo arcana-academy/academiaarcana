@@ -148,6 +148,26 @@ describe("Academia Arcana theme presets", () => {
     }
   });
 
+
+  test("keeps primary, secondary and muted text at or above 4.5:1 against every theme surface", () => {
+    for (const themeId of THEME_IDS) {
+      const preset = themePresets[themeId];
+
+      for (const foreground of [
+        preset.text.primary,
+        preset.text.secondary,
+        preset.text.muted,
+      ]) {
+        for (const surface of Object.values(preset.surfaces)) {
+          expect(
+            contrastRatio(foreground, surface),
+            `${themeId}.text vs ${surface}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+  });
+
   test("keeps reference-derived presets independent of vendor-specific token structure", () => {
     for (const themeId of THEME_IDS.slice(10)) {
       const preset = themePresets[themeId];
