@@ -1,0 +1,18 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select extensions.plan(15);
+select extensions.ok(relrowsecurity,'objective assessments have RLS') from pg_class where oid='public.educational_objective_assessments'::regclass;
+select extensions.ok(relrowsecurity,'objective attempts have RLS') from pg_class where oid='public.educational_objective_attempts'::regclass;
+select extensions.ok(has_table_privilege('authenticated','public.educational_objective_assessments','SELECT'),'authenticated reads assessments');
+select extensions.ok(has_table_privilege('authenticated','public.educational_objective_assessments','INSERT'),'authenticated creates assessments');
+select extensions.ok(has_table_privilege('authenticated','public.educational_objective_attempts','SELECT'),'authenticated reads attempts');
+select extensions.ok(not has_table_privilege('authenticated','public.educational_objective_attempts','INSERT'),'attempts cannot be inserted directly');
+select extensions.ok(not has_table_privilege('authenticated','public.educational_objective_attempts','UPDATE'),'attempts cannot be rewritten');
+select extensions.ok(not has_table_privilege('authenticated','public.educational_objective_attempts','DELETE'),'attempts cannot be deleted');
+select extensions.ok(not has_table_privilege('anon','public.educational_objective_assessments','SELECT'),'anon cannot read assessments');
+select extensions.ok(not has_table_privilege('anon','public.educational_objective_attempts','SELECT'),'anon cannot read attempts');
+select extensions.ok(has_function_privilege('authenticated','public.record_educational_objective_attempt(uuid, text)','EXECUTE'),'authenticated executes objective RPC');
+select extensions.ok(not has_function_privilege('anon','public.record_educational_objective_attempt(uuid, text)','EXECUTE'),'anon cannot execute objective RPC');
+select extensions.ok(not has_function_privilege('service_role','public.record_educational_objective_attempt(uuid, text)','EXECUTE'),'service role cannot execute objective RPC');
+select extensions.ok(not prosecdef,'objective RPC is SECURITY INVOKER') from pg_proc where pronamespace='public'::regnamespace and proname='record_educational_objective_attempt';
+select extensions.finish(); rollback;
