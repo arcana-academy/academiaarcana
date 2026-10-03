@@ -62,6 +62,19 @@ with check (
  )
 );
 
+create policy "objective_assessments_insert_own"
+on public.educational_objective_assessments for insert to authenticated
+with check (
+ owner_id=(select auth.uid())
+ and exists (
+  select 1 from public.pages p
+  join public.chapters c on c.id=p.chapter_id
+  join public.notebooks n on n.id=c.notebook_id
+  join public.grimoires g on g.id=n.grimoire_id
+  where p.id=educational_objective_assessments.page_id and g.owner_id=(select auth.uid())
+ )
+);
+
 create policy "objective_assessments_update_own"
 on public.educational_objective_assessments for update to authenticated
 using (owner_id=(select auth.uid()))
