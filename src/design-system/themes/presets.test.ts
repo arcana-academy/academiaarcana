@@ -81,6 +81,27 @@ const approvedThemeIds = [
   "paper-light",
 ] as const;
 
+
+function relativeLuminance(hex: string): number {
+  const channels = [0, 2, 4].map((index) => Number.parseInt(hex.slice(index + 1, index + 3), 16) / 255);
+  const linear = channels.map((channel) =>
+    channel <= 0.04045
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4,
+  );
+
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 function readPath(value: unknown, path: string): unknown {
   return path.split(".").reduce<unknown>((current, key) => {
     if (!current || typeof current !== "object") return undefined;
@@ -110,6 +131,20 @@ describe("Academia Arcana theme presets", () => {
       const preset = themePresets[themeId];
       expect(preset.surfaces.canvas.toUpperCase(), `${themeId} canvas`).not.toBe("#FFFFFF");
       expect(preset.text.primary.toUpperCase(), `${themeId} primary text`).not.toBe("#FFFFFF");
+    }
+  });
+
+
+  test("keeps the default border token at or above 3:1 against every theme surface", () => {
+    for (const themeId of THEME_IDS) {
+      const preset = themePresets[themeId];
+
+      for (const surface of Object.values(preset.surfaces)) {
+        expect(
+          contrastRatio(preset.border.default, surface),
+          `${themeId}.border.default vs ${surface}`,
+        ).toBeGreaterThanOrEqual(3);
+      }
     }
   });
 
