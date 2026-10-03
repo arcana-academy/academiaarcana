@@ -86,6 +86,34 @@ jobs:
 
           echo "Public production routes are healthy."
 
+      - name: Check production Content Security Policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="https://academiaarcana.onrender.com"
+
+          curl -fsS --max-time 20 -D /tmp/production-headers.txt -o /dev/null "${base_url}/"
+          node <<'NODE'
+          const fs = require("fs");
+          const headers = fs.readFileSync("/tmp/production-headers.txt", "utf8");
+          const cspLine = headers.split(/\r?\n/).find((line) => /^content-security-policy:/i.test(line));
+
+          if (!cspLine) {
+            throw new Error("Content-Security-Policy header is missing.");
+          }
+
+          const csp = cspLine.slice(cspLine.indexOf(":") + 1).trim();
+          if (/[\u0027\"]unsafe-inline[\u0027\"]/i.test(csp) || /[\u0027\"]unsafe-eval[\u0027\"]/i.test(csp)) {
+            throw new Error("Production CSP contains unsafe-inline or unsafe-eval.");
+          }
+
+          if (!/script-src[^;]*\u0027nonce-[^\u0027]+\u0027/i.test(csp)) {
+            throw new Error("Production script-src CSP nonce is missing.");
+          }
+
+          console.log("Production Content Security Policy regression contract is healthy.");
+          NODE
+
       - name: Check integration status contract
         shell: bash
         run: |
