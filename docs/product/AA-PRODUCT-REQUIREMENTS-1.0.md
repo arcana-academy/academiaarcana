@@ -80,7 +80,7 @@ Ausência de dados não pode ser representada como zero ou baixo desempenho sem 
 **Comportamento:** cada evidência educacional identifica origem, contexto e confiança.  
 **Aceitação:** autoavaliação aparece como autoavaliação; domínio objetivo não é afirmado sem evidência adequada.  
 **Prioridade:** P1.  
-**Status:** ATIVO; implementação parcial quanto à nomenclatura de domínio.
+**Status:** CONCLUÍDO V1 — proveniência e separação entre autoavaliação e evidência objetiva reconciliadas no contrato e na apresentação corrente; domínio objetivo permanece estritamente limitado ao escopo criterion-referenced definido.
 
 ### AA-PROD-R009 — Revisão baseada em evidência
 **Objetivo:** direcionar revisão por necessidade educacional.  
