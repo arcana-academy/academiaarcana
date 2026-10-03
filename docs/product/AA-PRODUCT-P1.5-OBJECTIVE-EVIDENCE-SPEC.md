@@ -2,7 +2,7 @@
 
 > Autoridade: Chat 01 — Produto.
 >
-> Esta especificação fecha o contrato de Produto para P1.5 sem afirmar que a capacidade técnica já está implementada.
+> Esta especificação registra o contrato canônico de Produto para P1.5 e sua implementação V1 limitada; capacidades semânticas mais amplas continuam fora do escopo.
 
 ## 1. Objetivo
 
@@ -115,6 +115,8 @@ Somente quando os domínios definirem o contrato de persistência necessário; p
 
 ## 17. Estado
 
-**P1.5: PARCIAL — ESPECIFICAÇÃO CANÔNICA DEFINIDA; IMPLEMENTAÇÃO OBJETIVA PENDENTE.**
+**P1.5: CONCLUÍDO V1 — evidência objetiva criterion-referenced implementada com escopo limitado.**
+
+A V1 implementa apenas `normalized-exact-match`, com critério explícito, mínimo configurável, proveniência, versão, RLS, RPC server-side, estados `unknown/insufficient/developing/confirmed/conflicting` e UI proporcional. Não constitui avaliação semântica geral nem domínio global do estudante.
 
 PI-01/PI-02 permanecem concluídas. Esta especificação não reabre essas decisões.
