@@ -1,5 +1,7 @@
 # AA-PRODUCT-CHAT-01-AUDIT-2026-10-02 — Auditoria e Consolidação
 
+> STATUS DOCUMENTAL: HISTÓRICO. Esta auditoria foi superada pela revalidação de 2026-10-03 e permanece preservada somente para rastreabilidade.
+
 ## 1. Escopo da auditoria
 
 Data: **2026-10-02**
