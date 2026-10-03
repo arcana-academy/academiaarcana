@@ -44,6 +44,8 @@ export type SurfaceTokens = {
   canvas: string;
   panel: string;
   elevated: string;
+  floating: string;
+  modal: string;
   inset: string;
 };
 
@@ -73,12 +75,16 @@ export type StatusTokens = {
 
 export type FocusTokens = {
   ring: string;
+  width: string;
+  offset: string;
 };
 
 export type RadiusTokens = {
   sm: string;
   md: string;
   lg: string;
+  xl: string;
+  pill: string;
 };
 
 export type SpacingTokens = {
@@ -86,21 +92,86 @@ export type SpacingTokens = {
   sm: string;
   md: string;
   lg: string;
+  xl: string;
+  "2xl": string;
+  "3xl": string;
+};
+
+export type SizingTokens = {
+  controlSm: string;
+  controlMd: string;
+  controlLg: string;
+  iconSm: string;
+  iconMd: string;
+  iconLg: string;
+  contentMax: string;
+  pageMax: string;
 };
 
 export type TypographyTokens = {
   body: string;
   heading: string;
+  display: string;
+  label: string;
+  caption: string;
+  code: string;
+  numeric: string;
+};
+
+export type TypeScaleTokens = {
+  xs: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  "2xl": string;
+  "3xl": string;
+  "4xl": string;
+  "5xl": string;
+};
+
+export type LineHeightTokens = {
+  tight: string;
+  normal: string;
+  relaxed: string;
 };
 
 export type ShadowTokens = {
   sm: string;
   md: string;
+  lg: string;
+  floating: string;
+  modal: string;
 };
 
 export type MotionTokens = {
-  duration: string;
+  fast: string;
+  normal: string;
+  slow: string;
   reduced: string;
+  easingStandard: string;
+  easingEmphasized: string;
+};
+
+export type BreakpointTokens = {
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+};
+
+export type ZIndexTokens = {
+  base: string;
+  sticky: string;
+  dropdown: string;
+  modal: string;
+  toast: string;
+};
+
+export type OpacityTokens = {
+  muted: string;
+  disabled: string;
+  overlay: string;
 };
 
 export type DensityTokens = {
@@ -122,9 +193,15 @@ export type ThemeTokens = {
   focus: FocusTokens;
   radius: RadiusTokens;
   spacing: SpacingTokens;
+  sizing: SizingTokens;
   typography: TypographyTokens;
+  typeScale: TypeScaleTokens;
+  lineHeight: LineHeightTokens;
   shadows: ShadowTokens;
   motion: MotionTokens;
+  breakpoints: BreakpointTokens;
+  zIndex: ZIndexTokens;
+  opacity: OpacityTokens;
   density: DensityTokens;
   effects: EffectsTokens;
 };
