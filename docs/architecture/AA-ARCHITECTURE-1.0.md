@@ -8,7 +8,9 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `05cbc66f85e10369b199ddcf898ce69a904bc7c1`
+**Baseline commit at synchronization:** `7124e7265e311c4c36e72dfe74f71891de6f76eb`
+**Latest live runtime verification:** Render deploy `dep-db0in8tckfvc73crtog0` for commit `7124e7265e311c4c36e72dfe74f71891de6f76eb`
+**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
 Status vocabulary:
 
@@ -743,17 +745,43 @@ Architecture decision: **AA-ARCH-001**.
 
 State: **CANÔNICO + IMPLEMENTADO + VALIDADO**.
 
+### 24.2 Governance synchronization — AA-ARCH-002
+
+The current repository architecture is the operationally verified implementation baseline. The current canonical architecture decision AA-ARCH-001 resolves the styling foundation as semantic authored CSS with `aa-*` classes; Tailwind CSS is not an operational requirement.
+
+The Prompt 02 wording that still lists Tailwind CSS must be synchronized by Chat 00 so that the governance text and implementation do not describe competing architectural baselines.
+
+The 2026-10-03 architecture audit records this reconciliation and the remaining external Supabase Auth security configuration dependency.
+
+Architecture decision: **AA-ARCH-002**.
+
+State: **APROVADA PARA SINCRONIZAÇÃO DOCUMENTAL**.
+
+### 24.3 Historical document precedence — AA-ARCH-003
+
+Documents under `docs/superpowers/plans/`, `docs/superpowers/specs/` and other explicitly historical/strategic records may preserve technology assumptions that existed when they were written.
+
+Those documents are **not operational architecture authorities** unless explicitly promoted by a subsequent canonical architecture decision.
+
+Therefore, historical references such as a plan's “Tech Stack: Tailwind CSS” do not override AA-ARCH-001. The operational source of truth remains this document plus the repository implementation and its architecture tests.
+
+Any future adoption of Tailwind CSS as an operational dependency requires a new explicit architecture decision, implementation, testing and governance synchronization.
+
+Architecture decision: **AA-ARCH-003**.
+
+State: **CANÔNICO + DOCUMENTADO + VALIDADO**.
+
 ---
 
 ## 25. Final canonical state
 
 **AA-ARCHITECTURE-1.0 = CANÔNICO**
 
-The architecture baseline is now considered **structurally consolidated**.
+The architecture baseline is now considered **structurally consolidated for the current product scope**.
 
 The previously open architectural boundary questions have explicit resolutions in code and/or this document.
 
-The remaining work is primarily **product implementation, integration implementation, validation and future evolution**, not redefinition of the architectural foundation.
+The remaining work is primarily **product implementation, integration implementation, validation and future evolution**, not redefinition of the architectural foundation. A separate operational security configuration remains outside this document's implementation scope: Supabase Auth Leaked Password Protection must be enabled before the broader security program is declared fully closed.
 
 Canonical operational loop:
 
