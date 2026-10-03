@@ -36,7 +36,7 @@ const TARTEEL_CAPABILITIES = [
   "prayer-times",
 ] as const;
 
-export type IntegrationCatalogStatus = "catalogued" | "connected" | "error";
+export type IntegrationCatalogStatus =\n  | "catalogued"\n  | "implemented"\n  | "connected"\n  | "error";
 export type IntegrationConfigurationStatus = "configured" | "not-configured";
 export type IntegrationExecutionMode =
   | "runtime"
