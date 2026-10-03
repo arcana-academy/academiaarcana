@@ -29,8 +29,9 @@ describe("integration status snapshot", () => {
     expect(snapshot.catalogSize).toBe(CHATGPT_PLUGIN_CATALOG.length + 2);
     expect(snapshot.connectedCount).toBe(1);
     expect(snapshot.cataloguedCount).toBe(
-      CHATGPT_PLUGIN_CATALOG.length + 1,
+      CHATGPT_PLUGIN_CATALOG.length - 6 + 1,
     );
+    expect(snapshot.implementedCount).toBe(5);
     expect(snapshot.errorCount).toBe(0);
     expect(snapshot.serverRuntimeIntegrations).toMatchObject([
       {
@@ -149,7 +150,7 @@ describe("integration status snapshot", () => {
     expect(outlook).toMatchObject({
       name: "Outlook Calendar",
       source: "runtime",
-      status: "catalogued",
+      status: "implemented",
       executionMode: "runtime",
       providerId: "outlook-calendar",
       capabilities: ["read", "write", "search", "calendar"],
@@ -160,12 +161,21 @@ describe("integration status snapshot", () => {
     expect(asana).toMatchObject({
       name: "Asana",
       source: "runtime",
-      status: "catalogued",
+      status: "implemented",
       executionMode: "runtime",
       providerId: "asana",
       capabilities: ["read", "write", "search"],
       verification: null,
     });
+
+    const trello = snapshot.entries.find((entry) => entry.name === "Trello");
+    expect(trello).toMatchObject({ name: "Trello", status: "implemented" });
+
+    const notion = snapshot.entries.find((entry) => entry.name === "Notion");
+    expect(notion).toMatchObject({ name: "Notion", status: "implemented" });
+
+    const todoist = snapshot.entries.find((entry) => entry.name === "Todoist");
+    expect(todoist).toMatchObject({ name: "Todoist", status: "implemented" });
 
     const airtable = snapshot.entries.find((entry) => entry.name === "Airtable");
     expect(airtable).toMatchObject({
