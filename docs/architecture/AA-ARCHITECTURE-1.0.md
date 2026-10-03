@@ -8,7 +8,7 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `ab7b531b063fe2370c91c2a32136b721b50209a2`
+**Baseline commit at synchronization:** `05cbc66f85e10369b199ddcf898ce69a904bc7c1`
 
 Status vocabulary:
 
