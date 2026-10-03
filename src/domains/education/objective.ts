@@ -1,18 +1,11 @@
 import type { ObjectiveAttemptOutcome, ObjectiveScoringPolicy } from "./contracts";
 
 export const NORMALIZED_EXACT_MATCH_CRITERION =
-  "A resposta deve corresponder à resposta de referência após normalização de caixa e espaços.";
-
-export type ObjectiveEvaluation = {
-  outcome: ObjectiveAttemptOutcome;
-  evidenceScore: number;
-  confidence: "strong";
-  feedback: string;
-};
+  "A resposta deve corresponder à referência após normalização de caixa e espaços.";
 
 /** Normalizes an objective answer without changing its semantic content. */
 export function normalizeObjectiveAnswer(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, " ");
+  return value.trim().toLocaleLowerCase("pt-BR").replace(/\s+/g, " ");
 }
 
 /** Evaluates the bounded V1 normalized exact-match criterion deterministically. */
@@ -20,14 +13,17 @@ export function evaluateObjectiveExactMatch(
   answer: string,
   referenceAnswer: string,
   scoringPolicy: ObjectiveScoringPolicy,
-): ObjectiveEvaluation {
+): {
+  outcome: ObjectiveAttemptOutcome;
+  evidenceScore: number;
+  confidence: "strong";
+  feedback: string;
+} {
   if (scoringPolicy !== "normalized-exact-match") {
     throw new Error("Política objetiva não suportada.");
   }
-
   const passed =
     normalizeObjectiveAnswer(answer) === normalizeObjectiveAnswer(referenceAnswer);
-
   return passed
     ? {
         outcome: "pass",
