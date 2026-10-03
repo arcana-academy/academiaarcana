@@ -89,7 +89,12 @@ test.describe("integration hub", () => {
     const body = await response.json();
 
     expect(body.catalogSize).toBe(120);
-    expect(body.connectedCount + body.cataloguedCount + body.errorCount).toBe(120);
+    expect(
+      body.connectedCount +
+        body.implementedCount +
+        body.cataloguedCount +
+        body.errorCount,
+    ).toBe(body.catalogSize);
     expect([0, 1]).toContain(body.errorCount);
     expect(body.connectedCount + body.errorCount).toBe(1);
 
@@ -126,7 +131,7 @@ test.describe("integration hub", () => {
 
     expect(todoist).toMatchObject({
       name: "Todoist",
-      status: "catalogued",
+      status: "implemented",
       executionMode: "runtime",
       providerId: "todoist",
       capabilities: ["read", "write", "search", "calendar"],
@@ -152,7 +157,7 @@ test.describe("integration hub", () => {
 
     expect(notion).toMatchObject({
       name: "Notion",
-      status: "catalogued",
+      status: "implemented",
       executionMode: "runtime",
       providerId: "notion",
       capabilities: ["read", "write", "search", "metadata"],
@@ -165,7 +170,7 @@ test.describe("integration hub", () => {
 
     expect(trello).toMatchObject({
       name: "Trello",
-      status: "catalogued",
+      status: "implemented",
       executionMode: "runtime",
       providerId: "trello",
       capabilities: ["read", "write", "search", "metadata"],
