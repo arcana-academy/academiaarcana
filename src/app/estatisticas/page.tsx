@@ -212,6 +212,34 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
 }
 
 /** Renders confidence-labelled educational profile signals. */
+function ObjectiveEvidenceSection({ educational }: { educational: EducationalOverview }) {
+  return (
+    <section className="aa-card aa-card-default" aria-labelledby="objective-evidence-title">
+      <h2 id="objective-evidence-title">Evidência objetiva</h2>
+      <p className="aa-state-copy">
+        Estes estados usam critérios criterion-referenced declarados. Domínio confirmado
+        é limitado ao escopo da avaliação e pode ser revisado por novas evidências.
+      </p>
+      <ul className="aa-list">
+        {educational.objectiveEvidence.length ? educational.objectiveEvidence.map((entry) => (
+          <li className="aa-list-item aa-surface" key={entry.assessmentId}>
+            <div>
+              <strong>{entry.pageTitle}</strong>
+              <p>{entry.state} · {entry.attemptCount} tentativa(s) · {entry.passingAttemptCount} aprovada(s)}</p>
+              <span className="aa-state-copy">{entry.reason}</span>
+              <span className="aa-state-copy">Fonte: critério objetivo · versão {entry.criterionVersion} · escopo: {entry.validityScope}</span>
+            </div>
+          </li>
+        )) : (
+          <li className="aa-list-item aa-surface">
+            <span>Nenhuma avaliação objetiva registrada.</span>
+          </li>
+        )}
+      </ul>
+    </section>
+  );
+}
+
 function ProfileSignals({ educational }: { educational: EducationalOverview }) {
   return (
     <section className="aa-card aa-card-default" aria-labelledby="profile-signals-title">
@@ -422,6 +450,7 @@ export default async function EstatisticasPage() {
         />
         <EducationalStats educational={educational} />
         <ProfileSignals educational={educational} />
+        <ObjectiveEvidenceSection educational={educational} />
         <EvidenceSection educational={educational} />
         <ObjectiveEvidenceSection educational={educational} />
         <GapsSection educational={educational} />
