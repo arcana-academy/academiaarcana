@@ -4,7 +4,8 @@ import { describe, expect, test } from "vitest";
 import { baseTokens } from "./base";
 
 function toCssName(value: string): string {
-  return value.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+  const normalized = value.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+  return normalized === "breakpoints" ? "breakpoint" : normalized;
 }
 
 function flatten(value: unknown, prefix = ""): Array<[string, string]> {
