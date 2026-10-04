@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Current repository HEAD observed: `d66b7764ea439d160c4af7652f59e8f0738e17d4`
+Repository `main` state inspected at the start of the current corrective cycle: `6cf8fcb17875eced828fc799f42c50a037515ae0`
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit does NOT claim that the current `main` HEAD is LIVE in Render because the available Render connector requires a workspace selection that cannot be safely inferred, and direct HTTP verification was unavailable in this environment. Earlier same-day repository evidence verifies a LIVE Render deployment for commit `393b841e34bf524518aa5ab886415fece7994ea8`, but `main` has advanced since then.
+The audit distinguishes repository state from production state. At the start of this cycle, `main` was `6cf8fcb17875eced828fc799f42c50a037515ae0`; subsequent documentation-only corrections advanced `main` further. Render LIVE is currently verified separately at commit `6cf8fcb17875eced828fc799f42c50a037515ae0` in deploy `dep-db16h4dg1s2s739ajp30`. The latest documentation corrections after that deployment are not yet independently verified in production.
 
 ## 2. Verified architectural baseline
 
@@ -93,9 +93,9 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-Same-day issue evidence records successful Quality Gate and Production Smoke for the verified LIVE commit `393b841e34bf524518aa5ab886415fece7994ea8`.
+Same-day repository evidence previously recorded successful Quality Gate and Production Smoke for earlier verified live revisions. The current commit-status surface for the latest documentation revision exposes only a successful `pre-commit.ci - push` status; a complete current Quality Gate result is not established by the available connector surface.
 
-The evidence is valid for that commit and must not be silently promoted to proof that later commits are LIVE.
+Production Smoke for the latest repository revision is therefore not claimed until directly evidenced.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -192,15 +192,18 @@ Status: **CONFIRMED / IMPLEMENTED / VALIDATED by repository tests and architectu
 
 ## 11. Problems corrected by this audit
 
-No source-code mutation was required or justified solely from the evidence available in this cycle.
+Source-code mutation was not required for the structural architecture findings in this cycle. Documentation mutations were justified and applied where the architecture records had become factually stale.
 
-The following were corrected at the governance/audit level:
+Corrections applied:
 
-1. Runtime evidence was explicitly separated from repository HEAD evidence.
-2. Vercel/Netlify exclusion references were distinguished from active configuration.
-3. The Tailwind/CSS contradiction was classified rather than silently resolved.
-4. The missing `sanctuary` domain in Prompt 02 was identified as a synchronization gap.
-5. External Supabase Auth and resilience items were kept outside the scope of code-only closure.
+1. Separated repository HEAD evidence from Render LIVE evidence.
+2. Updated canonical architecture documentation to the actually observed Render revision.
+3. Corrected the stale production references in the engineering baseline.
+4. Reconciled the documented ownership matrix with the current educational practice tables.
+5. Reclassified AA-ARCH-001 as conflicting with the higher-authority Constitution/Prompt 02 stack statement rather than allowing a lower-level decision to override it.
+6. Converted AA-ARCH-002 into an explicit governance reconciliation gate.
+7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
+8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 
 ## 12. Remaining high-priority items
 
@@ -208,9 +211,10 @@ The following were corrected at the governance/audit level:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Verify current `main` HEAD is LIVE in Render | Render/GitHub operational evidence | PENDENTE in this environment |
-| P1 | Synchronize Prompt 02 CSS wording with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
-| P1 | Synchronize Prompt 02 domain list with canonical `sanctuary` domain | Chat 00 / architecture governance | PENDENTE |
+| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | PENDENTE |
+| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | PENDENTE |
+| P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
+| P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
 
 ## 13. Final audit judgment
 
@@ -220,4 +224,4 @@ Critical architectural defects: **NONE IDENTIFIED IN THE REVIEWED EVIDENCE**.
 
 100% closure: **NOT AUTHORIZED** because external security/operational evidence and governance synchronization remain open.
 
-The next architectural cycle should begin with fresh production evidence for the current `main` HEAD, then close the external security/resilience controls without changing the modular architecture unless new evidence demonstrates an actual architectural defect.
+The next architectural cycle should begin with fresh CI and Render evidence for the latest `main` revision, then address the constitutional CSS reconciliation and external security/resilience controls without changing the modular architecture unless new evidence demonstrates an actual architectural defect.
