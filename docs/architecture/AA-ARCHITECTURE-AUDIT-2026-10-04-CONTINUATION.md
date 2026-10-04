@@ -149,12 +149,13 @@ No new privilege escalation path was identified in this audit.
 - backup/restore exercise;
 - RTO/RPO;
 - incident-response operationalization;
-- administrative branch-protection evidence where the GitHub connector cannot expose it;
-- **P2 governance — migration-history reconciliation:** Supabase production records 23 migrations while `main` contains 21 migration files. The five production-only versions were reconciled against three consolidated repository migrations using the authoritative `supabase_migrations.schema_migrations` SQL ledger. The repository migration path passes Database Tests from scratch. This is now documented as historical ledger divergence, not an unresolved architecture defect.
+- administrative branch-protection evidence where the GitHub connector cannot expose it.
 
 ### DOCUMENTATION FOLLOW-UP
 
 Historical audit documents contain earlier production revisions. They remain historical evidence and must not be interpreted as the current runtime snapshot. The current operational state is the Render LIVE revision recorded above.
+
+The Supabase migration reconciliation is now captured in `docs/architecture/AA-SUPABASE-MIGRATION-RECONCILIATION-2026-10-04.md`. It is a governance record, not a production schema mutation.
 
 ## 9. Non-regression conclusion
 
