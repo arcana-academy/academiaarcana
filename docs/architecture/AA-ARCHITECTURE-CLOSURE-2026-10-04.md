@@ -66,8 +66,8 @@ Vercel and Netlify remain excluded from the operational production chain.
 1. Obtain direct production HTTP evidence for the CSP header contract.
 2. Enable Supabase Leaked Password Protection through authorized Supabase project configuration.
 3. Complete/verify operational resilience controls: rollback, backup/restore, RTO/RPO and incident response.
-4. Synchronize any remaining historical Prompt 02 references with the current CSS/Render architectural decisions.
-5. Preserve and maintain the migration reconciliation manifest; future migration changes must retain one-to-one traceability for newly introduced versions.
+4. Synchronize any remaining historical Prompt 02 references with the current CSP/Render architectural decisions.
+5. Maintain the migration reconciliation manifest as a governance artifact; this is a maintenance requirement, not a current closure blocker.
 
 ## Non-regression rule
 
