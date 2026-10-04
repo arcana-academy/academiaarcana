@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Repository `main` state inspected during the current corrective cycle: `0d463a467260810879eb2143a3c56e387367e852`
+Repository `main` state inspected during the current corrective cycle: `5520dae90bd4b38dd5521172b43a6cec039134c4`
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The current `main` is `0d463a467260810879eb2143a3c56e387367e852`. The Quality Gate, CodeQL and Database Tests for this SHA completed successfully. Render deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA is now LIVE. Repository and Render revision are therefore equivalent at this checkpoint.
+The audit distinguishes repository state from production state. The current `main` is `5520dae90bd4b38dd5521172b43a6cec039134c4`. The post-merge Quality Gate for this SHA is still in progress; CodeQL, Database Tests, Gitleaks and Scorecard have completed successfully. Current Render revision is not independently verified in this cycle.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The current `main` revision has successful Quality Gate, CodeQL, Database Tests, Gitleaks and Scorecard runs. Production Smoke runs for this SHA were skipped/cancelled rather than completed successfully. The deployment is LIVE, but current post-deploy smoke validation is therefore **not claimed**.
+The current `main` revision `5520dae…` has Quality Gate run `37215062435` in progress; CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385` succeeded. Production Smoke `37215069647` for this SHA was skipped, so current post-deploy smoke validation and Render LIVE equivalence are **not claimed**.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -161,14 +161,14 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The current repository `main` revision and the latest independently verified Render LIVE deployment are now the same commit `0d463a467260810879eb2143a3c56e387367e852`.
+The current repository `main` revision is `5520dae90bd4b38dd5521172b43a6cec039134c4`. The latest independently verified production-runtime smoke evidence still belongs to the prior `294d227…` revision.
 
 Therefore:
 
-- repository state = current `main` HEAD `0d463a4…`;
-- production state = Render deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA;
-- repository/production equivalence = **CONFIRMED** at this checkpoint;
-- current Production Smoke success = **NOT VERIFIED**, because the matching workflow-run executions were skipped/cancelled rather than completed successfully.
+- repository state = current `main` HEAD `5520dae…`;
+- production state for the current SHA = **NOT VERIFIED** in this cycle;
+- repository/production equivalence = **NOT VERIFIED** for `5520dae…`;
+- current Production Smoke success = **PENDING**.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
 
@@ -212,7 +212,7 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: the current Quality Gate is successful and Render equivalence is now confirmed for `0d463a4…`.
+10. Updated CI evidence: the current revision and individual workflow states were re-read; the Quality Gate remains in progress, while CodeQL, Database Tests, Gitleaks and Scorecard are successful.
 11. Recorded that Production Smoke did not produce a successful post-deploy result for this SHA; LIVE status is not being conflated with runtime smoke validation.
 
 ## 13. Remaining high-priority items
@@ -221,10 +221,10 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate SUCCESS** |
-| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **RESOLVIDO — deploy `dep-db16ma5g1s2s739ap7j0` LIVE** |
+| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **PENDENTE — Quality Gate `37215062435` in progress** |
+| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **PENDENTE — current Render revision not independently re-read** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for current `main` after the corrected trigger is promoted | GitHub Actions / Render operational evidence | PENDENTE — branch fix implemented, not yet on `main` |
+| P1 | Obtain successful Production Smoke evidence for current `main` | GitHub Actions / Render operational evidence | **PENDENTE — current run `37215069647` was skipped** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
