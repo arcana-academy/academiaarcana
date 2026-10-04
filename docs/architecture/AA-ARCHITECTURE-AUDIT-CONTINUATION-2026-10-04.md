@@ -161,15 +161,16 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The repository HEAD is newer than the same-day LIVE commit documented in existing architecture evidence.
+The current repository `main` revision and the latest independently verified Render LIVE deployment are now the same commit `0d463a467260810879eb2143a3c56e387367e852`.
 
 Therefore:
 
-- repository state = current `main` HEAD evidence;
-- production state = last independently recorded LIVE commit;
-- equivalence between them = **NOT VERIFIED in this audit environment**.
+- repository state = current `main` HEAD `0d463a4…`;
+- production state = Render deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA;
+- repository/production equivalence = **CONFIRMED** at this checkpoint;
+- current Production Smoke success = **NOT VERIFIED**, because the matching workflow-run executions were skipped/cancelled rather than completed successfully.
 
-This distinction is mandatory under the non-regression/evidence rule.
+This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
 
 ## 11. Decisions confirmed this cycle
 
