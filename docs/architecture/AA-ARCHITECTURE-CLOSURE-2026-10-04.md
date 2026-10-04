@@ -67,7 +67,7 @@ Vercel and Netlify remain excluded from the operational production chain.
 2. Enable Supabase Leaked Password Protection through authorized Supabase project configuration.
 3. Complete/verify operational resilience controls: rollback, backup/restore, RTO/RPO and incident response.
 4. Synchronize any remaining historical Prompt 02 references with the current CSS/Render architectural decisions.
-5. Reconcile the Supabase production migration history (23 recorded migrations) with the repository migration inventory (21 files), using authoritative schema/migration evidence rather than filename inference.
+5. Preserve and maintain the migration reconciliation manifest; future migration changes must retain one-to-one traceability for newly introduced versions.
 
 ## Non-regression rule
 
