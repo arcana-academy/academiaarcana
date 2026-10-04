@@ -18,6 +18,7 @@ import { getProgression } from "@/domains/gamification";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { selfAssessmentEvidenceStateLabel, objectiveEvidenceStateLabel } from "@/lib/education/evidence-state-copy";
 import { createClient } from "@/lib/supabase/server";
 
 /** Returns the current UTC calendar day used by persisted gamification missions. */
@@ -263,7 +264,7 @@ function EvidenceSection({ educational }: { educational: EducationalOverview }) 
               <div>
                 <strong>{entry.pageTitle}</strong>
                 <p>
-                  {entry.state} · {percent(entry.score)} · {entry.attemptCount} tentativa(s) · fonte: autoavaliação
+                  {selfAssessmentEvidenceStateLabel(entry.state)} · {percent(entry.score)} · {entry.attemptCount} tentativa(s) · fonte: autoavaliação
                 </p>
                 <span className="aa-state-copy">{entry.reason}</span>
               </div>
@@ -301,7 +302,7 @@ function ObjectiveEvidenceSection({
               <div>
                 <strong>{entry.pageTitle}</strong>
                 <p>
-                  {entry.state} · {entry.passingAttemptCount}/{entry.minimumEvidence} aprovações ·{" "}
+                  {objectiveEvidenceStateLabel(entry.state)} · {entry.passingAttemptCount}/{entry.minimumEvidence} aprovações ·{" "}
                   {entry.attemptCount} tentativa(s) · fonte: critério explícito
                 </p>
                 <span className="aa-state-copy">{entry.reason}</span>
