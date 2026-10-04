@@ -9,7 +9,7 @@ This document is the operational companion to the conceptual architecture specif
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
 **Repository HEAD verified for this sync:** `0d463a467260810879eb2143a3c56e387367e852`
-**Latest Render LIVE verification at this sync:** deploy `dep-db16h4dg1s2s739ajp30` for commit `6cf8fcb17875eced828fc799f42c50a037515ae0`
+**Latest Render LIVE verification at this sync:** deploy `dep-db16kiff3r2c73bm9cs0` for commit `9910960508d6e95cc7a42d6cb39686d4a0530825`
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
 
@@ -28,9 +28,9 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The previously recorded production snapshot is superseded by the current verified Render state. At the time of this synchronization, repository `main` was observed at commit `6cf8fcb17875eced828fc799f42c50a037515ae0`, while Render LIVE was verified at commit `d66b7764ea439d160c4af7652f59e8f0738e17d4` in deploy `dep-db0rk9gjo6nc739v4ekg`.
+The current synchronization observes repository `main` at commit `0d463a467260810879eb2143a3c56e387367e852`. Render has independently verified deploy `dep-db16kiff3r2c73bm9cs0` for commit `9910960508d6e95cc7a42d6cb39686d4a0530825` as the latest LIVE revision; a new deployment for `0d463a4…` is now in progress.
 
-The repository HEAD and production revision are therefore **not equivalent at this checkpoint**. The difference is currently represented by a later documentation commit on `main`, so CI/CD and production equivalence for that newer commit must be established independently.
+The repository HEAD and production revision are therefore **not yet equivalent at this checkpoint**. The `0d463a4…` Quality Gate has completed successfully; Render production equivalence remains pending until the current deployment reaches LIVE.
 
 The earlier audit records and the `393b841e34bf524518aa5ab886415fece7994ea8` deployment are historical evidence. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
