@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  evidenceConfidenceLabel,
   objectiveEvidenceStateLabel,
+  practiceOutcomeLabel,
   selfAssessmentEvidenceStateLabel,
 } from "./evidence-state-copy";
 
@@ -25,5 +27,15 @@ describe("education evidence state copy", () => {
     expect(selfAssessmentEvidenceStateLabel("strong-evidence")).toBe(
       "Autoavaliação forte",
     );
+  });
+
+  it("localizes retrieval outcomes and confidence levels", () => {
+    expect(practiceOutcomeLabel("strong")).toBe("Forte");
+    expect(practiceOutcomeLabel("partial")).toBe("Parcial");
+    expect(practiceOutcomeLabel("insufficient")).toBe("Insuficiente");
+
+    expect(evidenceConfidenceLabel("strong")).toBe("Alta");
+    expect(evidenceConfidenceLabel("partial")).toBe("Parcial");
+    expect(evidenceConfidenceLabel("insufficient")).toBe("Insuficiente");
   });
 });
