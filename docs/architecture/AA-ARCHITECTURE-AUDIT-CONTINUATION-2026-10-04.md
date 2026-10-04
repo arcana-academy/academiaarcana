@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Repository `main` state inspected during the current corrective cycle: `5520dae90bd4b38dd5521172b43a6cec039134c4`
+Repository `main` state inspected during the current corrective cycle: `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The current `main` is `5520dae90bd4b38dd5521172b43a6cec039134c4`. The post-merge Quality Gate for this SHA completed successfully, as did CodeQL, Database Tests, Gitleaks and Scorecard. Production Smoke run `37215288969` completed successfully for this SHA and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. Current Render revision is not independently verified in this cycle.
+The audit distinguishes repository state from production state. The current `main` is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. The post-merge Quality Gate `37218290549` completed successfully, as did CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully for this SHA and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The Smoke health check also asserted the exact production revision. Render control-plane metadata was not independently re-read in this cycle.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The current `main` revision `5520dae…` has successful Quality Gate `37215062435`, CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385`. Production Smoke `37215288969` for this SHA completed successfully; current post-deploy smoke success is **CONFIRMED** and the public runtime revision matches the repository SHA. Render control-plane metadata was not independently re-read in this cycle.
+The current `main` revision `d04f83c…` has successful Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully; current post-deploy smoke success is **CONFIRMED** and the public runtime revision matches the repository SHA. Render control-plane metadata was not independently re-read in this cycle.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -161,11 +161,11 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The current repository `main` revision is `5520dae90bd4b38dd5521172b43a6cec039134c4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
+The current repository `main` revision is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
 
 Therefore:
 
-- repository state = current `main` HEAD `5520dae…`;
+- repository state = current `main` HEAD `d04f83c…`;
 - public production runtime revision = `5520dae…` by exact `/api/health` assertion;
 - repository/runtime equivalence = **CONFIRMED** at the application-runtime level;
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
