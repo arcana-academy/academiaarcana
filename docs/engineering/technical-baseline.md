@@ -115,7 +115,7 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 ### Migration history reconciliation
 
-The repository contains the seven application migrations represented by the current production migration history:
+The current remote Supabase migration history contains 23 applied migrations as independently observed during the 2026-10-04 audit:
 
 - 20260915181306_remote_schema
 - 20260921174822_revoke_excess_authenticated_table_privileges
@@ -133,6 +133,13 @@ The repository contains the seven application migrations represented by the curr
 - 20260929201757_feedback_hub_permissions
 - 20260929202937_feedback_hub_require_authenticated_owner
 - 20260929220739_revoke_excess_external_document_source_privileges
+- 20261002010057_educational_core_p1
+- 20261002010448_educational_core_p1_fk_indexes
+- 20261002010809_educational_core_p1_atomic_attempt
+- 20261002012618_revoke_direct_educational_attempt_insert
+- 20261002012742_harden_educational_attempt_rpc_security
+- 20261002135336_harden_p1_attempt_rpc_exposure
+- 20261002190600_p1_5_objective_evidence_v1
 
 The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
 
@@ -140,7 +147,7 @@ The production migration history was freshly verified. Supabase registered the l
 
 ## Known security state
 
-Current Supabase Security Advisor evidence reports one warning: leaked-password protection is disabled. This feature is plan-gated by Supabase and is intentionally not enabled while the project remains on the current no-cost setup. The Performance Advisor reports unused-index INFO findings; these are not treated as defects because the product tables are currently empty and the indexes are part of the intended query paths.
+Current Supabase Security Advisor evidence reports one warning: leaked-password protection is disabled. The connected Supabase organization is currently on the free tier, so the setting remains an external project-configuration dependency rather than an application-code defect. The current public schema has 15 tables, and all 15 were observed with RLS enabled. The Performance Advisor reports 15 unused-index INFO findings; these are not treated as defects or removed automatically because the tables currently contain no rows and the indexes correspond to intended query paths.
 
 ## Observability configuration
 
