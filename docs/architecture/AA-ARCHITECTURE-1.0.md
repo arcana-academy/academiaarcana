@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `4e25a0e097ccdc0e28da3607e757d0d4d4e718fb`
-**Latest live runtime verification:** Render deploy `dep-db0q5hojo6nc739u3h7g` for commit `7124e7265e311c4c36e72dfe74f71891de6f76eb`
+**Operational snapshot commit:** `393b841e34bf524518aa5ab886415fece7994ea8`
+**Latest live runtime verification:** Render deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
 Status vocabulary:
@@ -751,13 +751,25 @@ The current repository architecture is the operationally verified implementation
 
 The Prompt 02 wording that still lists Tailwind CSS must be synchronized by Chat 00 so that the governance text and implementation do not describe competing architectural baselines.
 
-The 2026-10-03 architecture audit records this reconciliation and the remaining external Supabase Auth security configuration dependency.
+The architecture audit records this reconciliation and the remaining external Supabase Auth security configuration dependency. Current release-chain verification is tracked separately under AA-ARCH-004.
 
 Architecture decision: **AA-ARCH-002**.
 
 State: **APROVADA PARA SINCRONIZAÇÃO DOCUMENTAL**.
 
-### 24.3 Historical document precedence — AA-ARCH-003
+### 24.3 Delivery-chain revalidation — AA-ARCH-004
+
+The current Render service is configured with `autoDeployTrigger: checksPass` and has successfully promoted commit `393b841e34bf524518aa5ab886415fece7994ea8` to LIVE via a `new_commit` deployment. Render build logs confirm checkout of that exact commit, successful production build, TypeScript completion, application startup and the presence of the health/readiness, public and integration route surface.
+
+This evidence disproves a permanent promotion deadlock. The Production Smoke workflow was also directly verified for this SHA: run #300 completed successfully, with the production alias, `/api/health` revision, `/api/ready` Supabase readiness, public routes, CSP nonce and integration-status contract all passing. Later `workflow_run` events for the same SHA were redundant/skipped and do not invalidate the successful Smoke run. The release-chain state is therefore **OPERATIONALLY VALIDATED** for this SHA.
+
+No change to `checksPass` is authorized by this reconciliation alone. Any change to the promotion architecture requires an explicit architecture decision.
+
+Architecture decision: **AA-ARCH-004**.
+
+State: **CONFIRMADO + VALIDADO**.
+
+### 24.4 Historical document precedence — AA-ARCH-003
 
 Documents under `docs/superpowers/plans/`, `docs/superpowers/specs/` and other explicitly historical/strategic records may preserve technology assumptions that existed when they were written.
 
@@ -781,7 +793,7 @@ The architecture baseline is now considered **structurally consolidated for the 
 
 The previously open architectural boundary questions have explicit resolutions in code and/or this document.
 
-The remaining work is primarily **product implementation, integration implementation, validation and future evolution**, not redefinition of the architectural foundation. A separate operational security configuration remains outside this document's implementation scope: Supabase Auth Leaked Password Protection must be enabled before the broader security program is declared fully closed.
+The architecture foundation is structurally consolidated for the current product scope. Current operational validation has additionally confirmed successful Render promotion of `393b841e...`, production startup, and a successful post-deploy Production Smoke run covering the release contract. The five High findings reported by the full `npm ci` install were triaged as development-toolchain risk and the production-only audit passed; the tracking issue #498 is closed. A separate Supabase Auth configuration remains external to this document's implementation scope.
 
 Canonical operational loop:
 
