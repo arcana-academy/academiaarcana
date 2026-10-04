@@ -2,8 +2,15 @@
  * Sanctuary Domain Contracts
  * Following the canonical hierarchy and domain-driven design principles.
  */
-import type { Grimoire, Notebook, Chapter, Page } from "@/domains/learning";
+import type {
+  Chapter,
+  Grimoire,
+  Notebook,
+  Page,
+  PageProgressStatus,
+} from "@/domains/learning";
 import type { AdaptiveRecommendation } from "@/domains/adaptive";
+import type { MissionStatus } from "@/domains/gamification";
 
 export type SanctuaryPage = Pick<Page, "id" | "chapterId" | "title" | "position">;
 
@@ -18,6 +25,51 @@ export type SanctuaryNotebook = Pick<Notebook, "id" | "grimoireId" | "title" | "
 export type SanctuaryGrimoire = Pick<Grimoire, "id" | "ownerId" | "title" | "icon" | "cover"> & {
   notebooks: SanctuaryNotebook[];
 };
+
+/**
+ * Minimal cross-domain projections consumed by Sanctuary.
+ * They intentionally expose only the fields needed to assemble the read-side
+ * Sanctuary view model; producer-domain ownership remains unchanged.
+ */
+export type SanctuaryProgressProjection = {
+  pageId: string;
+  status: PageProgressStatus;
+};
+
+export type SanctuaryTaskProjection = {
+  id: string;
+  title: string;
+  dueAt: string | null;
+};
+
+export type SanctuaryMissionProjection = {
+  id: string;
+  title: string;
+  rewardXp: number;
+  status: MissionStatus;
+};
+
+/**
+ * Consumer-owned read port for the Sanctuary aggregate.
+ * Infrastructure adapters may compose producer repositories behind this port,
+ * but Sanctuary never receives their concrete implementations.
+ */
+export interface SanctuaryProjectionPort {
+  getLearningHierarchy(): Promise<SanctuaryGrimoire[]>;
+  getPageProgress?(
+    ownerId: string,
+    pageIds: string[],
+  ): Promise<SanctuaryProgressProjection[]>;
+  listUpcomingStudyTasks?(
+    ownerId: string,
+    now: string,
+    limit?: number,
+  ): Promise<SanctuaryTaskProjection[]>;
+  listDailyMissions?(
+    ownerId: string,
+    targetDate: string,
+  ): Promise<SanctuaryMissionProjection[]>;
+}
 
 export type FeatureAvailability = "available" | "empty" | "not-configured";
 

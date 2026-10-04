@@ -8,19 +8,17 @@ import {
   resolveProgressAvailability,
 } from "@/domains/sanctuary";
 
-import type { SanctuaryGrimoire, SanctuaryUser, SanctuaryViewModel } from "@/domains/sanctuary";
-import type { PageProgress } from "@/domains/learning";
-import type { StudyTask } from "@/domains/planning";
-import type { Mission } from "@/domains/gamification";
+import type {
+  SanctuaryGrimoire,
+  SanctuaryMissionProjection,
+  SanctuaryProgressProjection,
+  SanctuaryProjectionPort,
+  SanctuaryTaskProjection,
+  SanctuaryUser,
+  SanctuaryViewModel,
+} from "@/domains/sanctuary";
 
 export type SanctuarySessionContext = { user: SanctuaryUser };
-
-export type SanctuaryRepository = {
-  getLearningHierarchy: () => Promise<SanctuaryGrimoire[]>;
-  getPageProgress?: (ownerId: string, pageIds: string[]) => Promise<PageProgress[]>;
-  listUpcomingStudyTasks?: (ownerId: string, now: string, limit?: number) => Promise<StudyTask[]>;
-  listDailyMissions?: (ownerId: string, targetDate: string) => Promise<Mission[]>;
-};
 
 const WORKSPACE_TREE_HREF = "/workspace?view=tree";
 const WORKSPACE_HREF = WORKSPACE_TREE_HREF + "#current";
@@ -46,7 +44,7 @@ function grimoiresPageIds(grimoire: SanctuaryGrimoire): string[] {
   );
 }
 
-function resolveProgressSummary(grimoires: SanctuaryGrimoire[], progress: PageProgress[]): SanctuaryViewModel["progress"] {
+function resolveProgressSummary(grimoires: SanctuaryGrimoire[], progress: SanctuaryProgressProjection[]): SanctuaryViewModel["progress"] {
   const totalPages = collectPageIds(grimoires).length;
   if (totalPages === 0) return { status: "empty", data: null };
   const completedPages = progress.filter((item) => item.status === "completed").length;
@@ -59,7 +57,7 @@ function resolveProgressSummary(grimoires: SanctuaryGrimoire[], progress: PagePr
   };
 }
 
-function mapSchedule(tasks: StudyTask[]): SanctuaryViewModel["schedule"] {
+function mapSchedule(tasks: SanctuaryTaskProjection[]): SanctuaryViewModel["schedule"] {
   if (tasks.length === 0) return { status: "empty", data: null };
   return {
     status: "ready",
@@ -73,7 +71,7 @@ function mapSchedule(tasks: StudyTask[]): SanctuaryViewModel["schedule"] {
   };
 }
 
-function mapMissions(missions: Mission[]): SanctuaryViewModel["missions"] {
+function mapMissions(missions: SanctuaryMissionProjection[]): SanctuaryViewModel["missions"] {
   if (missions.length === 0) return { status: "empty", data: null };
   return {
     status: "ready",
@@ -86,7 +84,7 @@ function mapMissions(missions: Mission[]): SanctuaryViewModel["missions"] {
   };
 }
 
-export async function getSanctuary(repository: SanctuaryRepository, sessionContext: SanctuarySessionContext): Promise<SanctuaryViewModel> {
+export async function getSanctuary(repository: SanctuaryProjectionPort, sessionContext: SanctuarySessionContext): Promise<SanctuaryViewModel> {
   let grimoires: SanctuaryGrimoire[] = [];
   try { grimoires = await repository.getLearningHierarchy(); } catch { grimoires = []; }
 

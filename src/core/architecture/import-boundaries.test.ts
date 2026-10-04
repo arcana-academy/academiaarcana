@@ -257,6 +257,33 @@ describe("architecture import boundaries", () => {
     expect(violations).toEqual([]);
   });
 
+  it("keeps one canonical consumer-owned projection port for Sanctuary", () => {
+    const duplicateInfrastructureContract = resolve(
+      srcRoot,
+      "infrastructure/sanctuary/sanctuary-repository.ts",
+    );
+    const applicationFile = resolve(
+      srcRoot,
+      "application/sanctuary/get-sanctuary.ts",
+    );
+    const adapterFile = resolve(
+      srcRoot,
+      "infrastructure/sanctuary/supabase-sanctuary-repository.ts",
+    );
+
+    expect(existsSync(duplicateInfrastructureContract)).toBe(false);
+    expect(importSpecifiers(readFileSync(applicationFile, "utf8"))).toContain(
+      "@/domains/sanctuary",
+    );
+
+    const adapterSource = readFileSync(adapterFile, "utf8");
+    expect(importSpecifiers(adapterSource)).toContain("@/domains/sanctuary");
+    expect(adapterSource).toContain(
+      "implements SanctuaryProjectionPort",
+    );
+    expect(adapterSource).not.toContain("./sanctuary-repository");
+  });
+
   it("does not let barrel exports expose infrastructure or presentation details", () => {
     const violations: string[] = [];
 
