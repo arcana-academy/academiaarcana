@@ -34,12 +34,12 @@ This document defines the currently supported development and build baseline for
 
 | Technology | Baseline |
 |---|---:|
-| Next.js | 16.3.6 |
+| Next.js | 16.3.8 |
 | React | 19.3.0 |
 | React DOM | 19.3.0 |
 | TypeScript | 5.9.3 |
 | ESLint | 9.39.5 |
-| eslint-config-next | 16.3.5 |
+| eslint-config-next | 16.3.8 |
 | typescript-eslint | 8.70.0 (resolved transitively by eslint-config-next) |
 | Vitest | 4.1.11 |
 | Testing Library React | 16.3.3 |
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The validated code snapshot at commit `c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
+The validated code snapshot at the current `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,7 +85,7 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-For the validated baseline snapshot (`c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`):
+For the current `main` snapshot (`393b841e34bf524518aa5ab886415fece7994ea8`):
 
 - PR #290 authentication callback hardening is integrated.
 - The Next.js security patch to 16.3.6 is integrated.
@@ -97,9 +97,7 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Render
 
-The validated production snapshot associated with this baseline is deployment `dpl_F8G5MrgYSa6t3uwbnJ4MWFGD8nGp`, generated from commit `c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`.
-
-The deployment was `READY`, and the repository's Production Smoke workflow completed successfully for the same commit.
+The current production snapshot is Render deployment `dep-db0qg28ae00c73et8nug`, generated from commit `393b841e34bf524518aa5ab886415fece7994ea8`. The deployment is `LIVE` and the Render service uses the canonical `checksPass` trigger.
 
 The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
