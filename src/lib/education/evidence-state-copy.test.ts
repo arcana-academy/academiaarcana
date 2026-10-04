@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   evidenceConfidenceLabel,
+  objectiveEvidenceScopeLabel,
   objectiveEvidenceStateLabel,
   practiceOutcomeLabel,
   selfAssessmentEvidenceStateLabel,
@@ -26,6 +27,12 @@ describe("education evidence state copy", () => {
     );
     expect(selfAssessmentEvidenceStateLabel("strong-evidence")).toBe(
       "Autoavaliação forte",
+    );
+  });
+
+  it("localizes objective evidence scope", () => {
+    expect(objectiveEvidenceScopeLabel("practice-item")).toBe(
+      "atividade objetiva",
     );
   });
 
