@@ -1,12 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { SanctuaryRepository, SanctuaryGrimoire, SanctuaryNotebook, SanctuaryChapter, SanctuaryPage } from "./sanctuary-repository";
+import type {
+  SanctuaryMissionProjection,
+  SanctuaryProgressProjection,
+  SanctuaryRepository,
+  SanctuaryTaskProjection,
+} from "@/application/sanctuary/sanctuary-repository";
+import type { SanctuaryGrimoire, SanctuaryNotebook, SanctuaryChapter, SanctuaryPage } from "@/domains/sanctuary";
 import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
-import type { PageProgress } from "@/domains/learning";
-import type { StudyTask } from "@/domains/planning";
-import type { Mission } from "@/domains/gamification";
 
 type PageRow = { id: string; chapter_id: string; title: string; position: number };
 type ChapterRow = { id: string; notebook_id: string; title: string; position: number; pages: PageRow[] };
@@ -42,9 +45,20 @@ export class SupabaseSanctuaryRepository implements SanctuaryRepository {
     return (data ?? []).map(this.toGrimoire);
   }
 
-  getPageProgress(ownerId: string, pageIds: string[]): Promise<PageProgress[]> { return this.pageProgressRepository.listByPages(ownerId, pageIds); }
-  listUpcomingStudyTasks(ownerId: string, now: string, limit?: number): Promise<StudyTask[]> { return this.studyTaskRepository.listUpcoming(ownerId, now, limit); }
-  listDailyMissions(ownerId: string, targetDate: string): Promise<Mission[]> { return this.gamificationRepository.listDailyMissions(ownerId, targetDate); }
+  async getPageProgress(ownerId: string, pageIds: string[]): Promise<SanctuaryProgressProjection[]> {
+    const progress = await this.pageProgressRepository.listByPages(ownerId, pageIds);
+    return progress.map(({ pageId, status }) => ({ pageId, status }));
+  }
+
+  async listUpcomingStudyTasks(ownerId: string, now: string, limit?: number): Promise<SanctuaryTaskProjection[]> {
+    const tasks = await this.studyTaskRepository.listUpcoming(ownerId, now, limit);
+    return tasks.map(({ id, title, dueAt }) => ({ id, title, dueAt }));
+  }
+
+  async listDailyMissions(ownerId: string, targetDate: string): Promise<SanctuaryMissionProjection[]> {
+    const missions = await this.gamificationRepository.listDailyMissions(ownerId, targetDate);
+    return missions.map(({ id, title, rewardXp, status }) => ({ id, title, rewardXp, status }));
+  }
 
   private toGrimoire = (row: GrimoireRow): SanctuaryGrimoire => ({
     id: row.id, ownerId: row.owner_id, title: row.title,
