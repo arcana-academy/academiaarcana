@@ -8,7 +8,7 @@ This document defines the currently supported development and build baseline for
 
 ## Runtime
 
-**Synchronization note (2026-10-04):** repository `main` is currently observed at `0d463a467260810879eb2143a3c56e387367e852`. The latest Render deployment candidate is `9910960508d6e95cc7a42d6cb39686d4a0530825`; the last independently verified LIVE revision is `6cf8fcb17875eced828fc799f42c50a037515ae0`. These revisions are not equivalent at this checkpoint.
+**Synchronization note (2026-10-04):** repository `main` is currently observed at `0d463a467260810879eb2143a3c56e387367e852`. The latest Render deployment for `0d463a467260810879eb2143a3c56e387367e852` is `dep-db16ma5g1s2s739ap7j0` and is currently building. The last independently verified LIVE revision is `9910960508d6e95cc7a42d6cb39686d4a0530825` in deploy `dep-db16kiff3r2c73bm9cs0`.
 
 - Node.js: `24.x`
 - Local pin file: `.nvmrc` = `24`
@@ -79,7 +79,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The validated code snapshot at commit `393b841e34bf524518aa5ab886415fece7994ea8` is historical. The repository has advanced beyond that snapshot; the current `main` revision must be validated independently rather than inheriting the earlier validation claim.
+The validated historical snapshot at commit `393b841e34bf524518aa5ab886415fece7994ea8` remains historical. The current `main` revision `0d463a467260810879eb2143a3c56e387367e852` has now independently completed the Quality Gate successfully.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -99,7 +99,7 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Render
 
-The last independently verified Render production deployment is `dep-db16h4dg1s2s739ajp30`, generated from commit `6cf8fcb17875eced828fc799f42c50a037515ae0`. A subsequent Render deployment for `9910960508d6e95cc7a42d6cb39686d4a0530825` is in progress. The repository `main` has since advanced to `0d463a4…`; production equivalence for that exact revision is not yet verified.
+The last independently verified LIVE Render deployment is `dep-db16kiff3r2c73bm9cs0`, generated from commit `9910960508d6e95cc7a42d6cb39686d4a0530825`. Render has since started `dep-db16ma5g1s2s739ap7j0` for the current `main` SHA `0d463a467260810879eb2143a3c56e387367e852`; production equivalence for that exact revision remains pending until the build completes and the deploy reaches LIVE.
 
 The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
