@@ -8,7 +8,7 @@ This document defines the currently supported development and build baseline for
 
 ## Runtime
 
-**Synchronization note (2026-10-04):** repository `main` is currently observed at `ec9730ecafc65706bee7d31e6b615fc4614f291c`. The latest observed Render deployment is `dep-db19iooae00c73fafem0`, generated from documentation-only revision `e1db06e997a95e92241253d796a47b77ef068744`, and is LIVE. Repository and production revisions are therefore not equivalent at the current HEAD checkpoint.
+**Synchronization note (2026-10-04):** captured repository `main` revision is `b8f5c1888564af32c62bb03b0abee7576f78a31d`. Render deploy `dep-db19qovf3r2c73bpu910` is LIVE for that revision, and Production Smoke `37225275302` completed successfully with an exact revision assertion. This is a captured evidence checkpoint; later documentation-only commits may advance `main`.
 
 - Node.js: `24.x`
 - Local pin file: `.nvmrc` = `24`
@@ -79,7 +79,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The validated historical snapshot at commit `393b841e34bf524518aa5ab886415fece7994ea8` remains historical. The current `main` revision `ec9730ecafc65706bee7d31e6b615fc4614f291c` has not yet been evidenced as having completed the GitHub Actions Quality Gate; `pre-commit.ci - push` is SUCCESS. The most recent fully validated Quality Gate remains the historical/runtime baseline recorded below.
+The validated historical snapshot at commit `393b841e34bf524518aa5ab886415fece7994ea8` remains historical. Captured revision `b8f5c1888564af32c62bb03b0abee7576f78a31d` completed the GitHub Actions Quality Gate successfully (`37225106299`).
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -99,7 +99,7 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Render
 
-The latest observed LIVE Render deployment is `dep-db19iooae00c73fafem0`, generated from documentation-only revision `e1db06e997a95e92241253d796a47b77ef068744`. Production equivalence with current `main` is not established. The latest complete Production Smoke remains `37218452355` for runtime baseline `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`.
+The captured LIVE Render deployment is `dep-db19qovf3r2c73bpu910`, generated from revision `b8f5c1888564af32c62bb03b0abee7576f78a31d`. Production Smoke `37225275302` completed successfully for the same revision.
 
 The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
