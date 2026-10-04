@@ -1,6 +1,10 @@
 import { baseTokens } from "../tokens/base";
 import type { ThemeId, ThemePreset, ThemeTokens } from "../tokens/types";
 
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+};
+
 export const THEME_IDS: readonly ThemeId[] = [
   "mago-classico",
   "escuro",
@@ -47,7 +51,7 @@ export const THEME_IDS: readonly ThemeId[] = [
 function createPreset(
   id: ThemeId,
   name: string,
-  overrides: Partial<ThemeTokens>,
+  overrides: DeepPartial<ThemeTokens>,
 ): ThemePreset {
   return {
     ...baseTokens,
