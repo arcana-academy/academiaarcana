@@ -8,7 +8,7 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Architecture baseline reference:** `393b841e34bf524518aa5ab886415fece7994ea8`  
+**Architecture baseline reference:** `393b841e34bf524518aa5ab886415fece7994ea8`
 **Current-state audit note:** production/deployment state is time-sensitive and must not be treated as a permanent property of this baseline document. At the audit snapshot, Render was building the current `main` commit `6cf8fcb17875eced828fc799f42c50a037515ae0`; `d66b7764ea439d160c4af7652f59e8f0738e17d4` was the last directly observed LIVE revision.
 
 Status vocabulary:
