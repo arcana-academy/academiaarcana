@@ -1,6 +1,9 @@
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import type { ObjectiveEvidenceProjection } from "@/domains/learning";
-import { objectiveEvidenceStateLabel } from "@/lib/education/evidence-state-copy";
+import {
+  evidenceConfidenceLabel,
+  objectiveEvidenceStateLabel,
+} from "@/lib/education/evidence-state-copy";
 import {
   createObjectiveAssessmentAction,
   submitObjectiveAssessmentAction,
@@ -118,7 +121,7 @@ function ObjectiveAssessmentSession({
             {" · "}
             evidência <strong>{percent(latest.evidenceScore)}</strong>
             {" · "}
-            confiança <strong>{latest.confidence}</strong>.
+            confiança <strong>{evidenceConfidenceLabel(latest.confidence)}</strong>.
           </p>
           <details>
             <summary>Ver sua resposta e a referência</summary>
