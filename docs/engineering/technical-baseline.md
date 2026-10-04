@@ -8,7 +8,7 @@ This document defines the currently supported development and build baseline for
 
 ## Runtime
 
-**Synchronization note (2026-10-04):** repository `main` was independently observed at `6cf8fcb17875eced828fc799f42c50a037515ae0` before the latest documentation sync. Render LIVE was independently observed at `d66b7764ea439d160c4af7652f59e8f0738e17d4`. These revisions are not equivalent at that checkpoint.
+**Synchronization note (2026-10-04):** repository `main` is currently observed at `9910960508d6e95cc7a42d6cb39686d4a0530825`. Render LIVE is independently observed at `6cf8fcb17875eced828fc799f42c50a037515ae0` in deploy `dep-db16h4dg1s2s739ajp30`. These revisions are not equivalent because `main` contains one later documentation-only commit.
 
 - Node.js: `24.x`
 - Local pin file: `.nvmrc` = `24`
@@ -99,7 +99,7 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Render
 
-The currently observed Render production deployment is `dep-db0rk9gjo6nc739v4ekg`, generated from commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`. The deployment is `LIVE` and the Render service uses the canonical `checksPass` trigger. The repository `main` HEAD observed for the current audit is newer and therefore requires separate CI/deployment equivalence verification.
+The currently observed Render production deployment is `dep-db16h4dg1s2s739ajp30`, generated from commit `6cf8fcb17875eced828fc799f42c50a037515ae0`. The deployment is `LIVE` and the Render service uses the canonical `checksPass` trigger. The repository `main` HEAD is `9910960508d6e95cc7a42d6cb39686d4a0530825`, one documentation-only commit newer, and therefore requires separate Quality Gate/deployment equivalence verification.
 
 The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
