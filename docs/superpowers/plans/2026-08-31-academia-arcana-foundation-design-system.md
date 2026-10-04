@@ -472,3 +472,14 @@ No implementation step relies on TBD/TODO/unspecified behavior. Future domains a
 
 ### Type consistency
 `ThemeId`, `ThemeTokens`, `ThemeProvider`, `NavigationItem`, `ActorContext`, `AuthorizationRequest`, and `AuthorizationDecision` are defined before downstream tasks consume them. Flonts receives presentation state only and never infrastructure clients.
+
+
+---
+
+## Canonical completion record — 2026-10-04
+
+This is a historical foundation plan. Its checkbox markers are retained as archival execution history and must not be interpreted as current pending work. The canonical current state is governed by the Architecture/Product decisions and `docs/design-system/AA-DESIGN-SYSTEM-1.0.md`.
+
+For Design System scope, the current implementation supersedes the initial ten-theme contract described in this plan: the registered theme inventory is now governed centrally by `src/design-system/themes/presets.ts`, with a complete semantic token contract, WCAG 2.2 AA regression coverage, synchronized CSS fallback, reduced-motion and focus foundations, and centralized theme application.
+
+**Current authority:** Chat 03 — Design System 1.0.
