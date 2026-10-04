@@ -188,6 +188,19 @@ describe("Academia Arcana theme presets", () => {
   });
 
 
+  test("keeps the focus indicator at or above 3:1 against every theme surface", () => {
+    for (const themeId of THEME_IDS) {
+      const preset = themePresets[themeId];
+
+      for (const surface of Object.values(preset.surfaces)) {
+        expect(
+          contrastRatio(preset.focus.ring, surface),
+          `${themeId}.focus.ring vs ${surface}`,
+        ).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
   test("keeps the default border token at or above 3:1 against every theme surface", () => {
     for (const themeId of THEME_IDS) {
       const preset = themePresets[themeId];
