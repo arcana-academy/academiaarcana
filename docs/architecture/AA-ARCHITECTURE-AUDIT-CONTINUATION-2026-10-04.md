@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The current `main` is `5520dae90bd4b38dd5521172b43a6cec039134c4`. The post-merge Quality Gate for this SHA completed successfully, as did CodeQL, Database Tests, Gitleaks and Scorecard. Production Smoke run `37215288969` for this SHA is in progress. Current Render revision is not independently verified in this cycle.
+The audit distinguishes repository state from production state. The current `main` is `5520dae90bd4b38dd5521172b43a6cec039134c4`. The post-merge Quality Gate for this SHA completed successfully, as did CodeQL, Database Tests, Gitleaks and Scorecard. Production Smoke run `37215288969` completed successfully for this SHA and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. Current Render revision is not independently verified in this cycle.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The current `main` revision `5520dae…` has successful Quality Gate `37215062435`, CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385`. Production Smoke `37215288969` for this SHA is in progress; current post-deploy smoke success and Render LIVE equivalence are **not yet claimed**.
+The current `main` revision `5520dae…` has successful Quality Gate `37215062435`, CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385`. Production Smoke `37215288969` for this SHA completed successfully; current post-deploy smoke success is **CONFIRMED**, while Render LIVE equivalence remains **NOT VERIFIED** until the current Render deployment is independently re-read.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -224,7 +224,7 @@ Corrections applied:
 | P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate `37215062435` SUCCESS** |
 | P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **PENDENTE — current Render revision not independently re-read** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for current `main` | GitHub Actions / Render operational evidence | **PENDENTE — run `37215288969` em andamento; `37215069647` anterior foi skipped** |
+| P1 | Obtain successful Production Smoke evidence for current `main` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37215288969` SUCCESS** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
