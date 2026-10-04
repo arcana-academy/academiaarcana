@@ -761,13 +761,13 @@ State: **APROVADA PARA SINCRONIZAÇÃO DOCUMENTAL**.
 
 The current Render service is configured with `autoDeployTrigger: checksPass` and has successfully promoted commit `393b841e34bf524518aa5ab886415fece7994ea8` to LIVE via a `new_commit` deployment. Render build logs confirm checkout of that exact commit, successful production build, TypeScript completion, application startup and the presence of the health/readiness, public and integration route surface.
 
-This evidence disproves a permanent promotion deadlock, but it does not by itself prove the complete post-deploy Production Smoke contract. The Production Smoke workflow remains a separate verification stage covering `/`, `/api/health`, `/api/ready`, public routes, CSP and integration status. Until a successful post-merge smoke run is directly evidenced for the current release chain, the release-chain state remains **OPERATIONALLY REVALIDATED + SMOKE EVIDENCE PENDING**.
+This evidence disproves a permanent promotion deadlock. The Production Smoke workflow was also directly verified for this SHA: run #300 completed successfully, with the production alias, `/api/health` revision, `/api/ready` Supabase readiness, public routes, CSP nonce and integration-status contract all passing. Later `workflow_run` events for the same SHA were redundant/skipped and do not invalidate the successful Smoke run. The release-chain state is therefore **OPERATIONALLY VALIDATED** for this SHA.
 
 No change to `checksPass` is authorized by this reconciliation alone. Any change to the promotion architecture requires an explicit architecture decision.
 
 Architecture decision: **AA-ARCH-004**.
 
-State: **CONFIRMADO + REVALIDADO; SMOKE PENDENTE**.
+State: **CONFIRMADO + VALIDADO**.
 
 ### 24.4 Historical document precedence — AA-ARCH-003
 
@@ -793,7 +793,7 @@ The architecture baseline is now considered **structurally consolidated for the 
 
 The previously open architectural boundary questions have explicit resolutions in code and/or this document.
 
-The architecture foundation is structurally consolidated for the current product scope. Current operational validation has additionally confirmed successful Render promotion of `393b841e...` and production startup. However, broader operational closure still requires direct evidence of the post-deploy Production Smoke contract, and dependency-security triage remains open after the production build reported five high-severity npm audit findings. A separate Supabase Auth configuration also remains external to this document's implementation scope.
+The architecture foundation is structurally consolidated for the current product scope. Current operational validation has additionally confirmed successful Render promotion of `393b841e...`, production startup, and a successful post-deploy Production Smoke run covering the release contract. The five High findings reported by the full `npm ci` install were triaged as development-toolchain risk and the production-only audit passed; the tracking issue #498 is closed. A separate Supabase Auth configuration remains external to this document's implementation scope.
 
 Canonical operational loop:
 
