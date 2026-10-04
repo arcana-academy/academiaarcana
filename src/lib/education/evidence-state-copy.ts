@@ -38,6 +38,16 @@ export function selfAssessmentEvidenceStateLabel(
   }
 }
 
+/** Maps the objective evidence scope to concise learner-facing copy. */
+export function objectiveEvidenceScopeLabel(
+  scope: ObjectiveEvidenceProjection["validityScope"],
+): string {
+  switch (scope) {
+    case "practice-item":
+      return "atividade objetiva";
+  }
+}
+
 /** Maps internal retrieval outcomes to concise learner-facing copy. */
 export function practiceOutcomeLabel(outcome: PracticeOutcome): string {
   switch (outcome) {
