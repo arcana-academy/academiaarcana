@@ -8,7 +8,7 @@ This document defines the currently supported development and build baseline for
 
 ## Runtime
 
-**Synchronization note (2026-10-04):** repository `main` is currently observed at `0d463a467260810879eb2143a3c56e387367e852`. The latest Render deployment for `0d463a467260810879eb2143a3c56e387367e852` is `dep-db16ma5g1s2s739ap7j0` and is currently building. The last independently verified LIVE revision is `9910960508d6e95cc7a42d6cb39686d4a0530825` in deploy `dep-db16kiff3r2c73bm9cs0`.
+**Synchronization note (2026-10-04):** repository `main` is currently observed at `0d463a467260810879eb2143a3c56e387367e852`. The latest Render deployment for `0d463a467260810879eb2143a3c56e387367e852` is `dep-db16ma5g1s2s739ap7j0` and is LIVE. Repository and production revisions are equivalent at this checkpoint.
 
 - Node.js: `24.x`
 - Local pin file: `.nvmrc` = `24`
@@ -99,7 +99,7 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Render
 
-The last independently verified LIVE Render deployment is `dep-db16kiff3r2c73bm9cs0`, generated from commit `9910960508d6e95cc7a42d6cb39686d4a0530825`. Render has since started `dep-db16ma5g1s2s739ap7j0` for the current `main` SHA `0d463a467260810879eb2143a3c56e387367e852`; production equivalence for that exact revision remains pending until the build completes and the deploy reaches LIVE.
+The latest verified LIVE Render deployment is `dep-db16ma5g1s2s739ap7j0`, generated from the current `main` commit `0d463a467260810879eb2143a3c56e387367e852`. Production equivalence is confirmed. Production Smoke for this SHA was skipped/cancelled and is not claimed as successful.
 
 The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
