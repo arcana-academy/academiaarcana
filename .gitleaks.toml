@@ -1,8 +1,0 @@
-title = "Academia Arcana Gitleaks configuration"
-
-[allowlist]
-description = "Supabase publishable keys are intentionally public client credentials; service-role and secret keys remain subject to scanning."
-regexTarget = "match"
-regexes = [
-  '''sb_publishable_[A-Za-z0-9_]+''',
-]
