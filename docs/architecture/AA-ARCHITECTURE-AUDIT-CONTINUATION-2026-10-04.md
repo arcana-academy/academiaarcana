@@ -224,6 +224,7 @@ Corrections applied:
 | P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate SUCCESS** |
 | P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **RESOLVIDO — deploy `dep-db16ma5g1s2s739ap7j0` LIVE** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
+| P1 | Obtain successful Production Smoke evidence for current `main` after the corrected trigger is promoted | GitHub Actions / Render operational evidence | PENDENTE — branch fix implemented, not yet on `main` |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
