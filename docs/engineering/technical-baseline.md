@@ -113,7 +113,7 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 ### Migration history reconciliation
 
-The repository currently contains the 23 application migrations represented by the current production migration history:
+The current production migration history contains 23 application migrations. The `main` repository contains 21 migration files. These inventories are not identical and must not be presented as if they were.
 
 - 20260915181306_remote_schema
 - 20260921174822_revoke_excess_authenticated_table_privileges
@@ -138,6 +138,8 @@ The repository currently contains the 23 application migrations represented by t
 - 20261002012742_harden_educational_attempt_rpc_security
 - 20261002135336_harden_p1_attempt_rpc_exposure
 - 20261002190600_p1_5_objective_evidence_v1
+
+The production history contains five versions that are not present as files on `main`: `20260929124554_product_social_focus`, `20260929142350_harden_friend_connection_updates`, `20260929201711_feedback_hub`, `20260929201757_feedback_hub_permissions`, and `20260929202937_feedback_hub_require_authenticated_owner`. The repository instead contains three differently versioned migration files for related Focus/Social and Feedback Hub work: `20260929153000_focus_social_foundation`, `20260929202000_feedback_hub`, and `20260929210000_feedback_hub_require_authenticated_owner`. Git history inspection found no historical repository paths for the five production-only filenames. This is a migration-history/reproducibility discrepancy, not evidence that the production schema is incorrect. It requires controlled reconciliation from authoritative migration/schema evidence; missing SQL must not be reconstructed from filenames alone.
 
 The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
 
