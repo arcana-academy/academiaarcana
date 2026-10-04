@@ -1,7 +1,9 @@
 import type {
+  EvidenceConfidence,
   EvidenceProjection,
   ObjectiveEvidenceProjection,
 } from "@/domains/learning";
+import type { PracticeOutcome } from "@/domains/education";
 
 /** Maps internal objective-evidence states to learner-facing semantic labels. */
 export function objectiveEvidenceStateLabel(
@@ -33,5 +35,29 @@ export function selfAssessmentEvidenceStateLabel(
       return "Autoavaliação em consolidação";
     case "strong-evidence":
       return "Autoavaliação forte";
+  }
+}
+
+/** Maps internal retrieval outcomes to concise learner-facing copy. */
+export function practiceOutcomeLabel(outcome: PracticeOutcome): string {
+  switch (outcome) {
+    case "strong":
+      return "Forte";
+    case "partial":
+      return "Parcial";
+    case "insufficient":
+      return "Insuficiente";
+  }
+}
+
+/** Maps evidence-confidence codes without implying educational mastery. */
+export function evidenceConfidenceLabel(confidence: EvidenceConfidence): string {
+  switch (confidence) {
+    case "strong":
+      return "Alta";
+    case "partial":
+      return "Parcial";
+    case "insufficient":
+      return "Insuficiente";
   }
 }
