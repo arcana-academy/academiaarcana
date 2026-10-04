@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Repository `main` state inspected at the start of the current corrective cycle: `6cf8fcb17875eced828fc799f42c50a037515ae0`
+Repository `main` state inspected during the current corrective cycle: `0d463a467260810879eb2143a3c56e387367e852`
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. At the start of this cycle, `main` was `6cf8fcb17875eced828fc799f42c50a037515ae0`; subsequent documentation-only corrections advanced `main` further. Render LIVE is currently verified separately at commit `6cf8fcb17875eced828fc799f42c50a037515ae0` in deploy `dep-db16h4dg1s2s739ajp30`. The latest documentation corrections after that deployment are not yet independently verified in production.
+The audit distinguishes repository state from production state. The current `main` is `0d463a467260810879eb2143a3c56e387367e852`. Render has a deployment in progress for `9910960508d6e95cc7a42d6cb39686d4a0530825`; the last independently verified LIVE revision remains `6cf8fcb17875eced828fc799f42c50a037515ae0` in deploy `dep-db16h4dg1s2s739ajp30`. Production equivalence for `0d463a4…` is therefore not yet verified.
 
 ## 2. Verified architectural baseline
 
