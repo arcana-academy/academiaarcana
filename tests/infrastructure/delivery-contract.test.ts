@@ -12,6 +12,16 @@ const root = process.cwd();
 const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("delivery infrastructure contract", () => {
+  it("restricts workflow_run smoke checks to successful Quality Gate runs on main", () => {
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+
+    expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
+    expect(workflow).toContain("types: [completed]");
+    expect(workflow).toContain("    branches:\n      - main");
+    expect(workflow).toContain("    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}");
+    expect(workflow).not.toContain("github.event.workflow_run.head_branch == 'main'");
+  });
+
   it("defines one canonical provider for each infrastructure responsibility", () => {
     const roles = CANONICAL_INFRASTRUCTURE_PROVIDERS.map((item) => item.role);
 
