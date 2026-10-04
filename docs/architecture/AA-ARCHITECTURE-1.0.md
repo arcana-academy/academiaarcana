@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Repository HEAD verified for this sync:** `5520dae90bd4b38dd5521172b43a6cec039134c4`
-**Latest production-runtime verification:** Production Smoke run `37215288969` completed successfully for commit `5520dae90bd4b38dd5521172b43a6cec039134c4`, verifying the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The earlier run `37214051026` remains historical evidence for `294d22710d014401009d1478305f8952eb983d55`. The current Render deploy ID was not independently re-read through the Render connector in this cycle; Production Smoke independently verified the public runtime revision.
+**Repository HEAD verified for this sync:** `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`
+**Latest production-runtime verification:** Production Smoke run `37215288969` completed successfully for commit `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`, verifying the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The earlier run `37214051026` remains historical evidence for `294d22710d014401009d1478305f8952eb983d55`. The current Render deploy ID was not independently re-read through the Render connector in this cycle; Production Smoke independently verified the public runtime revision.
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
 
@@ -28,9 +28,9 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The current synchronization observes repository `main` at commit `5520dae90bd4b38dd5521172b43a6cec039134c4`. Production Smoke run `37215288969` completed successfully for this SHA and is the latest direct production-runtime evidence. The earlier successful smoke run `37214051026` remains historical evidence for `294d227...`.
+The current synchronization observes repository `main` at commit `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke run `37215288969` completed successfully for this SHA and is the latest direct production-runtime evidence. The earlier successful smoke run `37214051026` remains historical evidence for `294d227...`.
 
-For `5520dae...`, Quality Gate run `37215062435`, CodeQL run `37215062407`, Database Tests run `37215062420`, Gitleaks run `37215062375` and Scorecard run `37215062385` have completed successfully. Production Smoke run `37215288969` completed successfully for `5520dae...` and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
+For `d04f83c...`, Quality Gate run `37218290549`, CodeQL run `37218290491`, Database Tests run `37218290493`, Gitleaks run `37218290506` and Scorecard run `37218290478` have completed successfully. Production Smoke run `37218452355` completed successfully for `d04f83c...` and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
 
 The earlier audit records and the `393b841e34bf524518aa5ab886415fece7994ea8` deployment are historical evidence. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
@@ -916,7 +916,7 @@ Open closure gates at this checkpoint:
 
 1. Constitutional reconciliation of Tailwind CSS versus AA-ARCH-001.
 2. Synchronization of the Prompt 02 domain inventory with the canonical `sanctuary` domain.
-3. Successful Production Smoke post-deploy verification for the current `main` revision `5520dae...`. **RESOLVIDO — run `37215288969` SUCCESS, incluindo verificação do revision exato em `/api/health`.**
+3. Successful Production Smoke post-deploy verification for the current `main` revision `d04f83c...`. **RESOLVIDO — run `37215288969` SUCCESS, incluindo verificação do revision exato em `/api/health`.**
 4. Supabase Auth Leaked Password Protection remains an external security configuration dependency. A Supabase security advisor check on 2026-10-04 explicitly reports this control as disabled.
 5. Operational resilience evidence remains required for rollback, backup/restore, RTO/RPO, disaster recovery and incident response.
 6. Authenticated access hardening for `public.integration_credentials` remains a P1 defense-in-depth item; no authorization bypass is currently evidenced.
