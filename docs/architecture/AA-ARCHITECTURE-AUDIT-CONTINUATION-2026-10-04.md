@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Captured `main` revision for this audit checkpoint: `b8f5c1888564af32c62bb03b0abee7576f78a31d` (documentation-only architecture evidence synchronization).
+Captured `main` revision for this audit checkpoint: `8022041c4eb1b80aa97aea7db8b7be5e0a7e979e` (architecture test-only evidence synchronization).
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. For captured revision `b8f5c1888564af32c62bb03b0abee7576f78a31d`, the main Quality Gate `37225106299`, Database Tests `37225106318`, CodeQL `37225106247`, Gitleaks `37225106300` and Scorecard `37225106286` all completed successfully. Render deploy `dep-db19qovf3r2c73bpu910` is LIVE for the same revision, and Production Smoke `37225275302` completed successfully with an exact production revision assertion. Later documentation-only commits may advance `main`; this audit is a captured evidence checkpoint, not a perpetual HEAD claim.
+The audit distinguishes repository state from production state. For captured revision `8022041c4eb1b80aa97aea7db8b7be5e0a7e979e`, the main Quality Gate `37226554183`, Database Tests `37226554114`, CodeQL `37226554200`, Gitleaks `37226554129` and Scorecard `37226554141` all completed successfully. Render deploy `dep-db1a5ig473hc738soqhg` is LIVE for the same revision, and Production Smoke `37226740318` completed successfully with an exact production revision assertion. Later documentation-only commits may advance `main`; this audit is a captured evidence checkpoint, not a perpetual HEAD claim.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-Captured revision `b8f5c188...` has successful main Quality Gate `37225106299`, CodeQL `37225106247`, Database Tests `37225106318`, Gitleaks `37225106300` and Scorecard `37225106286`. Production Smoke `37225275302` completed successfully and the public runtime revision matches the captured SHA.
+Captured revision `8022041c...` has successful main Quality Gate `37226554183`, CodeQL `37226554200`, Database Tests `37226554114`, Gitleaks `37226554129` and Scorecard `37226554141`. Production Smoke `37226740318` completed successfully and the public runtime revision matches the captured SHA.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -161,13 +161,13 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The captured application/runtime revision is `b8f5c1888564af32c62bb03b0abee7576f78a31d`. Production Smoke `37225275302` completed successfully and its health-endpoint assertion matched that exact SHA.
+The captured application/runtime revision is `8022041c4eb1b80aa97aea7db8b7be5e0a7e979e`. Production Smoke `37226740318` completed successfully and its health-endpoint assertion matched that exact SHA.
 
 Therefore:
 
-- repository evidence = captured `main` revision `b8f5c188...` (documentation-only architecture synchronization);
-- public production runtime revision = `b8f5c188...` by exact `/api/health` assertion;
-- application/runtime equivalence = **CONFIRMED** for captured `b8f5c188...`; the deploy and Smoke evidence match the captured repository revision.
+- repository evidence = captured `main` revision `8022041c...` (architecture test-only synchronization);
+- public production runtime revision = `8022041c...` by exact `/api/health` assertion;
+- application/runtime equivalence = **CONFIRMED** for captured `8022041c...`; the deploy and Smoke evidence match the captured repository revision.
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
@@ -212,8 +212,8 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: Quality Gate `37225106299`, CodeQL `37225106247`, Database Tests `37225106318`, Gitleaks `37225106300` and Scorecard `37225106286` are successful for captured revision `b8f5c188...`.
-11. Recorded successful Production Smoke run `37225275302` for captured revision `b8f5c188...`, including exact public runtime revision assertion; Render deploy `dep-db19qovf3r2c73bpu910` is LIVE for the same revision.
+10. Updated CI evidence: Quality Gate `37226554183`, CodeQL `37226554200`, Database Tests `37226554114`, Gitleaks `37226554129` and Scorecard `37226554141` are successful for captured revision `8022041c...`.
+11. Recorded successful Production Smoke run `37226740318` for captured revision `8022041c...`, including exact public runtime revision assertion; Render deploy `dep-db1a5ig473hc738soqhg` is LIVE for the same revision.
 
 ## 13. Remaining high-priority items
 
@@ -221,10 +221,10 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for captured revision `b8f5c188...` | GitHub Actions | **RESOLVIDO — Quality Gate `37225106299` SUCCESS** |
-| P1 | Re-read Render deployment metadata for captured revision | Render operational evidence | **RESOLVIDO — deploy `dep-db19qovf3r2c73bpu910` LIVE for `b8f5c188...`** |
+| P1 | Establish CI/Quality Gate evidence for captured revision `8022041c...` | GitHub Actions | **RESOLVIDO — Quality Gate `37226554183` SUCCESS** |
+| P1 | Re-read Render deployment metadata for captured revision | Render operational evidence | **RESOLVIDO — deploy `dep-db1a5ig473hc738soqhg` LIVE for `8022041c...`** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for captured `main` revision `b8f5c188...` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37225275302` SUCCESS** |
+| P1 | Obtain successful Production Smoke evidence for captured `main` revision `8022041c...` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37226740318` SUCCESS** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
