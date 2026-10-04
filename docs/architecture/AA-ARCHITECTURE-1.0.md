@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `7124e7265e311c4c36e72dfe74f71891de6f76eb`
-**Latest live runtime verification:** Render deploy `dep-db0in8tckfvc73crtog0` for commit `7124e7265e311c4c36e72dfe74f71891de6f76eb`
+**Baseline commit at synchronization:** `4e25a0e097ccdc0e28da3607e757d0d4d4e718fb`
+**Latest live runtime verification:** Render deploy `dep-db0q5hojo6nc739u3h7g` for commit `7124e7265e311c4c36e72dfe74f71891de6f76eb`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
 Status vocabulary:
