@@ -4,7 +4,9 @@
 > Autoridade: Chat 02 — Arquitetura, subordinado à AA-CONSTITUTION-1.0.
 > Repositório: `arcana-academy/academiaarcana`
 > Branch auditada: `main`
-> Commit operacional observado no início da auditoria: `7124e7265e311c4c36e72dfe74f71891de6f76eb`\n> Atualização desta auditoria: `09b2bdbab6f73621ab0a4efc3e6efc15abf5425f` (main)
+> Commit operacional observado no início da auditoria: `7124e7265e311c4c36e72dfe74f71891de6f76eb`  
+> Atualização desta auditoria: `9f6ab53df8cdcb14b2e77a6aa2d6d4f841ad277d` (main)  
+> Estado posterior verificado: `e37daa795a2e3a269184bd2aecf1aa5ca23358ab` (main; ainda não verificado como LIVE no Render).
 > Escopo: arquitetura técnica, boundaries, infraestrutura, CI/CD, Supabase/RLS, segurança arquitetural, contratos e riscos de operação.
 > Método: evidência do repositório + estado real de Render + estado real de Supabase.
 
@@ -16,11 +18,11 @@ A arquitetura operacional atual está **estruturalmente consolidada e em produç
 
 A auditoria encontrou:
 
-- **0 divergências críticas de infraestrutura operacional** entre GitHub, GitHub Actions, Render e Supabase.
+- **0 divergências críticas na topologia de provedores canônicos**, mas existe **1 pendência de alta prioridade na cadeia de promoção**: o issue #497 registra a dependência a ser resolvida entre `checksPass` e o Production Smoke.
 - **15/15 tabelas públicas do produto com RLS habilitado**.
 - **0 privilégios de tabela pública concedidos ao papel `anon`** na amostra auditada.
 - RPCs de produto públicas relevantes operando como **SECURITY INVOKER**; implementações privilegiadas permanecem em schema privado.
-- Deploy atual do Render em estado **live**, usando o repositório GitHub correto, branch `main`, `autoDeployTrigger: checksPass`, build `npm ci && npm run build`, start `npm start` e health check `/api/health`.
+- O último deploy **LIVE comprovado** no Render é o commit `4e25a0e097ccdc0e28da3607e757d0d4d4e718fb`; `main` já avançou além dele e o commit `e37daa795a2e3a269184bd2aecf1aa5ca23358ab` ainda não foi comprovado como LIVE.
 - O Supabase está em estado **ACTIVE_HEALTHY**.
 - O único alerta de segurança externo relevante observado no Supabase Advisor é **Leaked Password Protection desabilitado**. Essa configuração pertence ao serviço de Auth e não possui mutação administrativa exposta pelas ferramentas disponíveis neste fluxo; portanto permanece como **bloqueio operacional externo**, não como defeito estrutural do código.
 
@@ -303,13 +305,15 @@ Estado: **VALIDADO**
 
 Deploy observado como `live`:
 
-- Deploy ID: `dep-db0in8tckfvc73crtog0`
-- Commit: `7124e7265e311c4c36e72dfe74f71891de6f76eb`
-- Mensagem: `docs(architecture): record AA-ARCH-001 CSS stack decision`
+- Deploy ID: `dep-db0q5hojo6nc739u3h7g`
+- Commit: `4e25a0e097ccdc0e28da3607e757d0d4d4e718fb`
+- Mensagem: `test(ds): enforce focus contrast across themes`
+
+A cabeça atual de `main` já está em `e37daa795a2e3a269184bd2aecf1aa5ca23358ab`. A diferença entre `main` e o último deploy LIVE permanece deliberadamente aberta até que a cadeia de promoção seja comprovada.
 
 O serviço atual está operacional segundo o estado informado pelo Render.
 
-Estado: **LIVE + CONFIRMADO**
+Estado: **LIVE + CONFIRMADO (último commit verificado em produção)**
 
 ---
 
