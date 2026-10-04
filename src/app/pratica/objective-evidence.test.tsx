@@ -59,6 +59,8 @@ describe("ObjectiveEvidenceSection", () => {
     );
 
     expect(html).toContain("Avaliações com critério explícito");
+    expect(html).toContain("Não avaliado");
+    expect(html).not.toContain(">unknown<");
     expect(html).not.toContain("Resposta correta");
   });
 
@@ -103,7 +105,8 @@ describe("ObjectiveEvidenceSection", () => {
             minimumEvidence: 2,
             criterionVersion: "1",
             validityScope: "practice-item",
-            reason: "O critério foi satisfeito em 2 tentativa(s), atingindo o mínimo objetivo de 2 para esta atividade.",
+            reason:
+              "O critério foi satisfeito em 2 tentativa(s), atingindo o mínimo objetivo de 2 para esta atividade.",
             masteryConfirmed: true,
           },
         ]}
@@ -111,6 +114,43 @@ describe("ObjectiveEvidenceSection", () => {
     );
 
     expect(html).toContain("Domínio confirmado para esta atividade objetiva.");
+    expect(html).toContain("Confirmado");
+    expect(html).not.toContain(">confirmed<");
     expect(html).toContain("Resposta correta");
+  });
+
+  it("presents conflicting objective evidence without false certainty", () => {
+    const html = renderToStaticMarkup(
+      <ObjectiveEvidenceSection
+        pageId="page-1"
+        items={[item]}
+        attempts={[]}
+        selectedObjectiveItemId={item.id}
+        evidence={[
+          {
+            practiceItemId: item.id,
+            pageId: "page-1",
+            pageTitle: "Anatomia",
+            state: "conflicting",
+            score: 0.5,
+            attemptCount: 2,
+            passingAttemptCount: 1,
+            confidence: "strong",
+            source: "criterion-referenced",
+            criterion: item.criterion,
+            scoringPolicy: "normalized-exact-match",
+            minimumEvidence: 2,
+            criterionVersion: "1",
+            validityScope: "practice-item",
+            reason: "Há evidências conflitantes que impedem uma confirmação automática.",
+            masteryConfirmed: false,
+          },
+        ]}
+      />,
+    );
+
+    expect(html).toContain("Conflitante");
+    expect(html).not.toContain(">conflicting<");
+    expect(html).not.toContain("Domínio confirmado para esta atividade objetiva.");
   });
 });
