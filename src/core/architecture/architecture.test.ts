@@ -47,20 +47,33 @@ describe("Academia Arcana architecture", () => {
 
     const locations = CORE_DOMAINS.map((domain) => {
       const root = sourceRootByDomain[domain];
-      const candidate = resolve(sourceRoot, root, domain, "index.ts");
-      const alternative = resolve(sourceRoot, root, domain, "index.tsx");
+      const canonical = [
+        resolve(sourceRoot, root, domain, "index.ts"),
+        resolve(sourceRoot, root, domain, "index.tsx"),
+      ];
+      const allPossibleBarrels = [
+        resolve(sourceRoot, "core", domain, "index.ts"),
+        resolve(sourceRoot, "core", domain, "index.tsx"),
+        resolve(sourceRoot, "domains", domain, "index.ts"),
+        resolve(sourceRoot, "domains", domain, "index.tsx"),
+      ];
 
       return {
         domain,
         root,
-        files: [candidate, alternative].filter((file) => existsSync(file)),
+        canonicalFiles: canonical.filter((file) => existsSync(file)),
+        allFiles: allPossibleBarrels.filter((file) => existsSync(file)),
       };
     });
 
-    for (const { domain, root, files } of locations) {
+    for (const { domain, root, canonicalFiles, allFiles } of locations) {
       expect(
-        files.length,
+        canonicalFiles.length,
         `Domain ${domain} must expose exactly one public barrel in src/${root}/${domain}.`,
+      ).toBe(1);
+      expect(
+        allFiles.length,
+        `Domain ${domain} must have exactly one barrel across src/core and src/domains.`,
       ).toBe(1);
     }
 
