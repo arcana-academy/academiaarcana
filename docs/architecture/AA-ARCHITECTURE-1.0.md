@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Repository HEAD verified for this sync:** `294d22710d014401009d1478305f8952eb983d55`
-**Latest production-runtime verification at this sync:** Production Smoke run `37214051026` succeeded for commit `294d22710d014401009d1478305f8952eb983d55`. This run verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. A current Render deploy ID was not independently re-read through the Render connector in this sync.
+**Repository HEAD verified for this sync:** `21776a975cf737bb330247962ea94d82e51effed`
+**Latest production-runtime verification:** Production Smoke run `37214051026` succeeded for commit `294d22710d014401009d1478305f8952eb983d55`. The intervening commits `ca818d2e...` and `21776a9...` changed learner-facing UI/documentation only; no new production-runtime smoke evidence has been asserted for `21776a9...`. A current Render deploy ID was not independently re-read through the Render connector in this sync.
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
 
@@ -28,7 +28,7 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The current synchronization observes repository `main` at commit `294d22710d014401009d1478305f8952eb983d55`. Production Smoke run `37214051026` completed successfully for this SHA, providing direct post-deploy runtime evidence for the production alias and the checks listed above.
+The current synchronization observes repository `main` at commit `21776a975cf737bb330247962ea94d82e51effed`. The latest direct production-runtime evidence is Production Smoke run `37214051026` for `294d22710d014401009d1478305f8952eb983d55`; the newer main commits are not represented as new production smoke evidence in this record.
 
 The Quality Gate, CodeQL and Database Tests for this SHA completed successfully. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
 
