@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-Captured revision `b8f5c188...` has successful main Quality Gate `37226554183`, CodeQL `37226554200`, Database Tests `37226554114`, Gitleaks `37226554129` and Scorecard `37226554141`. Production Smoke `37226740318` completed successfully and the public runtime revision matches the captured SHA.
+Captured revision `8022041c... has successful main Quality Gate `37226554183`, CodeQL `37226554200`, Database Tests `37226554114`, Gitleaks `37226554129` and Scorecard `37226554141`. Production Smoke `37226740318` completed successfully and the public runtime revision matches the captured SHA.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -212,8 +212,8 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: Quality Gate `37226554183`, CodeQL `37226554200`, Database Tests `37226554114`, Gitleaks `37226554129` and Scorecard `37226554141` are successful for captured revision `b8f5c188...`.
-11. Recorded successful Production Smoke run `37226740318` for captured revision `b8f5c188...`, including exact public runtime revision assertion; Render deploy `dep-db1a5ig473hc738soqhg` is LIVE for the same revision.
+10. Updated CI evidence: Quality Gate `37226554183`, CodeQL `37226554200`, Database Tests `37226554114`, Gitleaks `37226554129` and Scorecard `37226554141` are successful for captured revision `8022041c....
+11. Recorded successful Production Smoke run `37226740318` for captured revision `8022041c..., including exact public runtime revision assertion; Render deploy `dep-db1a5ig473hc738soqhg` is LIVE for the same revision.
 
 ## 13. Remaining high-priority items
 
@@ -221,7 +221,7 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for captured revision `b8f5c188...` | GitHub Actions | **RESOLVIDO — Quality Gate `37226554183` SUCCESS** |
+| P1 | Establish CI/Quality Gate evidence for captured revision `8022041c... | GitHub Actions | **RESOLVIDO — Quality Gate `37226554183` SUCCESS** |
 | P1 | Re-read Render deployment metadata for captured revision | Render operational evidence | **RESOLVIDO — deploy `dep-db1a5ig473hc738soqhg` LIVE for `b8f5c188...`** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
 | P1 | Obtain successful Production Smoke evidence for captured `main` revision `b8f5c188...` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37226740318` SUCCESS** |
