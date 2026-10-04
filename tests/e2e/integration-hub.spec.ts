@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { CHATGPT_PLUGIN_CATALOG } from "../../src/infrastructure/integrations/chatgpt-plugin-catalog";
+
 test.describe("integration hub", () => {
   test("shows the real integration status with resilient GitHub verification", async ({
     page,
