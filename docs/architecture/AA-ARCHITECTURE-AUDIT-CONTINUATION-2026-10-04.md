@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Current `main` HEAD at the start of this audit checkpoint: `ccc455039903906d9f2083cab6f87a7048ecb71d` (documentation-only descendant of the verified application/runtime baseline).
+Current `main` HEAD at the start of this audit checkpoint: `ec9730ecafc65706bee7d31e6b615fc4614f291c` (documentation-only descendant of the verified application/runtime baseline).
 
 ## 1. Executive result
 
@@ -165,7 +165,7 @@ The fully verified application/runtime baseline remains `d04f83c5b4b7f4210bc9477
 
 Therefore:
 
-- repository state = current `main` HEAD `ccc4550…` (documentation-only descendant);
+- repository state = current `main` HEAD `ec9730...` (documentation-only descendant);
 - public production runtime revision = `d04f83c…` by exact `/api/health` assertion;
 - application/runtime baseline equivalence = **CONFIRMED** for `d04f83c…`; current `main` differs only by audited documentation commits;
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
