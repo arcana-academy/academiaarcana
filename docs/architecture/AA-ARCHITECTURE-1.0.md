@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Last repository revision captured by this architecture evidence:** `e1db06e997a95e92241253d796a47b77ef068744`
-**Latest observed production deployment evidence:** Render deploy `dep-db19iooae00c73fafem0` is `LIVE` for documentation-only commit `e1db06e997a95e92241253d796a47b77ef068744`. The latest full Production Smoke evidence remains run `37218452355` for runtime commit `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. This document intentionally records evidence snapshots rather than claiming that its captured revision is the current branch HEAD. No application-runtime source change is attributed to the documentation-only revisions covered by this evidence chain.
+**Last repository revision captured by this architecture evidence:** `b8f5c1888564af32c62bb03b0abee7576f78a31d`
+**Latest observed production deployment evidence captured by this record:** Render deploy `dep-db19qovf3r2c73bpu910` was `LIVE` for repository revision `b8f5c1888564af32c62bb03b0abee7576f78a31d`. Production Smoke `37225275302` completed successfully for the same revision and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The record is intentionally an evidence snapshot; later documentation-only commits may advance `main` without invalidating this captured runtime evidence. No application-runtime source change is attributed to this evidence synchronization.
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
 
@@ -28,9 +28,9 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The last captured repository revision for this evidence record is `e1db06e997a95e92241253d796a47b77ef068744`. Render deploy `dep-db19iooae00c73fafem0` for that documentation-only revision is LIVE. The latest full Production Smoke evidence remains run `37218452355` for runtime commit `d04f83c...`. The current branch may advance through documentation-only commits; this document must not be interpreted as proof that its own recorded revision is the current branch HEAD.
+The captured repository revision for this evidence record is `b8f5c1888564af32c62bb03b0abee7576f78a31d`. Render deploy `dep-db19qovf3r2c73bpu910` for this revision is LIVE, and Production Smoke `37225275302` completed successfully with an exact production revision assertion. Later documentation-only commits may advance `main`; this record must be read as a captured evidence checkpoint rather than a perpetual HEAD claim.
 
-For `d04f83c...`, Quality Gate run `37218290549`, CodeQL run `37218290491`, Database Tests run `37218290493`, Gitleaks run `37218290506` and Scorecard run `37218290478` have completed successfully. Production Smoke run `37218452355` completed successfully for `d04f83c...` and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
+For captured revision `b8f5c188...`, main Quality Gate run `37225106299`, Database Tests run `37225106318`, CodeQL run `37225106247`, Gitleaks run `37225106300` and Scorecard run `37225106286` completed successfully. Production Smoke run `37225275302` completed successfully for `b8f5c188...` and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
 
 The earlier audit records and the `393b841e34bf524518aa5ab886415fece7994ea8` deployment are historical evidence. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
@@ -916,7 +916,7 @@ Open closure gates at this checkpoint:
 
 1. Constitutional reconciliation of Tailwind CSS versus AA-ARCH-001.
 2. Synchronization of the Prompt 02 domain inventory with the canonical `sanctuary` domain.
-3. Successful Quality Gate and Production Smoke post-deploy verification for the current `main` revision `ec9730ecafc65706bee7d31e6b615fc4614f291c`. **PENDENTE — `pre-commit.ci - push` is SUCCESS, but no GitHub Actions Quality Gate run for this SHA is currently evidenced through the available workflow-run connector; the latest observed Render LIVE deploy remains `dep-db19iooae00c73fafem0` for documentation-only revision `e1db06e997a95e92241253d796a47b77ef068744`; the latest complete Production Smoke remains `37218452355` for runtime revision `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`.**
+3. Successful Quality Gate and Production Smoke post-deploy verification for captured revision `b8f5c188...`. **RESOLVIDO PARA O CHECKPOINT:** main Quality Gate `37225106299` SUCCESS, Database Tests `37225106318` SUCCESS, CodeQL `37225106247` SUCCESS, Gitleaks `37225106300` SUCCESS, Scorecard `37225106286` SUCCESS; Render deploy `dep-db19qovf3r2c73bpu910` LIVE; Production Smoke `37225275302` SUCCESS with exact production revision assertion.
 4. Supabase Auth Leaked Password Protection remains an external security configuration dependency. A Supabase security advisor check on 2026-10-04 explicitly reports this control as disabled.
 5. Operational resilience evidence remains required for rollback, backup/restore, RTO/RPO, disaster recovery and incident response.
 6. Authenticated access hardening for `public.integration_credentials` remains a P1 defense-in-depth item; no authorization bypass is currently evidenced.
