@@ -1,12 +1,8 @@
-import type {
+// Sanctuary's consumer-owned port lives in the application layer.
+// Infrastructure must implement that port rather than define a competing contract.
+export type {
   SanctuaryGrimoire,
   SanctuaryNotebook,
   SanctuaryChapter,
-  SanctuaryPage
+  SanctuaryPage,
 } from "@/domains/sanctuary";
-
-export interface SanctuaryRepository {
-  getLearningHierarchy(): Promise<SanctuaryGrimoire[]>;
-}
-
-export type { SanctuaryGrimoire, SanctuaryNotebook, SanctuaryChapter, SanctuaryPage };
