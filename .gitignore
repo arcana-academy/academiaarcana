@@ -1,0 +1,125 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+
+# Local environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Relatorios locais de lint (artefato, nao versionar)
+lint-report.json
+*-lint.json
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local certificates / secrets
+*.pem
+*.key
+
+# Git worktrees locais
+.worktrees/
+
+# Local environment patterns
+.env*
+
+# .env.example é versionado e deve continuar visivel
+!.env.example
+
+# Diretorios locais de agentes / ferramentas de IA
+.adal/
+.agents/
+.aider-desk/
+.augment/
+.autohand/
+.bob/
+.claude/
+.codeartsdoer/
+.codebuddy/
+.codemaker/
+.codestudio/
+.commandcode/
+.continue/
+.cortex/
+.crush/
+.devin/
+.forge/
+.fx/
+.goose/
+.grok/
+.hermes/
+.iflow/
+.inferencesh/
+.jazz/
+.junie/
+.kimchi/
+.kiro/
+.kode/
+.lingma/
+.mcpjam/
+.minimax/
+.moxby/
+.mux/
+.neovate/
+.ona/
+.openhands/
+.pi/
+.pochi/
+.posit/
+.qoder/
+.qwen/
+.reasonix/
+.roo/
+.rovodev/
+.tabnine/
+.terramind/
+.tinycloud/
+.trae/
+.vibe/
+.windsurf/
+.zcode/
+.zencoder/
+
+# Copias locais / temporarias do projeto
+academiaarcana-clean/
+academiaarcana-recreate-validate-package-*/
+*.zip
+
+# Dados locais e artefatos locais de skills
+# (ancorados na raiz para nao sombrear src/domains/data/)
+/data/
+/skills/
+skills-lock.json

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Selo institucional da Academia Arcana</title>
+  <desc id="desc">Selo circular com portal geométrico, livro aberto e núcleo arcano.</desc>
+  <defs>
+    <linearGradient id="gold" x1="32" y1="32" x2="224" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E1C98E"/>
+      <stop offset=".48" stop-color="#C8A86A"/>
+      <stop offset="1" stop-color="#806334"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="64" y1="48" x2="192" y2="208" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C8A7F4"/>
+      <stop offset="1" stop-color="#704B9D"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <circle cx="128" cy="128" r="116" stroke="url(#gold)" stroke-width="3" opacity=".9"/>
+  <circle cx="128" cy="128" r="103" stroke="#B996EE" stroke-width="1.5" stroke-dasharray="2 9" opacity=".72"/>
+  <circle cx="128" cy="128" r="88" stroke="url(#gold)" stroke-width="1.5" opacity=".56"/>
+
+  <path d="M128 34v15M128 207v15M34 128h15M207 128h15" stroke="#E1C98E" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+
+  <g filter="url(#glow)">
+    <path d="M128 57 154 97 191 103 165 130 173 170 128 149 83 170 91 130 65 103 102 97 128 57Z"
+      stroke="url(#gold)" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="128" cy="128" r="44" stroke="url(#violet)" stroke-width="2"/>
+    <path d="M94 111 128 122 162 111V155C147 149 137 148 128 151 119 148 109 149 94 155V111Z"
+      fill="#120D19" stroke="#E1C98E" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M128 122V151" stroke="#E1C98E" stroke-width="2"/>
+    <path d="M103 120c10 0 17 2 25 7M153 120c-10 0-17 2-25 7" stroke="#B996EE" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
+    <circle cx="128" cy="97" r="5.5" fill="#E1C98E"/>
+    <circle cx="128" cy="128" r="7" fill="#0C0A12" stroke="#C8A86A" stroke-width="2"/>
+    <circle cx="128" cy="128" r="2.5" fill="#E1C98E"/>
+  </g>
+
+  <circle cx="128" cy="28" r="3" fill="#E1C98E"/>
+  <circle cx="228" cy="128" r="3" fill="#E1C98E"/>
+  <circle cx="128" cy="228" r="3" fill="#E1C98E"/>
+  <circle cx="28" cy="128" r="3" fill="#E1C98E"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Marca da Biblioteca</title>
+  <desc id="desc">Símbolo acadêmico de conhecimento formado por um livro aberto e um núcleo arcano.</desc>
+  <defs>
+    <linearGradient id="gold" x1="20" y1="18" x2="76" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E1C98E"/>
+      <stop offset="1" stop-color="#806334"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="28" y1="26" x2="68" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C8A7F4"/>
+      <stop offset="1" stop-color="#704B9D"/>
+    </linearGradient>
+  </defs>
+  <path d="M48 17c-9 0-18 4-25 10v43c7-6 16-9 25-9V17Z" fill="#120D19" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M48 17c9 0 18 4 25 10v43c-7-6-16-9-25-9V17Z" fill="#120D19" stroke="url(#gold)" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M48 27c-6 0-12 2-17 6v22c5-3 11-5 17-5V27Z" fill="url(#violet)" opacity=".22"/>
+  <path d="M48 27c6 0 12 2 17 6v22c-5-3-11-5-17-5V27Z" fill="url(#violet)" opacity=".22"/>
+  <path d="M48 30v18M39 39h18" stroke="#E1C98E" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="48" cy="39" r="5.5" fill="#0C0A12" stroke="#E1C98E" stroke-width="1.8"/>
+  <circle cx="48" cy="39" r="2" fill="#E1C98E"/>
+  <path d="M22 75c8-5 17-7 26-7s18 2 26 7" stroke="#B996EE" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>
+</svg>

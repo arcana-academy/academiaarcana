@@ -1,0 +1,18 @@
+version = 1
+
+[[analyzers]]
+name = "javascript"
+enabled = true
+
+  [analyzers.meta]
+  module_system = "commonjs"
+  dialect = "typescript"
+  environment = ["nodejs", "vitest"]
+  plugins = ["react"]
+
+[[analyzers]]
+name = "sql"
+enabled = true
+
+  [analyzers.meta]
+  tab_space_size = 2

@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Current `main` HEAD at this audit checkpoint: `0ed8524ae479e7d8b7cfbb37cef413ecd8d7228e` (documentation-only descendant of the verified application/runtime baseline).
+Current `main` HEAD at the start of this audit checkpoint: `ccc455039903906d9f2083cab6f87a7048ecb71d` (documentation-only descendant of the verified application/runtime baseline).
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The verified application/runtime baseline remains `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`; current `main` is now `0ed8524ae479e7d8b7cfbb37cef413ecd8d7228e`, with the intervening changes limited to architecture/audit documentation. Render currently has deploy `dep-db19iooae00c73fafem0` building commit `e1db06e997a95e92241253d796a47b77ef068744`. The latest successful Quality Gate/CodeQL/Database/Gitleaks/Scorecard and Production Smoke evidence remains associated with the earlier verified runtime baseline; no fresh claim is made for the current HEAD.
+The audit distinguishes repository state from production state. The verified application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`; `main` subsequently advanced through documentation-only commits. The post-merge Quality Gate `37218290549` completed successfully, as did CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully for this SHA and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The Smoke health check also asserted the exact production revision. Render control-plane metadata was not independently re-read in this cycle.
 
 ## 2. Verified architectural baseline
 
@@ -161,14 +161,14 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The verified application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37218452355` completed successfully for that baseline and its health-endpoint assertion matched the production revision to that exact SHA.
+The verified application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
 
 Therefore:
 
-- repository state = current `main` HEAD `0ed8524…` (documentation-only descendant);
+- repository state = current `main` HEAD `ccc4550…` (documentation-only descendant);
 - public production runtime revision = `d04f83c…` by exact `/api/health` assertion;
 - application/runtime baseline equivalence = **CONFIRMED** for `d04f83c…`; current `main` differs only by audited documentation commits;
-- Render control-plane = **RE-READ**; deploy `dep-db19iooae00c73fafem0` is currently `build_in_progress` for the preceding documentation-only commit `e1db06e…`.
+- Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
 
@@ -221,10 +221,10 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish fresh CI/Quality Gate evidence for the current repository revision | GitHub Actions | **PENDENTE — latest exact-HEAD evidence not yet available** |
-| P1 | Re-read current Render deployment metadata | Render operational evidence | **RESOLVIDO — deploy `dep-db19iooae00c73fafem0` re-read; currently `build_in_progress`** |
+| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate `37215062435` SUCCESS** |
+| P1 | Re-read current Render deployment metadata | Render operational evidence | **PENDENTE — control-plane deploy ID not independently re-read; runtime SHA already confirmed by Production Smoke** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for current `main` | GitHub Actions / Render operational evidence | **PENDENTE — latest successful smoke remains for prior runtime baseline** |
+| P1 | Obtain successful Production Smoke evidence for current `main` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37215288969` SUCCESS** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |

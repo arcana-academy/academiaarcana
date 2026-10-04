@@ -1,0 +1,18 @@
+import { Button, type ButtonProps } from "./button";
+
+export type IconButtonProps = Omit<ButtonProps, "size" | "children" | "aria-label"> & {
+  "aria-label": string;
+  children: ButtonProps["children"];
+};
+
+export function IconButton({ children, className, ...props }: IconButtonProps) {
+  return (
+    <Button
+      {...props}
+      size="md"
+      className={className ? `aa-icon-button ${className}` : "aa-icon-button"}
+    >
+      {children}
+    </Button>
+  );
+}
