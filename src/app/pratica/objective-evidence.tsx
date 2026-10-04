@@ -1,5 +1,6 @@
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import type { ObjectiveEvidenceProjection } from "@/domains/learning";
+import { objectiveEvidenceStateLabel } from "@/lib/education/evidence-state-copy";
 import {
   createObjectiveAssessmentAction,
   submitObjectiveAssessmentAction,
@@ -142,7 +143,7 @@ function ObjectiveAssessmentSession({
         >
           <h3 id="objective-evidence-title">Estado da evidência objetiva</h3>
           <p>
-            Estado: <strong>{evidence.state}</strong>
+            Estado: <strong>{objectiveEvidenceStateLabel(evidence.state)}</strong>
             {" · "}
             {evidence.passingAttemptCount}/{evidence.minimumEvidence} aprovações mínimas
             {" · "}
@@ -221,7 +222,7 @@ export function ObjectiveEvidenceSection({
                 <span>
                   <strong>{item.prompt}</strong>
                   <span className="aa-state-copy">
-                    {entry?.state ?? "unknown"} · mínimo{" "}
+                    {entry ? objectiveEvidenceStateLabel(entry.state) : "Não avaliado"} · mínimo{" "}
                     {item.minimumEvidence ?? 2} aprovações
                   </span>
                 </span>
