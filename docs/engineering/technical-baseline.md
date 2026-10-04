@@ -113,7 +113,7 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 ### Migration history reconciliation
 
-The repository contains the 15 application migrations represented by the current production migration history:
+The repository currently contains the 23 application migrations represented by the current production migration history:
 
 - 20260915181306_remote_schema
 - 20260921174822_revoke_excess_authenticated_table_privileges
@@ -131,6 +131,13 @@ The repository contains the 15 application migrations represented by the current
 - 20260929201757_feedback_hub_permissions
 - 20260929202937_feedback_hub_require_authenticated_owner
 - 20260929220739_revoke_excess_external_document_source_privileges
+- 20261002010057_educational_core_p1
+- 20261002010448_educational_core_p1_fk_indexes
+- 20261002010809_educational_core_p1_atomic_attempt
+- 20261002012618_revoke_direct_educational_attempt_insert
+- 20261002012742_harden_educational_attempt_rpc_security
+- 20261002135336_harden_p1_attempt_rpc_exposure
+- 20261002190600_p1_5_objective_evidence_v1
 
 The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
 
