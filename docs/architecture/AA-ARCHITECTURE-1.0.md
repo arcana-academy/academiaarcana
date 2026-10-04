@@ -283,6 +283,8 @@ src/core/architecture/data-ownership.test.ts
 | public.focus_sessions | table | planning |
 | public.friend_connections | table | social |
 | public.feedback_responses | table | trust |
+| public.educational_practice_items | table | education |
+| public.educational_practice_attempts | table | education |
 | public.integration_credentials | table | infrastructure |
 | public.external_document_sources | table | infrastructure |
 | public.complete_study_task_with_reward | database-rpc | cross-domain |
@@ -669,7 +671,15 @@ The following previously identified items are now closed as architecture decisio
 
 ---
 
-## 21. Items intentionally not promoted to architectural debt
+## 21. Educational persistence reconciliation
+
+The current Supabase schema contains `public.educational_practice_items` and `public.educational_practice_attempts`, both with RLS enabled. Their persistence ownership is **education**, while learner-progress effects remain governed by the learning domain. Educational evidence writes are constrained by the authenticated atomic RPC boundary already represented in the migration history and database tests.
+
+This separation preserves the Learning/Education boundary: Education owns educational practice content/evidence structures; Learning owns learner progress and progression state.
+
+State: **CANÔNICO + IMPLEMENTADO + VALIDADO**.
+
+## 22. Items intentionally not promoted to architectural debt
 
 The following are implementation backlog, not unresolved architectural decisions:
 
@@ -684,7 +694,7 @@ No empty placeholder architecture is required for these items.
 
 ---
 
-## 22. Current risks
+## 23. Current risks
 
 ### Risk: application composition can grow too broad
 
@@ -708,7 +718,7 @@ Controlled by this operational baseline and the architectural tests.
 
 ---
 
-## 23. Canonical rules for future architecture changes
+## 24. Canonical rules for future architecture changes
 
 Every new architecture change must preserve:
 
@@ -725,7 +735,7 @@ Every new architecture change must preserve:
 
 ---
 
-## 24. Canonical infrastructure provider policy
+## 25. Canonical infrastructure provider policy
 
 Each infrastructure responsibility has one canonical platform. A provider with equivalent responsibility must not be introduced as an operational substitute or parallel production path without an explicit architecture decision.
 
@@ -742,7 +752,7 @@ The policy applies to operational architecture. It does not prohibit SaaS tools 
 
 State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
 
-### 24.1 CSS stack resolution — AA-ARCH-001
+### 25.1 CSS stack resolution — AA-ARCH-001
 
 The repository currently implements authored semantic CSS using custom properties and `aa-*` component classes. The `tailwind-merge` package is retained only as a class-name composition utility; Tailwind CSS itself is not installed as an operational dependency.
 
@@ -754,7 +764,7 @@ This remains an **implementation state**, not a valid constitutional removal of 
 
 The implementation should not be changed solely to resolve this documentation conflict until Chat 00 establishes whether the constitutional stack statement remains current or whether AA-ARCH-001 is authorized to supersede it through the proper governance process.
 
-### 24.2 Governance synchronization — AA-ARCH-002
+### 25.2 Governance synchronization — AA-ARCH-002
 
 AA-ARCH-002 exists to prevent a lower-level architecture document from silently redefining a higher-level constitutional stack decision.
 
@@ -769,7 +779,7 @@ Architecture decision: **AA-ARCH-002**.
 
 State: **APROVADA + IMPLEMENTADA COMO GATE DE GOVERNANÇA; RECONCILIAÇÃO FINAL PENDENTE.**
 
-### 24.3 Historical document precedence — AA-ARCH-003
+### 25.3 Historical document precedence — AA-ARCH-003
 
 Documents under `docs/superpowers/plans/`, `docs/superpowers/specs/` and other explicitly historical/strategic records may preserve technology assumptions that existed when they were written.
 
@@ -785,7 +795,7 @@ State: **CANÔNICO + DOCUMENTADO + VALIDADO**, with the current CSS-versus-Tailw
 
 ---
 
-### 24.4 Current Render exclusivity — AA-ARCH-004
+### 25.4 Current Render exclusivity — AA-ARCH-004
 
 **ID:** AA-ARCH-004
 
@@ -811,7 +821,7 @@ State: **CANÔNICO + DOCUMENTADO + VALIDADO**, with the current CSS-versus-Tailw
 **STATUS:** APROVADA + IMPLEMENTADA + VALIDADA.
 
 
-## 25. Current canonical state
+## 26. Current canonical state
 
 **AA-ARCHITECTURE-1.0 = CANÔNICO COMO BASE OPERACIONAL, COM EXCEÇÕES EXPLICITAMENTE RASTREADAS**
 
