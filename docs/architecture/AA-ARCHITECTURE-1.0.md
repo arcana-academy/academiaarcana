@@ -9,7 +9,7 @@ This document is the operational companion to the conceptual architecture specif
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
 **Repository HEAD verified for this sync:** `5520dae90bd4b38dd5521172b43a6cec039134c4`
-**Latest production-runtime verification:** Production Smoke run `37214051026` succeeded for commit `294d22710d014401009d1478305f8952eb983d55`. The intervening commits `ca818d2e...`, `21776a9...` and `5520dae...` changed learner-facing UI/documentation only; no new production-runtime smoke evidence has been asserted for `5520dae...`. The current Render deploy ID was not independently re-read through the Render connector in this sync; Production Smoke independently verified the public runtime revision.
+**Latest production-runtime verification:** Production Smoke run `37215288969` completed successfully for commit `5520dae90bd4b38dd5521172b43a6cec039134c4`, verifying the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The earlier run `37214051026` remains historical evidence for `294d22710d014401009d1478305f8952eb983d55`. The current Render deploy ID was not independently re-read through the Render connector in this cycle. The current Render deploy ID was not independently re-read through the Render connector in this sync; Production Smoke independently verified the public runtime revision.
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
 
