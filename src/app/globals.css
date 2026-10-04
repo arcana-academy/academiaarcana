@@ -192,7 +192,7 @@ a { color: inherit; }
 .aa-field-error { margin: 0; color: var(--aa-status-danger); font-size: 0.875rem; }
 
 .aa-progress { width: 100%; }
-.aa-progress-track { height: 0.625rem; overflow: hidden; border-radius: 999px; background: var(--aa-surfaces-inset); border: 1px solid var(--aa-border-default); }
+.aa-progress-track { height: 0.625rem; overflow: hidden; border-radius: var(--aa-radius-pill); background: var(--aa-surfaces-inset); border: 1px solid var(--aa-border-default); }
 .aa-progress-value { height: 100%; border-radius: inherit; background: var(--aa-accent-primary); transition: width var(--aa-motion-normal) ease; }
 
 .aa-nav-link-active {
