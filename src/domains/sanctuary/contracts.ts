@@ -10,7 +10,6 @@ import type {
   PageProgressStatus,
 } from "@/domains/learning";
 import type { AdaptiveRecommendation } from "@/domains/adaptive";
-import type { StudyTaskStatus } from "@/domains/planning";
 import type { MissionStatus } from "@/domains/gamification";
 
 export type SanctuaryPage = Pick<Page, "id" | "chapterId" | "title" | "position">;
@@ -41,7 +40,6 @@ export type SanctuaryTaskProjection = {
   id: string;
   title: string;
   dueAt: string | null;
-  status: StudyTaskStatus;
 };
 
 export type SanctuaryMissionProjection = {
