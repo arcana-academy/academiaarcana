@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { CHATGPT_PLUGIN_CATALOG } from "../../src/infrastructure/integrations/chatgpt-plugin-catalog";
+
 test.describe("integration hub", () => {
   test("shows the real integration status with resilient GitHub verification", async ({
     page,
@@ -88,13 +90,12 @@ test.describe("integration hub", () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
 
-    expect(body.catalogSize).toBe(120);
+    const expectedCatalogSize = CHATGPT_PLUGIN_CATALOG.length + 2;
+
+    expect(body.catalogSize).toBe(expectedCatalogSize);
     expect(
-      body.connectedCount +
-        body.implementedCount +
-        body.cataloguedCount +
-        body.errorCount,
-    ).toBe(body.catalogSize);
+      body.connectedCount + body.cataloguedCount + body.errorCount,
+    ).toBe(expectedCatalogSize);
     expect([0, 1]).toContain(body.errorCount);
     expect(body.connectedCount + body.errorCount).toBe(1);
 
@@ -131,7 +132,7 @@ test.describe("integration hub", () => {
 
     expect(todoist).toMatchObject({
       name: "Todoist",
-      status: "implemented",
+      status: "catalogued",
       executionMode: "runtime",
       providerId: "todoist",
       capabilities: ["read", "write", "search", "calendar"],
