@@ -6,7 +6,7 @@ export const baseTokens: ThemeTokens = {
     panel: "#211D28",
     elevated: "#2A2432",
     floating: "#30283A",
-    modal: "#352C41",
+    modal: "#322A3C",
     inset: "#141219",
   },
   text: {
