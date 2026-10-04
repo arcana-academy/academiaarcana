@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `4e25a0e097ccdc0e28da3607e757d0d4d4e718fb`
-**Latest live runtime verification:** Render deploy `dep-db0q5hojo6nc739u3h7g` for commit `7124e7265e311c4c36e72dfe74f71891de6f76eb`
+**Baseline commit at synchronization:** `393b841e34bf524518aa5ab886415fece7994ea8`
+**Latest live runtime verification:** Render deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
 Status vocabulary:
@@ -24,6 +24,12 @@ Status vocabulary:
 - **DESCONHECIDO** — insufficient evidence.
 
 ---
+
+## 0. Current-state reconciliation — 2026-10-04
+
+The previously recorded production snapshot is superseded by the current verified Render state. The `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` is currently LIVE in Render deployment `dep-db0qg28ae00c73et8nug`, using the canonical `checksPass` promotion trigger.
+
+The earlier audit records that preceded this deployment are historical evidence and are not the current runtime state. In particular, issue #497 is no longer an active architectural blocker: the current Render deployment demonstrates that the canonical promotion path is operational. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
 ## 1. Architectural model
 
