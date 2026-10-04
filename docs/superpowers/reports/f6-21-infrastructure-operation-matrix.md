@@ -27,7 +27,7 @@
 | Ordenação de páginas | `learning` | Troca persistente de posições vizinhas + estado local imediato | Supabase + Next.js | Auth + RLS existentes | Erro recuperável na UI | Quality Gate completo no PR #257/#258 | **VERIFICADO** |
 | Renomeação da hierarquia | `learning` | Mutations autenticadas para grimórios, notebooks e capítulos | Supabase + Next.js | Auth + RLS | Feedback de salvamento/erro | Quality Gate validado no histórico dos PRs | **VERIFICADO** |
 | Edição/persistência de página | `learning` | `PageEditor` + action server-side + repository | Supabase + Next.js | Auth + RLS | Estado salvo/erro exposto sem detalhes internos | Recuperação via nova tentativa | **VERIFICADO** |
-| CI de qualidade | Contratos arquiteturais e testes | GitHub Actions | Ubuntu + Node 22 + npm | `permissions: contents: read` | Status de workflows/checks | Reexecução de jobs disponível pelo GitHub | **VERIFICADO** |
+| CI de qualidade | Contratos arquiteturais e testes | GitHub Actions | Ubuntu + Node 24 + npm 11.19.1 | `permissions: contents: read` | Status de workflows/checks | Reexecução de jobs disponível pelo GitHub | **VERIFICADO** |
 | Typecheck / lint / unit / a11y / build / E2E | Quality Gate | `.github/workflows/quality.yml` | GitHub Actions + Playwright | Segredos E2E não versionados | Check status por workflow | Falha bloqueia o fluxo de validação | **VERIFICADO** |
 | Code scanning | Segurança do repositório | CodeQL | GitHub Actions | Permissões mínimas | Resultado no PR/commit | Reexecução do workflow | **VERIFICADO** |
 | Secret scanning | Segurança do repositório | Gitleaks + DeepSource Secrets | GitHub / DeepSource | Detecta exposição acidental | Checks por commit/PR | Corrigir antes de merge | **VERIFICADO** |
@@ -45,7 +45,9 @@
 
 ## 3. Runtime e build
 
-O repositório fixa o runtime de desenvolvimento/CI em Node 22 por meio de `.nvmrc` e do workflow de qualidade. O projeto utiliza npm, com `packageManager: npm@11.19.1`.
+**Estado reconciliado:** o baseline operacional atual usa Node `24.x` e npm `11.19.1`. O `.nvmrc`, `package.json`, `package-lock.json` e o workflow atual de Quality Gate convergem para Node 24 + npm 11.19.1.
+
+Qualquer menção a Node 22 nesta matriz pertence a ciclos históricos anteriores e não deve ser usada como especificação atual.
 
 O pipeline de qualidade executa, nesta ordem:
 
