@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The fully verified baseline `d04f83c…` has successful Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully and the public runtime revision matches that baseline SHA. For current HEAD `ec9730...`, only `pre-commit.ci - push` is presently observed as successful; a current GitHub Actions Quality Gate run and corresponding current Production Smoke are not yet evidenced.
+Captured revision `b8f5c188...` has successful main Quality Gate `37225106299`, CodeQL `37225106247`, Database Tests `37225106318`, Gitleaks `37225106300` and Scorecard `37225106286`. Production Smoke `37225275302` completed successfully and the public runtime revision matches the captured SHA.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -222,7 +222,7 @@ Corrections applied:
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
 | P1 | Establish CI/Quality Gate evidence for captured revision `b8f5c188...` | GitHub Actions | **RESOLVIDO — Quality Gate `37225106299` SUCCESS** |
-| P1 | Re-read current Render deployment metadata for current HEAD | Render operational evidence | **PENDENTE — latest observed LIVE is `dep-db19io...` for `e1db06e...`; no current-HEAD deploy observed** |
+| P1 | Re-read Render deployment metadata for captured revision | Render operational evidence | **RESOLVIDO — deploy `dep-db19qovf3r2c73bpu910` LIVE for `b8f5c188...`** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
 | P1 | Obtain successful Production Smoke evidence for captured `main` revision `b8f5c188...` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37225275302` SUCCESS** |
 
