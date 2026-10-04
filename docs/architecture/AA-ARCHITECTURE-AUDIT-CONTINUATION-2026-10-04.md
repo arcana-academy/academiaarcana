@@ -213,7 +213,7 @@ Corrections applied:
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
 10. Updated CI evidence: Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478` are successful for the current verified `main` revision `d04f83c...`.
-11. Recorded successful Production Smoke run `37218452355` for this SHA, including exact public runtime revision assertion; Render control-plane metadata remains separately unverified.
+11. Recorded successful Production Smoke run `37225275302` for captured revision `b8f5c188...`, including exact public runtime revision assertion; Render deploy `dep-db19qovf3r2c73bpu910` is LIVE for the same revision.
 
 ## 13. Remaining high-priority items
 
