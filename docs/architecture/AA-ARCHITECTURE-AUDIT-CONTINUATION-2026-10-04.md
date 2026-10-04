@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The verified application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`; `main` subsequently advanced through documentation-only commits. The post-merge Quality Gate `37218290549` completed successfully, as did CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully for this SHA and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The Smoke health check also asserted the exact production revision. Render control-plane metadata was not independently re-read in this cycle.
+The audit distinguishes repository state from production state. The last fully validated application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. `main` has since advanced through documentation-only commits and is currently observed at `ec9730ecafc65706bee7d31e6b615fc4614f291c`. The current HEAD has `pre-commit.ci - push` SUCCESS, but the available workflow-run connector currently exposes no GitHub Actions Quality Gate run for this SHA. The latest complete Production Smoke remains `37218452355` for `d04f83c...`; Render metadata independently shows the latest observed LIVE deployment is `dep-db19iooae00c73fafem0` for documentation-only revision `e1db06e997a95e92241253d796a47b77ef068744`. No application-runtime source change is attributed to the documentation-only revisions in this chain.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The verified application/runtime baseline `d04f83c…` has successful Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully; current post-deploy smoke success is **CONFIRMED** and the public runtime revision matches the repository SHA. Render control-plane metadata was not independently re-read in this cycle.
+The fully verified baseline `d04f83c…` has successful Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully and the public runtime revision matches that baseline SHA. For current HEAD `ec9730...`, only `pre-commit.ci - push` is presently observed as successful; a current GitHub Actions Quality Gate run and corresponding current Production Smoke are not yet evidenced.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -161,7 +161,7 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The verified application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
+The fully verified application/runtime baseline remains `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37218452355` completed successfully and its health-endpoint assertion matched that exact SHA. Current HEAD is `ec9730...` and is not yet covered by a new complete Quality Gate + post-deploy Smoke evidence chain.
 
 Therefore:
 
@@ -221,10 +221,10 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate `37215062435` SUCCESS** |
-| P1 | Re-read current Render deployment metadata | Render operational evidence | **PENDENTE — control-plane deploy ID not independently re-read; runtime SHA already confirmed by Production Smoke** |
+| P1 | Establish CI/Quality Gate evidence for the current repository revision `ec9730...` | GitHub Actions | **PENDENTE — pre-commit.ci SUCCESS; current Quality Gate not evidenced** |
+| P1 | Re-read current Render deployment metadata for current HEAD | Render operational evidence | **PENDENTE — latest observed LIVE is `dep-db19io...` for `e1db06e...`; no current-HEAD deploy observed** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for current `main` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37215288969` SUCCESS** |
+| P1 | Obtain successful Production Smoke evidence for current `main` HEAD `ec9730...` | GitHub Actions / Render operational evidence | **PENDENTE — latest complete run `37218452355` covers `d04f83c...`** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
@@ -237,4 +237,4 @@ Critical architectural defects: **NONE IDENTIFIED IN THE REVIEWED EVIDENCE**.
 
 100% closure: **NOT AUTHORIZED** because external security/operational evidence and governance synchronization remain open.
 
-The next architectural cycle should begin with fresh CI and Render evidence for the latest `main` revision, then address the constitutional CSS reconciliation and external security/resilience controls without changing the modular architecture unless new evidence demonstrates an actual architectural defect.
+The next architectural cycle should first obtain fresh GitHub Actions Quality Gate and Render/Production Smoke evidence for current HEAD `ec9730...`; then reconcile the constitutional CSS decision and external security/resilience controls without changing the modular architecture unless new evidence demonstrates an actual architectural defect.
