@@ -6,11 +6,10 @@
 
 This document is the operational companion to the conceptual architecture specification. The conceptual specification remains historical/strategic; this document records the architecture as currently formalized in the repository.
 
-**Repository:** `arcana-academy/academiaarcana`  
-**Canonical branch:** `main`  
-**Baseline commit at synchronization:** `393b841e34bf524518aa5ab886415fece7994ea8`
-**Latest live runtime verification:** Render deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
-**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
+**Repository:** `arcana-academy/academiaarcana`
+**Canonical branch:** `main`
+**Architecture baseline reference:** `393b841e34bf524518aa5ab886415fece7994ea8`
+**Current-state audit note:** production/deployment state is time-sensitive and must not be treated as a permanent property of this baseline document. At the audit snapshot, Render was building the current `main` commit `6cf8fcb17875eced828fc799f42c50a037515ae0`; `d66b7764ea439d160c4af7652f59e8f0738e17d4` was the last directly observed LIVE revision.
 
 Status vocabulary:
 
@@ -27,9 +26,9 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The previously recorded production snapshot is superseded by the current verified Render state. The `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` is currently LIVE in Render deployment `dep-db0qg28ae00c73et8nug`, using the canonical `checksPass` promotion trigger.
+The production snapshot is time-sensitive and is therefore recorded here only as an audit observation, not as a timeless architectural invariant. At this audit point, the canonical Render service remained configured for `checksPass`; the current `main` commit `6cf8fcb17875eced828fc799f42c50a037515ae0` had a Render deployment in progress, while `d66b7764ea439d160c4af7652f59e8f0738e17d4` was the last directly observed LIVE revision.
 
-The earlier audit records that preceded this deployment are historical evidence and are not the current runtime state. In particular, issue #497 is no longer an active architectural blocker: the current Render deployment demonstrates that the canonical promotion path is operational. Operational recovery exercises tracked separately remain distinct from architecture closure.
+Issue #497 is closed and remains a historical incident record: later evidence did not reproduce a deterministic circular dependency between Render `checksPass` and Production Smoke. Production Smoke remains a post-deploy verification step, not a prerequisite hidden inside the same promotion dependency.
 
 ## 1. Architectural model
 
@@ -579,6 +578,29 @@ The application layer currently contains implemented behavior for Identity, Lear
 
 Concrete persistence and integration adapters remain under `src/infrastructure`.
 
+### Composition root / server boundary
+
+Next.js App Router server routes, Server Actions, layouts and explicitly designated server-side composition modules act as **composition roots** for the modular monolith. They may instantiate concrete infrastructure adapters and wire them into application services/use cases.
+
+The boundary is:
+
+```text
+server composition root
+    ├── application use case
+    └── infrastructure adapter
+             ↓
+        domain-owned port
+```
+
+This is wiring, not business ownership. The following remain prohibited:
+
+- domain importing infrastructure;
+- application use-case code importing concrete infrastructure;
+- client components importing server-only infrastructure;
+- business invariants being placed in the composition root.
+
+This formalizes the existing repository pattern while preserving dependency inversion at the domain/application boundary.
+
 The physical organization has now been reconciled with the logical architecture closely enough for the current monolith.
 
 ---
@@ -703,6 +725,14 @@ Controlled by explicit domain registry/policy validation.
 
 Controlled by this operational baseline and the architectural tests.
 
+### Risk: sensitive integration credentials are reachable from an exposed application table
+
+The current `public.integration_credentials` table is protected by RLS and has no `anon` table privileges, but `authenticated` retains row-scoped CRUD privileges. The runtime currently reads and writes encrypted credential ciphertext server-side and keeps encryption secrets out of the client.
+
+This is **not classified as a current auth bypass**, because ownership policies restrict rows to the authenticated subject. It is nevertheless a defense-in-depth concern: encrypted credential records are still application credential material and are not ideal as a directly client-addressable Data API surface.
+
+Resolution requires an explicit security architecture change, such as moving the sensitive credential store behind a non-exposed/private boundary and introducing an appropriate server-side access mechanism. It must not be performed by silently adding a service-role key or bypassing RLS without a complete migration and test plan.
+
 ---
 
 ## 23. Canonical rules for future architecture changes
@@ -803,6 +833,43 @@ State: **CANÔNICO + DOCUMENTADO + VALIDADO**.
 **DEPENDÊNCIAS:** Constituição Master para eventual mudança futura; GitHub/GitHub Actions/Render/Supabase permanecem canônicos no estado atual.
 
 **STATUS:** APROVADA + IMPLEMENTADA + VALIDADA.
+
+
+
+
+### 24.5 Authority versus evidence model — governance clarification
+
+Architecture governance uses two distinct axes that must not be conflated.
+
+**Normative authority** answers: *what decision is officially in force?*
+
+```text
+Constitution Master
+    ↓
+approved domain/architecture decisions
+    ↓
+operational documentation
+    ↓
+proposals / assumptions
+```
+
+**Factual evidence** answers: *what is actually implemented or running?*
+
+```text
+live environment / repository state
+    ↓
+verified CI, deployment and database evidence
+    ↓
+current documentation
+    ↓
+historical records / chat memory
+```
+
+A repository or runtime state may prove that implementation has diverged from an approved decision, but it does not silently redefine that decision. Conversely, a constitutional or architectural statement does not make an unverified implementation claim true.
+
+When the two axes disagree, record the divergence explicitly and resolve it through the governing decision process.
+
+Architecture record namespace currently used by this repository: **AA-ARCH-XXX**. The Constitution's global architectural-decision namespace **AA-ADR-XXX** remains authoritative whenever a decision has constitutional/global scope. Existing AA-ARCH records are not retroactively renamed solely for naming consistency.
 
 
 ## 25. Final canonical state
