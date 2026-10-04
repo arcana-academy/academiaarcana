@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Repository HEAD verified for this sync:** `9910960508d6e95cc7a42d6cb39686d4a0530825`  
-**Latest Render LIVE verification at this sync:** deploy `dep-db16h4dg1s2s739ajp30` for commit `6cf8fcb17875eced828fc799f42c50a037515ae0`  
+**Repository HEAD verified for this sync:** `9910960508d6e95cc7a42d6cb39686d4a0530825`
+**Latest Render LIVE verification at this sync:** deploy `dep-db16h4dg1s2s739ajp30` for commit `6cf8fcb17875eced828fc799f42c50a037515ae0`
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
@@ -904,7 +904,7 @@ Production Smoke — post-deploy verification
 ```
 
 Production Smoke is evidence about the deployed runtime; it is not an input to the same Render promotion decision. Any future change that introduces a reverse dependency must be treated as an architecture regression and explicitly reviewed.
- 
+
 
 ## 26. Current canonical state
 
