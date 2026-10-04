@@ -916,9 +916,10 @@ Open closure gates at this checkpoint:
 
 1. Constitutional reconciliation of Tailwind CSS versus AA-ARCH-001.
 2. Synchronization of the Prompt 02 domain inventory with the canonical `sanctuary` domain.
-3. Independent CI/production verification for the repository revisions newer than the currently LIVE Render commit.
+3. Successful Production Smoke post-deploy verification for the current `main` revision. The Smoke trigger correction exists on the architecture working branch and still requires promotion to `main` before it can provide current production evidence.
 4. Supabase Auth Leaked Password Protection remains an external security configuration dependency.
 5. Operational resilience evidence remains required for rollback, backup/restore, RTO/RPO, disaster recovery and incident response.
+6. Authenticated access hardening for `public.integration_credentials` remains a P1 defense-in-depth item; no authorization bypass is currently evidenced.
 
 The architecture topology itself remains a modular monolith with explicit boundaries, directional dependencies, contracts, ownership and security controls.
 
