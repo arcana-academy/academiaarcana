@@ -166,7 +166,7 @@ The current repository `main` revision is `d04f83c5b4b7f4210bc9477bb2853da13aeb6
 Therefore:
 
 - repository state = current `main` HEAD `d04f83c…`;
-- public production runtime revision = `5520dae…` by exact `/api/health` assertion;
+- public production runtime revision = `d04f83c…` by exact `/api/health` assertion;
 - repository/runtime equivalence = **CONFIRMED** at the application-runtime level;
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
@@ -212,8 +212,8 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: Quality Gate `37215062435`, CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385` are successful for the current verified `main` revision `5520dae...`.
-11. Recorded successful Production Smoke run `37215288969` for this SHA, including exact public runtime revision assertion; Render control-plane metadata remains separately unverified.
+10. Updated CI evidence: Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478` are successful for the current verified `main` revision `d04f83c...`.
+11. Recorded successful Production Smoke run `37218452355` for this SHA, including exact public runtime revision assertion; Render control-plane metadata remains separately unverified.
 
 ## 13. Remaining high-priority items
 
