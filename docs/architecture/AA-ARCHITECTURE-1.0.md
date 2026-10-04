@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `393b841e34bf524518aa5ab886415fece7994ea8`
-**Latest live runtime verification:** Render deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
+**Baseline commit at synchronization:** `d66b7764ea439d160c4af7652f59e8f0738e17d4`
+**Latest live runtime verification:** Render deploy `dep-db0rk9gjo6nc739v4ekg` for commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
 Status vocabulary:
@@ -27,7 +27,7 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The previously recorded production snapshot is superseded by the current verified Render state. The `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` is currently LIVE in Render deployment `dep-db0qg28ae00c73et8nug`, using the canonical `checksPass` promotion trigger.
+The previously recorded production snapshot is superseded by the current verified Render state. The `main` commit `d66b7764ea439d160c4af7652f59e8f0738e17d4` is currently LIVE in Render deployment `dep-db0rk9gjo6nc739v4ekg`, using the canonical `checksPass` promotion trigger.
 
 The earlier audit records that preceded this deployment are historical evidence and are not the current runtime state. In particular, issue #497 is no longer an active architectural blocker: the current Render deployment demonstrates that the canonical promotion path is operational. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
@@ -753,7 +753,7 @@ State: **CANÔNICO + IMPLEMENTADO + VALIDADO**.
 
 ### 24.2 Governance synchronization — AA-ARCH-002
 
-The current repository architecture is the operationally verified implementation baseline. The current canonical architecture decision AA-ARCH-001 resolves the styling foundation as semantic authored CSS with `aa-*` classes; Tailwind CSS is not an operational requirement.
+The current repository architecture is the operationally verified implementation baseline. The live-runtime snapshot in this document is updated whenever direct Render evidence establishes a newer production revision. The current canonical architecture decision AA-ARCH-001 resolves the styling foundation as semantic authored CSS with `aa-*` classes; Tailwind CSS is not an operational requirement.
 
 The Prompt 02 wording that still lists Tailwind CSS must be synchronized by Chat 00 so that the governance text and implementation do not describe competing architectural baselines.
 

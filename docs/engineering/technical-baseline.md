@@ -2,7 +2,7 @@
 
 ## Status
 
-Repository baseline — reconciled on 2026-09-28 against the validated code snapshot at commit `c9fb8f42ddcdbf15900bbd7b1eb7e1e21a21829d`. `main` has since advanced; a snapshot is not silently relabeled as current.
+Repository baseline — reconciled on 2026-10-04 against the current verified `main` snapshot at commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`. Runtime state is recorded separately from historical validation evidence; a historical snapshot is not silently relabeled as current.
 
 This document defines the currently supported development and build baseline for the repository. It does not authorize product-feature work.
 
@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The validated code snapshot at the current `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` includes the Next.js 16.3.8 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
+The current `main` commit `d66b7764ea439d160c4af7652f59e8f0738e17d4` is the repository snapshot verified during the 2026-10-04 architecture/runtime audit. The historical security and hardening evidence below remains attributable to the commits and pull requests that produced it; it is not re-dated as if it were performed on `d66b7764`. The current snapshot includes the Next.js 16.3.8 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -85,7 +85,7 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 
 ## GitHub validation
 
-For the current `main` snapshot (`393b841e34bf524518aa5ab886415fece7994ea8`):
+For the current `main` snapshot (`d66b7764ea439d160c4af7652f59e8f0738e17d4`):
 
 - PR #290 authentication callback hardening is integrated.
 - The Next.js security patch baseline to 16.3.8 is integrated.
@@ -97,7 +97,7 @@ The full Quality Gate is established through pull-request checks; deployment sta
 
 ## Render
 
-The current production snapshot is Render deployment `dep-db0qg28ae00c73et8nug`, generated from commit `393b841e34bf524518aa5ab886415fece7994ea8`. The deployment is `LIVE` and the Render service uses the canonical `checksPass` trigger.
+The current production snapshot verified during the 2026-10-04 audit is Render deployment `dep-db0rk9gjo6nc739v4ekg`, generated from commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`. The deployment is `LIVE` and the Render service uses the canonical `checksPass` trigger.
 
 The production snapshot verification returned no error, warning, or fatal runtime logs in the latest 1-hour observation. A 24-hour query timed out and is not treated as evidence of a clean 24-hour window. The Production Smoke workflow also verifies the homepage, public authentication/integration routes, and the integration-status contract.
 
@@ -113,7 +113,7 @@ Do not hand-author a speculative `config.toml`. Generate the configuration with 
 
 ### Migration history reconciliation
 
-The repository contains the seven application migrations represented by the current production migration history:
+The current production migration history contains 23 application migrations. The `main` repository contains 21 migration files. These inventories are not identical and must not be presented as if they were.
 
 - 20260915181306_remote_schema
 - 20260921174822_revoke_excess_authenticated_table_privileges
@@ -131,6 +131,15 @@ The repository contains the seven application migrations represented by the curr
 - 20260929201757_feedback_hub_permissions
 - 20260929202937_feedback_hub_require_authenticated_owner
 - 20260929220739_revoke_excess_external_document_source_privileges
+- 20261002010057_educational_core_p1
+- 20261002010448_educational_core_p1_fk_indexes
+- 20261002010809_educational_core_p1_atomic_attempt
+- 20261002012618_revoke_direct_educational_attempt_insert
+- 20261002012742_harden_educational_attempt_rpc_security
+- 20261002135336_harden_p1_attempt_rpc_exposure
+- 20261002190600_p1_5_objective_evidence_v1
+
+The production history contains five versions that are not present as files on `main`: `20260929124554_product_social_focus`, `20260929142350_harden_friend_connection_updates`, `20260929201711_feedback_hub`, `20260929201757_feedback_hub_permissions`, and `20260929202937_feedback_hub_require_authenticated_owner`. The repository instead contains three differently versioned migration files for related Focus/Social and Feedback Hub work: `20260929153000_focus_social_foundation`, `20260929202000_feedback_hub`, and `20260929210000_feedback_hub_require_authenticated_owner`. Git history inspection found no historical repository paths for the five production-only filenames. This is a migration-history/reproducibility discrepancy, not evidence that the production schema is incorrect. It requires controlled reconciliation from authoritative migration/schema evidence; missing SQL must not be reconstructed from filenames alone.
 
 The index reconciliation migration is drift-safe: it accepts either the historical or reconciled index name, rejects an ambiguous state, and does not issue a blind rename. The obsolete `20260917120000_rename_notebooks_grimoire_index` file was removed because production had already been reconciled without that historical migration being recorded.
 
@@ -138,7 +147,7 @@ The production migration history was freshly verified. Supabase registered the l
 
 ## Known security state
 
-Current Supabase Security Advisor evidence reports one warning: leaked-password protection is disabled. This feature is plan-gated by Supabase and is intentionally not enabled while the project remains on the current no-cost setup. The Performance Advisor reports unused-index INFO findings; these are not treated as defects because the product tables are currently empty and the indexes are part of the intended query paths.
+Current Supabase Security Advisor evidence reports one warning: leaked-password protection is disabled. This remains an external Auth configuration item; the available connector surface did not expose a safe mutation path, so no configuration change is claimed. The Performance Advisor reports unused-index INFO findings; these are not treated as defects because the product tables are currently empty and the indexes are part of the intended query paths.
 
 ## Observability configuration
 
