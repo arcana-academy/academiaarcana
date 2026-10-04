@@ -8,8 +8,9 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Baseline commit at synchronization:** `393b841e34bf524518aa5ab886415fece7994ea8`
-**Latest live runtime verification:** Render deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
+**Repository HEAD inspected immediately before this documentation sync:** `6cf8fcb17875eced828fc799f42c50a037515ae0`
+**Latest Render LIVE verification at this synchronization:** deploy `dep-db0rk9gjo6nc739v4ekg` for commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`
+**Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
 Status vocabulary:
@@ -27,9 +28,11 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The previously recorded production snapshot is superseded by the current verified Render state. The `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` is currently LIVE in Render deployment `dep-db0qg28ae00c73et8nug`, using the canonical `checksPass` promotion trigger.
+The previously recorded production snapshot is superseded by the current verified Render state. At the time of this synchronization, repository `main` was observed at commit `6cf8fcb17875eced828fc799f42c50a037515ae0`, while Render LIVE was verified at commit `d66b7764ea439d160c4af7652f59e8f0738e17d4` in deploy `dep-db0rk9gjo6nc739v4ekg`.
 
-The earlier audit records that preceded this deployment are historical evidence and are not the current runtime state. In particular, issue #497 is no longer an active architectural blocker: the current Render deployment demonstrates that the canonical promotion path is operational. Operational recovery exercises tracked separately remain distinct from architecture closure.
+The repository HEAD and production revision are therefore **not equivalent at this checkpoint**. The difference is currently represented by a later documentation commit on `main`, so CI/CD and production equivalence for that newer commit must be established independently.
+
+The earlier audit records and the `393b841e34bf524518aa5ab886415fece7994ea8` deployment are historical evidence. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
 ## 1. Architectural model
 
@@ -741,41 +744,44 @@ State: **CANÔNICO + IMPLEMENTADO + TESTADO**.
 
 ### 24.1 CSS stack resolution — AA-ARCH-001
 
-The repository does **not** require Tailwind CSS as an operational styling dependency.
+The repository currently implements authored semantic CSS using custom properties and `aa-*` component classes. The `tailwind-merge` package is retained only as a class-name composition utility; Tailwind CSS itself is not installed as an operational dependency.
 
-The canonical UI styling foundation is the existing authored semantic CSS system using custom properties and `aa-*` component classes. The `tailwind-merge` package may remain only as a class-name composition utility and does not imply that Tailwind CSS itself is installed or required.
+This remains an **implementation state**, not a valid constitutional removal of Tailwind CSS, because the Prompt 02 supplied to this chat states that Tailwind is part of the official stack defined by the Constitution Master.
 
-This decision follows the simplicity rule: adding Tailwind solely to satisfy historical stack wording would increase operational and dependency complexity without a demonstrated architectural benefit.
+**Architecture decision: AA-ARCH-001**.
 
-Architecture decision: **AA-ARCH-001**.
+**Current status: CONFLITANTE / IMPLEMENTADO / VALIDADO TECNICAMENTE / PENDENTE DE RECONCILIAÇÃO CONSTITUCIONAL.**
 
-State: **CANÔNICO + IMPLEMENTADO + VALIDADO**.
+The implementation should not be changed solely to resolve this documentation conflict until Chat 00 establishes whether the constitutional stack statement remains current or whether AA-ARCH-001 is authorized to supersede it through the proper governance process.
 
 ### 24.2 Governance synchronization — AA-ARCH-002
 
-The current repository architecture is the operationally verified implementation baseline. The current canonical architecture decision AA-ARCH-001 resolves the styling foundation as semantic authored CSS with `aa-*` classes; Tailwind CSS is not an operational requirement.
+AA-ARCH-002 exists to prevent a lower-level architecture document from silently redefining a higher-level constitutional stack decision.
 
-The Prompt 02 wording that still lists Tailwind CSS must be synchronized by Chat 00 so that the governance text and implementation do not describe competing architectural baselines.
+The current state has two authoritative-looking statements:
 
-The 2026-10-03 architecture audit records this reconciliation and the remaining external Supabase Auth security configuration dependency.
+- Constitution Master / Prompt 02: Tailwind CSS is part of the official stack.
+- Repository implementation / AA-ARCH-001: authored semantic CSS is the operational styling implementation.
+
+These statements cannot both be treated as an unconditional canonical decision. The correct resolution is an explicit governance reconciliation by Chat 00.
 
 Architecture decision: **AA-ARCH-002**.
 
-State: **APROVADA PARA SINCRONIZAÇÃO DOCUMENTAL**.
+State: **APROVADA + IMPLEMENTADA COMO GATE DE GOVERNANÇA; RECONCILIAÇÃO FINAL PENDENTE.**
 
 ### 24.3 Historical document precedence — AA-ARCH-003
 
 Documents under `docs/superpowers/plans/`, `docs/superpowers/specs/` and other explicitly historical/strategic records may preserve technology assumptions that existed when they were written.
 
-Those documents are **not operational architecture authorities** unless explicitly promoted by a subsequent canonical architecture decision.
+Those documents are **not operational architecture authorities** unless explicitly promoted by a subsequent canonical architecture decision. They also cannot override the Constitution Master.
 
-Therefore, historical references such as a plan's “Tech Stack: Tailwind CSS” do not override AA-ARCH-001. The operational source of truth remains this document plus the repository implementation and its architecture tests.
+Historical references such as a plan's “Tech Stack: Tailwind CSS” therefore do not settle the current conflict. The decisive reconciliation must occur in the constitutional governance chain.
 
-Any future adoption of Tailwind CSS as an operational dependency requires a new explicit architecture decision, implementation, testing and governance synchronization.
+Any future change to the operational CSS stack requires an explicit architecture decision, implementation, testing and governance synchronization, with the final authority determined by the Constitution Master.
 
 Architecture decision: **AA-ARCH-003**.
 
-State: **CANÔNICO + DOCUMENTADO + VALIDADO**.
+State: **CANÔNICO + DOCUMENTADO + VALIDADO**, with the current CSS-versus-Tailwind conflict tracked separately under AA-ARCH-001/002.
 
 ---
 
@@ -805,15 +811,21 @@ State: **CANÔNICO + DOCUMENTADO + VALIDADO**.
 **STATUS:** APROVADA + IMPLEMENTADA + VALIDADA.
 
 
-## 25. Final canonical state
+## 25. Current canonical state
 
-**AA-ARCHITECTURE-1.0 = CANÔNICO**
+**AA-ARCHITECTURE-1.0 = CANÔNICO COMO BASE OPERACIONAL, COM EXCEÇÕES EXPLICITAMENTE RASTREADAS**
 
-The architecture baseline is now considered **structurally consolidated for the current product scope**.
+The architecture is structurally consolidated for the current product scope, but this document must not claim unconditional closure while higher-authority governance and operational evidence remain unresolved.
 
-The previously open architectural boundary questions have explicit resolutions in code and/or this document.
+Open closure gates at this checkpoint:
 
-The remaining work is primarily **product implementation, integration implementation, validation and future evolution**, not redefinition of the architectural foundation. A separate operational security configuration remains outside this document's implementation scope: Supabase Auth Leaked Password Protection must be enabled before the broader security program is declared fully closed.
+1. Constitutional reconciliation of Tailwind CSS versus AA-ARCH-001.
+2. Synchronization of the Prompt 02 domain inventory with the canonical `sanctuary` domain.
+3. Independent CI/production verification for the repository revisions newer than the currently LIVE Render commit.
+4. Supabase Auth Leaked Password Protection remains an external security configuration dependency.
+5. Operational resilience evidence remains required for rollback, backup/restore, RTO/RPO, disaster recovery and incident response.
+
+The architecture topology itself remains a modular monolith with explicit boundaries, directional dependencies, contracts, ownership and security controls.
 
 Canonical operational loop:
 
@@ -831,4 +843,4 @@ VALIDAR
 CONSOLIDAR
 ```
 
-The architecture remains a living system, but changes must be explicit and traceable.
+The architecture remains a living system, but changes must be explicit, traceable and subordinate to the Constitution Master.
