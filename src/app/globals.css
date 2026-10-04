@@ -551,7 +551,7 @@ p {
   position: absolute;
   top: calc(100% + 0.65rem);
   left: 0;
-  z-index: 30;
+  z-index: var(--aa-z-index-dropdown);
   width: min(19rem, calc(100vw - 2rem));
   display: grid;
   gap: 0.25rem;
@@ -1131,8 +1131,8 @@ p {
 
 
 .aa-button:focus-visible, .aa-sidebar-link:focus-visible, .aa-mobile-link:focus-visible {
-  outline: 3px solid var(--aa-focus-ring);
-  outline-offset: 3px;
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
 }
 
 .aa-public-page {
@@ -1282,7 +1282,7 @@ p {
 
 .aa-mestre-prompt {
   border: 1px solid color-mix(in srgb, var(--aa-border-default) 28%, transparent);
-  border-radius: 999px;
+  border-radius: var(--aa-radius-pill);
   padding: 0.55rem 0.8rem;
   background: rgb(8 7 12 / 0.36);
   color: var(--aa-text-secondary);
