@@ -81,6 +81,8 @@ const requiredTokenPaths = [
   "opacity.overlay",
   "shadows.sm",
   "shadows.md",
+  "shadows.floating",
+  "shadows.modal",
   "motion.reduced",
   "density.compact",
   "density.comfortable",

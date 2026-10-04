@@ -397,6 +397,10 @@ The system uses a dedicated semantic focus token with a visible 3px indicator an
 **Status:** APPROVED  
 Different product areas may have distinct compositions while sharing the same foundational rules.
 
+### AA-DS-011 — Single visual token namespace
+**Status:** IMPLEMENTED  
+Global CSS must not introduce parallel `--aa-*` visual tokens for motion, lines, surfaces, accents, shadows or other values already governed by semantic Design System tokens. Product-specific composition must consume the canonical semantic variables. This prevents CSS drift and ensures theme changes propagate consistently.
+
 ## 16. Definition of Done
 
 The Design System foundation is considered closed when:

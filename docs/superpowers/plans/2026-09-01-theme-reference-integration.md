@@ -224,3 +224,23 @@ Update the architecture/ADR documentation with the final preset inventory, any i
 git add docs/superpowers/specs/2026-09-01-theme-reference-integration-design.md docs/superpowers/plans/2026-09-01-theme-reference-integration.md
 git commit -m "docs: record theme architecture decision"
 ```
+
+
+---
+
+## Canonical completion record — 2026-10-04
+
+This historical execution plan is retained for traceability. Its unchecked task markers are **archival**, not current implementation status. The resulting work has been superseded and consolidated into `docs/design-system/AA-DESIGN-SYSTEM-1.0.md` and the current implementation under `src/design-system`.
+
+Validated state:
+
+- The semantic token contract is complete and typed.
+- All registered theme presets satisfy the complete token contract.
+- Theme application uses the existing centralized runtime mechanism.
+- WCAG 2.2 AA contrast invariants are enforced by automated tests.
+- CSS fallback variables are synchronized with canonical base tokens.
+- A regression test prevents recreation of the former parallel visual-token namespace.
+- No third-party reference-theme runtime dependency or wholesale vendor CSS is used.
+- The final implementation was integrated into `main` through PR #492 and its Quality Gate passed after the final corrections.
+
+**Current authority:** Chat 03 — Design System 1.0.
