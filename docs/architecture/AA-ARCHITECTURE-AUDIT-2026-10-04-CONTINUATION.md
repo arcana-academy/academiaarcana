@@ -150,7 +150,7 @@ No new privilege escalation path was identified in this audit.
 - RTO/RPO;
 - incident-response operationalization;
 - administrative branch-protection evidence where the GitHub connector cannot expose it;
-- **P1 migration-history/reproducibility reconciliation:** Supabase production records 23 migrations while `main` contains 21 migration files, with five production-only versions and three differently versioned repository migrations in the Focus/Social and Feedback Hub history. This cannot be safely resolved by filename inference and requires controlled database/schema reconciliation.
+- **P2 governance — migration-history reconciliation:** Supabase production records 23 migrations while `main` contains 21 migration files. The five production-only versions were reconciled against three consolidated repository migrations using the authoritative `supabase_migrations.schema_migrations` SQL ledger. The repository migration path passes Database Tests from scratch. This is now documented as historical ledger divergence, not an unresolved architecture defect.
 
 ### DOCUMENTATION FOLLOW-UP
 
