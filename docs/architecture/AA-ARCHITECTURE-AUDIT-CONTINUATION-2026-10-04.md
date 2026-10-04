@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Repository `main` state inspected during the current corrective cycle: `0d463a467260810879eb2143a3c56e387367e852`
+Repository `main` state inspected during the current corrective cycle: `21776a975cf737bb330247962ea94d82e51effed`
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The current `main` is `0d463a467260810879eb2143a3c56e387367e852`. The Quality Gate, CodeQL and Database Tests for this SHA completed successfully. Render deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA is now LIVE. Repository and Render revision are therefore equivalent at this checkpoint.
+The audit distinguishes repository state from production state. The current `main` is `21776a975cf737bb330247962ea94d82e51effed`. The previous revision `294d227...` has successful Production Smoke evidence; the current revision requires fresh Quality Gate/CodeQL/Database and post-deploy Render Smoke evidence before those results can be inherited.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The current `main` revision has successful Quality Gate, CodeQL, Database Tests, Gitleaks and Scorecard runs. Production Smoke runs for this SHA were skipped/cancelled rather than completed successfully. The deployment is LIVE, but current post-deploy smoke validation is therefore **not claimed**.
+The current `main` revision is undergoing fresh Quality Gate, CodeQL and Database validation. Prior successful checks from `294d227...` are not inherited. Current Production Smoke success is not yet claimed until a post-deploy run for `21776a...` completes.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -161,14 +161,14 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The current repository `main` revision and the latest independently verified Render LIVE deployment are now the same commit `0d463a467260810879eb2143a3c56e387367e852`.
+The current repository `main` revision is `21776a...`. Production equivalence for this revision is not yet independently verified.
 
 Therefore:
 
-- repository state = current `main` HEAD `0d463a4…`;
-- production state = Render deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA;
-- repository/production equivalence = **CONFIRMED** at this checkpoint;
-- current Production Smoke success = **NOT VERIFIED**, because the matching workflow-run executions were skipped/cancelled rather than completed successfully.
+- repository state = current `main` HEAD `21776a9…`;
+- production state = current Render revision not yet independently verified;
+- repository/production equivalence = **NOT YET VERIFIED** at this checkpoint;
+- current Production Smoke success = **NOT VERIFIED** for `21776a9…`; the previous successful Smoke run belongs to `294d227...`.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
 
@@ -212,8 +212,8 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: the current Quality Gate is successful and Render equivalence is now confirmed for `0d463a4…`.
-11. Recorded that Production Smoke did not produce a successful post-deploy result for this SHA; LIVE status is not being conflated with runtime smoke validation.
+10. Preserved the distinction between historical successful CI/production evidence and the new `21776a9…` revision; no prior check is silently reused as current.
+11. Recorded that a fresh Production Smoke result is required for `21776a9…`; LIVE status must not be conflated with runtime smoke validation.
 
 ## 13. Remaining high-priority items
 
@@ -221,10 +221,10 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate SUCCESS** |
-| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **RESOLVIDO — deploy `dep-db16ma5g1s2s739ap7j0` LIVE** |
+| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **EM VALIDAÇÃO — current `21776a9…` runs in progress** |
+| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **PENDENTE — current revision not yet verified** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for current `main` after the corrected trigger is promoted | GitHub Actions / Render operational evidence | PENDENTE — branch fix implemented, not yet on `main` |
+| P1 | Obtain successful Production Smoke evidence for current `main` after the corrected trigger is promoted | GitHub Actions / Render operational evidence | **PENDENTE — fresh Smoke required for `21776a9…`** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
