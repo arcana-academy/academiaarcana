@@ -10,6 +10,11 @@ import type {
   ReviewRecommendation,
 } from "@/domains/adaptive";
 import type { EvidenceProjection } from "@/domains/learning";
+import {
+  evidenceConfidenceLabel,
+  practiceOutcomeLabel,
+  selfAssessmentEvidenceStateLabel,
+} from "@/lib/education/evidence-state-copy";
 import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import {
   createPracticeItemAction,
@@ -260,7 +265,7 @@ function PracticeSession({
           <h3>Feedback da tentativa</h3>
           <p className="aa-state-copy">{latestAttempt.feedback}</p>
           <p>
-            Resultado: <strong>{latestAttempt.outcome}</strong> · evidência{" "}
+            Resultado: <strong>{practiceOutcomeLabel(latestAttempt.outcome)}</strong> · evidência{" "}
             <strong>{formatPercent(latestAttempt.evidenceScore)}</strong>.
           </p>
           <details>
@@ -289,12 +294,15 @@ function PracticeSession({
         <div className="aa-card aa-card-default" aria-labelledby="evidence-state-title">
           <h3 id="evidence-state-title">Evidência autorreportada atual</h3>
           <p>
-            Estado: <strong>{evidence.state}</strong>
+            Estado: <strong>{selfAssessmentEvidenceStateLabel(evidence.state)}</strong>
             {evidence.score === null ? "" : ` · ${formatPercent(evidence.score)}`}
             {" · "}
             {evidence.attemptCount} tentativa(s).
           </p>
           <p className="aa-state-copy">{evidence.reason}</p>
+          <p className="aa-state-copy">
+            A confiança da evidência é {evidenceConfidenceLabel(evidence.confidence)}.
+          </p>
         </div>
       ) : null}
 
