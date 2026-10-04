@@ -18,6 +18,11 @@ import { getProgression } from "@/domains/gamification";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import {
+  evidenceConfidenceLabel,
+  objectiveEvidenceStateLabel,
+  selfAssessmentEvidenceStateLabel,
+} from "@/lib/education/evidence-state-copy";
 import { createClient } from "@/lib/supabase/server";
 
 /** Returns the current UTC calendar day used by persisted gamification missions. */
@@ -225,21 +230,21 @@ function ProfileSignals({ educational }: { educational: EducationalOverview }) {
           <dt>Cobertura de prática</dt>
           <dd>
             {Math.round(educational.profile.practiceCoverage.value)}% · confiança{" "}
-            {educational.profile.practiceCoverage.confidence}
+            {evidenceConfidenceLabel(educational.profile.practiceCoverage.confidence)}
           </dd>
         </div>
         <div className="aa-list-item aa-surface">
           <dt>Desempenho de recuperação</dt>
           <dd>
             {Math.round(educational.profile.retrievalPerformance.value)}% · confiança{" "}
-            {educational.profile.retrievalPerformance.confidence}
+            {evidenceConfidenceLabel(educational.profile.retrievalPerformance.confidence)}
           </dd>
         </div>
         <div className="aa-list-item aa-surface">
           <dt>Revisões que pedem atenção</dt>
           <dd>
             {educational.profile.reviewNeed.value} item(s) · confiança{" "}
-            {educational.profile.reviewNeed.confidence}
+            {evidenceConfidenceLabel(educational.profile.reviewNeed.confidence)}
           </dd>
         </div>
         <div className="aa-list-item aa-surface">
@@ -263,7 +268,7 @@ function EvidenceSection({ educational }: { educational: EducationalOverview }) 
               <div>
                 <strong>{entry.pageTitle}</strong>
                 <p>
-                  {entry.state} · {percent(entry.score)} · {entry.attemptCount} tentativa(s) · fonte: autoavaliação
+                  {selfAssessmentEvidenceStateLabel(entry.state)} · {percent(entry.score)} · {entry.attemptCount} tentativa(s) · fonte: autoavaliação
                 </p>
                 <span className="aa-state-copy">{entry.reason}</span>
               </div>
@@ -301,7 +306,7 @@ function ObjectiveEvidenceSection({
               <div>
                 <strong>{entry.pageTitle}</strong>
                 <p>
-                  {entry.state} · {entry.passingAttemptCount}/{entry.minimumEvidence} aprovações ·{" "}
+                  {objectiveEvidenceStateLabel(entry.state)} · {entry.passingAttemptCount}/{entry.minimumEvidence} aprovações ·{" "}
                   {entry.attemptCount} tentativa(s) · fonte: critério explícito
                 </p>
                 <span className="aa-state-copy">{entry.reason}</span>
