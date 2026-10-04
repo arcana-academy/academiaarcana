@@ -166,6 +166,6 @@ The correct action is to preserve the current architecture and continue with evi
 
 **CHAT 02 ARCHITECTURE — CONTINUATION AUDIT RESULT: STRUCTURALLY CONSOLIDATED.**
 
-The application architecture itself remains consolidated, but the newly verified migration-history discrepancy is a P1 reproducibility/governance dependency that must remain explicitly open until controlled database reconciliation is completed. It is not safe to claim final architectural closure while the repository cannot reproduce the full recorded production migration history.
+The application architecture remains consolidated. The migration-history discrepancy is now reconciled at the semantic level and documented as a historical ledger divergence; byte-for-byte historical reproduction is explicitly not claimed. No architecture change is required.
 
 No architectural invention is authorized merely to eliminate this dependency.
