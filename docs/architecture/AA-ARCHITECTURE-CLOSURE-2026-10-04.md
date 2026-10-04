@@ -2,11 +2,12 @@
 
 > Scope: operational closure after CSP production remediation.
 > Repository: `arcana-academy/academiaarcana`
-> Production revision verified: `87369ba1b3cc904587c9b40a804c62c13b6d4915`
+> Production revision verified in the earlier CSP closure: `87369ba1b3cc904587c9b40a804c62c13b6d4915`
+> Current LIVE revision verified by the 2026-10-04 continuation audit: `d66b7764ea439d160c4af7652f59e8f0738e17d4`
 
 ## Executive state
 
-The CSP remediation from PR #488 is merged and deployed to Render. Production health reports revision `87369ba1b3cc904587c9b40a804c62c13b6d4915`.
+The CSP remediation from PR #488 is merged and deployed to Render. The earlier CSP closure recorded revision `87369ba1b3cc904587c9b40a804c62c13b6d4915`. The current Render LIVE revision is `d66b7764ea439d160c4af7652f59e8f0738e17d4`; therefore the earlier revision is historical evidence, not the current runtime snapshot.
 
 The operational chain remains:
 
@@ -74,6 +75,8 @@ No item is marked fully closed without executable or direct environmental eviden
 ## Status
 
 **ARCHITECTURE: OPERATIONAL / PRODUCTION LIVE**
+
+**CURRENT RUNTIME SNAPSHOT: d66b7764ea439d160c4af7652f59e8f0738e17d4**
 
 **SECURITY: CSP REMEDIATION DEPLOYED; EXTERNAL AUTH CONFIGURATION PENDING**
 
