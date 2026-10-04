@@ -212,8 +212,8 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: the current revision and individual workflow states were re-read; the Quality Gate remains in progress, while CodeQL, Database Tests, Gitleaks and Scorecard are successful.
-11. Recorded that Production Smoke did not produce a successful post-deploy result for this SHA; LIVE status is not being conflated with runtime smoke validation.
+10. Updated CI evidence: Quality Gate `37215062435`, CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385` are successful for the current verified `main` revision `5520dae...`.
+11. Recorded successful Production Smoke run `37215288969` for this SHA, including exact public runtime revision assertion; Render control-plane metadata remains separately unverified.
 
 ## 13. Remaining high-priority items
 
