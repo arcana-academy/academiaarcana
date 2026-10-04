@@ -166,7 +166,7 @@ The captured application/runtime revision is `b8f5c1888564af32c62bb03b0abee7576f
 Therefore:
 
 - repository evidence = captured `main` revision `b8f5c188...` (documentation-only architecture synchronization);
-- public production runtime revision = `d04f83c…` by exact `/api/health` assertion;
+- public production runtime revision = `b8f5c188...` by exact `/api/health` assertion;
 - application/runtime equivalence = **CONFIRMED** for captured `b8f5c188...`; the deploy and Smoke evidence match the captured repository revision.
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
@@ -212,7 +212,7 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478` are successful for the current verified `main` revision `d04f83c...`.
+10. Updated CI evidence: Quality Gate `37225106299`, CodeQL `37225106247`, Database Tests `37225106318`, Gitleaks `37225106300` and Scorecard `37225106286` are successful for captured revision `b8f5c188...`.
 11. Recorded successful Production Smoke run `37225275302` for captured revision `b8f5c188...`, including exact public runtime revision assertion; Render deploy `dep-db19qovf3r2c73bpu910` is LIVE for the same revision.
 
 ## 13. Remaining high-priority items
