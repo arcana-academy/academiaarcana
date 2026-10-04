@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { SanctuaryRepository, SanctuaryGrimoire, SanctuaryNotebook, SanctuaryChapter, SanctuaryPage } from "./sanctuary-repository";
+import type { SanctuaryGrimoire, SanctuaryNotebook, SanctuaryChapter, SanctuaryPage } from "@/domains/sanctuary";
+import type { SanctuaryProjectionPort } from "@/application/sanctuary/sanctuary-projection-port";
 import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
@@ -13,7 +14,7 @@ type ChapterRow = { id: string; notebook_id: string; title: string; position: nu
 type NotebookRow = { id: string; grimoire_id: string; title: string; position: number; chapters: ChapterRow[] };
 type GrimoireRow = { id: string; owner_id: string; title: string; icon: string | null; cover: string | null; notebooks: NotebookRow[] };
 
-export class SupabaseSanctuaryRepository implements SanctuaryRepository {
+export class SupabaseSanctuaryRepository implements SanctuaryProjectionPort {
   private readonly pageProgressRepository;
   private readonly studyTaskRepository;
   private readonly gamificationRepository;

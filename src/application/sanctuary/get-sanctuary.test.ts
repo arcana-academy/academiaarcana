@@ -4,28 +4,8 @@ import type {
   SanctuaryGrimoire,
   SanctuaryUser,
 } from "@/domains/sanctuary";
-import type { PageProgress } from "@/domains/learning";
-import type { StudyTask } from "@/domains/planning";
-import type { Mission } from "@/domains/gamification";
-
 import { getSanctuary } from "./get-sanctuary";
-
-type SanctuaryRepository = {
-  getLearningHierarchy: () => Promise<SanctuaryGrimoire[]>;
-  getPageProgress?: (
-    ownerId: string,
-    pageIds: string[],
-  ) => Promise<PageProgress[]>;
-  listUpcomingStudyTasks?: (
-    ownerId: string,
-    now: string,
-    limit?: number,
-  ) => Promise<StudyTask[]>;
-  listDailyMissions?: (
-    ownerId: string,
-    targetDate: string,
-  ) => Promise<Mission[]>;
-};
+import type { SanctuaryProjectionPort } from "./sanctuary-projection-port";
 
 const user: SanctuaryUser = {
   id: "user-1",
@@ -70,7 +50,7 @@ const grimoire: SanctuaryGrimoire = {
 
 function createRepository(
   learningHierarchy: SanctuaryGrimoire[],
-): SanctuaryRepository {
+): SanctuaryProjectionPort {
   return {
     getLearningHierarchy: vi
       .fn()
@@ -162,7 +142,7 @@ describe("getSanctuary", () => {
   });
 
   it("degrades safely when the learning source fails", async () => {
-    const repository: SanctuaryRepository = {
+    const repository: SanctuaryProjectionPort = {
       getLearningHierarchy: vi
         .fn()
         .mockRejectedValue(new Error("learning source unavailable")),
@@ -188,7 +168,7 @@ describe("getSanctuary", () => {
   });
 
   it("connects real progress, planning and gamification data into the Sanctuary", async () => {
-    const repository: SanctuaryRepository = {
+    const repository: SanctuaryProjectionPort = {
       getLearningHierarchy: vi.fn().mockResolvedValue([grimoire]),
       getPageProgress: vi.fn().mockResolvedValue([
         {
