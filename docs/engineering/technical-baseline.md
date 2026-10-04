@@ -77,7 +77,7 @@ The application lint command intentionally excludes the local, Git-ignored `welc
 
 ## Current validation
 
-The validated code snapshot at the current `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` includes the Next.js 16.3.6 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
+The validated code snapshot at the current `main` commit `393b841e34bf524518aa5ab886415fece7994ea8` includes the Next.js 16.3.8 security baseline, authentication callback hardening, product-domain reconciliation, RPC security hardening, the eight-character password floor, and the least-privilege hardening of the product reward RPC.
 
 The earlier Quality Gate for the Next.js security patch completed successfully, including dependency installation, lint, typecheck, unit tests, accessibility tests, production build, Playwright installation, and E2E tests. The PR #290 authentication hardening added coverage for absolute and external callback destinations and was merged to `main`.
 
@@ -88,7 +88,7 @@ The E2E suite distinguishes anonymous runtime smoke coverage from authenticated 
 For the current `main` snapshot (`393b841e34bf524518aa5ab886415fece7994ea8`):
 
 - PR #290 authentication callback hardening is integrated.
-- The Next.js security patch to 16.3.6 is integrated.
+- The Next.js security patch baseline to 16.3.8 is integrated.
 - Product-domain reconciliation, RPC security hardening, and the eight-character password floor are integrated.
 - PR #309 removed unnecessary `service_role` execution from the public reward RPC and added a regression assertion.
 - PR #309 completed the Database Tests and Quality Gate successfully, along with CodeQL, Gitleaks, Dependency Review, AccessLint, qlty, CodeRabbit, CommitCheck, pre-commit, and Render.
