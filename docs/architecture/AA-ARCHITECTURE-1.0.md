@@ -11,7 +11,7 @@ This document is the operational companion to the conceptual architecture specif
 **Repository HEAD inspected immediately before this documentation sync:** `6cf8fcb17875eced828fc799f42c50a037515ae0`
 **Latest Render LIVE verification at this synchronization:** deploy `dep-db0rk9gjo6nc739v4ekg` for commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
-**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
+**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
 
 Status vocabulary:
 
