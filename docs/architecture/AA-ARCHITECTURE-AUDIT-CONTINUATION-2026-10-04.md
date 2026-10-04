@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Current `main` HEAD at the start of this audit checkpoint: `ec9730ecafc65706bee7d31e6b615fc4614f291c` (documentation-only descendant of the verified application/runtime baseline).
+Captured `main` revision for this audit checkpoint: `b8f5c1888564af32c62bb03b0abee7576f78a31d` (documentation-only architecture evidence synchronization).
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The last fully validated application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. `main` has since advanced through documentation-only commits and is currently observed at `ec9730ecafc65706bee7d31e6b615fc4614f291c`. The current HEAD has `pre-commit.ci - push` SUCCESS, but the available workflow-run connector currently exposes no GitHub Actions Quality Gate run for this SHA. The latest complete Production Smoke remains `37218452355` for `d04f83c...`; Render metadata independently shows the latest observed LIVE deployment is `dep-db19iooae00c73fafem0` for documentation-only revision `e1db06e997a95e92241253d796a47b77ef068744`. No application-runtime source change is attributed to the documentation-only revisions in this chain.
+The audit distinguishes repository state from production state. For captured revision `b8f5c1888564af32c62bb03b0abee7576f78a31d`, the main Quality Gate `37225106299`, Database Tests `37225106318`, CodeQL `37225106247`, Gitleaks `37225106300` and Scorecard `37225106286` all completed successfully. Render deploy `dep-db19qovf3r2c73bpu910` is LIVE for the same revision, and Production Smoke `37225275302` completed successfully with an exact production revision assertion. Later documentation-only commits may advance `main`; this audit is a captured evidence checkpoint, not a perpetual HEAD claim.
 
 ## 2. Verified architectural baseline
 
@@ -161,13 +161,13 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The fully verified application/runtime baseline remains `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37218452355` completed successfully and its health-endpoint assertion matched that exact SHA. Current HEAD is `ec9730...` and is not yet covered by a new complete Quality Gate + post-deploy Smoke evidence chain.
+The captured application/runtime revision is `b8f5c1888564af32c62bb03b0abee7576f78a31d`. Production Smoke `37225275302` completed successfully and its health-endpoint assertion matched that exact SHA.
 
 Therefore:
 
-- repository state = current `main` HEAD `ec9730...` (documentation-only descendant);
+- repository evidence = captured `main` revision `b8f5c188...` (documentation-only architecture synchronization);
 - public production runtime revision = `d04f83c…` by exact `/api/health` assertion;
-- application/runtime baseline equivalence = **CONFIRMED** for `d04f83c…`; current `main` differs only by audited documentation commits;
+- application/runtime equivalence = **CONFIRMED** for captured `b8f5c188...`; the deploy and Smoke evidence match the captured repository revision.
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
@@ -221,10 +221,10 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for the current repository revision `ec9730...` | GitHub Actions | **PENDENTE — pre-commit.ci SUCCESS; current Quality Gate not evidenced** |
+| P1 | Establish CI/Quality Gate evidence for captured revision `b8f5c188...` | GitHub Actions | **RESOLVIDO — Quality Gate `37225106299` SUCCESS** |
 | P1 | Re-read current Render deployment metadata for current HEAD | Render operational evidence | **PENDENTE — latest observed LIVE is `dep-db19io...` for `e1db06e...`; no current-HEAD deploy observed** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for current `main` HEAD `ec9730...` | GitHub Actions / Render operational evidence | **PENDENTE — latest complete run `37218452355` covers `d04f83c...`** |
+| P1 | Obtain successful Production Smoke evidence for captured `main` revision `b8f5c188...` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37225275302` SUCCESS** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
@@ -237,4 +237,4 @@ Critical architectural defects: **NONE IDENTIFIED IN THE REVIEWED EVIDENCE**.
 
 100% closure: **NOT AUTHORIZED** because external security/operational evidence and governance synchronization remain open.
 
-The next architectural cycle should first obtain fresh GitHub Actions Quality Gate and Render/Production Smoke evidence for current HEAD `ec9730...`; then reconcile the constitutional CSS decision and external security/resilience controls without changing the modular architecture unless new evidence demonstrates an actual architectural defect.
+The next architectural cycle should address the remaining governance and external operational controls: constitutional CSS reconciliation, Prompt 02 domain inventory synchronization, Supabase leaked-password protection, credential-boundary hardening, and rollback/backup/restore/RTO/RPO/DR/incident-response evidence.
