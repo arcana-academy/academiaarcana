@@ -8,7 +8,7 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Repository HEAD verified for this sync:** `e1db06e997a95e92241253d796a47b77ef068744`
+**Last repository revision captured by this architecture evidence:** `e1db06e997a95e92241253d796a47b77ef068744`
 **Latest production deployment evidence:** Render deploy `dep-db18j0gjo6nc73aanvd0` is `LIVE` for current `main` commit `aa0a095c8e1b8e82df87a1b03a2d32f7ba1d13b2`. The latest full Production Smoke evidence remains run `37218452355` for runtime commit `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Current `main` is five commits ahead of that verified runtime baseline and the comparison contains only documentation changes in the architecture/audit records; therefore no application-runtime source change is present in the intervening commits. The current Render deploy is directly confirmed through the Render control-plane connector; a new post-deploy Production Smoke run has not been executed for the documentation-only `aa0a095c...` commit.
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
@@ -28,7 +28,7 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The current synchronization observes repository `main` at commit `e1db06e997a95e92241253d796a47b77ef068744`. Render deploy `dep-db18j0gjo6nc73aanvd0` is `LIVE` for the preceding documentation-only commit `aa0a095c8e1b8e82df87a1b03a2d32f7ba1d13b2`. The latest full Production Smoke evidence remains run `37218452355` for `d04f83c...`; the five commits from `d04f83c...` to `aa0a095c...` contain only documentation changes in the architecture/audit records, so the application-runtime source is unchanged. A fresh Production Smoke run for `e1db06e...` remains pending.
+The last captured repository revision for this evidence record is `e1db06e997a95e92241253d796a47b77ef068744`. Render deploy `dep-db19iooae00c73fafem0` for that documentation-only revision is LIVE. The latest full Production Smoke evidence remains run `37218452355` for runtime commit `d04f83c...`. The current branch may advance through documentation-only commits; this document must not be interpreted as proof that its own recorded revision is the current branch HEAD.
 
 For `d04f83c...`, Quality Gate run `37218290549`, CodeQL run `37218290491`, Database Tests run `37218290493`, Gitleaks run `37218290506` and Scorecard run `37218290478` have completed successfully. Production Smoke run `37218452355` completed successfully for `d04f83c...` and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
 
