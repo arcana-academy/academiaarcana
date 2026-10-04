@@ -149,7 +149,8 @@ No new privilege escalation path was identified in this audit.
 - backup/restore exercise;
 - RTO/RPO;
 - incident-response operationalization;
-- administrative branch-protection evidence where the GitHub connector cannot expose it.
+- administrative branch-protection evidence where the GitHub connector cannot expose it;
+- **P1 migration-history/reproducibility reconciliation:** Supabase production records 23 migrations while `main` contains 21 migration files, with five production-only versions and three differently versioned repository migrations in the Focus/Social and Feedback Hub history. This cannot be safely resolved by filename inference and requires controlled database/schema reconciliation.
 
 ### DOCUMENTATION FOLLOW-UP
 
@@ -163,8 +164,8 @@ The correct action is to preserve the current architecture and continue with evi
 
 ## 10. Decision
 
-**CHAT 02 ARCHITECTURE — CONTINUATION AUDIT RESULT: STRUCTURALLY CONSOLIDATED.**
+**CHAT 02 ARCHITECTURE — CONTINUATION AUDIT RESULT: STRUCTURALLY CONSOLIDATED, NOT FULLY CLOSED.**
 
-The current architecture is ready for the next domain of work, subject to the explicitly external operational items above.
+The application architecture itself remains consolidated, but the newly verified migration-history discrepancy is a P1 reproducibility/governance dependency that must remain explicitly open until controlled database reconciliation is completed. It is not safe to claim final architectural closure while the repository cannot reproduce the full recorded production migration history.
 
-No architectural invention is authorized merely to eliminate those external items.
+No architectural invention is authorized merely to eliminate this dependency.
