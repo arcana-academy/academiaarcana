@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Repository `main` state inspected during the current corrective cycle: `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`
+Current `main` HEAD at the start of this audit checkpoint: `ccc455039903906d9f2083cab6f87a7048ecb71d` (documentation-only descendant of the verified application/runtime baseline).
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The current `main` is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. The post-merge Quality Gate `37218290549` completed successfully, as did CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully for this SHA and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The Smoke health check also asserted the exact production revision. Render control-plane metadata was not independently re-read in this cycle.
+The audit distinguishes repository state from production state. The verified application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`; `main` subsequently advanced through documentation-only commits. The post-merge Quality Gate `37218290549` completed successfully, as did CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully for this SHA and verified the production alias, health/readiness endpoints, public runtime routes, CSP and integration-status contract. The Smoke health check also asserted the exact production revision. Render control-plane metadata was not independently re-read in this cycle.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The current `main` revision `d04f83c…` has successful Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully; current post-deploy smoke success is **CONFIRMED** and the public runtime revision matches the repository SHA. Render control-plane metadata was not independently re-read in this cycle.
+The verified application/runtime baseline `d04f83c…` has successful Quality Gate `37218290549`, CodeQL `37218290491`, Database Tests `37218290493`, Gitleaks `37218290506` and Scorecard `37218290478`. Production Smoke `37218452355` completed successfully; current post-deploy smoke success is **CONFIRMED** and the public runtime revision matches the repository SHA. Render control-plane metadata was not independently re-read in this cycle.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -161,13 +161,13 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The current repository `main` revision is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
+The verified application/runtime baseline is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
 
 Therefore:
 
-- repository state = current `main` HEAD `d04f83c…`;
+- repository state = current `main` HEAD `ccc4550…` (documentation-only descendant);
 - public production runtime revision = `d04f83c…` by exact `/api/health` assertion;
-- repository/runtime equivalence = **CONFIRMED** at the application-runtime level;
+- application/runtime baseline equivalence = **CONFIRMED** for `d04f83c…`; current `main` differs only by audited documentation commits;
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
