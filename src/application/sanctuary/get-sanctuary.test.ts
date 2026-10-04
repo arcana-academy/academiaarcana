@@ -4,28 +4,8 @@ import type {
   SanctuaryGrimoire,
   SanctuaryUser,
 } from "@/domains/sanctuary";
-import type { PageProgress } from "@/domains/learning";
-import type { StudyTask } from "@/domains/planning";
-import type { Mission } from "@/domains/gamification";
-
 import { getSanctuary } from "./get-sanctuary";
-
-type SanctuaryRepository = {
-  getLearningHierarchy: () => Promise<SanctuaryGrimoire[]>;
-  getPageProgress?: (
-    ownerId: string,
-    pageIds: string[],
-  ) => Promise<PageProgress[]>;
-  listUpcomingStudyTasks?: (
-    ownerId: string,
-    now: string,
-    limit?: number,
-  ) => Promise<StudyTask[]>;
-  listDailyMissions?: (
-    ownerId: string,
-    targetDate: string,
-  ) => Promise<Mission[]>;
-};
+import type { SanctuaryRepository } from "./sanctuary-repository";
 
 const user: SanctuaryUser = {
   id: "user-1",
