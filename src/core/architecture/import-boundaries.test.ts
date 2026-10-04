@@ -148,6 +148,18 @@ function crossDomainImports(file: string, sourceDomain: CoreDomain | null): Cros
   return edges;
 }
 
+  it("maps every architectural domain to exactly one canonical source directory", () => {
+    const invalid = CORE_DOMAINS.filter((domain) => {
+      const candidates = [
+        resolve(srcRoot, "core", domain),
+        resolve(srcRoot, "domains", domain),
+      ];
+      return candidates.filter((candidate) => existsSync(candidate) && statSync(candidate).isDirectory()).length !== 1;
+    });
+
+    expect(invalid).toEqual([]);
+  });
+
 describe("architecture import boundaries", () => {
   const files = domainRoots.flatMap(collectSourceFiles);
   const graphFiles = graphRoots.flatMap(collectSourceFiles);

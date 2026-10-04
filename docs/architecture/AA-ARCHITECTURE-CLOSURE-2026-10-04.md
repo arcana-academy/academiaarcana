@@ -1,5 +1,7 @@
 # Academia Arcana — Architecture Closure Audit — 2026-10-04
 
+> **HISTORICAL CHECKPOINT — SUPERSEDED AS CURRENT STATUS EVIDENCE.** The active architecture baseline is maintained in `docs/architecture/AA-ARCHITECTURE-1.0.md` and the continuation audit. This record remains for historical traceability.
+
 > Scope: operational closure after CSP production remediation.
 > Repository: `arcana-academy/academiaarcana`
 > Production revision verified: `87369ba1b3cc904587c9b40a804c62c13b6d4915`
@@ -73,7 +75,9 @@ No item is marked fully closed without executable or direct environmental eviden
 
 ## Status
 
-**ARCHITECTURE: OPERATIONAL / PRODUCTION LIVE**
+**HISTORICAL CHECKPOINT — NOT CURRENT PRODUCTION STATUS**
+
+The evidence in this document must not be used to represent the current `main` HEAD or current Render deployment.
 
 **SECURITY: CSP REMEDIATION DEPLOYED; EXTERNAL AUTH CONFIGURATION PENDING**
 
