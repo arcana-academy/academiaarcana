@@ -8,8 +8,8 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Repository HEAD inspected immediately before this documentation sync:** `6cf8fcb17875eced828fc799f42c50a037515ae0`
-**Latest Render LIVE verification at this synchronization:** deploy `dep-db0rk9gjo6nc739v4ekg` for commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`
+**Repository HEAD verified for this sync:** `9910960508d6e95cc7a42d6cb39686d4a0530825`  
+**Latest Render LIVE verification at this sync:** deploy `dep-db16h4dg1s2s739ajp30` for commit `6cf8fcb17875eced828fc799f42c50a037515ae0`  
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
 **Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
 
@@ -584,6 +584,29 @@ The application layer currently contains implemented behavior for Identity, Lear
 
 Concrete persistence and integration adapters remain under `src/infrastructure`.
 
+### Composition root / server boundary
+
+Next.js App Router server routes, Server Actions, layouts and explicitly designated server-side composition modules act as **composition roots** for the modular monolith. They may instantiate concrete infrastructure adapters and wire them into application services/use cases.
+
+The boundary is:
+
+```text
+server composition root
+    ├── application use case
+    └── infrastructure adapter
+             ↓
+        domain-owned port
+```
+
+This is wiring, not business ownership. The following remain prohibited:
+
+- domain importing infrastructure;
+- application use-case code importing concrete infrastructure;
+- client components importing server-only infrastructure;
+- business invariants being placed in the composition root.
+
+This formalizes the repository's existing pattern while preserving dependency inversion at the domain/application boundary.
+
 The physical organization has now been reconciled with the logical architecture closely enough for the current monolith.
 
 ---
@@ -716,6 +739,14 @@ Controlled by explicit domain registry/policy validation.
 
 Controlled by this operational baseline and the architectural tests.
 
+### Risk: sensitive integration credentials remain in an exposed application table
+
+The current `public.integration_credentials` table has RLS enabled and no `anon` table privileges, while `authenticated` retains row-scoped CRUD. Runtime code accesses the table server-side and stores only encrypted token ciphertext, with the encryption secret kept outside the client.
+
+This is **not classified as a current authorization bypass** because row ownership is enforced by RLS and the runtime binds access to the authenticated subject. It is a defense-in-depth concern because encrypted credential material is still directly addressable through the Data API by an authenticated owner.
+
+The target hardening is to place credential persistence behind a non-exposed/server-only boundary with an explicit least-privilege access mechanism. Do not introduce a service-role bypass or schema migration solely to remove this warning without a complete authorization, migration, test and operational plan.
+
 ---
 
 ## 24. Canonical rules for future architecture changes
@@ -820,6 +851,60 @@ State: **CANÔNICO + DOCUMENTADO + VALIDADO**, with the current CSS-versus-Tailw
 
 **STATUS:** APROVADA + IMPLEMENTADA + VALIDADA.
 
+
+
+### 25.5 Authority versus evidence model — governance clarification
+
+Architecture governance uses two distinct axes that must not be conflated.
+
+**Normative authority** answers what decision is officially in force:
+
+```text
+Constitution Master
+    ↓
+approved domain/architecture decisions
+    ↓
+operational documentation
+    ↓
+proposals / assumptions
+```
+
+**Factual evidence** answers what is actually implemented or running:
+
+```text
+live environment / repository state
+    ↓
+verified CI, deployment and database evidence
+    ↓
+current documentation
+    ↓
+historical records
+```
+
+A repository or runtime state may prove divergence from an approved decision, but it does not silently redefine that decision. Conversely, a constitutional or architectural statement does not make an unverified implementation claim true.
+
+When the axes disagree, record the divergence explicitly and resolve it through the governing decision chain.
+
+For architecture-local records this repository uses the **AA-ARCH-XXX** namespace. The Constitution's **AA-ADR-XXX** namespace remains authoritative whenever a decision has constitutional/global scope. Existing AA-ARCH records are not retroactively renamed solely for naming consistency.
+
+### 25.6 CI/CD semantic ordering
+
+The canonical delivery semantics are:
+
+```text
+commit
+  ↓
+GitHub Actions — pre-deploy Quality Gate
+  ↓
+Render — checksPass promotion
+  ↓
+Application runtime
+  ↓
+Production Smoke — post-deploy verification
+```
+
+Production Smoke is evidence about the deployed runtime; it is not an input to the same Render promotion decision. Any future change that introduces a reverse dependency must be treated as an architecture regression and explicitly reviewed.
+ 
 
 ## 26. Current canonical state
 
