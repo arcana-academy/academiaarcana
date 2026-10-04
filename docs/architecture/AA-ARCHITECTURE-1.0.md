@@ -8,10 +8,10 @@ This document is the operational companion to the conceptual architecture specif
 
 **Repository:** `arcana-academy/academiaarcana`  
 **Canonical branch:** `main`  
-**Repository HEAD verified for this sync:** `9910960508d6e95cc7a42d6cb39686d4a0530825`
-**Latest Render LIVE verification at this sync:** deploy `dep-db16h4dg1s2s739ajp30` for commit `6cf8fcb17875eced828fc799f42c50a037515ae0`
+**Repository HEAD verified for this sync:** `0d463a467260810879eb2143a3c56e387367e852`
+**Latest Render LIVE verification at this sync:** deploy `dep-db16ma5g1s2s739ap7j0` for commit `0d463a467260810879eb2143a3c56e387367e852`
 **Prior live snapshot (historical):** deploy `dep-db0qg28ae00c73et8nug` for commit `393b841e34bf524518aa5ab886415fece7994ea8`
-**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
+**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-CONTINUATION-2026-10-04.md`
 
 Status vocabulary:
 
@@ -28,9 +28,9 @@ Status vocabulary:
 
 ## 0. Current-state reconciliation — 2026-10-04
 
-The previously recorded production snapshot is superseded by the current verified Render state. At the time of this synchronization, repository `main` was observed at commit `6cf8fcb17875eced828fc799f42c50a037515ae0`, while Render LIVE was verified at commit `d66b7764ea439d160c4af7652f59e8f0738e17d4` in deploy `dep-db0rk9gjo6nc739v4ekg`.
+The current synchronization observes repository `main` at commit `0d463a467260810879eb2143a3c56e387367e852`. Render deploy `dep-db16ma5g1s2s739ap7j0` is LIVE for the same commit, so repository and production revisions are equivalent at this checkpoint.
 
-The repository HEAD and production revision are therefore **not equivalent at this checkpoint**. The difference is currently represented by a later documentation commit on `main`, so CI/CD and production equivalence for that newer commit must be established independently.
+The Quality Gate, CodeQL and Database Tests for this SHA completed successfully. Production Smoke did not produce a successful result for this SHA and remains separate post-deploy evidence.
 
 The earlier audit records and the `393b841e34bf524518aa5ab886415fece7994ea8` deployment are historical evidence. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
@@ -916,9 +916,10 @@ Open closure gates at this checkpoint:
 
 1. Constitutional reconciliation of Tailwind CSS versus AA-ARCH-001.
 2. Synchronization of the Prompt 02 domain inventory with the canonical `sanctuary` domain.
-3. Independent CI/production verification for the repository revisions newer than the currently LIVE Render commit.
+3. Successful Production Smoke post-deploy verification for the current `main` revision. The Smoke trigger correction exists on the architecture working branch and still requires promotion to `main` before it can provide current production evidence.
 4. Supabase Auth Leaked Password Protection remains an external security configuration dependency.
 5. Operational resilience evidence remains required for rollback, backup/restore, RTO/RPO, disaster recovery and incident response.
+6. Authenticated access hardening for `public.integration_credentials` remains a P1 defense-in-depth item; no authorization bypass is currently evidenced.
 
 The architecture topology itself remains a modular monolith with explicit boundaries, directional dependencies, contracts, ownership and security controls.
 
