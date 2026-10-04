@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Captured `main` revision for this audit checkpoint: `8022041c4eb1b80aa97aea7db8b7be5e0a7e979e` (architecture test-only evidence synchronization).
+Captured runtime revision for this audit checkpoint: `8022041c4eb1b80aa97aea7db8b7be5e0a7e979e` (architecture test-only evidence synchronization; `main` may advance with documentation-only commits).
 
 ## 1. Executive result
 
@@ -165,7 +165,7 @@ The captured application/runtime revision is `8022041c4eb1b80aa97aea7db8b7be5e0a
 
 Therefore:
 
-- repository evidence = captured `main` revision `8022041c...` (architecture test-only synchronization);
+- repository evidence = captured runtime revision `8022041c...` (architecture test-only synchronization);
 - public production runtime revision = `8022041c...` by exact `/api/health` assertion;
 - application/runtime equivalence = **CONFIRMED** for captured `8022041c...`; the deploy and Smoke evidence match the captured repository revision.
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
@@ -224,7 +224,7 @@ Corrections applied:
 | P1 | Establish CI/Quality Gate evidence for captured revision `8022041c...` | GitHub Actions | **RESOLVIDO — Quality Gate `37226554183` SUCCESS** |
 | P1 | Re-read Render deployment metadata for captured revision | Render operational evidence | **RESOLVIDO — deploy `dep-db1a5ig473hc738soqhg` LIVE for `8022041c...`** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
-| P1 | Obtain successful Production Smoke evidence for captured `main` revision `8022041c...` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37226740318` SUCCESS** |
+| P1 | Obtain successful Production Smoke evidence for captured runtime revision `8022041c...` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37226740318` SUCCESS** |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
