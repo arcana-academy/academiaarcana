@@ -10,7 +10,7 @@ This document is the operational companion to the conceptual architecture specif
 **Canonical branch:** `main`  
 **Baseline commit at synchronization:** `d66b7764ea439d160c4af7652f59e8f0738e17d4`
 **Latest live runtime verification:** Render deploy `dep-db0rk9gjo6nc739v4ekg` for commit `d66b7764ea439d160c4af7652f59e8f0738e17d4`
-**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-03.md`
+**Latest architecture audit:** `docs/architecture/AA-ARCHITECTURE-AUDIT-2026-10-04-CONTINUATION.md`
 
 Status vocabulary:
 
