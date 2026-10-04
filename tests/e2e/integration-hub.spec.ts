@@ -158,7 +158,7 @@ test.describe("integration hub", () => {
 
     expect(notion).toMatchObject({
       name: "Notion",
-      status: "implemented",
+      status: "catalogued",
       executionMode: "runtime",
       providerId: "notion",
       capabilities: ["read", "write", "search", "metadata"],
@@ -171,7 +171,7 @@ test.describe("integration hub", () => {
 
     expect(trello).toMatchObject({
       name: "Trello",
-      status: "implemented",
+      status: "catalogued",
       executionMode: "runtime",
       providerId: "trello",
       capabilities: ["read", "write", "search", "metadata"],
