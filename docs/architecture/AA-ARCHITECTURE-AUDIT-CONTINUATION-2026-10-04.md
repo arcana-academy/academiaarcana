@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The current `main` is `0d463a467260810879eb2143a3c56e387367e852`. Render has a deployment in progress for `9910960508d6e95cc7a42d6cb39686d4a0530825`; the last independently verified LIVE revision remains `6cf8fcb17875eced828fc799f42c50a037515ae0` in deploy `dep-db16h4dg1s2s739ajp30`. Production equivalence for `0d463a4…` is therefore not yet verified.
+The audit distinguishes repository state from production state. The current `main` is `0d463a467260810879eb2143a3c56e387367e852`. The Quality Gate for this SHA completed successfully. Render has now started deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA; the last verified LIVE revision remains `9910960508d6e95cc7a42d6cb39686d4a0530825` in deploy `dep-db16kiff3r2c73bm9cs0`. Production equivalence for `0d463a4…` remains pending until that deployment reaches LIVE.
 
 ## 2. Verified architectural baseline
 
@@ -93,9 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-Same-day repository evidence previously recorded successful Quality Gate and Production Smoke for earlier verified live revisions. The current commit-status surface for the latest documentation revision exposes only a successful `pre-commit.ci - push` status; a complete current Quality Gate result is not established by the available connector surface.
-
-Production Smoke for the latest repository revision is therefore not claimed until directly evidenced.
+The current `main` revision has a successful Quality Gate, successful CodeQL, successful Database Tests, successful Gitleaks and Scorecard runs. Production Smoke remains skipped for the repository-triggered run because it is post-deploy evidence and the matching revision is not yet LIVE. No current Production Smoke pass is claimed.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -135,7 +133,15 @@ These cannot be marked resolved from repository code alone.
 
 Classification: **EXTERNAL P0/P1 SECURITY/OPERATIONS DEPENDENCY**.
 
-## 8. Operational resilience closure
+## 8. Credential-boundary hardening
+
+`public.integration_credentials` remains RLS-protected and owner-scoped, with no observed `anon` privileges; this is not classified as an authorization bypass. However, encrypted credential material remains directly addressable through the authenticated Data API by its owner. The target state is a server-only/non-exposed persistence boundary with explicit least privilege.
+
+Classification: **P1 HARDENING / NOT A CONFIRMED INCIDENT**.
+
+No service-role bypass or production migration is introduced solely to silence this finding. The hardening requires a complete authorization, migration, test and operational plan.
+
+## 9. Operational resilience closure
 
 The current evidence explicitly leaves the following unverified:
 
@@ -153,7 +159,7 @@ These are operational readiness controls rather than reasons to redesign the mod
 
 Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
-## 9. Runtime evidence freshness
+## 10. Runtime evidence freshness
 
 The repository HEAD is newer than the same-day LIVE commit documented in existing architecture evidence.
 
@@ -165,7 +171,7 @@ Therefore:
 
 This distinction is mandatory under the non-regression/evidence rule.
 
-## 10. Decisions confirmed this cycle
+## 11. Decisions confirmed this cycle
 
 ### AA-ARCH-004 — Render exclusivity
 
@@ -190,7 +196,7 @@ The modular-monolith boundary model, domain registry, dependency policy, communi
 
 Status: **CONFIRMED / IMPLEMENTED / VALIDATED by repository tests and architecture policy**.
 
-## 11. Problems corrected by this audit
+## 12. Problems corrected by this audit
 
 Source-code mutation was not required for the structural architecture findings in this cycle. Documentation mutations were justified and applied where the architecture records had become factually stale.
 
@@ -204,19 +210,23 @@ Corrections applied:
 6. Converted AA-ARCH-002 into an explicit governance reconciliation gate.
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
+9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
+10. Updated CI evidence: the current Quality Gate is now successful; Render equivalence is still awaiting deployment completion.
 
-## 12. Remaining high-priority items
+## 13. Remaining high-priority items
 
 | Priority | Item | Authority | Status |
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | PENDENTE |
-| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | PENDENTE |
+| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate SUCCESS** |
+| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | PENDENTE — deploy `dep-db16ma5g1s2s739ap7j0` in progress |
+| P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
+
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
 
-## 13. Final audit judgment
+## 14. Final audit judgment
 
 Architecture quality: **STRONG / OPERATIONAL BASELINE CONFIRMED**.
 
