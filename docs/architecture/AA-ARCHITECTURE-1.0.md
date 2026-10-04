@@ -30,7 +30,7 @@ Status vocabulary:
 
 The current synchronization observes repository `main` at commit `5520dae90bd4b38dd5521172b43a6cec039134c4`. The latest direct production-runtime evidence is Production Smoke run `37214051026` for `294d22710d014401009d1478305f8952eb983d55`; the newer main commits are not represented as new production smoke evidence in this record.
 
-For `5520dae...`, Quality Gate run `37215062435` is still in progress; CodeQL run `37215062407`, Database Tests run `37215062420`, Gitleaks run `37215062375` and Scorecard run `37215062385` have completed successfully. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
+For `5520dae...`, Quality Gate run `37215062435`, CodeQL run `37215062407`, Database Tests run `37215062420`, Gitleaks run `37215062375` and Scorecard run `37215062385` have completed successfully. Production Smoke run `37215288969` is currently in progress. Production Smoke remains separate post-deploy evidence and is not treated as an input to Render promotion.
 
 The earlier audit records and the `393b841e34bf524518aa5ab886415fece7994ea8` deployment are historical evidence. Operational recovery exercises tracked separately remain distinct from architecture closure.
 
