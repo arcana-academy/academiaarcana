@@ -2,6 +2,7 @@ import type { PracticeAttempt, PracticeItem } from "@/domains/education";
 import type { ObjectiveEvidenceProjection } from "@/domains/learning";
 import {
   evidenceConfidenceLabel,
+  objectiveEvidenceScopeLabel,
   objectiveEvidenceStateLabel,
 } from "@/lib/education/evidence-state-copy";
 import {
@@ -85,7 +86,7 @@ function ObjectiveAssessmentSession({
       className="aa-card aa-card-elevated"
       aria-labelledby="objective-session-title"
     >
-      <p className="aa-eyebrow">Evidência criterion-referenced · V1</p>
+      <p className="aa-eyebrow">Evidência objetiva · V1</p>
       <h2 id="objective-session-title">{item.prompt}</h2>
       <p className="aa-state-copy">Critério: {item.criterion}</p>
       <p className="aa-state-copy">
@@ -154,7 +155,7 @@ function ObjectiveAssessmentSession({
           </p>
           <p className="aa-state-copy">{evidence.reason}</p>
           <p className="aa-state-copy">
-            Fonte: critério explícito · escopo: {evidence.validityScope} · versão do critério: {evidence.criterionVersion}.
+            Fonte: critério explícito · escopo: {objectiveEvidenceScopeLabel(evidence.validityScope)} · versão do critério: {evidence.criterionVersion}.
           </p>
           {evidence.masteryConfirmed ? (
             <p>
