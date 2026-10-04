@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The current `main` revision `5520dae…` has successful Quality Gate `37215062435`, CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385`. Production Smoke `37215288969` for this SHA completed successfully; current post-deploy smoke success is **CONFIRMED**, while Render LIVE equivalence remains **NOT VERIFIED** until the current Render deployment is independently re-read.
+The current `main` revision `5520dae…` has successful Quality Gate `37215062435`, CodeQL `37215062407`, Database Tests `37215062420`, Gitleaks `37215062375` and Scorecard `37215062385`. Production Smoke `37215288969` for this SHA completed successfully; current post-deploy smoke success is **CONFIRMED** and the public runtime revision matches the repository SHA. Render control-plane metadata was not independently re-read in this cycle.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -161,14 +161,14 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The current repository `main` revision is `5520dae90bd4b38dd5521172b43a6cec039134c4`. The latest independently verified production-runtime smoke evidence still belongs to the prior `294d227…` revision.
+The current repository `main` revision is `5520dae90bd4b38dd5521172b43a6cec039134c4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
 
 Therefore:
 
 - repository state = current `main` HEAD `5520dae…`;
-- production state for the current SHA = **NOT VERIFIED** in this cycle;
-- repository/production equivalence = **NOT VERIFIED** for `5520dae…`;
-- current Production Smoke success = **PENDING**.
+- public production runtime revision = `5520dae…` by exact `/api/health` assertion;
+- repository/runtime equivalence = **CONFIRMED** at the application-runtime level;
+- Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
 
@@ -222,7 +222,7 @@ Corrections applied:
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
 | P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate `37215062435` SUCCESS** |
-| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **PENDENTE — current Render revision not independently re-read** |
+| P1 | Re-read current Render deployment metadata | Render operational evidence | **PENDENTE — control-plane deploy ID not independently re-read; runtime SHA already confirmed by Production Smoke** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
 | P1 | Obtain successful Production Smoke evidence for current `main` | GitHub Actions / Render operational evidence | **RESOLVIDO — run `37215288969` SUCCESS** |
 
