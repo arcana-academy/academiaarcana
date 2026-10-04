@@ -779,6 +779,32 @@ State: **CANÔNICO + DOCUMENTADO + VALIDADO**.
 
 ---
 
+### 24.4 Current Render exclusivity — AA-ARCH-004
+
+**ID:** AA-ARCH-004
+
+**TÍTULO:** Exclusividade operacional do Render no baseline atual
+
+**CONTEXTO:** A arquitetura atual utiliza Render como plataforma canônica de runtime e deployment. Registros históricos ou constitucionais podem mencionar uma eventual etapa futura relacionada à Vercel, mas isso não constitui uma segunda cadeia operacional ativa.
+
+**PROBLEMA:** Uma formulação sobre uso futuro de Vercel pode ser interpretada como autorização operacional imediata ou como coexistência entre plataformas.
+
+**DECISÃO:** No baseline atual, Render é o único provedor canônico de application runtime/production deployment. Vercel e Netlify não fazem parte da cadeia operacional corrente e não devem ser introduzidos como caminho paralelo, fallback, preview de produção ou substituição implícita. Qualquer futura transição de plataforma dependerá da autoridade superior aplicável e de uma nova decisão arquitetural explícita, com migração, validação e não-regressão.
+
+**ALTERNATIVAS CONSIDERADAS:**
+- manter Render e Vercel em paralelo;
+- permitir fallback implícito;
+- manter Render como único runtime atual e tratar qualquer migração futura como decisão formal.
+
+**JUSTIFICATIVA:** Preserva a regra de uma responsabilidade arquitetural por plataforma, reduz superfície operacional e evita que uma referência histórica seja interpretada como infraestrutura ativa.
+
+**IMPACTO:** Nenhuma alteração no pipeline atual. Apenas reforça a governança e a rastreabilidade da exclusão de plataformas concorrentes.
+
+**DEPENDÊNCIAS:** Constituição Master para eventual mudança futura; GitHub/GitHub Actions/Render/Supabase permanecem canônicos no estado atual.
+
+**STATUS:** APROVADA + IMPLEMENTADA + VALIDADA.
+
+
 ## 25. Final canonical state
 
 **AA-ARCHITECTURE-1.0 = CANÔNICO**
