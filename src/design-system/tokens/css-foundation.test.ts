@@ -3,11 +3,15 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { baseTokens } from "./base";
 
+function toCssName(value: string): string {
+  return value.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+}
+
 function flatten(value: unknown, prefix = ""): Array<[string, string]> {
   if (!value || typeof value !== "object") return [];
   return Object.entries(value).flatMap(([key, child]) => {
     const path = prefix ? `${prefix}-${key}` : key;
-    if (typeof child === "string") return [[`--aa-${path}`, child]];
+    if (typeof child === "string") return [[`--aa-${path.split("-").map(toCssName).join("-")}`, child]];
     return flatten(child, path);
   });
 }
