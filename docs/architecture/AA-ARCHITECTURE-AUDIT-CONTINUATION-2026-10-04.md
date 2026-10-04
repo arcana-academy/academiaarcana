@@ -6,7 +6,7 @@ AUDITORIA DE CONTINUAÇÃO — NÃO DECLARA FECHAMENTO 100%.
 
 Repository: `arcana-academy/academiaarcana`
 Audited branch: `main`
-Repository `main` state inspected at the start of the current corrective cycle: `6cf8fcb17875eced828fc799f42c50a037515ae0`
+Repository `main` state inspected during the current corrective cycle: `9910960508d6e95cc7a42d6cb39686d4a0530825`
 
 ## 1. Executive result
 
@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. At the start of this cycle, `main` was `6cf8fcb17875eced828fc799f42c50a037515ae0`; subsequent documentation-only corrections advanced `main` further. Render LIVE is currently verified separately at commit `6cf8fcb17875eced828fc799f42c50a037515ae0` in deploy `dep-db16h4dg1s2s739ajp30`. The latest documentation corrections after that deployment are not yet independently verified in production.
+The audit distinguishes repository state from production state. The current `main` is `9910960508d6e95cc7a42d6cb39686d4a0530825`. Render LIVE is currently verified separately at commit `6cf8fcb17875eced828fc799f42c50a037515ae0` in deploy `dep-db16h4dg1s2s739ajp30`. The difference is the documentation-only commit `9910960508d6e95cc7a42d6cb39686d4a0530825`, for which Quality Gate is still in progress and production promotion is not yet verified.
 
 ## 2. Verified architectural baseline
 
@@ -93,9 +93,9 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-Same-day repository evidence previously recorded successful Quality Gate and Production Smoke for earlier verified live revisions. The current commit-status surface for the latest documentation revision exposes only a successful `pre-commit.ci - push` status; a complete current Quality Gate result is not established by the available connector surface.
+Same-day repository evidence previously recorded successful Quality Gate and Production Smoke for earlier verified live revisions. The latest revision has a successful repository status from `pre-commit.ci - push`; GitHub Actions currently shows `Quality Gate` and CodeQL checks in progress, `Database Tests` successful, `Supabase Preview` successful, and `Production Smoke` skipped because this is not yet the promoted production revision.
 
-Production Smoke for the latest repository revision is therefore not claimed until directly evidenced.
+Production Smoke for the latest repository revision is intentionally not claimed until the revision is promoted to the production path and the smoke check executes.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -211,8 +211,8 @@ Corrections applied:
 |---|---|---|---|
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
-| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | PENDENTE |
-| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | PENDENTE |
+| P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | EM EXECUÇÃO |
+| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | PENDENTE — aguardando Quality Gate/promoção |
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
 | P1 | Synchronize Prompt 02 domain inventory with canonical `sanctuary` | Chat 00 / architecture governance | PENDENTE |
 
@@ -224,4 +224,4 @@ Critical architectural defects: **NONE IDENTIFIED IN THE REVIEWED EVIDENCE**.
 
 100% closure: **NOT AUTHORIZED** because external security/operational evidence and governance synchronization remain open.
 
-The next architectural cycle should begin with fresh CI and Render evidence for the latest `main` revision, then address the constitutional CSS reconciliation and external security/resilience controls without changing the modular architecture unless new evidence demonstrates an actual architectural defect.
+The immediate next cycle is to re-check the in-progress Quality Gate, verify the resulting Render promotion, then re-audit the exact promoted revision. Governance and external security/resilience gates remain independent and must not be silently closed by repository documentation.
