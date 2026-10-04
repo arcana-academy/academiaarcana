@@ -1,0 +1,41 @@
+import type { SanctuaryGrimoire } from "@/domains/sanctuary";
+
+export type SanctuaryProgressProjection = {
+  status: "not-started" | "in-progress" | "completed";
+};
+
+export type SanctuaryTaskProjection = {
+  id: string;
+  title: string;
+  dueAt: string | null;
+};
+
+export type SanctuaryMissionProjection = {
+  id: string;
+  title: string;
+  rewardXp: number;
+  status: "open" | "completed";
+};
+
+/**
+ * Consumer-owned read port for the Sanctuary application projection.
+ *
+ * Sanctuary remains a read-side aggregator: the producer domains retain
+ * ownership of learning progress, planning tasks and gamification missions.
+ */
+export interface SanctuaryProjectionPort {
+  getLearningHierarchy(): Promise<SanctuaryGrimoire[]>;
+  getPageProgress?(
+    ownerId: string,
+    pageIds: string[],
+  ): Promise<SanctuaryProgressProjection[]>;
+  listUpcomingStudyTasks?(
+    ownerId: string,
+    now: string,
+    limit?: number,
+  ): Promise<SanctuaryTaskProjection[]>;
+  listDailyMissions?(
+    ownerId: string,
+    targetDate: string,
+  ): Promise<SanctuaryMissionProjection[]>;
+}
