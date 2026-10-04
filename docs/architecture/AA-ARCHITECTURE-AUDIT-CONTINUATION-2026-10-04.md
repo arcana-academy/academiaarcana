@@ -161,13 +161,14 @@ Classification: **PENDENTE / EXTERNAL OPERATIONAL EVIDENCE**.
 
 ## 10. Runtime evidence freshness
 
-The current repository `main` revision is `5520dae90bd4b38dd5521172b43a6cec039134c4`. Production Smoke `37215288969` completed successfully and its health-endpoint assertion matched the production revision to this exact SHA.
+The current repository `main` revision is `d04f83c5b4b7f4210bc9477bb2853da13aeb6ef4` (documentation-only merge). Production Smoke `37215288969` completed successfully for the deployed application revision `5520dae90bd4b38dd5521172b43a6cec039134c4`, and its health-endpoint assertion matched that production revision to the exact SHA.
 
 Therefore:
 
-- repository state = current `main` HEAD `5520dae…`;
+- repository state = current `main` HEAD `d04f83c…`;
 - public production runtime revision = `5520dae…` by exact `/api/health` assertion;
-- repository/runtime equivalence = **CONFIRMED** at the application-runtime level;
+- repository/runtime equivalence = **NOT EQUIVALENT BY SHA**, because `d04f83c…` is a documentation-only merge after the deployed `5520dae…` revision;
+- production runtime verification for `5520dae…` = **CONFIRMED**;
 - Render control-plane deploy ID = **NOT RE-READ** through the connector in this cycle.
 
 This distinction preserves the evidence hierarchy: LIVE revision equivalence is established independently from post-deploy smoke evidence.
