@@ -14,7 +14,7 @@ The operational architecture is structurally consolidated as a modular monolith 
 
 No critical architectural topology defect was identified in the repository evidence reviewed in this cycle.
 
-The audit distinguishes repository state from production state. The current `main` is `0d463a467260810879eb2143a3c56e387367e852`. The Quality Gate for this SHA completed successfully. Render has now started deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA; the last verified LIVE revision remains `9910960508d6e95cc7a42d6cb39686d4a0530825` in deploy `dep-db16kiff3r2c73bm9cs0`. Production equivalence for `0d463a4…` remains pending until that deployment reaches LIVE.
+The audit distinguishes repository state from production state. The current `main` is `0d463a467260810879eb2143a3c56e387367e852`. The Quality Gate, CodeQL and Database Tests for this SHA completed successfully. Render deploy `dep-db16ma5g1s2s739ap7j0` for the same SHA is now LIVE. Repository and Render revision are therefore equivalent at this checkpoint.
 
 ## 2. Verified architectural baseline
 
@@ -93,7 +93,7 @@ The repository contains quality/security workflows covering, among other control
 - dependency review;
 - Scorecard.
 
-The current `main` revision has a successful Quality Gate, successful CodeQL, successful Database Tests, successful Gitleaks and Scorecard runs. Production Smoke remains skipped for the repository-triggered run because it is post-deploy evidence and the matching revision is not yet LIVE. No current Production Smoke pass is claimed.
+The current `main` revision has successful Quality Gate, CodeQL, Database Tests, Gitleaks and Scorecard runs. Production Smoke runs for this SHA were skipped/cancelled rather than completed successfully. The deployment is LIVE, but current post-deploy smoke validation is therefore **not claimed**.
 
 ## 5. Material governance conflict — Prompt 02 vs operational architecture
 
@@ -211,7 +211,8 @@ Corrections applied:
 7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
-10. Updated CI evidence: the current Quality Gate is now successful; Render equivalence is still awaiting deployment completion.
+10. Updated CI evidence: the current Quality Gate is successful and Render equivalence is now confirmed for `0d463a4…`.
+11. Recorded that Production Smoke did not produce a successful post-deploy result for this SHA; LIVE status is not being conflated with runtime smoke validation.
 
 ## 13. Remaining high-priority items
 
@@ -220,7 +221,7 @@ Corrections applied:
 | P0/P1 | Enable Supabase Leaked Password Protection | Supabase project configuration / authorized operator | PENDENTE |
 | P1 | Execute and evidence rollback/recovery/RTO/RPO/DR/incident-response controls | DevOps/Operations/authorized environment | PENDENTE |
 | P1 | Establish CI/Quality Gate evidence for the current repository revision | GitHub Actions | **RESOLVIDO — Quality Gate SUCCESS** |
-| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | PENDENTE — deploy `dep-db16ma5g1s2s739ap7j0` in progress |
+| P1 | Verify the latest repository revision is LIVE in Render | Render/GitHub operational evidence | **RESOLVIDO — deploy `dep-db16ma5g1s2s739ap7j0` LIVE** |
 | P1 | Harden authenticated access to integration credential persistence | Architecture/Security/authorized implementation | PENDENTE — defense-in-depth |
 
 | P1 | Reconcile constitutional Tailwind requirement with AA-ARCH-001 | Chat 00 / Constitution governance | PENDENTE |
