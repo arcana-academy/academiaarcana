@@ -9,9 +9,27 @@ const { resolve } = require("node:path");
 
 const root = process.cwd();
 const workflowDir = resolve(root, ".github/workflows");
+const codeownersPath = resolve(root, ".github/CODEOWNERS");
 
 if (!existsSync(workflowDir)) {
   throw new Error("Missing .github/workflows directory.");
+}
+
+if (!existsSync(codeownersPath)) {
+  throw new Error("Missing .github/CODEOWNERS for security-sensitive policy surfaces.");
+}
+
+const codeowners = readFileSync(codeownersPath, "utf8");
+for (const requiredOwnership of [
+  "/.github/ @arcana-academy",
+  "/render.yaml @arcana-academy",
+  "/package-lock.json @arcana-academy",
+  "/scripts/verify-dependency-lifecycle-scripts.cjs @arcana-academy",
+  "/scripts/verify-supply-chain-workflows.cjs @arcana-academy",
+]) {
+  if (!codeowners.includes(requiredOwnership)) {
+    throw new Error(`Missing CODEOWNERS policy: ${requiredOwnership}`);
+  }
 }
 
 const workflowFiles = readdirSync(workflowDir)
