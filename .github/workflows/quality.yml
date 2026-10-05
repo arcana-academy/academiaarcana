@@ -66,6 +66,21 @@ jobs:
       - name: Accessibility tests
         run: npm run test:a11y
 
+      - name: Production build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+        run: npm run build
+
+      - name: Install Playwright browser
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: End-to-end production smoke
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+        run: npm run test:e2e
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
@@ -127,14 +142,14 @@ jobs:
 
           rm -f "$RUNNER_TEMP/supabase-e2e.env"
 
-      - name: Production build
-        run: npm run build
-
-      - name: Install Playwright browser
-        run: npm exec -- playwright install --with-deps chromium
-
-      - name: End-to-end tests
-        run: npm run test:e2e
+      - name: Authenticated essential E2E
+        env:
+          E2E_LOCAL_RUNTIME: "1"
+        run: >-
+          npm run test:e2e --
+          tests/e2e/sanctuary.spec.ts
+          tests/e2e/practice.spec.ts
+          tests/e2e/essential-flows.spec.ts
 
       - name: Stop local Supabase
         if: always()
