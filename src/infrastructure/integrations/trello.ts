@@ -243,10 +243,6 @@ export function createOAuthVerifier(): string {
   return toBase64Url(bytes);
 }
 
-export function createOAuthState(): string {
-  return createOAuthVerifier();
-}
-
 export async function createPkceChallenge(verifier: string): Promise<string> {
   const digest = await globalThis.crypto.subtle.digest(
     "SHA-256",
