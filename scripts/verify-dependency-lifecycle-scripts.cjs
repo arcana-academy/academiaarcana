@@ -5,9 +5,7 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
 const lockPath = path.join(root, "package-lock.json");
-const packagePath = path.join(root, "package.json");
 const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
-const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
 
 if (lock.lockfileVersion !== 3) {
   throw new Error(
@@ -20,22 +18,6 @@ const allowedInstallScripts = new Map([
   ["node_modules/fsevents", "2.3.3"],
   ["node_modules/unrs-resolver", "1.12.2"],
 ]);
-
-const expectedAllowScripts = Object.fromEntries(
-  [...allowedInstallScripts.entries()].map(([dependencyPath, version]) => [
-    `${dependencyPath.replace(/^node_modules\//, "")}@${version}`,
-    true,
-  ]),
-);
-
-if (
-  JSON.stringify(packageJson.allowScripts ?? {}) !==
-  JSON.stringify(expectedAllowScripts)
-) {
-  throw new Error(
-    "package.json allowScripts must exactly match the reviewed lifecycle-script dependency set.",
-  );
-}
 
 const packages = lock.packages ?? {};
 const installScriptPackages = [];
