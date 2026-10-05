@@ -6,18 +6,23 @@ import {
   createMicrosoftOAuthState,
   createMicrosoftOAuthVerifier,
   createMicrosoftPkceChallenge,
+  getMicrosoftSharePointClientSecret,
   MICROSOFT_SHAREPOINT_OAUTH_PKCE_COOKIE,
   MICROSOFT_SHAREPOINT_OAUTH_STATE_COOKIE,
 } from "@/infrastructure/integrations/microsoft-sharepoint";
+import { createSubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
   try {
-    const state = createMicrosoftOAuthState();
+    const state = createSubjectBoundOAuthState(
+      claims.sub,
+      getMicrosoftSharePointClientSecret(),
+    );
     const verifier = createMicrosoftOAuthVerifier();
     const challenge = await createMicrosoftPkceChallenge(verifier);
     const cookieStore = await cookies();
