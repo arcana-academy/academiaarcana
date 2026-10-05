@@ -8,7 +8,9 @@ import {
   TRELLO_OAUTH_PKCE_COOKIE,
   TRELLO_OAUTH_STATE_COOKIE,
   verifyTrelloConnection,
+  getTrelloClientSecret,
 } from "@/infrastructure/integrations/trello";
+import { verifySubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
@@ -33,8 +35,29 @@ export async function GET(request: Request) {
   cookieStore.delete(TRELLO_OAUTH_STATE_COOKIE);
   cookieStore.delete(TRELLO_OAUTH_PKCE_COOKIE);
 
+  let stateBoundToSubject = false;
+  try {
+    stateBoundToSubject = Boolean(
+      state &&
+        verifySubjectBoundOAuthState(
+          state,
+          claims.sub,
+          getTrelloClientSecret(),
+        ),
+    );
+  } catch {
+    stateBoundToSubject = false;
+  }
+
   if (error) return redirectError(request, error);
-  if (!code || !state || !storedState || state !== storedState || !verifier) {
+  if (
+    !code ||
+    !state ||
+    !storedState ||
+    state !== storedState ||
+    !verifier ||
+    !stateBoundToSubject
+  ) {
     return redirectError(request, "invalid_state");
   }
 
