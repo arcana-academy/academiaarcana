@@ -7,7 +7,7 @@ select extensions.plan(41);
 create function pg_temp.exec_row_count(p_sql text)
 returns integer
 language plpgsql
-as $
+as $fn$
 declare
   v_count integer;
 begin
@@ -15,7 +15,7 @@ begin
   get diagnostics v_count = row_count;
   return v_count;
 end;
-$;
+$fn$;
 
 insert into auth.users (id, email)
 values
