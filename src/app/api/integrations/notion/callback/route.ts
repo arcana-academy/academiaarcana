@@ -7,7 +7,9 @@ import {
   NOTION_CREDENTIALS_COOKIE,
   NOTION_OAUTH_STATE_COOKIE,
   verifyNotionConnection,
+  getNotionClientSecret,
 } from "@/infrastructure/integrations/notion";
+import { verifySubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
@@ -32,8 +34,28 @@ export async function GET(request: Request) {
   const storedState = cookieStore.get(NOTION_OAUTH_STATE_COOKIE)?.value;
   cookieStore.delete(NOTION_OAUTH_STATE_COOKIE);
 
+  let stateBoundToSubject = false;
+  try {
+    stateBoundToSubject = Boolean(
+      state &&
+        verifySubjectBoundOAuthState(
+          state,
+          claims.sub,
+          getNotionClientSecret(),
+        ),
+    );
+  } catch {
+    stateBoundToSubject = false;
+  }
+
   if (error) return redirectError(request, error);
-  if (!code || !state || !storedState || state !== storedState) {
+  if (
+    !code ||
+    !state ||
+    !storedState ||
+    state !== storedState ||
+    !stateBoundToSubject
+  ) {
     return redirectError(request, "invalid_state");
   }
 
