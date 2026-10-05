@@ -41,6 +41,21 @@ jobs:
       - name: Start local Supabase
         run: supabase db start
 
+      - name: Rebuild to pre-P1.5 migration state
+        run: supabase db reset --version 20261002135336
+
+      - name: Seed representative existing P1 data
+        run: psql "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/migrations/p1_5_existing_state_seed.sql
+
+      - name: Apply P1.5 migration over existing state
+        run: supabase migration up --local --include-all
+
+      - name: Validate P1.5 existing-state migration
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/migrations/p1_5_existing_state.test.sql
+
+      - name: Rebuild latest schema for full database regression
+        run: supabase db reset
+
       - name: Apply local migrations
         run: supabase migration up --local --include-all
 
