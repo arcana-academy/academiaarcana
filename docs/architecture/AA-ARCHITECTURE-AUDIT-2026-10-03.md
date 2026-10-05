@@ -123,9 +123,9 @@ Estado: **CANÔNICO + IMPLEMENTADO + TESTADO**
 
 ---
 
-## 5. Vercel e Netlify
+## 5. Exclusividade do Render
 
-O estado real do runtime não utiliza Vercel nem Netlify como plataforma concorrente de produção.
+O estado real do runtime utiliza Render como única plataforma de produção.
 
 O guard de infraestrutura canônica mantém provedores equivalentes excluídos das superfícies operacionais.
 
@@ -133,7 +133,7 @@ O Render é a plataforma de runtime atualmente efetiva.
 
 ### Observação de governança
 
-A Constituição Master historicamente descreve a Vercel como etapa final de deploy. Isso não deve ser interpretado como autorização para substituir o Render durante a construção ou operação corrente.
+A documentação de publicação deve refletir Render como plataforma canônica, mantendo a validação do Quality Gate e a aprovação explícita para publicação.
 
 Qualquer transição futura deve seguir o fluxo formal da Constituição Master e não pode ocorrer silenciosamente.
 

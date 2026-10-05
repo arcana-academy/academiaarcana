@@ -53,8 +53,8 @@ Impacto: MÉDIO/ALTO. R008 dizia que a nomenclatura de domínio ainda era parcia
 ### C-04 — P1.5 reconciliado no main
 Impacto: ALTO, resolvido. O estado corrente separa autoavaliação e evidência objetiva, preserva estado conflitante e separa contagens de tentativa; P1.5 continua limitado a criterion-referenced.
 
-### C-05 — Vercel em fontes históricas versus Render no estado arquitetural atual
-Impacto: ALTO entre domínios; fora da autoridade de Produto. O repositório atual usa Render como runtime/publicação canônica. Produto não altera Arquitetura ou Infraestrutura; a divergência foi encaminhada a Architecture + Documentation.
+### C-05 — Reconciliação das fontes históricas com Render
+Impacto: ALTO entre domínios; fora da autoridade de Produto. O repositório atual usa Render como runtime/publicação canônica. Reconciliação documental autorizada pelo usuário em 04/10/2026: Render permanece como único runtime/publicação canônico, sem etapa futura em outro provedor. Produto não altera Arquitetura ou Infraestrutura.
 
 ## O QUE FOI CORRIGIDO
 
@@ -122,7 +122,7 @@ Adaptive + Education + Learning devem definir sinais, confiança, calibração, 
 Social + Identity + Authorization + UI/UX + QA; P2; superfície preparada, função real pendente.
 
 ### PI-04 — Reconciliação documental de infraestrutura
-Architecture + Documentation devem reconciliar referências históricas a Vercel com o estado atual baseado em Render. Produto não define provedor.
+Direção documental reconciliada em 04/10/2026 por instrução do usuário: GitHub + GitHub Actions + Render + Supabase. A publicação continua condicionada ao Quality Gate e à aprovação explícita. Produto não define provedor.
 
 ## BLOQUEIOS
 

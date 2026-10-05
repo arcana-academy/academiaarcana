@@ -73,7 +73,7 @@ The dependency matrix is explicitly validated for duplicate, unknown, self and c
 
 ## 3. Provider exclusion audit
 
-No active operational Vercel or Netlify configuration was found in the reviewed policy surfaces. References to Vercel/Netlify that remain in provider guards, architecture policy, and tests are intentional exclusion controls and are not active hosting configuration.
+No competing operational hosting configuration was found in the reviewed policy surfaces. Provider guards, architecture policy, and tests retain exclusion controls to prevent alternative hosting from being introduced.
 
 This is consistent with the canonical one-provider-per-responsibility rule.
 
@@ -176,7 +176,7 @@ This distinction preserves the evidence hierarchy: LIVE revision equivalence is 
 
 ### AA-ARCH-004 — Render exclusivity
 
-Render remains the only operational application runtime in the current architecture baseline. Vercel/Netlify are not parallel production paths or implicit fallbacks.
+Render remains the only operational application runtime in the current architecture baseline. Alternative providers are not parallel production paths or implicit fallbacks.
 
 Status: **CONFIRMED / CANONICAL / IMPLEMENTED**.
 
@@ -209,7 +209,7 @@ Corrections applied:
 4. Reconciled the documented ownership matrix with the current educational practice tables.
 5. Reclassified AA-ARCH-001 as conflicting with the higher-authority Constitution/Prompt 02 stack statement rather than allowing a lower-level decision to override it.
 6. Converted AA-ARCH-002 into an explicit governance reconciliation gate.
-7. Preserved Vercel/Netlify as exclusion controls rather than misclassifying policy references as active infrastructure.
+7. Preserved provider exclusion controls that prevent competing infrastructure.
 8. Kept Supabase Auth and operational resilience items as external closure dependencies.
 9. Recorded the integration-credential boundary as a P1 defense-in-depth risk without classifying it as an incident.
 10. Updated CI evidence: Quality Gate `37226554183`, CodeQL `37226554200`, Database Tests `37226554114`, Gitleaks `37226554129` and Scorecard `37226554141` are successful for captured revision `8022041c...`.

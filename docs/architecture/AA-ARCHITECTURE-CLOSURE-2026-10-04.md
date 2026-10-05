@@ -60,7 +60,7 @@ Canonical infrastructure remains:
 - Render — production runtime/deployment
 - Supabase — database, Auth, RLS and Storage
 
-Vercel and Netlify remain excluded from the operational production chain.
+Render is the sole application runtime and deployment provider in the operational production chain.
 
 ## Closure criteria still open
 
