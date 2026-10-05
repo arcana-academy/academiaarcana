@@ -4,6 +4,19 @@ create extension if not exists pgtap with schema extensions;
 
 select extensions.plan(41);
 
+create function pg_temp.exec_row_count(p_sql text)
+returns integer
+language plpgsql
+as $
+declare
+  v_count integer;
+begin
+  execute p_sql;
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$;
+
 insert into auth.users (id, email)
 values
   ('a1000000-0000-4000-8000-000000000001', 'qa-rls-owner-a@example.test'),
@@ -79,26 +92,15 @@ values
   ('ac000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001', 'a@example.test', 'Feedback A'),
   ('ac000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000002', 'b@example.test', 'Feedback B');
 
-select extensions.ok(
-  not has_table_privilege('anon', 'public.grimoires', 'SELECT'),
-  'anon cannot read workspace hierarchy'
-);
-select extensions.ok(
-  not has_table_privilege('anon', 'public.focus_sessions', 'SELECT'),
-  'anon cannot read focus sessions'
-);
-select extensions.ok(
-  not has_table_privilege('anon', 'public.integration_credentials', 'SELECT'),
-  'anon cannot read integration credentials'
-);
-select extensions.ok(
-  not has_table_privilege('anon', 'public.external_document_sources', 'SELECT'),
-  'anon cannot read external document sources'
-);
-select extensions.ok(
-  not has_table_privilege('anon', 'public.feedback_responses', 'SELECT'),
-  'anon cannot read feedback responses'
-);
+set local role anon;
+
+select extensions.is((select count(*)::integer from public.grimoires), 0, 'anon cannot read workspace hierarchy');
+select extensions.is((select count(*)::integer from public.focus_sessions), 0, 'anon cannot read focus sessions');
+select extensions.is((select count(*)::integer from public.integration_credentials), 0, 'anon cannot read integration credentials');
+select extensions.is((select count(*)::integer from public.external_document_sources), 0, 'anon cannot read external document sources');
+select extensions.is((select count(*)::integer from public.feedback_responses), 0, 'anon cannot read feedback responses');
+
+reset role;
 
 select set_config('request.jwt.claim.sub', 'a1000000-0000-4000-8000-000000000001', true);
 select set_config(
@@ -147,21 +149,16 @@ select extensions.throws_ok(
 );
 
 select extensions.is(
-  (with changed as (
-    update public.page_progress set status = 'completed'
-    where id = 'a6000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from changed),
+  pg_temp.exec_row_count($update public.page_progress
+    set status = 'completed'
+    where id = 'a6000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot update another user page progress'
 );
 
 select extensions.is(
-  (with removed as (
-    delete from public.page_progress
-    where id = 'a6000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from removed),
+  pg_temp.exec_row_count($delete from public.page_progress
+    where id = 'a6000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot delete another user page progress'
 );
@@ -175,11 +172,8 @@ select extensions.throws_ok(
 );
 
 select extensions.is(
-  (with removed as (
-    delete from public.study_tasks
-    where id = 'a7000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from removed),
+  pg_temp.exec_row_count($delete from public.study_tasks
+    where id = 'a7000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot delete another user study task'
 );
@@ -193,21 +187,16 @@ select extensions.throws_ok(
 );
 
 select extensions.is(
-  (with changed as (
-    update public.focus_sessions set completed_at = now()
-    where id = 'a9000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from changed),
+  pg_temp.exec_row_count($update public.focus_sessions
+    set completed_at = now()
+    where id = 'a9000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot update another user focus session'
 );
 
 select extensions.is(
-  (with removed as (
-    delete from public.focus_sessions
-    where id = 'a9000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from removed),
+  pg_temp.exec_row_count($delete from public.focus_sessions
+    where id = 'a9000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot delete another user focus session'
 );
@@ -221,21 +210,16 @@ select extensions.throws_ok(
 );
 
 select extensions.is(
-  (with changed as (
-    update public.friend_connections set status = 'accepted'
-    where id = 'aa000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from changed),
+  pg_temp.exec_row_count($update public.friend_connections
+    set status = 'accepted'
+    where id = 'aa000000-0000-4000-8000-000000000002'$),
   0,
   'non-participant cannot update another connection'
 );
 
 select extensions.is(
-  (with removed as (
-    delete from public.friend_connections
-    where id = 'aa000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from removed),
+  pg_temp.exec_row_count($delete from public.friend_connections
+    where id = 'aa000000-0000-4000-8000-000000000002'$),
   0,
   'non-participant cannot delete another connection'
 );
@@ -252,21 +236,16 @@ select extensions.throws_ok(
 );
 
 select extensions.is(
-  (with changed as (
-    update public.integration_credentials set access_token_ciphertext = 'changed'
-    where owner_id = 'a1000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from changed),
+  pg_temp.exec_row_count($update public.integration_credentials
+    set access_token_ciphertext = 'changed'
+    where owner_id = 'a1000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot update another user integration credentials'
 );
 
 select extensions.is(
-  (with removed as (
-    delete from public.integration_credentials
-    where owner_id = 'a1000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from removed),
+  pg_temp.exec_row_count($delete from public.integration_credentials
+    where owner_id = 'a1000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot delete another user integration credentials'
 );
@@ -293,21 +272,16 @@ select extensions.throws_ok(
 );
 
 select extensions.is(
-  (with changed as (
-    update public.external_document_sources set name = 'Changed'
-    where id = 'ab000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from changed),
+  pg_temp.exec_row_count($update public.external_document_sources
+    set name = 'Changed'
+    where id = 'ab000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot update another user external document source'
 );
 
 select extensions.is(
-  (with removed as (
-    delete from public.external_document_sources
-    where id = 'ab000000-0000-4000-8000-000000000002'
-    returning 1
-  ) select count(*)::integer from removed),
+  pg_temp.exec_row_count($delete from public.external_document_sources
+    where id = 'ab000000-0000-4000-8000-000000000002'$),
   0,
   'owner cannot delete another user external document source'
 );
