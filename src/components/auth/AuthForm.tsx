@@ -148,7 +148,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     <main aria-labelledby="auth-title">
       <h1 id="auth-title">{copy.title}</h1>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form method="post" onSubmit={handleSubmit} noValidate>
         {mode !== "update-password" && (
           <div>
             <label htmlFor={emailId}>Email</label>
