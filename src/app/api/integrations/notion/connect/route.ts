@@ -4,17 +4,19 @@ import { NextResponse } from "next/server";
 import {
   buildNotionAuthorizationUrl,
   createNotionOAuthState,
+  getNotionClientSecret,
   NOTION_OAUTH_STATE_COOKIE,
 } from "@/infrastructure/integrations/notion";
+import { createSubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
   try {
-    const state = createNotionOAuthState();
+    const state = createSubjectBoundOAuthState(claims.sub, getNotionClientSecret());
     const cookieStore = await cookies();
 
     cookieStore.set(NOTION_OAUTH_STATE_COOKIE, state, {
