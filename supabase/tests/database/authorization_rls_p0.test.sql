@@ -95,10 +95,31 @@ values
 set local role anon;
 
 select extensions.is((select count(*)::integer from public.grimoires), 0, 'anon cannot read workspace hierarchy');
-select extensions.is((select count(*)::integer from public.focus_sessions), 0, 'anon cannot read focus sessions');
-select extensions.is((select count(*)::integer from public.integration_credentials), 0, 'anon cannot read integration credentials');
-select extensions.is((select count(*)::integer from public.external_document_sources), 0, 'anon cannot read external document sources');
-select extensions.is((select count(*)::integer from public.feedback_responses), 0, 'anon cannot read feedback responses');
+
+select extensions.throws_ok(
+  $select count(*) from public.focus_sessions$,
+  '42501',
+  null,
+  'anon cannot read focus sessions'
+);
+select extensions.throws_ok(
+  $select count(*) from public.integration_credentials$,
+  '42501',
+  null,
+  'anon cannot read integration credentials'
+);
+select extensions.throws_ok(
+  $select count(*) from public.external_document_sources$,
+  '42501',
+  null,
+  'anon cannot read external document sources'
+);
+select extensions.throws_ok(
+  $select count(*) from public.feedback_responses$,
+  '42501',
+  null,
+  'anon cannot read feedback responses'
+);
 
 reset role;
 
