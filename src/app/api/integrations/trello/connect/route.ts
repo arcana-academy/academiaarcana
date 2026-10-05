@@ -6,18 +6,20 @@ import {
   createOAuthState,
   createOAuthVerifier,
   createPkceChallenge,
+  getTrelloClientSecret,
   TRELLO_OAUTH_PKCE_COOKIE,
   TRELLO_OAUTH_STATE_COOKIE,
 } from "@/infrastructure/integrations/trello";
+import { createSubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
   try {
-    const state = createOAuthState();
+    const state = createSubjectBoundOAuthState(claims.sub, getTrelloClientSecret());
     const verifier = createOAuthVerifier();
     const challenge = await createPkceChallenge(verifier);
     const cookieStore = await cookies();
