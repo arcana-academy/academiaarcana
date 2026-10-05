@@ -73,6 +73,12 @@ export async function createOutlookAuthorizationUrl(ownerId: string) {
   return url.toString();
 }
 
+export async function clearOutlookAuthorizationTransaction() {
+  const jar = await cookies();
+  jar.delete(STATE_COOKIE);
+  jar.delete(VERIFIER_COOKIE);
+}
+
 export async function redeemOutlookAuthorizationCode(
   ownerId: string,
   code: string,
