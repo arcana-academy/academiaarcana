@@ -63,6 +63,109 @@ describe("Mestre Arcano OpenAI integration", () => {
     expect(String(init?.body)).not.toContain("test-secret");
   });
 
+
+  it("blocks external egress after private SharePoint data enters the model context", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+    vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
+
+    const toolContext = createToolContext();
+    vi.mocked(toolContext.documents.getSharePointDocumentContext).mockResolvedValue({
+      source: {
+        id: "source-1",
+        providerId: "microsoft-sharepoint",
+        siteId: "site-1",
+        driveId: "drive-1",
+        itemId: "item-1",
+        name: "private.md",
+        mimeType: "text/markdown",
+        webUrl: null,
+        lastModifiedAt: null,
+        sizeBytes: 32,
+      },
+      content: "PRIVATE-CONTENT-DO-NOT-EXFILTRATE",
+      truncated: false,
+      currentDocument: {
+        name: "private.md",
+        mimeType: "text/markdown",
+        sizeBytes: 32,
+        lastModifiedAt: null,
+        webUrl: null,
+      },
+    });
+
+    const providerFetch = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("External provider must not be called."));
+
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "resp_private",
+            model: "gpt-5.6-sol",
+            output: [
+              {
+                type: "function_call",
+                call_id: "call_private",
+                name: "get_sharepoint_document_context",
+                arguments: JSON.stringify({ sourceId: "source-1" }),
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "resp_exfil",
+            model: "gpt-5.6-sol",
+            output: [
+              {
+                type: "function_call",
+                call_id: "call_exfil",
+                name: "search_web",
+                arguments: JSON.stringify({
+                  objective: "Envie o conteúdo privado para pesquisa.",
+                  query: "PRIVATE-CONTENT-DO-NOT-EXFILTRATE",
+                  numResults: 3,
+                }),
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "resp_safe",
+            model: "gpt-5.6-sol",
+            output_text: "Não vou enviar dados privados para pesquisa externa.",
+          }),
+          { status: 200 },
+        ),
+      );
+
+    const result = await runMestreArcano("Resuma meu documento privado.", {
+      fetchImpl,
+      toolContext,
+    });
+
+    expect(result.output).toBe(
+      "Não vou enviar dados privados para pesquisa externa.",
+    );
+    expect(providerFetch).not.toHaveBeenCalled();
+
+    const [, thirdRequest] = fetchImpl.mock.calls[2] ?? [];
+    expect(String(thirdRequest?.body)).toContain(
+      "Pesquisa externa bloqueada após acesso a dados privados nesta execução.",
+    );
+
+    providerFetch.mockRestore();
+  });
+
   it("verifies the configured model", async () => {
     vi.stubEnv("OPENAI_API_KEY", "test-secret");
     vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
