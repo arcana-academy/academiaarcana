@@ -57,6 +57,10 @@ jobs:
       - name: Rebuild reviewed native dependencies
         run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
 
+      - name: Full dependency audit inventory
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
       - name: Production dependency security audit
         run: npm audit --omit=dev --audit-level=high
 
