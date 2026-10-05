@@ -3,7 +3,12 @@ import { relative, resolve } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { encryptAsanaCredentials } from "@/infrastructure/integrations/asana";
+import { encryptMicrosoftSharePointCredentials } from "@/infrastructure/integrations/microsoft-sharepoint";
+import { encryptNotionCredentials } from "@/infrastructure/integrations/notion";
 import { getIntegrationStatusSnapshot } from "@/infrastructure/integrations/status";
+import { encryptTodoistCredentials } from "@/infrastructure/integrations/todoist";
+import { encryptTrelloCredentials } from "@/infrastructure/integrations/trello";
 
 const root = process.cwd();
 const privilegedSupabaseEnv = ["SUPABASE", "SERVICE", "ROLE", "KEY"].join("_");
@@ -111,6 +116,73 @@ describe("P0 credential and secret boundaries", () => {
     expect(serialized).not.toMatch(
       /"(?:accessToken|refreshToken|access_token|refresh_token|clientSecret|client_secret)"\s*:/,
     );
+  });
+
+  it("keeps OAuth credential cookie blobs opaque to bearer material", async () => {
+    vi.stubEnv("ASANA_CLIENT_SECRET", "qa-asana-key-material");
+    vi.stubEnv("NOTION_CLIENT_SECRET", "qa-notion-key-material");
+    vi.stubEnv("TODOIST_CLIENT_SECRET", "qa-todoist-key-material");
+    vi.stubEnv("TRELLO_CLIENT_SECRET", "qa-trello-key-material");
+    vi.stubEnv("MICROSOFT_CLIENT_SECRET", "qa-microsoft-key-material");
+
+    const cases = [
+      {
+        encoded: await encryptAsanaCredentials({
+          subjectId: "qa-user",
+          accessToken: "qa-asana-access-marker",
+          refreshToken: "qa-asana-refresh-marker",
+          accessTokenExpiresAt: 1_900_000_000_000,
+        }),
+        sensitiveValues: ["qa-asana-access-marker", "qa-asana-refresh-marker"],
+      },
+      {
+        encoded: await encryptNotionCredentials({
+          subjectId: "qa-user",
+          accessToken: "qa-notion-access-marker",
+          refreshToken: "qa-notion-refresh-marker",
+          botId: "qa-bot",
+          workspaceId: "qa-workspace",
+          workspaceName: "QA Workspace",
+        }),
+        sensitiveValues: ["qa-notion-access-marker", "qa-notion-refresh-marker"],
+      },
+      {
+        encoded: await encryptTodoistCredentials({
+          subjectId: "qa-user",
+          accessToken: "qa-todoist-access-marker",
+          refreshToken: "qa-todoist-refresh-marker",
+          accessTokenExpiresAt: 1_900_000_000_000,
+        }),
+        sensitiveValues: ["qa-todoist-access-marker", "qa-todoist-refresh-marker"],
+      },
+      {
+        encoded: await encryptTrelloCredentials({
+          subjectId: "qa-user",
+          accessToken: "qa-trello-access-marker",
+          refreshToken: "qa-trello-refresh-marker",
+          accessTokenExpiresAt: 1_900_000_000_000,
+        }),
+        sensitiveValues: ["qa-trello-access-marker", "qa-trello-refresh-marker"],
+      },
+      {
+        encoded: await encryptMicrosoftSharePointCredentials({
+          subjectId: "qa-user",
+          accessToken: "qa-microsoft-access-marker",
+          refreshToken: "qa-microsoft-refresh-marker",
+          accessTokenExpiresAt: 1_900_000_000_000,
+        }),
+        sensitiveValues: [
+          "qa-microsoft-access-marker",
+          "qa-microsoft-refresh-marker",
+        ],
+      },
+    ];
+
+    for (const testCase of cases) {
+      for (const value of testCase.sensitiveValues) {
+        expect(testCase.encoded).not.toContain(value);
+      }
+    }
   });
 
   it("pins third-party GitHub Actions and disables checkout credential persistence", () => {
