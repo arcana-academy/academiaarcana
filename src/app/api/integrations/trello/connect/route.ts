@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 import {
   buildTrelloAuthorizationUrl,
-  createOAuthState,
   createOAuthVerifier,
   createPkceChallenge,
   getTrelloClientSecret,
