@@ -5,17 +5,19 @@ import {
   createAsanaOAuthState,
   createAsanaOAuthVerifier,
   createAsanaPkceChallenge,
+  getAsanaClientSecret,
   ASANA_OAUTH_PKCE_COOKIE,
   ASANA_OAUTH_STATE_COOKIE,
 } from "@/infrastructure/integrations/asana";
+import { createSubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
   try {
-    const state = createAsanaOAuthState();
+    const state = createSubjectBoundOAuthState(claims.sub, getAsanaClientSecret());
     const verifier = createAsanaOAuthVerifier();
     const challenge = await createAsanaPkceChallenge(verifier);
     const cookieStore = await cookies();
