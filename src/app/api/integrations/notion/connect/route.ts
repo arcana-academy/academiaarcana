@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 import {
   buildNotionAuthorizationUrl,
-  createNotionOAuthState,
   getNotionClientSecret,
   NOTION_OAUTH_STATE_COOKIE,
 } from "@/infrastructure/integrations/notion";
