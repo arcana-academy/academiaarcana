@@ -36,8 +36,10 @@ export async function POST(request: Request) {
       maxTokens: body.maxTokens,
     });
     return NextResponse.json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Falha inesperada no gateway.";
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    return NextResponse.json(
+      { error: "Falha inesperada no gateway." },
+      { status: 502 },
+    );
   }
 }
