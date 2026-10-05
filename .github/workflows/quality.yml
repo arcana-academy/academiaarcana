@@ -40,6 +40,9 @@ jobs:
       - name: Pin npm
         run: npm install --global npm@11.19.1 --ignore-scripts
 
+      - name: Verify supply-chain workflow boundary
+        run: node scripts/verify-supply-chain-workflows.cjs
+
       - name: Verify dependency lifecycle allowlist
         run: node scripts/verify-dependency-lifecycle-scripts.cjs
 
