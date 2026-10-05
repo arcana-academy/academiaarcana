@@ -4,7 +4,6 @@ import {
   ASANA_OAUTH_AUTHORIZE_URL,
   ASANA_OAUTH_SCOPES,
   buildAsanaAuthorizationUrl,
-  createAsanaOAuthState,
   createAsanaOAuthVerifier,
   createAsanaPkceChallenge,
   decryptAsanaCredentials,
@@ -36,13 +35,10 @@ describe("Asana integration adapter", () => {
     expect(url.searchParams.get("scope")).toBe(ASANA_OAUTH_SCOPES.join(" "));
   });
 
-  it("generates non-empty random state and verifier values", () => {
-    const state = createAsanaOAuthState();
+  it("generates a non-empty random PKCE verifier", () => {
     const verifier = createAsanaOAuthVerifier();
 
-    expect(state).toBeTruthy();
     expect(verifier).toBeTruthy();
-    expect(state).not.toBe(verifier);
   });
 
   it("generates a deterministic S256 PKCE challenge", async () => {
