@@ -38,8 +38,7 @@ export async function invokeOpenSourceAi(request: GatewayRequest) {
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error("Open Source AI gateway error (" + response.status + "): " + detail.slice(0, 500));
+    throw new Error("Open Source AI gateway error (" + response.status + ").");
   }
 
   const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
