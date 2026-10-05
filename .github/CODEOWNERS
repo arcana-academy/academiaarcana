@@ -1,0 +1,9 @@
+# Security-sensitive repository policy surfaces
+/.github/ @arcana-academy
+/render.yaml @arcana-academy
+/package.json @arcana-academy
+/package-lock.json @arcana-academy
+/scripts/verify-canonical-infrastructure.cjs @arcana-academy
+/scripts/verify-deployment-platform.cjs @arcana-academy
+/scripts/verify-dependency-lifecycle-scripts.cjs @arcana-academy
+/scripts/verify-supply-chain-workflows.cjs @arcana-academy
