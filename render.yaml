@@ -4,12 +4,14 @@ services:
     runtime: node
     branch: main
     autoDeployTrigger: checksPass
-    buildCommand: npm ci && npm run build
+    buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
       - key: NEXT_PUBLIC_APP_ENV
         value: production
       - key: NEXT_PUBLIC_SUPABASE_URL
