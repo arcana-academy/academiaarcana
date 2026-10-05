@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 import {
   buildMicrosoftSharePointAuthorizationUrl,
-  createMicrosoftOAuthState,
   createMicrosoftOAuthVerifier,
   createMicrosoftPkceChallenge,
   getMicrosoftSharePointClientSecret,
