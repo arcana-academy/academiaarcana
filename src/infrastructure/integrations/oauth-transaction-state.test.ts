@@ -27,7 +27,10 @@ describe("OAuth transaction state", () => {
 
   it("rejects malformed or tampered state", () => {
     const state = createSubjectBoundOAuthState("user-a", "server-secret");
-    const tampered = state.replace(/.$/, (value) => (value === "A" ? "B" : "A"));
+    const [version, nonce, signature] = state.split(".");
+    const tamperedSignature =
+      (signature?.startsWith("A") ? "B" : "A") + signature!.slice(1);
+    const tampered = `${version}.${nonce}.${tamperedSignature}`;
 
     expect(
       verifySubjectBoundOAuthState(tampered, "user-a", "server-secret"),
