@@ -87,7 +87,7 @@ describe("canonical infrastructure provider policy", () => {
     expect(render).toContain("type: web");
     expect(render).toContain("runtime: node");
     expect(render).toContain("branch: main");
-    expect(render).toContain("buildCommand: npm ci && npm run build");
+    expect(render).toContain("buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build");
     expect(render).toContain("startCommand: npm start");
     expect(render).toContain("healthCheckPath: /api/health");
   });
