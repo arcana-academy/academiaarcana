@@ -225,11 +225,6 @@ export async function decryptNotionCredentials(
   }
 }
 
-export function createNotionOAuthState(): string {
-  const bytes = new Uint8Array(32);
-  globalThis.crypto.getRandomValues(bytes);
-  return toBase64Url(bytes);
-}
 
 export function buildNotionAuthorizationUrl(input: {
   readonly state: string;

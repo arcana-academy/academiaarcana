@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { redeemOutlookAuthorizationCode } from "@/infrastructure/integrations/outlook-calendar-oauth";
+import {
+  clearOutlookAuthorizationTransaction,
+  redeemOutlookAuthorizationCode,
+} from "@/infrastructure/integrations/outlook-calendar-oauth";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export async function GET(request: Request) {
@@ -8,8 +11,10 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
+  const error = url.searchParams.get("error");
 
-  if (!code || !state) {
+  if (error || !code || !state) {
+    await clearOutlookAuthorizationTransaction();
     return NextResponse.redirect(
       new URL("/cronograma?outlook=error", request.url),
     );

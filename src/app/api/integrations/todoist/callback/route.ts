@@ -8,7 +8,9 @@ import {
   TODOIST_OAUTH_PKCE_COOKIE,
   TODOIST_OAUTH_STATE_COOKIE,
   verifyTodoistConnection,
+  getTodoistClientSecret,
 } from "@/infrastructure/integrations/todoist";
+import { verifySubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
@@ -34,8 +36,29 @@ export async function GET(request: Request) {
   cookieStore.delete(TODOIST_OAUTH_STATE_COOKIE);
   cookieStore.delete(TODOIST_OAUTH_PKCE_COOKIE);
 
+  let stateBoundToSubject = false;
+  try {
+    stateBoundToSubject = Boolean(
+      state &&
+        verifySubjectBoundOAuthState(
+          state,
+          claims.sub,
+          getTodoistClientSecret(),
+        ),
+    );
+  } catch {
+    stateBoundToSubject = false;
+  }
+
   if (error) return redirectError(request, error);
-  if (!code || !state || !storedState || state !== storedState || !verifier) {
+  if (
+    !code ||
+    !state ||
+    !storedState ||
+    state !== storedState ||
+    !verifier ||
+    !stateBoundToSubject
+  ) {
     return redirectError(request, "invalid_state");
   }
 

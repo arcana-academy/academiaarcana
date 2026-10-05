@@ -7,7 +7,9 @@ import {
   encryptAsanaCredentials,
   exchangeAsanaAuthorizationCode,
   verifyAsanaConnection,
+  getAsanaClientSecret,
 } from "@/infrastructure/integrations/asana";
+import { verifySubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
@@ -29,8 +31,29 @@ export async function GET(request: Request) {
   cookieStore.delete(ASANA_OAUTH_STATE_COOKIE);
   cookieStore.delete(ASANA_OAUTH_PKCE_COOKIE);
 
+  let stateBoundToSubject = false;
+  try {
+    stateBoundToSubject = Boolean(
+      state &&
+        verifySubjectBoundOAuthState(
+          state,
+          claims.sub,
+          getAsanaClientSecret(),
+        ),
+    );
+  } catch {
+    stateBoundToSubject = false;
+  }
+
   if (error) return redirectError(request, error);
-  if (!code || !state || !storedState || state !== storedState || !verifier) {
+  if (
+    !code ||
+    !state ||
+    !storedState ||
+    state !== storedState ||
+    !verifier ||
+    !stateBoundToSubject
+  ) {
     return redirectError(request, "invalid_state");
   }
 

@@ -10,19 +10,24 @@ import {
   clearLegacyOutlookTokenCookies,
   storeOutlookTokens,
 } from "./outlook-calendar-session";
+import {
+  createSubjectBoundOAuthState,
+  verifySubjectBoundOAuthState,
+} from "./oauth-transaction-state";
 
 const STATE_COOKIE = "arcana_outlook_oauth_state";
 const VERIFIER_COOKIE = "arcana_outlook_oauth_verifier";
 
 function requireConfig() {
   const clientId = process.env.MICROSOFT_ENTRA_CLIENT_ID;
+  const clientSecret = process.env.MICROSOFT_ENTRA_CLIENT_SECRET;
   const redirectUri = process.env.MICROSOFT_ENTRA_REDIRECT_URI;
-  if (!clientId || !redirectUri) {
+  if (!clientId || !clientSecret || !redirectUri) {
     throw new OutlookCalendarError(
-      "MICROSOFT_ENTRA_CLIENT_ID e MICROSOFT_ENTRA_REDIRECT_URI são obrigatórios.",
+      "MICROSOFT_ENTRA_CLIENT_ID, MICROSOFT_ENTRA_CLIENT_SECRET e MICROSOFT_ENTRA_REDIRECT_URI são obrigatórios.",
     );
   }
-  return { clientId, redirectUri };
+  return { clientId, clientSecret, redirectUri };
 }
 
 function baseCookieOptions() {
@@ -43,9 +48,9 @@ function createPkceChallenge(verifier: string) {
   return createHash("sha256").update(verifier).digest("base64url");
 }
 
-export async function createOutlookAuthorizationUrl() {
-  const { clientId, redirectUri } = requireConfig();
-  const state = randomBytes(32).toString("base64url");
+export async function createOutlookAuthorizationUrl(ownerId: string) {
+  const { clientId, clientSecret, redirectUri } = requireConfig();
+  const state = createSubjectBoundOAuthState(ownerId, clientSecret);
   const verifier = createPkceVerifier();
   const challenge = createPkceChallenge(verifier);
   const jar = await cookies();
@@ -68,35 +73,43 @@ export async function createOutlookAuthorizationUrl() {
   return url.toString();
 }
 
+export async function clearOutlookAuthorizationTransaction() {
+  const jar = await cookies();
+  jar.delete(STATE_COOKIE);
+  jar.delete(VERIFIER_COOKIE);
+}
+
 export async function redeemOutlookAuthorizationCode(
   ownerId: string,
   code: string,
   state: string,
 ) {
-  const { clientId, redirectUri } = requireConfig();
+  const { clientId, clientSecret, redirectUri } = requireConfig();
   const jar = await cookies();
   const expectedState = jar.get(STATE_COOKIE)?.value;
   const verifier = jar.get(VERIFIER_COOKIE)?.value;
 
-  if (!expectedState || !verifier || expectedState !== state) {
+  jar.delete(STATE_COOKIE);
+  jar.delete(VERIFIER_COOKIE);
+
+  if (
+    !expectedState ||
+    !verifier ||
+    expectedState !== state ||
+    !verifySubjectBoundOAuthState(state, ownerId, clientSecret)
+  ) {
     throw new OutlookCalendarError("Estado OAuth inválido ou expirado.");
   }
 
   const body = new URLSearchParams({
     client_id: clientId,
-    client_secret: process.env.MICROSOFT_ENTRA_CLIENT_SECRET ?? "",
+    client_secret: clientSecret,
     grant_type: "authorization_code",
     code,
     redirect_uri: redirectUri,
     code_verifier: verifier,
     scope: OUTLOOK_CALENDAR_SCOPES.join(" "),
   });
-
-  if (!process.env.MICROSOFT_ENTRA_CLIENT_SECRET) {
-    throw new OutlookCalendarError(
-      "MICROSOFT_ENTRA_CLIENT_SECRET é obrigatório no servidor.",
-    );
-  }
 
   const response = await fetch(
     "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -134,6 +147,4 @@ export async function redeemOutlookAuthorizationCode(
   });
 
   await clearLegacyOutlookTokenCookies();
-  jar.delete(STATE_COOKIE);
-  jar.delete(VERIFIER_COOKIE);
 }

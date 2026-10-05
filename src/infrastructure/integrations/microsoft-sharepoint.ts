@@ -78,10 +78,6 @@ export function createMicrosoftOAuthVerifier(): string {
   return toBase64Url(bytes);
 }
 
-export function createMicrosoftOAuthState(): string {
-  return createMicrosoftOAuthVerifier();
-}
-
 export async function createMicrosoftPkceChallenge(verifier: string): Promise<string> {
   const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
   return toBase64Url(new Uint8Array(digest));

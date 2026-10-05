@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   TODOIST_INTEGRATION_DEFINITION,
   buildTodoistAuthorizationUrl,
-  createOAuthState,
   createOAuthVerifier,
   createPkceChallenge,
   createTodoistTask,
@@ -31,7 +30,7 @@ describe("Todoist integration", () => {
     vi.stubEnv("TODOIST_CLIENT_ID", "client-id");
     vi.stubEnv("TODOIST_REDIRECT_URI", "https://example.com/api/integrations/todoist/callback");
 
-    const state = createOAuthState();
+    const state = "state-value";
     const verifier = createOAuthVerifier();
     const challenge = await createPkceChallenge(verifier);
     const url = new URL(

@@ -3,21 +3,22 @@ import { NextResponse } from "next/server";
 
 import {
   buildTodoistAuthorizationUrl,
-  createOAuthState,
   createOAuthVerifier,
   createPkceChallenge,
+  getTodoistClientSecret,
   TODOIST_OAUTH_PKCE_COOKIE,
   TODOIST_OAUTH_STATE_COOKIE,
 } from "@/infrastructure/integrations/todoist";
+import { createSubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
   try {
-    const state = createOAuthState();
+    const state = createSubjectBoundOAuthState(claims.sub, getTodoistClientSecret());
     const verifier = createOAuthVerifier();
     const challenge = await createPkceChallenge(verifier);
     const cookieStore = await cookies();

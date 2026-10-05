@@ -8,7 +8,9 @@ import {
   MICROSOFT_SHAREPOINT_OAUTH_PKCE_COOKIE,
   MICROSOFT_SHAREPOINT_OAUTH_STATE_COOKIE,
   verifyMicrosoftSharePointConnection,
+  getMicrosoftSharePointClientSecret,
 } from "@/infrastructure/integrations/microsoft-sharepoint";
+import { verifySubjectBoundOAuthState } from "@/infrastructure/integrations/oauth-transaction-state";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +29,29 @@ export async function GET(request: Request) {
   cookieStore.delete(MICROSOFT_SHAREPOINT_OAUTH_STATE_COOKIE);
   cookieStore.delete(MICROSOFT_SHAREPOINT_OAUTH_PKCE_COOKIE);
 
-  if (error || !state || !expectedState || state !== expectedState || !code || !verifier) {
+  let stateBoundToSubject = false;
+  try {
+    stateBoundToSubject = Boolean(
+      state &&
+        verifySubjectBoundOAuthState(
+          state,
+          user.sub,
+          getMicrosoftSharePointClientSecret(),
+        ),
+    );
+  } catch {
+    stateBoundToSubject = false;
+  }
+
+  if (
+    error ||
+    !state ||
+    !expectedState ||
+    state !== expectedState ||
+    !code ||
+    !verifier ||
+    !stateBoundToSubject
+  ) {
     return NextResponse.redirect(
       new URL("/integracoes?error=microsoft_sharepoint_authorization_failed", request.url),
     );
@@ -38,7 +62,7 @@ export async function GET(request: Request) {
       code,
       codeVerifier: verifier,
       requestUrl: request.url,
-      subjectId: user.id,
+      subjectId: user.sub,
     });
 
     await verifyMicrosoftSharePointConnection(credentials.accessToken);
