@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { loginWithCredentials } from "./auth-helpers";
+
 const e2eEmail = process.env.E2E_EMAIL;
 const e2ePassword = process.env.E2E_PASSWORD;
 
@@ -23,12 +25,8 @@ test.describe("authenticated Sanctuary flow", () => {
       return;
     }
 
-    await page.goto("/login");
-    await page.getByLabel("Email").fill(e2eEmail);
-    await page.getByLabel("Senha").fill(e2ePassword);
-    await page.getByRole("button", { name: "Entrar" }).click();
+    await loginWithCredentials(page, e2eEmail, e2ePassword);
 
-    await page.goto("/santuario");
     await expect(
       page.getByRole("heading", { name: "Seu Santuário de aprendizagem" }),
     ).toBeVisible();
