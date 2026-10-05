@@ -28,8 +28,11 @@ jobs:
       - name: Verify dependency lifecycle allowlist
         run: node scripts/verify-dependency-lifecycle-scripts.cjs
 
-      - name: Install dependencies with strict lifecycle approval
-        run: npm ci --strict-allow-scripts=true
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+
+      - name: Rebuild reviewed native dependencies
+        run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
 
       - run: npm run lint -- --fix
 
