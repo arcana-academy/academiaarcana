@@ -95,6 +95,9 @@ jobs:
       - name: Run P0 data integrity tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/data_integrity_p0.test.sql
 
+      - name: Run P0 data integrity concurrency tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/data_integrity_concurrency_p0.test.sql
+
       - name: Run P0 cross-user authorization and RLS tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/authorization_rls_p0.test.sql
 
