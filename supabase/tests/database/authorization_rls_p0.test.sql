@@ -97,25 +97,25 @@ set local role anon;
 select extensions.is((select count(*)::integer from public.grimoires), 0, 'anon cannot read workspace hierarchy');
 
 select extensions.throws_ok(
-  $select count(*) from public.focus_sessions$,
+  $sql$select count(*) from public.focus_sessions$sql$,
   '42501',
   null,
   'anon cannot read focus sessions'
 );
 select extensions.throws_ok(
-  $select count(*) from public.integration_credentials$,
+  $sql$select count(*) from public.integration_credentials$sql$,
   '42501',
   null,
   'anon cannot read integration credentials'
 );
 select extensions.throws_ok(
-  $select count(*) from public.external_document_sources$,
+  $sql$select count(*) from public.external_document_sources$sql$,
   '42501',
   null,
   'anon cannot read external document sources'
 );
 select extensions.throws_ok(
-  $select count(*) from public.feedback_responses$,
+  $sql$select count(*) from public.feedback_responses$sql$,
   '42501',
   null,
   'anon cannot read feedback responses'
@@ -146,188 +146,150 @@ select extensions.is((select count(*)::integer from public.external_document_sou
 select extensions.is((select count(*)::integer from public.feedback_responses), 1, 'owner sees only own feedback responses');
 
 select extensions.throws_ok(
-  $$insert into public.grimoires (owner_id, title)
-    values ('a1000000-0000-4000-8000-000000000002', 'Forbidden')$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot create a grimoire for another user'
 );
 
 select extensions.throws_ok(
-  $$insert into public.notebooks (grimoire_id, title, position)
-    values ('a2000000-0000-4000-8000-000000000002', 'Forbidden', 1)$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot create a notebook inside another user grimoire'
 );
 
 select extensions.throws_ok(
-  $$insert into public.page_progress (owner_id, page_id, status)
-    values ('a1000000-0000-4000-8000-000000000001', 'a5000000-0000-4000-8000-000000000002', 'in-progress')$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot create progress for a page owned by another user'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($update public.page_progress
-    set status = 'completed'
-    where id = 'a6000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot update another user page progress'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($delete from public.page_progress
-    where id = 'a6000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot delete another user page progress'
 );
 
 select extensions.throws_ok(
-  $$insert into public.study_tasks (owner_id, title)
-    values ('a1000000-0000-4000-8000-000000000002', 'Forbidden')$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot create a study task for another user'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($delete from public.study_tasks
-    where id = 'a7000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot delete another user study task'
 );
 
 select extensions.throws_ok(
-  $$insert into public.focus_sessions (owner_id, duration_seconds, started_at)
-    values ('a1000000-0000-4000-8000-000000000002', 1500, now())$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot create a focus session for another user'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($update public.focus_sessions
-    set completed_at = now()
-    where id = 'a9000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot update another user focus session'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($delete from public.focus_sessions
-    where id = 'a9000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot delete another user focus session'
 );
 
 select extensions.throws_ok(
-  $$insert into public.friend_connections (requester_id, recipient_id)
-    values ('a1000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000003')$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'user cannot forge another requester identity'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($update public.friend_connections
-    set status = 'accepted'
-    where id = 'aa000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'non-participant cannot update another connection'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($delete from public.friend_connections
-    where id = 'aa000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'non-participant cannot delete another connection'
 );
 
 select extensions.throws_ok(
-  $$insert into public.integration_credentials (
-      owner_id, provider_id, access_token_ciphertext, refresh_token_ciphertext, access_expires_at
-    ) values (
-      'a1000000-0000-4000-8000-000000000002', 'forged', 'cipher', 'refresh', now() + interval '1 hour'
-    )$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot create integration credentials for another user'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($update public.integration_credentials
-    set access_token_ciphertext = 'changed'
-    where owner_id = 'a1000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot update another user integration credentials'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($delete from public.integration_credentials
-    where owner_id = 'a1000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot delete another user integration credentials'
 );
 
 select extensions.throws_ok(
-  $$update public.integration_credentials
-      set owner_id = 'a1000000-0000-4000-8000-000000000003'
-    where owner_id = 'a1000000-0000-4000-8000-000000000001'
-      and provider_id = 'qa-provider-a'$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot escalate integration credential ownership'
 );
 
 select extensions.throws_ok(
-  $$insert into public.external_document_sources (
-      owner_id, provider_id, site_id, drive_id, item_id, name
-    ) values (
-      'a1000000-0000-4000-8000-000000000002', 'qa', 'forged-site', 'forged-drive', 'forged-item', 'Forbidden'
-    )$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot create an external source for another user'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($update public.external_document_sources
-    set name = 'Changed'
-    where id = 'ab000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot update another user external document source'
 );
 
 select extensions.is(
-  pg_temp.exec_row_count($delete from public.external_document_sources
-    where id = 'ab000000-0000-4000-8000-000000000002'$),
+  pg_temp.exec_row_count($sql$1$sql$),
   0,
   'owner cannot delete another user external document source'
 );
 
 select extensions.throws_ok(
-  $$update public.external_document_sources
-      set owner_id = 'a1000000-0000-4000-8000-000000000003'
-    where id = 'ab000000-0000-4000-8000-000000000001'$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot escalate external source ownership'
 );
 
 select extensions.throws_ok(
-  $$insert into public.feedback_responses (user_id, email, feedback)
-    values ('a1000000-0000-4000-8000-000000000002', 'forged@example.test', 'Forbidden')$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot submit feedback under another user identity'
 );
 
 select extensions.throws_ok(
-  $$update public.grimoires
-      set owner_id = 'a1000000-0000-4000-8000-000000000003'
-    where id = 'a2000000-0000-4000-8000-000000000001'$$,
+  $$sql$1$sql$$,
   '42501',
   null,
   'owner cannot escalate grimoire ownership'
