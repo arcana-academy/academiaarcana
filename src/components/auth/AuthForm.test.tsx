@@ -35,6 +35,16 @@ describe("AuthForm", () => {
     updateUser.mockResolvedValue({ error: null });
   });
 
+
+  it("uses POST as the native fallback so credentials never enter the URL before hydration", () => {
+    render(<AuthForm mode="login" />);
+
+    const form = screen.getByRole("button", { name: "Entrar" }).closest("form");
+
+    expect(form).not.toBeNull();
+    expect(form?.getAttribute("method")).toBe("post");
+  });
+
   it("submits login credentials and redirects to the sanctuary after success", async () => {
     render(<AuthForm mode="login" />);
 
