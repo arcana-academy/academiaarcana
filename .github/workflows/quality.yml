@@ -66,17 +66,76 @@ jobs:
       - name: Accessibility tests
         run: npm run test:a11y
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Start local Supabase for authenticated E2E
+        run: |
+          supabase start
+          supabase db reset
+          supabase migration up --local --include-all
+
+      - name: Configure local authenticated E2E fixture
+        run: |
+          supabase status -o env > "$RUNNER_TEMP/supabase-e2e.env"
+          set -a
+          source "$RUNNER_TEMP/supabase-e2e.env"
+          set +a
+
+          PUBLIC_KEY="${PUBLISHABLE_KEY:-${ANON_KEY:-}}"
+          test -n "${API_URL:-}"
+          test -n "${PUBLIC_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+
+          E2E_EMAIL="qa-e2e-${GITHUB_RUN_ID}@example.test"
+          E2E_SIGNUP_EMAIL="qa-signup-${GITHUB_RUN_ID}@example.test"
+          E2E_PASSWORD="Aa9-$(openssl rand -hex 12)"
+
+          export E2E_EMAIL E2E_SIGNUP_EMAIL E2E_PASSWORD
+
+          {
+            printf 'NEXT_PUBLIC_SUPABASE_URL=%s\n' "$API_URL"
+            printf 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=%s\n' "$PUBLIC_KEY"
+            printf 'E2E_EMAIL=%s\n' "$E2E_EMAIL"
+            printf 'E2E_SIGNUP_EMAIL=%s\n' "$E2E_SIGNUP_EMAIL"
+            printf 'E2E_PASSWORD=%s\n' "$E2E_PASSWORD"
+          } >> "$GITHUB_ENV"
+
+          node <<'NODE'
+          const { API_URL, SERVICE_ROLE_KEY, E2E_EMAIL, E2E_PASSWORD } = process.env;
+
+          const response = await fetch(`${API_URL}/auth/v1/admin/users`, {
+            method: "POST",
+            headers: {
+              apikey: SERVICE_ROLE_KEY,
+              Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: E2E_EMAIL,
+              password: E2E_PASSWORD,
+              email_confirm: true,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Unable to create local E2E user: HTTP ${response.status}`);
+          }
+          NODE
+
+          rm -f "$RUNNER_TEMP/supabase-e2e.env"
+
       - name: Production build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
         run: npm run build
 
       - name: Install Playwright browser
         run: npm exec -- playwright install --with-deps chromium
 
       - name: End-to-end tests
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
         run: npm run test:e2e
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop
