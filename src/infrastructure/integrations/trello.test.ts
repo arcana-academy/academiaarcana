@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   TRELLO_INTEGRATION_DEFINITION,
   buildTrelloAuthorizationUrl,
-  createOAuthState,
   createOAuthVerifier,
   createPkceChallenge,
   decryptTrelloCredentials,
@@ -40,7 +39,7 @@ describe("Trello integration", () => {
       "https://example.com/api/integrations/trello/callback",
     );
 
-    const state = createOAuthState();
+    const state = "state-value";
     const verifier = createOAuthVerifier();
     const challenge = await createPkceChallenge(verifier);
     const url = new URL(
