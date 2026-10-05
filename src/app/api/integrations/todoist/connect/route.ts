@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 import {
   buildTodoistAuthorizationUrl,
-  createOAuthState,
   createOAuthVerifier,
   createPkceChallenge,
   getTodoistClientSecret,
