@@ -73,16 +73,19 @@ describe("getSanctuary", () => {
     });
 
     expect(result.continueLearning).toEqual({
-      intent: "explore",
-      grimoireId: "grimoire-1",
-      grimoireTitle: "Anatomia",
-      notebookId: "notebook-1",
-      notebookTitle: "Sistema musculoesquelético",
-      chapterId: "chapter-1",
-      chapterTitle: "Introdução",
-      pageId: "page-1",
-      pageTitle: "Página inicial",
-      href: expect.any(String),
+      status: "ready",
+      data: {
+        intent: "explore",
+        grimoireId: "grimoire-1",
+        grimoireTitle: "Anatomia",
+        notebookId: "notebook-1",
+        notebookTitle: "Sistema musculoesquelético",
+        chapterId: "chapter-1",
+        chapterTitle: "Introdução",
+        pageId: "page-1",
+        pageTitle: "Página inicial",
+        href: expect.any(String),
+      },
     });
 
     expect(result.progress).toEqual({
@@ -123,7 +126,10 @@ describe("getSanctuary", () => {
     const result = await getSanctuary(repository, sessionContext);
 
     expect(result.header.user).toEqual(user);
-    expect(result.continueLearning).toBeNull();
+    expect(result.continueLearning).toEqual({
+      status: "empty",
+      data: null,
+    });
     expect(result.progress).toEqual({
       status: "not-configured",
       data: null,
@@ -146,21 +152,30 @@ describe("getSanctuary", () => {
     );
   });
 
-  it("degrades safely when the learning source fails", async () => {
+  it("represents a learning-source failure as error instead of empty", async () => {
+    const getPageProgress = vi.fn().mockResolvedValue([]);
     const repository: SanctuaryRepository = {
       getLearningHierarchy: vi
         .fn()
         .mockRejectedValue(new Error("learning source unavailable")),
+      getPageProgress,
     };
 
     const result = await getSanctuary(repository, sessionContext);
 
     expect(result.header.user).toEqual(user);
-    expect(result.continueLearning).toBeNull();
-    expect(result.progress).toEqual({
-      status: "not-configured",
+    expect(result.continueLearning).toEqual({
+      status: "error",
       data: null,
+      message: "Não foi possível carregar seu contexto de aprendizagem.",
     });
+    expect(result.continueLearning.status).not.toBe("empty");
+    expect(result.progress).toEqual({
+      status: "error",
+      data: null,
+      message: "Não foi possível carregar o progresso sem o contexto de aprendizagem.",
+    });
+    expect(getPageProgress).not.toHaveBeenCalled();
     expect(result.missions).toEqual({
       status: "not-configured",
       data: null,
@@ -169,7 +184,12 @@ describe("getSanctuary", () => {
       status: "not-configured",
       data: null,
     });
-    expect(result.quickActions).toEqual(expect.any(Array));
+    expect(result.primaryAction).toEqual(
+      expect.objectContaining({
+        id: "open-workspace",
+        label: "Abrir Workspace",
+      }),
+    );
   });
 
   it("connects real progress, planning and gamification data into the Sanctuary", async () => {
