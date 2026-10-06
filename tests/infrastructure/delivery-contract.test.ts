@@ -60,6 +60,8 @@ describe("delivery infrastructure contract", () => {
       "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
       "startCommand: npm start",
       "healthCheckPath: /api/health",
+      "NPM_CONFIG_IGNORE_SCRIPTS",
+      'value: "true"',
       "NEXT_PUBLIC_SUPABASE_URL",
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
       "sync: false",
