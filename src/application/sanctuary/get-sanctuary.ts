@@ -86,24 +86,55 @@ function mapMissions(missions: SanctuaryMissionProjection[]): SanctuaryViewModel
 
 export async function getSanctuary(repository: SanctuaryProjectionPort, sessionContext: SanctuarySessionContext): Promise<SanctuaryViewModel> {
   let grimoires: SanctuaryGrimoire[] = [];
-  try { grimoires = await repository.getLearningHierarchy(); } catch { grimoires = []; }
+  let learningHierarchyFailed = false;
 
-  const continueContext = resolveContinueLearning(grimoires);
-  const continueLearning = continueContext ? { ...continueContext, href: buildContinueLearningHref(continueContext) } : null;
-  const priorities = decideSanctuaryPriority({ continueLearning });
+  try {
+    grimoires = await repository.getLearningHierarchy();
+  } catch {
+    learningHierarchyFailed = true;
+  }
+
+  const continueContext = learningHierarchyFailed ? null : resolveContinueLearning(grimoires);
+  const continueLearning: SanctuaryViewModel["continueLearning"] = learningHierarchyFailed
+    ? {
+        status: "error",
+        data: null,
+        message: "Não foi possível carregar seu contexto de aprendizagem.",
+      }
+    : continueContext
+      ? {
+          status: "ready",
+          data: {
+            ...continueContext,
+            href: buildContinueLearningHref(continueContext),
+          },
+        }
+      : { status: "empty", data: null };
+
+  const priorityContext = continueLearning.status === "ready"
+    ? continueLearning.data
+    : null;
+  const priorities = decideSanctuaryPriority({ continueLearning: priorityContext });
   const primaryPriority = priorities.find((decision) => decision.priority === "primary") ?? null;
   const quickActions = createQuickActions();
-  const primaryAction = primaryPriority?.section === "continueLearning" && continueLearning !== null
+  const primaryAction = primaryPriority?.section === "continueLearning" && priorityContext !== null
     ? {
         id: "continue-learning",
-        label: continueLearning.intent === "resume" ? "Continuar aprendendo" : "Explorar conteúdo",
-        href: continueLearning.href,
+        label: priorityContext.intent === "resume" ? "Continuar aprendendo" : "Explorar conteúdo",
+        href: priorityContext.href,
         priority: "primary" as const,
       }
     : quickActions[0];
 
-  let progress: SanctuaryViewModel["progress"] = { status: "not-configured", data: null };
-  if (resolveProgressAvailability() !== "not-configured" && repository.getPageProgress) {
+  let progress: SanctuaryViewModel["progress"] = learningHierarchyFailed
+    ? {
+        status: "error",
+        data: null,
+        message: "Não foi possível carregar o progresso sem o contexto de aprendizagem.",
+      }
+    : { status: "not-configured", data: null };
+
+  if (!learningHierarchyFailed && resolveProgressAvailability() !== "not-configured" && repository.getPageProgress) {
     try {
       progress = resolveProgressSummary(grimoires, await repository.getPageProgress(sessionContext.user.id, collectPageIds(grimoires)));
     } catch {
