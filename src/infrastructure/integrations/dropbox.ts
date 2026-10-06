@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type {
   IntegrationDefinition,
   IntegrationToolResult,
@@ -36,7 +38,7 @@ export class DropboxConnectionError extends Error {
   }
 }
 
-function getServerToken(token = process.env.DROPBOX_RUNTIME_TOKEN): string {
+function getServerToken(token = getRuntimeSecret("DROPBOX_RUNTIME_TOKEN") ?? undefined): string {
   if (!token?.trim()) throw new DropboxConnectionError();
   return token.trim();
 }
@@ -66,7 +68,7 @@ async function request<T>(
 }
 
 export async function verifyDropboxConnection(
-  token = process.env.DROPBOX_RUNTIME_TOKEN,
+  token = getRuntimeSecret("DROPBOX_RUNTIME_TOKEN") ?? undefined,
 ): Promise<DropboxConnectionVerification> {
   const account = await request<{ account_id: string }>(
     "/users/get_current_account",
@@ -86,7 +88,7 @@ export async function verifyDropboxConnection(
 export async function executeDropboxRequest(
   operation: DropboxOperation,
   input: Record<string, unknown>,
-  token = process.env.DROPBOX_RUNTIME_TOKEN,
+  token = getRuntimeSecret("DROPBOX_RUNTIME_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const output = await request<unknown>(
     `/files/${operation}`,
@@ -99,14 +101,14 @@ export async function executeDropboxRequest(
 
 export async function listDropboxFolder(
   path = "",
-  token = process.env.DROPBOX_RUNTIME_TOKEN,
+  token = getRuntimeSecret("DROPBOX_RUNTIME_TOKEN") ?? undefined,
 ) {
   return executeDropboxRequest("list_folder", { path, recursive: false }, token);
 }
 
 export async function searchDropbox(
   query: string,
-  token = process.env.DROPBOX_RUNTIME_TOKEN,
+  token = getRuntimeSecret("DROPBOX_RUNTIME_TOKEN") ?? undefined,
 ) {
   const normalizedQuery = query.trim();
   if (!normalizedQuery) {
