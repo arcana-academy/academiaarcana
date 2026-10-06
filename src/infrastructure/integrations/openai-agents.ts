@@ -1,4 +1,5 @@
 import type { IntegrationDefinition } from "./contracts";
+import { hasRuntimeSecret } from "@/infrastructure/runtime-secrets";
 import {
   verifyOpenAIAgentConnection,
   type OpenAIAgentVerification,
@@ -35,7 +36,7 @@ export async function getOpenAIAgentsRuntimeSnapshot({
 }: {
   readonly verifier?: () => Promise<OpenAIAgentVerification>;
 } = {}): Promise<OpenAIAgentsRuntimeSnapshot> {
-  if (!process.env.OPENAI_API_KEY?.trim()) {
+  if (!hasRuntimeSecret("OPENAI_API_KEY")) {
     return {
       providerId: OPENAI_AGENTS_PROVIDER_ID,
       name: OPENAI_AGENTS_INTEGRATION_DEFINITION.displayName,
