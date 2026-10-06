@@ -16,10 +16,19 @@ export function WorkspaceHeader({
   children,
 }: WorkspaceHeaderProps) {
   return (
-    <header>
-      <h1>{title}</h1>
+    <header className="workspace-header">
+      <div className="workspace-header-copy">
+        <span className="workspace-header-kicker" aria-hidden="true">
+          Workspace
+        </span>
+        <h1>{title}</h1>
+      </div>
       {actionLabel ? (
-        <button type="button" onClick={onAction}>
+        <button
+          className="aa-button aa-button-secondary"
+          type="button"
+          onClick={onAction}
+        >
           {actionLabel}
         </button>
       ) : null}

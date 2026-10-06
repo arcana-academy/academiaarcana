@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import { Workspace } from "./Workspace";
 
 describe("Workspace", () => {
-  test("renders the three-region workspace shell", () => {
+  test("renders the three-region workspace shell with actionable empty state", () => {
     render(
       <Workspace
         tree={{ grimoires: [] }}
@@ -48,6 +48,22 @@ describe("Workspace", () => {
     expect(
       screen.getByRole("navigation", { name: "Navegação do workspace" }),
     ).toBeTruthy();
+    expect(
+      screen.getByRole("region", { name: "Área de trabalho" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("complementary", { name: "Contexto" }),
+    ).toBeTruthy();
     expect(screen.queryByRole("main")).toBeNull();
+
+    const createAction = screen.getByRole("button", {
+      name: "Criar um grimório",
+    });
+    expect(
+      screen.getByRole("link", { name: "Explorar Grimórios" }),
+    ).toHaveAttribute("href", "/grimorios");
+
+    fireEvent.click(createAction);
+    expect(screen.getByLabelText("Novo grimório")).toHaveFocus();
   });
 });

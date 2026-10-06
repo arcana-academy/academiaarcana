@@ -65,13 +65,16 @@ function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
 
   return (
     <form
+      className="workspace-create-form"
       aria-label="Criar grimório"
       onSubmit={(event) => {
         event.preventDefault();
+        void handleCreate();
       }}
     >
       <label htmlFor="workspace-new-grimoire-title">Novo grimório</label>
       <input
+        className="aa-input"
         id="workspace-new-grimoire-title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
@@ -79,9 +82,9 @@ function GrimoireCreationForm({ onCreateGrimoire }: GrimoireCreationFormProps) {
         placeholder="Título do grimório"
       />
       <button
-        type="button"
+        className="aa-button aa-button-secondary"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar grimório"}
       </button>
@@ -123,13 +126,16 @@ function NotebookCreationForm({
 
   return (
     <form
+      className="workspace-create-form"
       aria-label="Criar caderno"
       onSubmit={(event) => {
         event.preventDefault();
+        void handleCreate();
       }}
     >
       <label htmlFor="workspace-new-notebook-title">Novo caderno</label>
       <input
+        className="aa-input"
         id="workspace-new-notebook-title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
@@ -137,9 +143,9 @@ function NotebookCreationForm({
         placeholder="Título do caderno"
       />
       <button
-        type="button"
+        className="aa-button aa-button-secondary"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar caderno"}
       </button>
@@ -180,9 +186,17 @@ function ChapterCreationForm({
   };
 
   return (
-    <form aria-label="Criar capítulo" onSubmit={(event) => event.preventDefault()}>
+    <form
+      className="workspace-create-form"
+      aria-label="Criar capítulo"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void handleCreate();
+      }}
+    >
       <label htmlFor="workspace-new-chapter-title">Novo capítulo</label>
       <input
+        className="aa-input"
         id="workspace-new-chapter-title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
@@ -190,9 +204,9 @@ function ChapterCreationForm({
         placeholder="Título do capítulo"
       />
       <button
-        type="button"
+        className="aa-button aa-button-secondary"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar capítulo"}
       </button>
@@ -237,15 +251,18 @@ function PageCreationForm({
 
   return (
     <form
+      className="workspace-create-form"
       aria-label="Criar página"
       onSubmit={(event) => {
         event.preventDefault();
+        void handleCreate();
       }}
     >
       <label htmlFor="workspace-new-page-title">
         Nova página
       </label>
       <input
+        className="aa-input"
         id="workspace-new-page-title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
@@ -253,9 +270,9 @@ function PageCreationForm({
         placeholder="Título da página"
       />
       <button
-        type="button"
+        className="aa-button aa-button-secondary"
+        type="submit"
         disabled={isCreating || !title.trim()}
-        onClick={handleCreate}
       >
         {isCreating ? "Criando…" : "Criar página"}
       </button>
@@ -289,9 +306,14 @@ export function Workspace({
   pageProgressStatus = "not-started",
   onSetPageProgress = async () => undefined,
 }: WorkspaceProps) {
+  const focusGrimoireCreation = () => {
+    document.getElementById("workspace-new-grimoire-title")?.focus();
+  };
+
   return (
     <div className="workspace-shell">
       <WorkspaceHeader title={title} />
+
       <div className="workspace-regions">
         <WorkspaceTree
           data={tree}
@@ -301,8 +323,19 @@ export function Workspace({
           onOpenChapter={onOpenChapter}
           onOpenPage={onOpenPage}
         />
-        <div aria-label="Área de trabalho">
-          <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
+
+        <section
+          className="workspace-editor-region"
+          aria-labelledby="workspace-editor-heading"
+        >
+          <div className="workspace-region-heading">
+            <span className="workspace-region-kicker">Editor</span>
+            <h2 id="workspace-editor-heading">Área de trabalho</h2>
+          </div>
+
+          <div className="workspace-create-panel">
+            <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
+          </div>
 
           {state.grimoireId && !state.notebookId && !state.chapterId ? (
             <WorkspaceTitleEditor
@@ -368,26 +401,71 @@ export function Workspace({
           ) : null}
 
           {selectedPage ? (
-            <PageEditor
-              key={selectedPage.id}
-              page={selectedPage}
-              canMoveUp={canMovePageUp}
-              canMoveDown={canMovePageDown}
-              onMove={onMovePage}
-              onDelete={onDeletePage}
-              onSave={onSavePage}
-              progressStatus={pageProgressStatus}
-              onSetProgress={onSetPageProgress}
-            />
+            <div className="workspace-page-editor">
+              <PageEditor
+                key={selectedPage.id}
+                page={selectedPage}
+                canMoveUp={canMovePageUp}
+                canMoveDown={canMovePageDown}
+                onMove={onMovePage}
+                onDelete={onDeletePage}
+                onSave={onSavePage}
+                progressStatus={pageProgressStatus}
+                onSetProgress={onSetPageProgress}
+              />
+            </div>
           ) : (
-            <p>Selecione uma página para começar.</p>
+            <div className="workspace-empty-state" role="status">
+              <strong>
+                {tree.grimoires.length === 0
+                  ? "Seu Workspace ainda não tem grimórios."
+                  : "Selecione uma página para começar."}
+              </strong>
+              <p>
+                {tree.grimoires.length === 0
+                  ? "Crie seu primeiro grimório aqui ou explore a biblioteca para continuar sua jornada."
+                  : "Use a árvore de estudos para abrir uma página ou explore seus grimórios."}
+              </p>
+              <div className="workspace-empty-actions">
+                {tree.grimoires.length === 0 ? (
+                  <button
+                    className="aa-button aa-button-primary"
+                    type="button"
+                    onClick={focusGrimoireCreation}
+                  >
+                    Criar um grimório
+                  </button>
+                ) : null}
+                <a className="aa-button aa-button-secondary" href="/grimorios">
+                  Explorar Grimórios
+                </a>
+              </div>
+            </div>
           )}
-        </div>
-        <aside aria-label="Contexto">
+        </section>
+
+        <aside
+          className="workspace-context-region"
+          aria-labelledby="workspace-context-heading"
+        >
+          <div className="workspace-region-heading">
+            <span className="workspace-region-kicker">Contexto</span>
+            <h2 id="workspace-context-heading">Contexto</h2>
+          </div>
+
           {selectedPage ? (
-            <p>Página selecionada: {selectedPage.title}</p>
+            <div className="workspace-context-card">
+              <span>Página selecionada</span>
+              <strong>{selectedPage.title}</strong>
+              <p>
+                O contexto acompanha a página atual sem competir com a área de
+                edição.
+              </p>
+            </div>
           ) : (
-            <p>Contexto do item selecionado.</p>
+            <p className="workspace-context-empty">
+              Selecione uma página na árvore para ver o contexto do estudo.
+            </p>
           )}
         </aside>
       </div>

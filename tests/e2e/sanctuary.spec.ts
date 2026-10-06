@@ -15,7 +15,7 @@ test.describe("authenticated Sanctuary flow", () => {
     "Configure E2E_EMAIL and E2E_PASSWORD for the authenticated production-data flow.",
   );
 
-  test("login opens Sanctuary and Continue learning reaches Workspace", async ({
+  test("login opens Sanctuary and its learning action reaches the next real surface", async ({
     page,
   }) => {
     if (!e2eEmail || !e2ePassword) {
@@ -33,20 +33,24 @@ test.describe("authenticated Sanctuary flow", () => {
       page.getByRole("heading", { name: "Seu Santuário de aprendizagem" }),
     ).toBeVisible();
 
-    const continueLearning = page.getByRole("link", {
-      name: "Continuar aprendendo",
+    const resumeStudy = page.getByRole("link", {
+      name: "Retomar este estudo",
     });
 
-    if (await continueLearning.count()) {
-      await continueLearning.click();
+    if (await resumeStudy.count()) {
+      await resumeStudy.click();
       await expect(page).toHaveURL(/\/workspace\?view=tree/);
       await expect(
         page.getByRole("navigation", { name: "Navegação do workspace" }),
       ).toBeVisible();
-    } else {
-      await expect(
-        page.getByText("Você ainda não tem um contexto de aprendizagem"),
-      ).toBeVisible();
+      return;
     }
+
+    const exploreGrimoires = page.getByRole("link", {
+      name: "Explorar Grimórios",
+    });
+    await expect(exploreGrimoires).toBeVisible();
+    await exploreGrimoires.click();
+    await expect(page).toHaveURL(/\/grimorios/);
   });
 });
