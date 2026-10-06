@@ -543,28 +543,64 @@ p {
   line-height: 1.45;
 }
 
-.aa-mobile-nav {
+.aa-mobile-navigation {
   position: relative;
 }
 
-.aa-mobile-menu {
+.aa-mobile-navigation-trigger {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-panel);
+  color: var(--aa-text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  list-style: none;
+}
+
+.aa-mobile-navigation-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.aa-mobile-navigation-trigger:hover {
+  border-color: var(--aa-accent-secondary);
+  background: var(--aa-surfaces-elevated);
+}
+
+.aa-mobile-navigation-panel {
   position: absolute;
   top: calc(100% + 0.65rem);
   left: 0;
   z-index: var(--aa-z-index-dropdown);
-  width: min(19rem, calc(100vw - 2rem));
-  display: grid;
-  gap: 0.25rem;
-  padding: 0.5rem;
+  width: min(19rem, calc(100vw - 1.6rem));
+  max-height: calc(100svh - 5.5rem);
+  overflow-y: auto;
   border: 1px solid var(--aa-border-default);
   border-radius: var(--aa-radius-lg);
-  background: rgb(20 18 25 / 0.97);
+  background: var(--aa-surfaces-panel);
   box-shadow: var(--aa-shadows-floating);
+}
+
+.aa-mobile-navigation-scroll {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
 }
 
 .aa-mobile-link {
   display: flex;
   align-items: center;
+  min-height: 2.75rem;
   gap: 0.7rem;
   padding: 0.75rem;
   border-radius: 0.65rem;
@@ -574,7 +610,8 @@ p {
 
 .aa-mobile-link-active {
   color: var(--aa-text-primary);
-  background: rgb(155 120 208 / 0.16);
+  background: color-mix(in srgb, var(--aa-accent-secondary) 18%, transparent);
+  box-shadow: inset 3px 0 0 var(--aa-accent-primary);
 }
 
 .aa-legacy-navigation {
@@ -1130,7 +1167,7 @@ p {
 }
 
 
-.aa-button:focus-visible, .aa-sidebar-link:focus-visible, .aa-mobile-link:focus-visible {
+.aa-button:focus-visible, .aa-sidebar-link:focus-visible, .aa-mobile-link:focus-visible, .aa-mobile-navigation-trigger:focus-visible {
   outline: var(--aa-focus-width) solid var(--aa-focus-ring);
   outline-offset: var(--aa-focus-offset);
 }
