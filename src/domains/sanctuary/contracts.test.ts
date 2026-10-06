@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { FeatureAvailability, ProgressSummary, SanctuaryMission, SanctuaryPriority, SanctuarySnapshot, SanctuaryViewModel, ScheduleItem, SectionState } from './contracts';
+import type { ContinueLearning, FeatureAvailability, ProgressSummary, SanctuaryMission, SanctuaryPriority, SanctuarySnapshot, SanctuaryViewModel, ScheduleItem, SectionState } from './contracts';
 
 describe('Sanctuary Domain Contracts', () => {
   it('should support the correct FeatureAvailability values', () => {
@@ -26,6 +26,25 @@ describe('Sanctuary Domain Contracts', () => {
     const readyState: SectionState<string> = { status: 'ready', data: 'test-data' };
     expect(readyState.status).toBe('ready');
     expect(readyState.data).toBe('test-data');
+  });
+
+  it('should represent learning context as an explicit section state', () => {
+    const errorState: SectionState<ContinueLearning> = {
+      status: 'error',
+      data: null,
+      message: 'learning unavailable',
+    };
+
+    const snapshot: Pick<SanctuarySnapshot, 'continueLearning'> = {
+      continueLearning: errorState,
+    };
+    const viewModel: Pick<SanctuaryViewModel, 'continueLearning'> = {
+      continueLearning: errorState,
+    };
+
+    expect(snapshot.continueLearning.status).toBe('error');
+    expect(snapshot.continueLearning.data).toBeNull();
+    expect(viewModel.continueLearning.status).toBe('error');
   });
 
   it('should represent progress as an explicit section state without fabricating data', () => {
