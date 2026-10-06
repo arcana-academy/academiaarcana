@@ -23,6 +23,7 @@ describe("Sanctuary Priority Policy (Task 5)", () => {
 
   it("should assign primary priority to continueLearning when valid learning context exists", () => {
     const mockContext: ContinueLearningContext = {
+      intent: "explore",
       grimoireId: "grimoire-1",
       grimoireTitle: "Grimório das Sombras",
       notebookId: "notebook-1",
@@ -115,6 +116,7 @@ describe("Sanctuary Priority Policy (Task 5)", () => {
   it("should be pure and deterministic across repeated calls with identical context", () => {
     const context: PriorityPolicyContext = {
       continueLearning: {
+        intent: "explore",
         grimoireId: "grimoire-1",
         grimoireTitle: "Grimório das Sombras",
       },
@@ -126,6 +128,7 @@ describe("Sanctuary Priority Policy (Task 5)", () => {
     expect(firstCall).toEqual(secondCall);
     expect(context).toEqual({
       continueLearning: {
+        intent: "explore",
         grimoireId: "grimoire-1",
         grimoireTitle: "Grimório das Sombras",
       },
