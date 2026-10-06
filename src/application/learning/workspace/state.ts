@@ -116,6 +116,30 @@ export function resolveWorkspaceState(
   return { ...EMPTY_WORKSPACE_STATE };
 }
 
+/**
+ * Build the canonical, shareable URL for a valid Workspace selection.
+ *
+ * Only the most-specific selected identifier is serialized because the
+ * authenticated hierarchy resolver reconstructs ancestors on reload.
+ */
+export function getWorkspaceCanonicalHref(state: WorkspaceState): string {
+  const selection = state.pageId
+    ? ["page", state.pageId]
+    : state.chapterId
+      ? ["chapter", state.chapterId]
+      : state.notebookId
+        ? ["notebook", state.notebookId]
+        : state.grimoireId
+          ? ["grimoire", state.grimoireId]
+          : null;
+
+  const selectedQuery = selection
+    ? `&${selection[0]}=${encodeURIComponent(selection[1])}`
+    : "";
+
+  return `/workspace?view=tree${selectedQuery}#current`;
+}
+
 export function openGrimoire(
   state: WorkspaceState,
   grimoireId: string,
