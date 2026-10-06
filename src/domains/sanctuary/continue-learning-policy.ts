@@ -8,7 +8,8 @@ import { SanctuaryGrimoire, ContinueLearningContext } from "./contracts";
  *
  * Decisão Determinística:
  * Como não há metadados de "último acesso" no domínio, selecionamos o primeiro item
- * disponível em cada nível da hierarquia baseado na menor 'position'.
+ * disponível em cada nível da hierarquia baseado na menor 'position'. Esse fallback é
+ * explicitamente classificado como exploração e nunca como retomada.
  *
  * Para Grimórios (raiz), utilizamos a ordenação alfabética por ID para garantir
  * que o resultado seja consistente independente da ordem do array de entrada.
@@ -21,6 +22,7 @@ export function resolveContinueLearning(grimoires: SanctuaryGrimoire[]): Continu
   const [grimoire] = [...grimoires].sort((a, b) => a.id.localeCompare(b.id));
 
   const context: ContinueLearningContext = {
+    intent: "explore",
     grimoireId: grimoire.id,
     grimoireTitle: grimoire.title,
   };
