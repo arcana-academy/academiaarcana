@@ -12,7 +12,7 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
         <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
           Continuar aprendendo
         </h2>
-        <p>Nenhum estudo recente para retomar ainda. Começar a explorar um novo capítulo quando estiver pronto.</p>
+        <p>Nenhum conteúdo disponível para abrir no Santuário ainda. Explore seus Grimórios quando estiver pronto.</p>
         <div className="aa-sanctuary-hero-action">
           <Link className="aa-button aa-button-secondary" href="/grimorios">
             Explorar Grimórios
@@ -28,13 +28,17 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
     continueLearning.chapterTitle,
     continueLearning.pageTitle,
   ].filter(Boolean);
+  const isResume = continueLearning.intent === "resume";
+  const sectionLabel = isResume ? "Continuar aprendendo" : "Explorar conteúdo";
+  const pathLabel = isResume ? "Caminho atual" : "Conteúdo sugerido";
+  const actionLabel = isResume ? "Retomar este estudo" : "Explorar este estudo";
 
   return (
     <section aria-labelledby="sanctuary-continue-learning">
       <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
-        Continuar aprendendo
+        {sectionLabel}
       </h2>
-      <div className="aa-sanctuary-path" role="group" aria-label="Caminho atual">
+      <div className="aa-sanctuary-path" role="group" aria-label={pathLabel}>
         {path.map((item, index) => (
           <span key={`${item}-${index}`}>
             {index > 0 ? <span aria-hidden="true">› </span> : null}
@@ -44,7 +48,7 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
       </div>
       <div className="aa-sanctuary-hero-action">
         <Link className="aa-button aa-button-primary" href={continueLearning.href}>
-          Retomar este estudo
+          {actionLabel}
         </Link>
       </div>
     </section>
