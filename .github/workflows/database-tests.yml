@@ -53,6 +53,9 @@ jobs:
       - name: Run focus and social privilege database tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/focus_social_privileges.test.sql
 
+      - name: Run P0 authorization and RLS behavior tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/authorization_rls_p0.test.sql
+
       - name: Run Feedback Hub database privilege tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_hub_privileges.test.sql
 
