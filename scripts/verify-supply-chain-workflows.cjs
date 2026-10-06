@@ -36,6 +36,21 @@ const workflowFiles = readdirSync(workflowDir)
   .filter((name) => /\.ya?ml$/i.test(name))
   .sort();
 
+const autofixWorkflowPath = resolve(workflowDir, "autofix.yml");
+if (existsSync(autofixWorkflowPath)) {
+  const autofixWorkflow = readFileSync(autofixWorkflowPath, "utf8");
+  if (/^\s*push\s*:/m.test(autofixWorkflow)) {
+    throw new Error(
+      "autofix.yml must not run on push; autofix write authority is restricted to pull-request branches.",
+    );
+  }
+  if (!/^\s*pull_request\s*:/m.test(autofixWorkflow)) {
+    throw new Error(
+      "autofix.yml must remain scoped to pull_request.",
+    );
+  }
+}
+
 const shaPinnedUse = /^[^\s@]+@[0-9a-f]{40}$/i;
 
 for (const fileName of workflowFiles) {
