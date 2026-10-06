@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type {
   IntegrationDefinition,
   IntegrationToolResult,
@@ -97,10 +99,8 @@ export function getTodoistClientId(): string {
 }
 
 export function getTodoistClientSecret(): string {
-  const value = process.env.TODOIST_CLIENT_SECRET?.trim();
-  if (!value) {
-    throw new TodoistConnectionError("TODOIST_CLIENT_SECRET não está configurado.");
-  }
+  const value = getRuntimeSecret("TODOIST_CLIENT_SECRET");
+  if (!value) throw new TodoistConnectionError("TODOIST_CLIENT_SECRET não está configurado.");
   return value;
 }
 
