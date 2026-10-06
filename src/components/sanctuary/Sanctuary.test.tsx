@@ -15,11 +15,12 @@ const viewModel: SanctuaryViewModel = {
     },
     primaryAction: {
         id: "continue-learning",
-        label: "Continuar aprendendo",
+        label: "Explorar conteúdo",
         href: "/workspace?view=tree#current",
         priority: "primary",
     },
     continueLearning: {
+        intent: "explore",
         grimoireId: "grimoire-1",
         grimoireTitle: "Anatomia",
         notebookId: "notebook-1",
@@ -70,7 +71,7 @@ describe("Sanctuary", () => {
 
         expect(
             screen.getByRole("link", {
-                name: "Continuar aprendendo",
+                name: "Explorar conteúdo",
             }),
         ).toBeTruthy();
     });
@@ -153,7 +154,7 @@ describe("Sanctuary", () => {
 
         expect(
             screen.getByText(
-                "Nenhum estudo recente para retomar ainda. Começar a explorar um novo capítulo quando estiver pronto.",
+                "Nenhum conteúdo disponível para abrir no Santuário ainda. Explore seus Grimórios quando estiver pronto.",
             ),
         ).toBeTruthy();
     });

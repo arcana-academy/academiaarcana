@@ -94,7 +94,12 @@ export async function getSanctuary(repository: SanctuaryProjectionPort, sessionC
   const primaryPriority = priorities.find((decision) => decision.priority === "primary") ?? null;
   const quickActions = createQuickActions();
   const primaryAction = primaryPriority?.section === "continueLearning" && continueLearning !== null
-    ? { id: "continue-learning", label: "Continuar aprendendo", href: continueLearning.href, priority: "primary" as const }
+    ? {
+        id: "continue-learning",
+        label: continueLearning.intent === "resume" ? "Continuar aprendendo" : "Explorar conteúdo",
+        href: continueLearning.href,
+        priority: "primary" as const,
+      }
     : quickActions[0];
 
   let progress: SanctuaryViewModel["progress"] = { status: "not-configured", data: null };
