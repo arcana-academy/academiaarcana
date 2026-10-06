@@ -5,11 +5,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   loadBuildEnvironment,
+  validateLocalE2EConfiguration,
   validateSupabaseProductionConfiguration,
   verifyPublicRuntimeConfig,
 } from "./verify-public-runtime-config.mjs";
 
 const validUrl = "https://abcdefghijklmnopqrst.supabase.co";
+const localUrl = "http://127.0.0.1:54321";
 const publishablePrefix = ["sb", "publishable"].join("_") + "_";
 const validKey =
   publishablePrefix + "A".repeat(10) + "_" + "B".repeat(11) + "_" + "C".repeat(8);
@@ -152,5 +154,56 @@ describe("verify-public-runtime-config", () => {
       environment: "production",
       configuration: "environment",
     });
+  });
+
+  it("allows localhost only for explicit CI authenticated E2E", () => {
+    expect(() =>
+      validateLocalE2EConfiguration(localUrl, validKey, {
+        CI: "true",
+        E2E_LOCAL_RUNTIME: "1",
+      }),
+    ).not.toThrow();
+
+    expect(
+      verifyPublicRuntimeConfig({
+        CI: "true",
+        E2E_LOCAL_RUNTIME: "1",
+        NODE_ENV: "production",
+        NEXT_PUBLIC_SUPABASE_URL: localUrl,
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }),
+    ).toEqual({
+      integration: "supabase-public-runtime",
+      verified: true,
+      environment: "production",
+      configuration: "local-e2e-environment",
+    });
+  });
+
+  it("rejects localhost outside explicit CI E2E", () => {
+    expect(() =>
+      verifyPublicRuntimeConfig({
+        E2E_LOCAL_RUNTIME: "1",
+        NODE_ENV: "production",
+        NEXT_PUBLIC_SUPABASE_URL: localUrl,
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }),
+    ).toThrow(/valid HTTPS Supabase project URL/);
+
+    expect(() =>
+      validateLocalE2EConfiguration(localUrl, validKey, {
+        CI: "false",
+        E2E_LOCAL_RUNTIME: "1",
+      }),
+    ).toThrow(/only for explicit CI E2E/);
+  });
+
+  it("does not allow the CI E2E exception for non-local URLs", () => {
+    expect(() =>
+      validateLocalE2EConfiguration("http://example.com:54321", validKey, {
+        CI: "true",
+        E2E_LOCAL_RUNTIME: "1",
+      }),
+    ).toThrow(/valid localhost URL/);
   });
 });
