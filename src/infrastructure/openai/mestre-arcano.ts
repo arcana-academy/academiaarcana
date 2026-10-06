@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import {
   executeMestreArcanoTool,
   MESTRE_ARCANO_TOOLS,
@@ -32,8 +34,7 @@ export type OpenAIFetch = (
 ) => Promise<Response>;
 
 function getApiKey(): string | null {
-  const value = process.env.OPENAI_API_KEY?.trim();
-  return value ? value : null;
+  return getRuntimeSecret("OPENAI_API_KEY");
 }
 
 function getModel(): string {
