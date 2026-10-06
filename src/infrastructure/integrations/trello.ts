@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type {
   IntegrationDefinition,
   IntegrationToolResult,
@@ -123,7 +125,7 @@ export function getTrelloClientId(): string {
 }
 
 export function getTrelloClientSecret(): string {
-  const value = process.env.TRELLO_CLIENT_SECRET?.trim();
+  const value = getRuntimeSecret("TRELLO_CLIENT_SECRET");
   if (!value) throw new TrelloConnectionError("TRELLO_CLIENT_SECRET não está configurado.");
   return value;
 }

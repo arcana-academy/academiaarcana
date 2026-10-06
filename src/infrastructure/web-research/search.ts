@@ -3,6 +3,7 @@ import {
   searchParallelWeb,
 } from "@/infrastructure/parallel/parallel-search";
 import { searchWebWithExa } from "@/infrastructure/exa/search";
+import { hasRuntimeSecret } from "@/infrastructure/runtime-secrets";
 
 export type WebResearchProvider = "parallel" | "exa";
 
@@ -41,7 +42,7 @@ export type WebResearchExtractionResult = {
 
 /** Returns whether the named web-research provider has a server-side API key. */
 function hasKey(name: "PARALLEL_API_KEY" | "EXA_API_KEY"): boolean {
-  return Boolean(process.env[name]?.trim());
+  return hasRuntimeSecret(name);
 }
 
 const PROVIDER_KEY_NAMES: Record<

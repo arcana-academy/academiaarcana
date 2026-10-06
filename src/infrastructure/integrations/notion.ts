@@ -1,4 +1,5 @@
 import type { IntegrationDefinition, IntegrationToolResult } from "./contracts";
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
 
 export const NOTION_PROVIDER_ID = "notion" as const;
 export const NOTION_PLUGIN_NAME = "Notion" as const;
@@ -97,7 +98,14 @@ export function getNotionClientId(): string {
 }
 
 export function getNotionClientSecret(): string {
-  return requireEnvironment("NOTION_CLIENT_SECRET");
+  const value = getRuntimeSecret("NOTION_CLIENT_SECRET");
+  if (!value) {
+    throw new NotionConnectionError(
+      "NOTION_CLIENT_SECRET não está configurado.",
+      "not_configured",
+    );
+  }
+  return value;
 }
 
 export function getNotionRedirectUri(requestUrl?: string): string {

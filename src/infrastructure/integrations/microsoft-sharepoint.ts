@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type { IntegrationConnectionStatus, IntegrationDefinition, IntegrationToolResult } from "./contracts";
 
 export const MICROSOFT_SHAREPOINT_PROVIDER_ID = "microsoft-sharepoint" as const;
@@ -43,7 +45,7 @@ export function getMicrosoftSharePointClientId(): string {
 }
 
 export function getMicrosoftSharePointClientSecret(): string {
-  const value = process.env.MICROSOFT_CLIENT_SECRET?.trim();
+  const value = getRuntimeSecret("MICROSOFT_CLIENT_SECRET");
   if (!value) throw new MicrosoftSharePointConnectionError("MICROSOFT_CLIENT_SECRET não está configurado.");
   return value;
 }
@@ -299,14 +301,14 @@ export async function getValidMicrosoftSharePointCredentials(
 }
 
 export async function listMicrosoftSharePointSites(
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   return executeMicrosoftSharePointOperation("list-sites", {}, token);
 }
 
 export async function listMicrosoftSharePointSiteDrives(
   siteId: string,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const normalizedSiteId = siteId.trim();
   if (!normalizedSiteId) {
@@ -327,7 +329,7 @@ export class MicrosoftSharePointConnectionError extends Error {
   }
 }
 
-function getAccessToken(token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN): string {
+function getAccessToken(token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined): string {
   if (!token?.trim()) throw new MicrosoftSharePointConnectionError();
   return token.trim();
 }
@@ -351,7 +353,7 @@ async function graphRequest<T>(path: string, token: string): Promise<T> {
 }
 
 export async function verifyMicrosoftSharePointConnection(
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<MicrosoftSharePointConnectionVerification> {
   const drive = await graphRequest<{ id: string }>("/me/drive", getAccessToken(token));
 
@@ -365,14 +367,14 @@ export async function verifyMicrosoftSharePointConnection(
 }
 
 export async function listMicrosoftSharePointRoot(
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   return executeMicrosoftSharePointOperation("list-root", {}, token);
 }
 
 export async function listMicrosoftSharePointFolder(
   folderId: string,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const normalizedId = folderId.trim();
   if (!normalizedId) throw new Error("O ID da pasta do SharePoint não pode estar vazio.");
@@ -383,7 +385,7 @@ export async function searchMicrosoftSharePointSiteDrive(
   siteId: string,
   driveId: string,
   query: string,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const normalizedSiteId = siteId.trim();
   const normalizedDriveId = driveId.trim();
@@ -397,7 +399,7 @@ export async function searchMicrosoftSharePointSiteDrive(
 }
 export async function searchMicrosoftSharePoint(
   query: string,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const normalizedQuery = query.trim();
   if (!normalizedQuery) throw new Error("A busca do SharePoint não pode estar vazia.");
@@ -408,7 +410,7 @@ export async function getMicrosoftSharePointSiteItemMetadata(
   siteId: string,
   driveId: string,
   itemId: string,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const normalizedSiteId = siteId.trim();
   const normalizedDriveId = driveId.trim();
@@ -425,7 +427,7 @@ export async function getMicrosoftSharePointSiteItemMetadata(
 
 export async function getMicrosoftSharePointMetadata(
   itemId: string,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const normalizedId = itemId.trim();
   if (!normalizedId) throw new Error("O ID do item do SharePoint não pode estar vazio.");
@@ -434,7 +436,7 @@ export async function getMicrosoftSharePointMetadata(
 
 export async function listMicrosoftSharePointVersions(
   itemId: string,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const normalizedId = itemId.trim();
   if (!normalizedId) throw new Error("O ID do item do SharePoint não pode estar vazio.");
@@ -444,7 +446,7 @@ export async function listMicrosoftSharePointVersions(
 export async function executeMicrosoftSharePointOperation(
   operation: MicrosoftSharePointOperation,
   input: Record<string, unknown>,
-  token = process.env.MICROSOFT_GRAPH_ACCESS_TOKEN,
+  token = getRuntimeSecret("MICROSOFT_GRAPH_ACCESS_TOKEN") ?? undefined,
 ): Promise<IntegrationToolResult> {
   const accessToken = getAccessToken(token);
   let path: string;

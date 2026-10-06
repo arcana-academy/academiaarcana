@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type { IntegrationDefinition, IntegrationToolResult } from "./contracts";
 
 export const AIRTABLE_PROVIDER_ID = "airtable" as const;
@@ -38,7 +40,7 @@ export class AirtableConnectionError extends Error {
 }
 
 export function getAirtableApiKey(): string {
-  const value = process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN?.trim();
+  const value = getRuntimeSecret("AIRTABLE_PERSONAL_ACCESS_TOKEN");
   if (!value) throw new AirtableConnectionError("AIRTABLE_PERSONAL_ACCESS_TOKEN não está configurado.");
   return value;
 }

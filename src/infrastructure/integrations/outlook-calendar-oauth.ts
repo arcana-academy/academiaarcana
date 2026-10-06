@@ -2,6 +2,8 @@ import { createHash, randomBytes } from "node:crypto";
 
 import { cookies } from "next/headers";
 
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import {
   OUTLOOK_CALENDAR_SCOPES,
   OutlookCalendarError,
@@ -20,7 +22,7 @@ const VERIFIER_COOKIE = "arcana_outlook_oauth_verifier";
 
 function requireConfig() {
   const clientId = process.env.MICROSOFT_ENTRA_CLIENT_ID;
-  const clientSecret = process.env.MICROSOFT_ENTRA_CLIENT_SECRET;
+  const clientSecret = getRuntimeSecret("MICROSOFT_ENTRA_CLIENT_SECRET");
   const redirectUri = process.env.MICROSOFT_ENTRA_REDIRECT_URI;
   if (!clientId || !clientSecret || !redirectUri) {
     throw new OutlookCalendarError(

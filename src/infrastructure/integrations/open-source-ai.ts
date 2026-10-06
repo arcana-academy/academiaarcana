@@ -1,3 +1,5 @@
+import { hasRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 export type OpenSourceAiId =
   | "huggingface" | "langchain" | "llamaindex" | "deepset-haystack" | "ollama"
   | "vllm" | "bentoml" | "weaviate" | "zilliz-milvus" | "modular";
@@ -38,6 +40,10 @@ export function getOpenSourceAiIntegration(id: OpenSourceAiId) {
 
 export function getOpenSourceAiStatus(integration: OpenSourceAiIntegration, env: Partial<NodeJS.ProcessEnv> = process.env) {
   const endpointConfigured = integration.endpointEnv ? Boolean(env[integration.endpointEnv]) : false;
-  const keyConfigured = integration.apiKeyEnv ? Boolean(env[integration.apiKeyEnv]) : true;
+  const keyConfigured = integration.apiKeyEnv
+    ? env === process.env
+      ? hasRuntimeSecret(integration.apiKeyEnv)
+      : Boolean(env[integration.apiKeyEnv])
+    : true;
   return { configured: endpointConfigured && keyConfigured, endpointConfigured, keyConfigured };
 }

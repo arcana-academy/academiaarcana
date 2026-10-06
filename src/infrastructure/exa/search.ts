@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 const EXA_API_URL = "https://api.exa.ai/search";
 const DEFAULT_NUM_RESULTS = 5;
 const MAX_NUM_RESULTS = 10;
@@ -30,8 +32,7 @@ export type ExaFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise
 
 /** Returns the server-side Exa API key, when configured. */
 function getApiKey(): string | null {
-  const value = process.env.EXA_API_KEY?.trim();
-  return value || null;
+  return getRuntimeSecret("EXA_API_KEY");
 }
 
 /** Converts an unknown value into an optional string field. */
