@@ -6,7 +6,7 @@ import type {
   SanctuaryUser,
 } from "@/domains/sanctuary";
 
-import { getSanctuary } from "./get-sanctuary";
+import { buildAdaptiveSignal, getSanctuary } from "./get-sanctuary";
 
 type SanctuaryRepository = SanctuaryProjectionPort;
 
@@ -60,6 +60,81 @@ function createRepository(
       .mockResolvedValue(learningHierarchy),
   };
 }
+
+describe("buildAdaptiveSignal", () => {
+  const unavailableProgress = { status: "not-configured", data: null } as const;
+
+  it("maps observed empty missions and schedule to known zero", () => {
+    expect(
+      buildAdaptiveSignal(
+        unavailableProgress,
+        { status: "empty", data: null },
+        { status: "empty", data: null },
+      ),
+    ).toEqual({
+      progressPercentage: null,
+      openMissionCount: 0,
+      scheduledTaskCount: 0,
+    });
+  });
+
+  it("maps mission and schedule errors to unknown instead of zero", () => {
+    expect(
+      buildAdaptiveSignal(
+        unavailableProgress,
+        { status: "error", data: null, message: "mission unavailable" },
+        { status: "error", data: null, message: "schedule unavailable" },
+      ),
+    ).toEqual({
+      progressPercentage: null,
+      openMissionCount: null,
+      scheduledTaskCount: null,
+    });
+  });
+
+  it("maps not-configured mission and schedule sources to unknown", () => {
+    expect(
+      buildAdaptiveSignal(
+        unavailableProgress,
+        { status: "not-configured", data: null },
+        { status: "not-configured", data: null },
+      ),
+    ).toEqual({
+      progressPercentage: null,
+      openMissionCount: null,
+      scheduledTaskCount: null,
+    });
+  });
+
+  it("preserves real counts from ready mission and schedule data", () => {
+    expect(
+      buildAdaptiveSignal(
+        {
+          status: "ready",
+          data: { percentage: 60, label: "3 de 5 páginas concluídas" },
+        },
+        {
+          status: "ready",
+          data: [
+            { id: "m-1", title: "Aberta", reward: "+10 XP", isCompleted: false },
+            { id: "m-2", title: "Concluída", reward: "+10 XP", isCompleted: true },
+          ],
+        },
+        {
+          status: "ready",
+          data: [
+            { id: "s-1", time: "08:00", title: "Revisão" },
+            { id: "s-2", time: "14:00", title: "Exercícios" },
+          ],
+        },
+      ),
+    ).toEqual({
+      progressPercentage: 60,
+      openMissionCount: 1,
+      scheduledTaskCount: 2,
+    });
+  });
+});
 
 describe("getSanctuary", () => {
   it("composes a complete Sanctuary view model from authenticated learning data", async () => {

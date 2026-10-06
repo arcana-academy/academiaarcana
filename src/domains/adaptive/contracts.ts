@@ -1,7 +1,15 @@
 export type AdaptiveSignal = {
   progressPercentage: number | null;
-  openMissionCount: number;
-  scheduledTaskCount: number;
+  /**
+   * Observed open missions. Zero means the source was observed and no open
+   * missions exist; null means the signal is unavailable or unknown.
+   */
+  openMissionCount: number | null;
+  /**
+   * Observed scheduled tasks. Zero means the source was observed and no
+   * scheduled tasks exist; null means the signal is unavailable or unknown.
+   */
+  scheduledTaskCount: number | null;
   educationalReviewDueCount?: number;
   educationalAverageEvidence?: number | null;
   educationalLearningGapCount?: number;
@@ -81,7 +89,7 @@ function operationalRecommendation(
     };
   }
 
-  if (signal.openMissionCount > 0) {
+  if (signal.openMissionCount !== null && signal.openMissionCount > 0) {
     return {
       title: "Retome uma missão",
       message:
@@ -91,7 +99,7 @@ function operationalRecommendation(
     };
   }
 
-  if (signal.scheduledTaskCount > 0) {
+  if (signal.scheduledTaskCount !== null && signal.scheduledTaskCount > 0) {
     return {
       title: "Siga o próximo horário",
       message:
