@@ -1,3 +1,3 @@
-# grimorios
+# Grimórios route
 
-Architectural route placeholder. This directory is reserved for the approved product area; no route implementation is introduced by this structural checkpoint.
+This authenticated route reads the current user's grimoires from the canonical Learning repository and provides navigation into the Workspace. It presents the real library list, an actionable empty state, and a recoverable loading error. It does not invent sample learning content or own separate persistence.

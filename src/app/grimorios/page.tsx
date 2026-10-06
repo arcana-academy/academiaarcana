@@ -38,69 +38,73 @@ export default async function GrimoiresPage() {
             />
             <div className="aa-page-header-copy">
               <p className="aa-eyebrow">Biblioteca · conhecimento</p>
-            <h1 id="grimorios-title">Grimórios</h1>
+              <h1 id="grimorios-title">Grimórios</h1>
               <p>Sua biblioteca pessoal de estudos e conhecimentos, organizada para voltar ao que importa.</p>
             </div>
           </div>
-          <Link className="aa-button aa-button-primary" href="/workspace">Novo espaço</Link>
         </header>
 
-        <section className="aa-stat-grid" aria-label="Resumo da biblioteca">
-          <div className="aa-stat">
-            <span className="aa-stat-label">Grimórios</span>
-            <div className="aa-stat-value">{grimoires.length}</div>
-            <div className="aa-stat-meta">espaços de estudo</div>
-          </div>
-          <div className="aa-stat">
-            <span className="aa-stat-label">Biblioteca</span>
-            <div className="aa-stat-value">Pessoal</div>
-            <div className="aa-stat-meta">dados vinculados à sua conta</div>
-          </div>
-          <div className="aa-stat">
-            <span className="aa-stat-label">Próximo passo</span>
-            <div className="aa-stat-value">Explorar</div>
-            <div className="aa-stat-meta">abra um grimório para continuar</div>
-          </div>
-        </section>
-
         {loadError ? (
-          <section className="aa-surface aa-sanctuary-section" role="alert">
+          <section className="aa-surface aa-sanctuary-section grimoires-library-state" role="alert">
             <p className="aa-eyebrow">Biblioteca</p>
             <h2>Não foi possível carregar os grimórios</h2>
-            <p>Tente novamente em alguns instantes.</p>
+            <p>A biblioteca não foi atualizada. Tente carregar novamente.</p>
+            <form action="/grimorios" method="get">
+              <button className="aa-button aa-button-ghost" type="submit">
+                Tentar novamente
+              </button>
+            </form>
           </section>
         ) : grimoires.length === 0 ? (
-          <section className="aa-surface aa-sanctuary-section" aria-labelledby="grimorios-empty-title">
-            <p className="aa-eyebrow">Primeiro capítulo</p>
+          <section className="aa-surface aa-sanctuary-section grimoires-library-state" aria-labelledby="grimorios-empty-title">
+            <p className="aa-eyebrow">Sua biblioteca</p>
             <h2 id="grimorios-empty-title">Nenhum grimório ainda</h2>
-            <p>Sua biblioteca está pronta para receber seu primeiro grimório. Crie-o no Workspace para começar a construir seu espaço de conhecimento.</p>
-            <Link className="aa-button aa-button-primary" href="/workspace">Abrir Workspace</Link>
+            <p>Crie seu primeiro grimório para organizar seus estudos e reunir o conhecimento que deseja desenvolver.</p>
+            <Link className="aa-button aa-button-primary" href="/workspace">
+              Criar primeiro grimório
+            </Link>
           </section>
         ) : (
-          <section className="aa-list" aria-label="Seus grimórios">
-            {grimoires.map((grimoire) => (
-              <article className="aa-list-item aa-surface" key={grimoire.id}>
-                <div className="aa-grimoire-item-visual" aria-hidden="true">
-                  <Image
-                    src="/assets/grimoires/aa-grimoire-cover-base.svg"
-                    alt=""
-                    width={96}
-                    height={132}
-                  />
-                </div>
-                <div className="aa-grimoire-item-copy">
-                  <p className="aa-eyebrow">Grimório</p>
-                  <h2>{grimoire.title}</h2>
-                  {grimoire.description ? <p>{grimoire.description}</p> : null}
-                </div>
-                <Link
-                  className="aa-button aa-button-ghost"
-                  href={`/workspace?grimoire=${encodeURIComponent(grimoire.id)}`}
-                >
-                  Abrir grimório
-                </Link>
-              </article>
-            ))}
+          <section className="grimoires-library" aria-labelledby="grimorios-list-title">
+            <header className="grimoires-library-header">
+              <div>
+                <h2 id="grimorios-list-title">Sua biblioteca</h2>
+                <p>
+                  {grimoires.length} {grimoires.length === 1 ? "grimório" : "grimórios"}
+                </p>
+              </div>
+              <Link className="aa-button aa-button-primary" href="/workspace">
+                Novo grimório
+              </Link>
+            </header>
+
+            <ul className="grimoires-library-list" aria-label="Seus grimórios">
+              {grimoires.map((grimoire) => (
+                <li className="grimoires-library-item" key={grimoire.id}>
+                  <article className="aa-surface grimoires-library-card">
+                    <div className="aa-grimoire-item-visual" aria-hidden="true">
+                      <Image
+                        src="/assets/grimoires/aa-grimoire-cover-base.svg"
+                        alt=""
+                        width={96}
+                        height={132}
+                      />
+                    </div>
+                    <div className="aa-grimoire-item-copy">
+                      <p className="aa-eyebrow">Grimório</p>
+                      <h3>{grimoire.title}</h3>
+                      {grimoire.description ? <p>{grimoire.description}</p> : null}
+                    </div>
+                    <Link
+                      className="aa-button aa-button-ghost grimoires-library-open"
+                      href={`/workspace?grimoire=${encodeURIComponent(grimoire.id)}`}
+                    >
+                      Abrir grimório
+                    </Link>
+                  </article>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
       </main>
