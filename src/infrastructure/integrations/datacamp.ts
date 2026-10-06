@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type {
   ExternalIntegrationGateway,
   IntegrationCapability,
@@ -68,7 +70,7 @@ export type DataCampFetch = (
   init?: RequestInit,
 ) => Promise<Response>;
 
-function resolveApiKey(apiKey = process.env.DATACAMP_API_KEY): string {
+function resolveApiKey(apiKey = getRuntimeSecret("DATACAMP_API_KEY") ?? undefined): string {
   const value = apiKey?.trim();
   if (!value) {
     throw new DataCampConnectionError(
@@ -90,7 +92,7 @@ export function toDataCampIntegrationToolRequest(
 }
 
 export async function verifyDataCampConnection({
-  apiKey = process.env.DATACAMP_API_KEY,
+  apiKey = getRuntimeSecret("DATACAMP_API_KEY") ?? undefined,
   baseUrl =
     process.env.DATACAMP_CATALOG_API_BASE_URL ?? DATACAMP_CATALOG_API_BASE_URL,
   fetchImpl = fetch,
