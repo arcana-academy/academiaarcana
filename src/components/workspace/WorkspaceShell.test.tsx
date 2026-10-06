@@ -339,6 +339,66 @@ describe("WorkspaceShell", () => {
     expect(screen.getByRole("button", { name: "Nova página" })).toBeTruthy();
   });
 
+
+  test("preserves a normalized deep-linked page path and chapter movement context", () => {
+    const pageOne: Page = {
+      ...createdPage,
+      id: "p1",
+      title: "Primeira página",
+      position: 0,
+    };
+    const pageTwo: Page = {
+      ...createdPage,
+      id: "p2",
+      title: "Segunda página",
+      position: 1,
+    };
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [
+      pageOne,
+      pageTwo,
+    ];
+
+    render(
+      <WorkspaceShell
+        tree={tree}
+        initialState={{
+          grimoireId: "g1",
+          notebookId: "n1",
+          chapterId: "c1",
+          pageId: "p2",
+        }}
+        onCreateGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
+        onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({
+            movedPage: pageTwo,
+            swappedPage: pageOne,
+          }),
+        )}
+        onDeletePage={vi.fn(() => Promise.resolve())}
+        onSavePage={vi.fn(() => Promise.resolve(pageTwo))}
+      />,
+    );
+
+    expect(screen.getByDisplayValue("Segunda página")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Grimório" }))
+      .toHaveAttribute("data-active-path", "true");
+    expect(screen.getByRole("button", { name: "Caderno" }))
+      .toHaveAttribute("data-active-path", "true");
+    expect(screen.getByRole("button", { name: "Capítulo" }))
+      .toHaveAttribute("data-active-path", "true");
+    expect(screen.getByRole("button", { name: "Segunda página" }))
+      .toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Mover página para cima" }))
+      .not.toBeDisabled();
+  });
+
   test("reflects a saved page title in the Workspace tree", async () => {
     const onSavePage = vi.fn(() =>
       Promise.resolve({

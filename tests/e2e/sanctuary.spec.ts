@@ -3,6 +3,19 @@ import { expect, test } from "@playwright/test";
 const e2eEmail = process.env.E2E_EMAIL;
 const e2ePassword = process.env.E2E_PASSWORD;
 
+async function expectWorkspaceContext(page: import("@playwright/test").Page) {
+  await expect(page).toHaveURL(/\/workspace\?view=tree/);
+  await expect(
+    page.getByRole("navigation", { name: "Navegação do workspace" }),
+  ).toBeVisible();
+
+  const url = new URL(page.url());
+  if (url.searchParams.has("page")) {
+    await expect(page.locator('[aria-current="page"]')).toBeVisible();
+    await expect(page.locator('[data-active-path="true"]')).toHaveCount(4);
+  }
+}
+
 test("unauthenticated Sanctuary redirects to login", async ({ page }) => {
   await page.goto("/santuario");
 
@@ -39,10 +52,7 @@ test.describe("authenticated Sanctuary flow", () => {
 
     if (await resumeStudy.count()) {
       await resumeStudy.click();
-      await expect(page).toHaveURL(/\/workspace\?view=tree/);
-      await expect(
-        page.getByRole("navigation", { name: "Navegação do workspace" }),
-      ).toBeVisible();
+      await expectWorkspaceContext(page);
       return;
     }
 
@@ -52,10 +62,7 @@ test.describe("authenticated Sanctuary flow", () => {
 
     if (await openStudy.count()) {
       await openStudy.click();
-      await expect(page).toHaveURL(/\/workspace\?view=tree/);
-      await expect(
-        page.getByRole("navigation", { name: "Navegação do workspace" }),
-      ).toBeVisible();
+      await expectWorkspaceContext(page);
       return;
     }
 

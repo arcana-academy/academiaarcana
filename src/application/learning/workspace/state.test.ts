@@ -1,7 +1,140 @@
 import { describe, expect, it } from "vitest";
 
 import type { WorkspaceState } from "@/domains/learning";
-import { openChapter, openGrimoire, openNotebook, openPage } from "./state";
+import {
+  openChapter,
+  openGrimoire,
+  openNotebook,
+  openPage,
+  resolveWorkspaceState,
+} from "./state";
+
+const hierarchy = {
+  grimoires: [
+    {
+      id: "g1",
+      notebooks: [
+        {
+          id: "n1",
+          chapters: [
+            {
+              id: "c1",
+              pages: [{ id: "p1" }, { id: "p2" }],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "g2",
+      notebooks: [
+        {
+          id: "n2",
+          chapters: [
+            {
+              id: "c2",
+              pages: [{ id: "p3" }],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+describe("workspace deep-link resolution", () => {
+  it("reconstructs the complete hierarchy for a valid page-only request", () => {
+    expect(
+      resolveWorkspaceState(hierarchy, { pageId: "p1" }),
+    ).toEqual({
+      grimoireId: "g1",
+      notebookId: "n1",
+      chapterId: "c1",
+      pageId: "p1",
+    });
+  });
+
+  it("reconstructs ancestors for a valid chapter-only request", () => {
+    expect(
+      resolveWorkspaceState(hierarchy, { chapterId: "c1" }),
+    ).toEqual({
+      grimoireId: "g1",
+      notebookId: "n1",
+      chapterId: "c1",
+      pageId: null,
+    });
+  });
+
+  it("reconstructs the grimoire for a valid notebook-only request", () => {
+    expect(
+      resolveWorkspaceState(hierarchy, { notebookId: "n1" }),
+    ).toEqual({
+      grimoireId: "g1",
+      notebookId: "n1",
+      chapterId: null,
+      pageId: null,
+    });
+  });
+
+  it("keeps a valid grimoire-only request", () => {
+    expect(
+      resolveWorkspaceState(hierarchy, { grimoireId: "g1" }),
+    ).toEqual({
+      grimoireId: "g1",
+      notebookId: null,
+      chapterId: null,
+      pageId: null,
+    });
+  });
+
+  it("does not create a ghost selection for stale identifiers", () => {
+    expect(
+      resolveWorkspaceState(hierarchy, {
+        grimoireId: "stale-g",
+        notebookId: "stale-n",
+        chapterId: "stale-c",
+        pageId: "stale-p",
+      }),
+    ).toEqual({
+      grimoireId: null,
+      notebookId: null,
+      chapterId: null,
+      pageId: null,
+    });
+  });
+
+  it("lets the most-specific valid page determine its real ancestors", () => {
+    expect(
+      resolveWorkspaceState(hierarchy, {
+        grimoireId: "g2",
+        notebookId: "n2",
+        chapterId: "c2",
+        pageId: "p1",
+      }),
+    ).toEqual({
+      grimoireId: "g1",
+      notebookId: "n1",
+      chapterId: "c1",
+      pageId: "p1",
+    });
+  });
+
+  it("falls back to the next valid level when a more-specific identifier is stale", () => {
+    expect(
+      resolveWorkspaceState(hierarchy, {
+        grimoireId: "g2",
+        notebookId: "n2",
+        chapterId: "c2",
+        pageId: "stale-p",
+      }),
+    ).toEqual({
+      grimoireId: "g2",
+      notebookId: "n2",
+      chapterId: "c2",
+      pageId: null,
+    });
+  });
+});
 
 describe("workspace navigation state", () => {
   const initialState: WorkspaceState = {
