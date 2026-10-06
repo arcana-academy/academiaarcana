@@ -13,6 +13,15 @@ type SanctuaryProps = {
 };
 
 export function Sanctuary({ viewModel }: SanctuaryProps) {
+  const learningHeading =
+    viewModel.continueLearning.status === "ready"
+      ? viewModel.continueLearning.data.intent === "resume"
+        ? "Continue aprendendo"
+        : "Explore seu próximo estudo"
+      : viewModel.continueLearning.status === "empty"
+        ? "Comece pelo seu conteúdo"
+        : "Contexto de aprendizagem";
+
   return (
     <main className="aa-page aa-sanctuary" aria-labelledby="sanctuary-title">
       <SanctuaryHeader
@@ -25,7 +34,7 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
       <section className="aa-sanctuary-command" aria-label="Comando da jornada">
         <div className="aa-sanctuary-command-primary">
           <p className="aa-eyebrow">Próximo passo</p>
-          <h2>Continue aprendendo</h2>
+          <h2>{learningHeading}</h2>
           <SanctuaryContinueLearning continueLearning={viewModel.continueLearning} />
         </div>
 
