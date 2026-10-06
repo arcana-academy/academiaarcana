@@ -48,7 +48,7 @@ describe("SanctuaryContinueLearning", () => {
         ).toBeInTheDocument();
         expect(screen.getByText("Introdução")).toBeInTheDocument();
         expect(screen.getByText("Página inicial")).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "Explorar este estudo" }))
+        expect(screen.getByRole("link", { name: "Abrir este estudo" }))
             .toHaveAttribute("href", continueLearning.href);
         expect(screen.getByRole("group", { name: "Conteúdo sugerido" }))
             .toContainElement(screen.getByText("Página inicial"));
@@ -63,7 +63,7 @@ describe("SanctuaryContinueLearning", () => {
             .toBeInTheDocument();
         expect(screen.getByRole("link", { name: "Retomar este estudo" }))
             .toHaveAttribute("href", continueLearning.href);
-        expect(screen.queryByRole("link", { name: "Explorar este estudo" }))
+        expect(screen.queryByRole("link", { name: "Abrir este estudo" }))
             .not.toBeInTheDocument();
     });
 
