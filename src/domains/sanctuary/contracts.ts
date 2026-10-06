@@ -144,7 +144,7 @@ export type QuickAction = {
 
 export type SanctuarySnapshot = {
   user: SanctuaryUser;
-  continueLearning: ContinueLearning | null;
+  continueLearning: SectionState<ContinueLearning>;
   progress: SectionState<ProgressSummary>;
   missions: SectionState<SanctuaryMission[]>;
   schedule: SectionState<ScheduleItem[]>;
@@ -158,7 +158,7 @@ export type SanctuaryViewModel = {
     user: SanctuaryUser;
   };
   primaryAction: QuickAction;
-  continueLearning: ContinueLearning | null;
+  continueLearning: SectionState<ContinueLearning>;
   progress: SectionState<ProgressSummary>;
   missions: SectionState<SanctuaryMission[]>;
   schedule: SectionState<ScheduleItem[]>;
