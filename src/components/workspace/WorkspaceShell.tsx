@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import {
+  getWorkspaceCanonicalHref,
   openChapter,
   openGrimoire,
   openNotebook,
@@ -105,6 +106,16 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
 
   const [state, setState] = useState<WorkspaceState>(initialState);
+
+  useEffect(() => {
+    const canonicalHref = getWorkspaceCanonicalHref(state);
+    const currentHref =
+      window.location.pathname + window.location.search + window.location.hash;
+
+    if (currentHref !== canonicalHref) {
+      window.history.replaceState(window.history.state, "", canonicalHref);
+    }
+  }, [state]);
   const [pages, setPages] = useState<Record<string, Page>>({});
   const [pageProgress, setPageProgress] = useState<Record<string, PageProgressStatus>>(initialPageProgress);
   const [renamedGrimoires, setRenamedGrimoires] = useState<Record<string, string>>({});
