@@ -26,6 +26,7 @@ import {
   setWorkspacePageProgress,
 } from "./actions";
 import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
+import { resolveWorkspaceState } from "@/application/learning/workspace/state";
 import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
 
 type WorkspacePageProps = {
@@ -134,12 +135,15 @@ export default async function WorkspacePage({
     pageProgressRows.map((item) => [item.pageId, item.status]),
   );
 
-  const initialState: WorkspaceState = {
-    grimoireId: params.grimoire ?? null,
-    notebookId: params.notebook ?? null,
-    chapterId: params.chapter ?? null,
-    pageId: params.page ?? null,
-  };
+  const initialState: WorkspaceState = resolveWorkspaceState(
+    { grimoires: tree },
+    {
+      grimoireId: params.grimoire ?? null,
+      notebookId: params.notebook ?? null,
+      chapterId: params.chapter ?? null,
+      pageId: params.page ?? null,
+    },
+  );
 
   return (
     <AuthenticatedShell currentPath="/workspace">
