@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Chapter, Grimoire, Notebook, Page, WorkspaceState } from "@/domains/learning";
+import { useMobileDisclosure } from "./useMobileDisclosure";
 
 type WorkspaceTreeData = {
   grimoires: Array<
@@ -39,6 +40,17 @@ export function WorkspaceTree({
   const [collapsedGrimoires, setCollapsedGrimoires] = useState<Set<string>>(
     new Set(),
   );
+  const [isExpanded, setIsExpanded] = useMobileDisclosure();
+
+  useEffect(() => {
+    if (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(max-width: 48rem)").matches &&
+      state.pageId
+    ) {
+      setIsExpanded(false);
+    }
+  }, [setIsExpanded, state.pageId]);
 
   const toggleGrimoire = (id: string) => {
     setCollapsedGrimoires((current) => {
@@ -56,21 +68,27 @@ export function WorkspaceTree({
 
   return (
     <nav className="workspace-tree-region" aria-label="Navegação do workspace">
-      <div className="workspace-region-heading">
-        <span className="workspace-region-kicker">Estrutura</span>
-        <strong>Biblioteca de estudos</strong>
-      </div>
+      <details
+        className="workspace-region-disclosure"
+        open={isExpanded}
+        onToggle={(event) => setIsExpanded(event.currentTarget.open)}
+      >
+        <summary className="workspace-region-heading workspace-panel-summary">
+          <span className="workspace-region-kicker">Estrutura</span>
+          <strong>Biblioteca de estudos</strong>
+        </summary>
 
-      {data.grimoires.length === 0 ? (
-        <div className="workspace-tree-empty" role="status">
-          <p>Nenhum grimório encontrado</p>
-          <span>
-            Crie seu primeiro grimório na área de trabalho ou explore sua
-            biblioteca.
-          </span>
-        </div>
-      ) : (
-        <ul className="workspace-tree-list workspace-tree-list--root">
+        <div className="workspace-panel-disclosure-content">
+          {data.grimoires.length === 0 ? (
+            <div className="workspace-tree-empty" role="status">
+              <p>Nenhum grimório encontrado</p>
+              <span>
+                Crie seu primeiro grimório na área de trabalho ou explore sua
+                biblioteca.
+              </span>
+            </div>
+          ) : (
+            <ul className="workspace-tree-list workspace-tree-list--root">
           {data.grimoires.map((grimoire) => {
             const collapsed = collapsedGrimoires.has(grimoire.id);
             const grimoireOnPath = state.grimoireId === grimoire.id;
@@ -242,8 +260,10 @@ export function WorkspaceTree({
               </li>
             );
           })}
-        </ul>
-      )}
+            </ul>
+          )}
+        </div>
+      </details>
     </nav>
   );
 }

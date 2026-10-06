@@ -1714,6 +1714,23 @@ p {
   font-size: var(--aa-type-scale-lg);
 }
 
+.workspace-panel-summary {
+  display: grid;
+  list-style: none;
+}
+
+.workspace-panel-summary::-webkit-details-marker {
+  display: none;
+}
+
+.workspace-panel-summary::marker {
+  content: "";
+}
+
+.workspace-panel-disclosure-content {
+  padding-top: var(--aa-spacing-md);
+}
+
 .workspace-tree-list {
   list-style: none;
   margin: 0;
@@ -2014,7 +2031,37 @@ p {
   }
 
   .workspace-tree-region {
-    max-height: 24rem;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .workspace-panel-summary {
+    position: relative;
+    min-height: var(--aa-sizing-control-lg);
+    align-content: center;
+    padding-right: 2.25rem;
+    cursor: pointer;
+  }
+
+  .workspace-panel-summary::after {
+    content: "+";
+    position: absolute;
+    right: var(--aa-spacing-xs);
+    top: 50%;
+    color: var(--aa-accent-primary);
+    font-size: var(--aa-type-scale-xl);
+    line-height: 1;
+    transform: translateY(-50%);
+  }
+
+  .workspace-region-disclosure[open] > .workspace-panel-summary::after {
+    content: "−";
+  }
+
+  .workspace-panel-summary:focus-visible {
+    outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+    outline-offset: var(--aa-focus-offset);
+    border-radius: var(--aa-radius-sm);
   }
 
   .workspace-context-region {

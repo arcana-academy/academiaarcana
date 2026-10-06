@@ -6,6 +6,7 @@ import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { WorkspaceTitleEditor } from "./WorkspaceTitleEditor";
+import { useMobileDisclosure } from "./useMobileDisclosure";
 
 type WorkspaceProps = {
   tree: Parameters<typeof WorkspaceTree>[0]["data"];
@@ -306,6 +307,8 @@ export function Workspace({
   pageProgressStatus = "not-started",
   onSetPageProgress = async () => undefined,
 }: WorkspaceProps) {
+  const [isContextExpanded, setIsContextExpanded] = useMobileDisclosure();
+
   const focusGrimoireCreation = () => {
     document.getElementById("workspace-new-grimoire-title")?.focus();
   };
@@ -448,25 +451,33 @@ export function Workspace({
           className="workspace-context-region"
           aria-labelledby="workspace-context-heading"
         >
-          <div className="workspace-region-heading">
-            <span className="workspace-region-kicker">Contexto</span>
-            <h2 id="workspace-context-heading">Contexto</h2>
-          </div>
+          <details
+            className="workspace-region-disclosure"
+            open={isContextExpanded}
+            onToggle={(event) => setIsContextExpanded(event.currentTarget.open)}
+          >
+            <summary className="workspace-region-heading workspace-panel-summary">
+              <span className="workspace-region-kicker">Estudo</span>
+              <h2 id="workspace-context-heading">Contexto</h2>
+            </summary>
 
-          {selectedPage ? (
-            <div className="workspace-context-card">
-              <span>Página selecionada</span>
-              <strong>{selectedPage.title}</strong>
-              <p>
-                O contexto acompanha a página atual sem competir com a área de
-                edição.
-              </p>
+            <div className="workspace-panel-disclosure-content">
+              {selectedPage ? (
+                <div className="workspace-context-card">
+                  <span>Página selecionada</span>
+                  <strong>{selectedPage.title}</strong>
+                  <p>
+                    O contexto acompanha a página atual sem competir com a área de
+                    edição.
+                  </p>
+                </div>
+              ) : (
+                <p className="workspace-context-empty">
+                  Selecione uma página na árvore para ver o contexto do estudo.
+                </p>
+              )}
             </div>
-          ) : (
-            <p className="workspace-context-empty">
-              Selecione uma página na árvore para ver o contexto do estudo.
-            </p>
-          )}
+          </details>
         </aside>
       </div>
     </div>

@@ -1,8 +1,8 @@
 ﻿﻿// @vitest-environment jsdom
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { WorkspaceTree } from "./WorkspaceTree";
 
 const tree: ComponentProps<typeof WorkspaceTree>["data"] = {
@@ -49,6 +49,10 @@ const tree: ComponentProps<typeof WorkspaceTree>["data"] = {
 };
 
 describe("WorkspaceTree", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   test("renders the canonical hierarchy and exposes the selected page", () => {
     render(
       <WorkspaceTree
@@ -82,6 +86,39 @@ describe("WorkspaceTree", () => {
       "aria-current",
     );
     expect(document.querySelectorAll("[aria-current]")).toHaveLength(1);
+  });
+
+  test("collapses the study tree on mobile and exposes it through a native disclosure", async () => {
+    const media = {
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal("matchMedia", vi.fn(() => media));
+
+    const { container } = render(
+      <WorkspaceTree
+        data={tree}
+        state={{
+          grimoireId: null,
+          notebookId: null,
+          chapterId: null,
+          pageId: null,
+        }}
+        onOpenGrimoire={vi.fn()}
+        onOpenNotebook={vi.fn()}
+        onOpenChapter={vi.fn()}
+        onOpenPage={vi.fn()}
+      />,
+    );
+
+    const disclosure = container.querySelector("details");
+    await waitFor(() => expect(disclosure).not.toHaveAttribute("open"));
+
+    fireEvent.click(screen.getByText("Biblioteca de estudos"));
+
+    expect(disclosure).toHaveAttribute("open");
+    expect(screen.getByRole("button", { name: "Dor lombar" })).toBeInTheDocument();
   });
 
   test("supports keyboard-accessible page selection", () => {
