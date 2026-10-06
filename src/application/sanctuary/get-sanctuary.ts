@@ -160,12 +160,24 @@ export async function getSanctuary(repository: SanctuaryProjectionPort, sessionC
     }
   }
 
+  const openMissionCount =
+    missions.status === "ready"
+      ? missions.data.filter((mission) => !mission.isCompleted).length
+      : missions.status === "empty"
+        ? 0
+        : null;
+
+  const scheduledTaskCount =
+    schedule.status === "ready"
+      ? schedule.data.length
+      : schedule.status === "empty"
+        ? 0
+        : null;
+
   const adaptiveRecommendation = getAdaptiveRecommendation({
     progressPercentage: progress.status === "ready" ? progress.data.percentage : null,
-    openMissionCount: missions.status === "ready"
-      ? missions.data.filter((mission) => !mission.isCompleted).length
-      : 0,
-    scheduledTaskCount: schedule.status === "ready" ? schedule.data.length : 0,
+    openMissionCount,
+    scheduledTaskCount,
   });
 
   return {
