@@ -15,26 +15,47 @@ The repository is prepared for a Render Web Service using the versioned `render.
 | Service type | Web Service |
 | Runtime | Node.js |
 | Branch | `main` |
-| Build command | `npm ci && npm run build` |
+| Build command | `node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build` |
 | Start command | `npm start` |
 | Health check | `/api/health` |
 | Auto-deploy | After CI checks pass |
 | Source | GitHub `arcana-academy/academiaarcana` |
 
-## Environment
+## Environment and runtime secret boundary
 
 Secrets are never committed to `render.yaml`.
 
-The Blueprint declares environment keys that must be supplied by the Render environment:
+Public or build-time configuration may remain as normal Render environment variables, including:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `OPENAI_API_KEY`
-- optional `OPENAI_AGENT_MODEL`
-- optional Honeybadger variables
-- other provider credentials required by enabled integrations
+- `OPENAI_AGENT_MODEL`
+- public Honeybadger/browser configuration
+- provider base URLs and redirect URIs that are not credentials
 
-Secret placeholders use Render's `sync: false` pattern so values remain managed outside Git.
+Runtime credentials must not remain in the service's normal Environment Variables once the runtime-only migration is complete, because normal service environment variables are available during the build.
+
+The application runtime secret resolver prefers files at:
+
+`/etc/secrets/<KEY>`
+
+and uses `process.env` only as a compatibility fallback for local development, tests and the migration window.
+
+Examples of credentials intended for runtime-only Secret Files include:
+
+- `OPENAI_API_KEY`
+- `PARALLEL_API_KEY`
+- `EXA_API_KEY`
+- OAuth client secrets
+- `OUTLOOK_CALENDAR_SESSION_SECRET`
+- Dropbox/Airtable/DataCamp access credentials
+- provider API keys used by server-only integrations
+
+Render Secret Files should use the exact environment-style key as the filename, for example `/etc/secrets/OPENAI_API_KEY`.
+
+Do not duplicate a migrated secret in both a Secret File and a normal service environment variable after verification. The normal environment variable must be removed so build-time dependency code cannot read the runtime credential.
+
+Issue #536 tracks the production migration and evidence required before the build/runtime secret-isolation P0 can be closed.
 
 ## Health and readiness
 
