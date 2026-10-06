@@ -476,10 +476,10 @@ export async function getIntegrationStatusSnapshot({
   githubVerifier = verifyGitHubConnection,
   dataCampVerifier = verifyDataCampConnection,
   dropboxVerifier = verifyDropboxConnection,
-  dataCampApiKey = process.env.DATACAMP_API_KEY,
-  dropboxToken = process.env.DROPBOX_RUNTIME_TOKEN,
+  dataCampApiKey = getRuntimeSecret("DATACAMP_API_KEY") ?? undefined,
+  dropboxToken = getRuntimeSecret("DROPBOX_RUNTIME_TOKEN") ?? undefined,
   airtableVerifier = verifyAirtableConnection,
-  airtableToken = process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN,
+  airtableToken = getRuntimeSecret("AIRTABLE_PERSONAL_ACCESS_TOKEN") ?? undefined,
   airtableBaseId = process.env.AIRTABLE_BASE_ID,
 }: {
   readonly githubVerifier?: () => Promise<GitHubConnectionVerification>;
