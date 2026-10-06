@@ -2,6 +2,8 @@ import Link from "next/link";
 import OpenSourceAiPlayground from "./open-source-ai-playground";
 import { getOpenSourceAiStatus, openSourceAiIntegrations } from "@/infrastructure/integrations/open-source-ai";
 
+export const dynamic = "force-dynamic";
+
 export default function OpenSourceAiPage() {
   const configuredProviders = openSourceAiIntegrations.map((integration) => ({ id: integration.id, name: integration.name, runtime: integration.runtime, configured: getOpenSourceAiStatus(integration).configured }));
 
