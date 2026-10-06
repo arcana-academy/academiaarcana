@@ -2,6 +2,8 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 
 import { cookies } from "next/headers";
 
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import { OutlookCalendarError, OUTLOOK_CALENDAR_PROVIDER_ID } from "./outlook-calendar";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,7 +16,7 @@ const STATE_COOKIE_NAMES = {
 } as const;
 
 function getEncryptionKey(): Buffer {
-  const secret = process.env.OUTLOOK_CALENDAR_SESSION_SECRET;
+  const secret = getRuntimeSecret("OUTLOOK_CALENDAR_SESSION_SECRET");
   if (!secret || secret.length < 32) {
     throw new OutlookCalendarError(
       "OUTLOOK_CALENDAR_SESSION_SECRET precisa ter pelo menos 32 caracteres.",
@@ -130,7 +132,7 @@ export async function clearOutlookTokens(ownerId: string) {
 
 async function refreshAccessToken(ownerId: string, refreshToken: string) {
   const clientId = process.env.MICROSOFT_ENTRA_CLIENT_ID;
-  const clientSecret = process.env.MICROSOFT_ENTRA_CLIENT_SECRET;
+  const clientSecret = getRuntimeSecret("MICROSOFT_ENTRA_CLIENT_SECRET");
   const redirectUri = process.env.MICROSOFT_ENTRA_REDIRECT_URI;
 
   if (!clientId || !clientSecret || !redirectUri) {
