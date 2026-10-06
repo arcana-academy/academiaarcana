@@ -96,7 +96,7 @@ export async function getSanctuary(repository: SanctuaryProjectionPort, sessionC
   const primaryAction = primaryPriority?.section === "continueLearning" && continueLearning !== null
     ? {
         id: "continue-learning",
-        label: continueLearning.intent === "resume" ? "Continuar aprendendo" : "Explorar este estudo",
+        label: continueLearning.intent === "resume" ? "Continuar aprendendo" : "Explorar conteúdo",
         href: continueLearning.href,
         priority: "primary" as const,
       }
