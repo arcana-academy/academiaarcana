@@ -72,6 +72,16 @@ describe("WorkspaceTree", () => {
 
     const page = screen.getByRole("button", { name: "Dor lombar" });
     expect(page).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Anatomia" })).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(
+      screen.getByRole("button", { name: "Sistema Musculoesquelético" }),
+    ).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("button", { name: "Coluna" })).not.toHaveAttribute(
+      "aria-current",
+    );
+    expect(document.querySelectorAll("[aria-current]")).toHaveLength(1);
   });
 
   test("supports keyboard-accessible page selection", () => {
