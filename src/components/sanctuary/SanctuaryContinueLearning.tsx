@@ -31,7 +31,7 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
   const isResume = continueLearning.intent === "resume";
   const sectionLabel = isResume ? "Continuar aprendendo" : "Explorar conteúdo";
   const pathLabel = isResume ? "Caminho atual" : "Conteúdo sugerido";
-  const actionLabel = isResume ? "Retomar este estudo" : "Explorar este estudo";
+  const actionLabel = isResume ? "Retomar este estudo" : "Abrir este estudo";
 
   return (
     <section aria-labelledby="sanctuary-continue-learning">
