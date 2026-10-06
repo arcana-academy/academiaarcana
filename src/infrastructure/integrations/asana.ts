@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type {
   IntegrationDefinition,
   IntegrationToolResult,
@@ -83,7 +85,7 @@ export function getAsanaClientId(): string {
 }
 
 export function getAsanaClientSecret(): string {
-  const value = process.env.ASANA_CLIENT_SECRET?.trim();
+  const value = getRuntimeSecret("ASANA_CLIENT_SECRET");
   if (!value) throw new AsanaConnectionError("ASANA_CLIENT_SECRET não está configurado.", "not_configured");
   return value;
 }
