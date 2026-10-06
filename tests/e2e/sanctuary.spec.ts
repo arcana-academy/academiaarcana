@@ -43,7 +43,7 @@ test.describe("authenticated Sanctuary flow", () => {
       ).toBeVisible();
     } else {
       await expect(
-        page.getByText("Você ainda não tem um contexto de aprendizagem"),
+        page.getByText("Nenhum estudo recente para retomar ainda."),
       ).toBeVisible();
     }
   });
