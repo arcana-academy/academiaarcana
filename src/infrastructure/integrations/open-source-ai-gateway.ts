@@ -1,4 +1,5 @@
 import type { OpenSourceAiId } from "./open-source-ai";
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
 import { getOpenSourceAiIntegration } from "./open-source-ai";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
@@ -21,7 +22,9 @@ function endpointFor(provider: OpenSourceAiId) {
 export async function invokeOpenSourceAi(request: GatewayRequest) {
   const endpoint = endpointFor(request.provider);
   const integration = getOpenSourceAiIntegration(request.provider);
-  const apiKey = integration?.apiKeyEnv ? process.env[integration.apiKeyEnv] : process.env.OPEN_SOURCE_AI_API_KEY;
+  const apiKey = integration?.apiKeyEnv
+    ? getRuntimeSecret(integration.apiKeyEnv)
+    : getRuntimeSecret("OPEN_SOURCE_AI_API_KEY");
   const response = await fetch(endpoint + "/v1/chat/completions", {
     method: "POST",
     headers: {
