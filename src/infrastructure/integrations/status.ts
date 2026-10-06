@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import { CHATGPT_APP_BRIDGES } from "./chatgpt-app-bridges";
 import { getOpenAIAgentsRuntimeSnapshot } from "./openai-agents";
 import { CHATGPT_PLUGIN_CATALOG } from "./chatgpt-plugin-catalog";
@@ -518,11 +520,11 @@ export async function getIntegrationStatusSnapshot({
   const serverRuntimeIntegrations = [
     serverRuntimeEntry(
       PARALLEL_SEARCH_INTEGRATION_DEFINITION,
-      process.env.PARALLEL_API_KEY,
+      getRuntimeSecret("PARALLEL_API_KEY") ?? undefined,
     ),
     serverRuntimeEntry(
       EXA_WEB_RESEARCH_INTEGRATION_DEFINITION,
-      process.env.EXA_API_KEY,
+      getRuntimeSecret("EXA_API_KEY") ?? undefined,
     ),
   ];
   const allEntries = [...entries, ...serverRuntimeIntegrations];
