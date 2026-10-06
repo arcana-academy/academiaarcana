@@ -47,6 +47,10 @@ describe("SanctuaryContinueLearning", () => {
         ).toBeInTheDocument();
         expect(screen.getByText("Introdução")).toBeInTheDocument();
         expect(screen.getByText("Página inicial")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Retomar este estudo" }))
+            .toHaveAttribute("href", continueLearning.href);
+        expect(screen.getByRole("group", { name: "Caminho atual" }))
+            .toContainElement(screen.getByText("Página inicial"));
     });
 
     it("renders only the available hierarchy levels", () => {
@@ -71,6 +75,10 @@ describe("SanctuaryContinueLearning", () => {
         expect(
             screen.getByRole("region", { name: "Continuar aprendendo" }),
         ).toBeInTheDocument();
-        expect(screen.getByText(/começar|explorar/i)).toBeInTheDocument();
+        expect(screen.getByText(/Nenhum estudo recente/i)).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Explorar Grimórios" }))
+            .toHaveAttribute("href", "/grimorios");
+        expect(screen.queryByRole("link", { name: "Retomar este estudo" }))
+            .not.toBeInTheDocument();
     });
 });
