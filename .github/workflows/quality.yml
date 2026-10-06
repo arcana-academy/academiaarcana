@@ -108,6 +108,11 @@ jobs:
           E2E_SIGNUP_EMAIL="qa-signup-${GITHUB_RUN_ID}@example.test"
           E2E_PASSWORD="Aa9-$(openssl rand -hex 12)"
 
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          echo "::add-mask::$E2E_EMAIL"
+          echo "::add-mask::$E2E_SIGNUP_EMAIL"
+          echo "::add-mask::$E2E_PASSWORD"
+
           export E2E_EMAIL E2E_SIGNUP_EMAIL E2E_PASSWORD
 
           {
@@ -142,8 +147,17 @@ jobs:
 
           rm -f "$RUNNER_TEMP/supabase-e2e.env"
 
+      - name: Build authenticated E2E runtime
+        env:
+          CI: "true"
+          E2E_LOCAL_RUNTIME: "1"
+        run: |
+          rm -rf .next
+          npm run build
+
       - name: Authenticated essential E2E
         env:
+          CI: "true"
           E2E_LOCAL_RUNTIME: "1"
         run: >-
           npm run test:e2e --
