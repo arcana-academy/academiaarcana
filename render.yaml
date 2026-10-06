@@ -12,6 +12,8 @@ services:
         value: production
       - key: SKIP_INSTALL_DEPS
         value: "true"
+      - key: NPM_CONFIG_IGNORE_SCRIPTS
+        value: "true"
       - key: NEXT_PUBLIC_APP_ENV
         value: production
       - key: NEXT_PUBLIC_SUPABASE_URL
