@@ -28,8 +28,12 @@ function createQuickActions() {
 export function buildSanctuaryViewModel(
   snapshot: SanctuarySnapshot,
 ): SanctuaryViewModel {
+  const continuation = snapshot.continueLearning.status === "ready"
+    ? snapshot.continueLearning.data
+    : null;
+
   const priorities = decideSanctuaryPriority({
-    continueLearning: snapshot.continueLearning,
+    continueLearning: continuation,
   });
 
   const primaryDecision = priorities.find(
@@ -39,12 +43,11 @@ export function buildSanctuaryViewModel(
   const quickActions = createQuickActions();
 
   const primaryAction =
-    primaryDecision?.section === "continueLearning" &&
-    snapshot.continueLearning !== null
+    primaryDecision?.section === "continueLearning" && continuation !== null
       ? {
           id: "continue-learning",
-          label: "Continuar aprendendo",
-          href: snapshot.continueLearning.href,
+          label: continuation.intent === "resume" ? "Continuar aprendendo" : "Explorar conteúdo",
+          href: continuation.href,
           priority: "primary" as const,
         }
       : quickActions[0];
