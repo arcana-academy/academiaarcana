@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 import type { IntegrationConnectionStatus, IntegrationDefinition, IntegrationToolResult } from "./contracts";
 
 export const MICROSOFT_SHAREPOINT_PROVIDER_ID = "microsoft-sharepoint" as const;
@@ -43,7 +45,7 @@ export function getMicrosoftSharePointClientId(): string {
 }
 
 export function getMicrosoftSharePointClientSecret(): string {
-  const value = process.env.MICROSOFT_CLIENT_SECRET?.trim();
+  const value = getRuntimeSecret("MICROSOFT_CLIENT_SECRET");
   if (!value) throw new MicrosoftSharePointConnectionError("MICROSOFT_CLIENT_SECRET não está configurado.");
   return value;
 }
