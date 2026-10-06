@@ -1,3 +1,5 @@
+import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
+
 const PARALLEL_API_ORIGIN = "https://api.parallel.ai";
 const DEFAULT_TIMEOUT_MS = 12_000;
 const MAX_SEARCH_QUERIES = 3;
@@ -80,8 +82,7 @@ export type ParallelExtractResult = {
 
 /** Returns the server-side Parallel API key, when configured. */
 function getApiKey(): string | null {
-  const value = process.env.PARALLEL_API_KEY?.trim();
-  return value ? value : null;
+  return getRuntimeSecret("PARALLEL_API_KEY");
 }
 
 /** Normalizes the configured Parallel API origin. */
