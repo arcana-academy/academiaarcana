@@ -20,16 +20,19 @@ const viewModel: SanctuaryViewModel = {
         priority: "primary",
     },
     continueLearning: {
-        intent: "explore",
-        grimoireId: "grimoire-1",
-        grimoireTitle: "Anatomia",
-        notebookId: "notebook-1",
-        notebookTitle: "Sistema musculoesquelético",
-        chapterId: "chapter-1",
-        chapterTitle: "Introdução",
-        pageId: "page-1",
-        pageTitle: "Página inicial",
-        href: "/workspace?view=tree#current",
+        status: "ready",
+        data: {
+            intent: "explore",
+            grimoireId: "grimoire-1",
+            grimoireTitle: "Anatomia",
+            notebookId: "notebook-1",
+            notebookTitle: "Sistema musculoesquelético",
+            chapterId: "chapter-1",
+            chapterTitle: "Introdução",
+            pageId: "page-1",
+            pageTitle: "Página inicial",
+            href: "/workspace?view=tree#current",
+        },
     },
     progress: {
         status: "not-configured",
@@ -147,7 +150,10 @@ describe("Sanctuary", () => {
                         href: "/workspace?view=tree#current",
                         priority: "supporting",
                     },
-                    continueLearning: null,
+                    continueLearning: {
+                        status: "empty",
+                        data: null,
+                    },
                 }}
             />,
         );
@@ -157,5 +163,42 @@ describe("Sanctuary", () => {
                 "Nenhum conteúdo disponível para abrir no Santuário ainda. Explore seus Grimórios quando estiver pronto.",
             ),
         ).toBeTruthy();
+    });
+
+    it("renders learning-source error distinctly from empty", () => {
+        render(
+            <Sanctuary
+                viewModel={{
+                    ...viewModel,
+                    primaryAction: {
+                        id: "open-workspace",
+                        label: "Abrir Workspace",
+                        href: "/workspace?view=tree#current",
+                        priority: "supporting",
+                    },
+                    continueLearning: {
+                        status: "error",
+                        data: null,
+                        message: "internal database failure",
+                    },
+                }}
+            />,
+        );
+
+        expect(
+            screen.getByRole("heading", {
+                level: 2,
+                name: "Contexto de aprendizagem",
+            }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText("Não foi possível carregar seu contexto de aprendizagem agora."),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText(/Nenhum conteúdo disponível/i),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(/internal database failure/i),
+        ).not.toBeInTheDocument();
     });
 });

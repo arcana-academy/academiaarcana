@@ -79,7 +79,10 @@ describe("SanctuaryPage", () => {
         href: "/workspace?view=tree#current",
         priority: "supporting",
       },
-      continueLearning: null,
+      continueLearning: {
+        status: "empty",
+        data: null,
+      },
       progress: {
         status: "not-configured",
         data: null,
@@ -130,7 +133,10 @@ describe("SanctuaryPage", () => {
         href: "/workspace?view=tree#current",
         priority: "supporting",
       },
-      continueLearning: null,
+      continueLearning: {
+        status: "empty",
+        data: null,
+      },
       progress: {
         status: "not-configured",
         data: null,
@@ -186,7 +192,10 @@ describe("SanctuaryPage", () => {
         href: "/workspace?view=tree#current",
         priority: "supporting",
       },
-      continueLearning: null,
+      continueLearning: {
+        status: "empty",
+        data: null,
+      },
       progress: {
         status: "not-configured",
         data: null,

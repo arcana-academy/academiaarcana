@@ -6,11 +6,36 @@ type SanctuaryContinueLearningProps = {
 };
 
 export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinueLearningProps) {
-  if (!continueLearning) {
+  if (continueLearning.status === "error") {
     return (
       <section className="aa-empty" aria-labelledby="sanctuary-continue-learning">
         <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
-          Continuar aprendendo
+          Contexto de aprendizagem indisponível
+        </h2>
+        <div role="status">
+          <p>Não foi possível carregar seu contexto de aprendizagem agora.</p>
+          <p className="aa-state-copy">Recarregue a página para tentar novamente.</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (continueLearning.status === "not-configured") {
+    return (
+      <section className="aa-empty" aria-labelledby="sanctuary-continue-learning">
+        <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
+          Contexto de aprendizagem indisponível
+        </h2>
+        <p>O contexto de aprendizagem ainda não está configurado.</p>
+      </section>
+    );
+  }
+
+  if (continueLearning.status === "empty") {
+    return (
+      <section className="aa-empty" aria-labelledby="sanctuary-continue-learning">
+        <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
+          Próximo estudo
         </h2>
         <p>Nenhum conteúdo disponível para abrir no Santuário ainda. Explore seus Grimórios quando estiver pronto.</p>
         <div className="aa-sanctuary-hero-action">
@@ -22,13 +47,14 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
     );
   }
 
+  const learning = continueLearning.data;
   const path = [
-    continueLearning.grimoireTitle,
-    continueLearning.notebookTitle,
-    continueLearning.chapterTitle,
-    continueLearning.pageTitle,
+    learning.grimoireTitle,
+    learning.notebookTitle,
+    learning.chapterTitle,
+    learning.pageTitle,
   ].filter(Boolean);
-  const isResume = continueLearning.intent === "resume";
+  const isResume = learning.intent === "resume";
   const sectionLabel = isResume ? "Continuar aprendendo" : "Explorar conteúdo";
   const pathLabel = isResume ? "Caminho atual" : "Conteúdo sugerido";
   const actionLabel = isResume ? "Retomar este estudo" : "Abrir este estudo";
@@ -47,7 +73,7 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
         ))}
       </div>
       <div className="aa-sanctuary-hero-action">
-        <Link className="aa-button aa-button-primary" href={continueLearning.href}>
+        <Link className="aa-button aa-button-primary" href={learning.href}>
           {actionLabel}
         </Link>
       </div>

@@ -46,6 +46,19 @@ test.describe("authenticated Sanctuary flow", () => {
       return;
     }
 
+    const openStudy = page.getByRole("link", {
+      name: "Abrir este estudo",
+    });
+
+    if (await openStudy.count()) {
+      await openStudy.click();
+      await expect(page).toHaveURL(/\/workspace\?view=tree/);
+      await expect(
+        page.getByRole("navigation", { name: "Navegação do workspace" }),
+      ).toBeVisible();
+      return;
+    }
+
     const exploreGrimoires = page.getByRole("link", {
       name: "Explorar Grimórios",
     });
