@@ -52,6 +52,8 @@ const requiredRenderDirectives = [
   "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
   "startCommand: npm start",
   "healthCheckPath: /api/health",
+  "key: NPM_CONFIG_IGNORE_SCRIPTS",
+  'value: "true"',
 ];
 
 for (const directive of requiredRenderDirectives) {
