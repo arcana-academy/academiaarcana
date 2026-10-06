@@ -31,7 +31,7 @@ test.describe("P0 essential authenticated flows", () => {
     ).toBeVisible();
 
     const title = `E2E tarefa essencial ${Date.now()}`;
-    await page.getByLabel("Tarefa").fill(title);
+    await page.locator("#study-task-title").fill(title);
     await page.getByRole("button", { name: "Criar tarefa" }).click();
 
     const task = page.getByRole("listitem").filter({ hasText: title });
@@ -124,8 +124,8 @@ test.describe("P0 essential onboarding", () => {
     await page.getByLabel("Senha").fill(e2ePassword);
     await page.getByRole("button", { name: "Criar conta" }).click();
 
-    await expect(page.getByRole("alert")).toContainText("Conta criada", {
-      timeout: 15_000,
-    });
+    await expect(
+      page.locator('p[role="alert"]').filter({ hasText: "Conta criada" }),
+    ).toBeVisible({ timeout: 15_000 });
   });
 });
