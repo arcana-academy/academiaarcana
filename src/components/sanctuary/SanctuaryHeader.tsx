@@ -16,11 +16,11 @@ export function SanctuaryHeader({ header, primaryAction }: SanctuaryHeaderProps)
         <h1 id="sanctuary-title">{header.greeting}</h1>
         {displayName ? (
           <p className="aa-sanctuary-hero-lede" data-testid="sanctuary-user-name">
-            {displayName}, retome o fio da sua jornada com clareza, presença e um próximo passo de cada vez.
+            {displayName}, siga o fio da sua jornada com clareza, presença e um próximo passo de cada vez.
           </p>
         ) : (
           <p className="aa-sanctuary-hero-lede">
-            Retome o fio da sua jornada com clareza, presença e um próximo passo de cada vez.
+            Siga o fio da sua jornada com clareza, presença e um próximo passo de cada vez.
           </p>
         )}
         <div className="aa-sanctuary-hero-action">
