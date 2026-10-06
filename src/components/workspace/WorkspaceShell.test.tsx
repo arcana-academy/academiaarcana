@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, test, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { Chapter, Grimoire, Notebook, Page } from "@/domains/learning";
 import { WorkspaceShell } from "./WorkspaceShell";
 
@@ -90,6 +90,10 @@ function createTree(): Parameters<typeof WorkspaceShell>[0]["tree"] {
 }
 
 describe("WorkspaceShell", () => {
+  beforeEach(() => {
+    window.history.replaceState({}, "", "/workspace?view=tree#current");
+  });
+
   test("creates a grimoire and selects it", async () => {
     const onCreateGrimoire = vi.fn(() => Promise.resolve(createdGrimoire));
     const onCreateNotebook = vi.fn(() => Promise.resolve(createdNotebook));
@@ -443,4 +447,158 @@ describe("WorkspaceShell", () => {
 
     expect(await screen.findByRole("button", { name: "Página renomeada" })).toBeTruthy();
   });
+  test("canonicalizes a normalized initial selection without creating a new history entry", async () => {
+    window.history.replaceState(
+      { preserved: true },
+      "",
+      "/workspace?view=tree&page=stale#current",
+    );
+
+    render(
+      <WorkspaceShell
+        tree={createTree()}
+        initialState={{
+          grimoireId: "g1",
+          notebookId: "n1",
+          chapterId: "c1",
+          pageId: null,
+        }}
+        onCreateGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
+        onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({ movedPage: createdPage, swappedPage: null }),
+        )}
+        onDeletePage={vi.fn(() => Promise.resolve())}
+        onSavePage={vi.fn(() => Promise.resolve(createdPage))}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        window.location.pathname + window.location.search + window.location.hash,
+      ).toBe("/workspace?view=tree&chapter=c1#current"),
+    );
+    expect(window.history.state).toEqual({ preserved: true });
+  });
+
+  test("updates the canonical URL as the user moves between hierarchy levels", async () => {
+    const pageOne: Page = {
+      ...createdPage,
+      id: "p1",
+      title: "Primeira página",
+      position: 0,
+    };
+    const pageTwo: Page = {
+      ...createdPage,
+      id: "p2",
+      title: "Segunda página",
+      position: 1,
+    };
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [
+      pageOne,
+      pageTwo,
+    ];
+
+    render(
+      <WorkspaceShell
+        tree={tree}
+        initialState={{
+          grimoireId: "g1",
+          notebookId: "n1",
+          chapterId: "c1",
+          pageId: "p1",
+        }}
+        onCreateGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
+        onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({ movedPage: pageTwo, swappedPage: pageOne }),
+        )}
+        onDeletePage={vi.fn(() => Promise.resolve())}
+        onSavePage={vi.fn(() => Promise.resolve(pageTwo))}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&page=p1"),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Segunda página" }));
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&page=p2"),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Capítulo" }));
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&chapter=c1"),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Caderno" }));
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&notebook=n1"),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Grimório" }));
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&grimoire=g1"),
+    );
+    expect(window.location.hash).toBe("#current");
+  });
+
+  test("updates the URL when a newly created page becomes selected and after it is deleted", async () => {
+    const onDeletePage = vi.fn(() => Promise.resolve());
+
+    render(
+      <WorkspaceShell
+        tree={createTree()}
+        initialState={{
+          grimoireId: "g1",
+          notebookId: "n1",
+          chapterId: "c1",
+          pageId: null,
+        }}
+        onCreateGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameGrimoire={vi.fn(() => Promise.resolve(createdGrimoire))}
+        onRenameNotebook={vi.fn(() => Promise.resolve(renamedNotebook))}
+        onRenameChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreateNotebook={vi.fn(() => Promise.resolve(createdNotebook))}
+        onCreateChapter={vi.fn(() => Promise.resolve(createdChapter))}
+        onCreatePage={vi.fn(() => Promise.resolve(createdPage))}
+        onMovePage={vi.fn(() =>
+          Promise.resolve({ movedPage: createdPage, swappedPage: null }),
+        )}
+        onDeletePage={onDeletePage}
+        onSavePage={vi.fn(() => Promise.resolve(createdPage))}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Nova página"), {
+      target: { value: "Nova página" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar página" }));
+
+    expect(await screen.findByDisplayValue("Nova página")).toBeTruthy();
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&page=p1"),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Excluir página" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar exclusão" }));
+
+    await waitFor(() => expect(onDeletePage).toHaveBeenCalledWith("p1"));
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&chapter=c1"),
+    );
+  });
+
 });
