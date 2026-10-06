@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { WorkspaceState } from "@/domains/learning";
 import {
+  getWorkspaceCanonicalHref,
   openChapter,
   openGrimoire,
   openNotebook,
@@ -133,6 +134,104 @@ describe("workspace deep-link resolution", () => {
       chapterId: "c2",
       pageId: null,
     });
+  });
+});
+
+describe("workspace canonical URL", () => {
+  it.each([
+    [
+      {
+        grimoireId: "g1",
+        notebookId: null,
+        chapterId: null,
+        pageId: null,
+      },
+      "/workspace?view=tree&grimoire=g1#current",
+    ],
+    [
+      {
+        grimoireId: "g1",
+        notebookId: "n1",
+        chapterId: null,
+        pageId: null,
+      },
+      "/workspace?view=tree&notebook=n1#current",
+    ],
+    [
+      {
+        grimoireId: "g1",
+        notebookId: "n1",
+        chapterId: "c1",
+        pageId: null,
+      },
+      "/workspace?view=tree&chapter=c1#current",
+    ],
+    [
+      {
+        grimoireId: "g1",
+        notebookId: "n1",
+        chapterId: "c1",
+        pageId: "p1",
+      },
+      "/workspace?view=tree&page=p1#current",
+    ],
+  ] as Array<[WorkspaceState, string]>)(
+    "serializes only the most-specific selection",
+    (state, href) => {
+      expect(getWorkspaceCanonicalHref(state)).toBe(href);
+    },
+  );
+
+  it("keeps the Workspace view and current anchor with no selection", () => {
+    expect(
+      getWorkspaceCanonicalHref({
+        grimoireId: null,
+        notebookId: null,
+        chapterId: null,
+        pageId: null,
+      }),
+    ).toBe("/workspace?view=tree#current");
+  });
+
+  it("encodes a selected identifier before placing it in the URL", () => {
+    expect(
+      getWorkspaceCanonicalHref({
+        grimoireId: "g1",
+        notebookId: "n1",
+        chapterId: "c1",
+        pageId: "page/with space",
+      }),
+    ).toBe("/workspace?view=tree&page=page%2Fwith%20space#current");
+  });
+
+  it("round-trips a canonical page URL through the authorized hierarchy resolver", () => {
+    const state: WorkspaceState = {
+      grimoireId: "g1",
+      notebookId: "n1",
+      chapterId: "c1",
+      pageId: "p1",
+    };
+    const url = new URL(getWorkspaceCanonicalHref(state), "https://example.test");
+
+    expect(
+      resolveWorkspaceState(hierarchy, {
+        grimoireId: url.searchParams.get("grimoire"),
+        notebookId: url.searchParams.get("notebook"),
+        chapterId: url.searchParams.get("chapter"),
+        pageId: url.searchParams.get("page"),
+      }),
+    ).toEqual(state);
+  });
+
+  it("drops stale descendant parameters when a parent becomes the current selection", () => {
+    expect(
+      getWorkspaceCanonicalHref({
+        grimoireId: "g1",
+        notebookId: "n1",
+        chapterId: "c1",
+        pageId: null,
+      }),
+    ).toBe("/workspace?view=tree&chapter=c1#current");
   });
 });
 

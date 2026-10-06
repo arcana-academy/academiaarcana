@@ -13,6 +13,38 @@ async function expectWorkspaceContext(page: import("@playwright/test").Page) {
   if (url.searchParams.has("page")) {
     await expect(page.locator('[aria-current="page"]')).toBeVisible();
     await expect(page.locator('[data-active-path="true"]')).toHaveCount(4);
+
+    const activeChapter = page.locator(
+      '.workspace-tree-item--chapter[data-active-path="true"]',
+    );
+    await expect(activeChapter).toBeVisible();
+    await activeChapter.click();
+
+    await expect
+      .poll(() => {
+        const selectedUrl = new URL(page.url());
+        return {
+          view: selectedUrl.searchParams.get("view"),
+          chapter: selectedUrl.searchParams.get("chapter"),
+          page: selectedUrl.searchParams.get("page"),
+          hash: selectedUrl.hash,
+        };
+      })
+      .toEqual({
+        view: "tree",
+        chapter: expect.any(String),
+        page: null,
+        hash: "#current",
+      });
+
+    const chapterUrl = page.url();
+    await page.reload();
+
+    await expect(page).toHaveURL(chapterUrl);
+    await expect(
+      page.locator('.workspace-tree-item--chapter[aria-current="true"]'),
+    ).toBeVisible();
+    await expect(page.locator('[data-active-path="true"]')).toHaveCount(3);
   }
 }
 
