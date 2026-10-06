@@ -108,7 +108,7 @@ describe("getSanctuary", () => {
 
     expect(result.primaryAction).toEqual(
       expect.objectContaining({
-        label: "Explorar este estudo",
+        label: "Explorar conteúdo",
         priority: "primary",
         href: expect.any(String),
       }),
