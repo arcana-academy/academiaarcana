@@ -15,7 +15,7 @@ const viewModel: SanctuaryViewModel = {
     },
     primaryAction: {
         id: "continue-learning",
-        label: "Explorar este estudo",
+        label: "Explorar conteúdo",
         href: "/workspace?view=tree#current",
         priority: "primary",
     },
@@ -71,7 +71,7 @@ describe("Sanctuary", () => {
 
         expect(
             screen.getByRole("link", {
-                name: "Explorar este estudo",
+                name: "Explorar conteúdo",
             }),
         ).toBeTruthy();
     });
