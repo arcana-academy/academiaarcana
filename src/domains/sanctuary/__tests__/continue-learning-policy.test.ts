@@ -16,6 +16,7 @@ describe("resolveContinueLearning Policy", () => {
     }];
 
     const result = resolveContinueLearning(mock);
+    expect(result?.intent).toBe("explore");
     expect(result?.grimoireId).toBe("g-1");
     expect(result?.notebookId).toBeUndefined();
     expect(result).not.toHaveProperty("href");
