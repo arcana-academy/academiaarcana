@@ -11,7 +11,9 @@ export function createContentSecurityPolicy(
     "frame-ancestors 'none'",
     "form-action 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDevelopment ? " 'unsafe-eval'" : ""}`,
-    `style-src 'self' 'nonce-${nonce}' https://use.typekit.net`,
+    isDevelopment
+      ? "style-src 'self' 'unsafe-inline' https://use.typekit.net"
+      : `style-src 'self' 'nonce-${nonce}' https://use.typekit.net`,
     "script-src-attr 'none'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https://use.typekit.net",
