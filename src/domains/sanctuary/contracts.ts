@@ -101,6 +101,7 @@ export type SanctuaryUser = {
 };
 
 export type ContinueLearning = {
+  intent: "explore" | "resume";
   grimoireId: string;
   grimoireTitle: string;
   notebookId?: string;
