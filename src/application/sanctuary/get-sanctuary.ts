@@ -1,4 +1,5 @@
 import { getAdaptiveRecommendation } from "@/domains/adaptive";
+import type { AdaptiveSignal } from "@/domains/adaptive";
 
 import {
   decideSanctuaryPriority,
@@ -84,6 +85,33 @@ function mapMissions(missions: SanctuaryMissionProjection[]): SanctuaryViewModel
   };
 }
 
+/**
+ * Map Sanctuary section states into evidence-safe adaptive signals.
+ * Zero is emitted only when a source was observed and yielded zero items;
+ * null means that the evidence is unavailable or unknown.
+ */
+export function buildAdaptiveSignal(
+  progress: SanctuaryViewModel["progress"],
+  missions: SanctuaryViewModel["missions"],
+  schedule: SanctuaryViewModel["schedule"],
+): AdaptiveSignal {
+  return {
+    progressPercentage: progress.status === "ready" ? progress.data.percentage : null,
+    openMissionCount:
+      missions.status === "ready"
+        ? missions.data.filter((mission) => !mission.isCompleted).length
+        : missions.status === "empty"
+          ? 0
+          : null,
+    scheduledTaskCount:
+      schedule.status === "ready"
+        ? schedule.data.length
+        : schedule.status === "empty"
+          ? 0
+          : null,
+  };
+}
+
 export async function getSanctuary(repository: SanctuaryProjectionPort, sessionContext: SanctuarySessionContext): Promise<SanctuaryViewModel> {
   let grimoires: SanctuaryGrimoire[] = [];
   let learningHierarchyFailed = false;
@@ -160,25 +188,9 @@ export async function getSanctuary(repository: SanctuaryProjectionPort, sessionC
     }
   }
 
-  const openMissionCount =
-    missions.status === "ready"
-      ? missions.data.filter((mission) => !mission.isCompleted).length
-      : missions.status === "empty"
-        ? 0
-        : null;
-
-  const scheduledTaskCount =
-    schedule.status === "ready"
-      ? schedule.data.length
-      : schedule.status === "empty"
-        ? 0
-        : null;
-
-  const adaptiveRecommendation = getAdaptiveRecommendation({
-    progressPercentage: progress.status === "ready" ? progress.data.percentage : null,
-    openMissionCount,
-    scheduledTaskCount,
-  });
+  const adaptiveRecommendation = getAdaptiveRecommendation(
+    buildAdaptiveSignal(progress, missions, schedule),
+  );
 
   return {
     header: { greeting: "Seu Santuário de aprendizagem", user: sessionContext.user },
