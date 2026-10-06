@@ -141,6 +141,9 @@ describe("WorkspaceShell", () => {
     expect(
       screen.getByRole("button", { name: "Novo grimório" }),
     ).toHaveAttribute("aria-current", "true");
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&grimoire=g2"),
+    );
   });
 
   test("creates a notebook and selects it", async () => {
@@ -194,6 +197,9 @@ describe("WorkspaceShell", () => {
     expect(
       screen.getByRole("button", { name: "Novo caderno" }),
     ).toHaveAttribute("aria-current", "true");
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&notebook=n2"),
+    );
   });
 
   test("renames the selected notebook and updates its title", async () => {
@@ -292,6 +298,9 @@ describe("WorkspaceShell", () => {
     expect(screen.getByRole("button", { name: "Novo capítulo" })).toHaveAttribute(
       "aria-current",
       "true",
+    );
+    await waitFor(() =>
+      expect(window.location.search).toBe("?view=tree&chapter=c1"),
     );
   });
 
