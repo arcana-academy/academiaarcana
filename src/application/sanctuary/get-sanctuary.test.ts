@@ -73,6 +73,7 @@ describe("getSanctuary", () => {
     });
 
     expect(result.continueLearning).toEqual({
+      intent: "explore",
       grimoireId: "grimoire-1",
       grimoireTitle: "Anatomia",
       notebookId: "notebook-1",
@@ -107,6 +108,7 @@ describe("getSanctuary", () => {
 
     expect(result.primaryAction).toEqual(
       expect.objectContaining({
+        label: "Explorar este estudo",
         priority: "primary",
         href: expect.any(String),
       }),
