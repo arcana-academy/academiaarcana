@@ -42,6 +42,8 @@ describe("adaptive P1 signals", () => {
       new Date("2026-09-28T00:00:00.000Z"),
     );
     expect(review).toMatchObject({
+      practiceItemId: item.id,
+      pageId: item.pageId,
       due: true,
       nextReviewAt: "2026-09-28T00:00:00.000Z",
     });
