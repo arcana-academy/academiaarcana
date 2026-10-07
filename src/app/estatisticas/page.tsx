@@ -19,10 +19,11 @@ export default async function EstatisticasPage() {
   const repository = new SupabaseGamificationRepository(supabase);
   const educationalRepository = new SupabaseEducationalPracticeRepository(supabase);
 
-  const [profile, missions, educational] = await Promise.all([
+  const [profile, missions, educational, archivedLearningHistory] = await Promise.all([
     repository.getProfile(claims.sub),
     repository.listDailyMissions(claims.sub, todayUtc()),
     getEducationalOverview(educationalRepository, claims.sub),
+    educationalRepository.listArchivedPageHistory(claims.sub),
   ]);
 
   const progression = getProgression(profile, missions);
@@ -48,6 +49,7 @@ export default async function EstatisticasPage() {
           progressPercent,
         }}
         educational={educational}
+        archivedLearningHistory={archivedLearningHistory}
       />
     </AuthenticatedShell>
   );
