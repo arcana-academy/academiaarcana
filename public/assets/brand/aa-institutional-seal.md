@@ -37,7 +37,7 @@ Do not recolor, distort, rotate, add unrelated symbols, or replace the current g
 
 ## Repository role
 
-This is an approved web deliverable. Editable source artwork remains outside `public/assets/` according to the repository's visual asset policy.
+This is a current web deliverable. Editable source artwork remains outside `public/assets/` according to the repository's visual asset policy.
 
 
 ## Phase 2 governance
