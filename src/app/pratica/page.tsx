@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { getWorkspaceCanonicalHref } from "@/application/learning/workspace/state";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
@@ -365,10 +366,14 @@ export default async function PraticaPage({
     repository.listPracticeItems(claims.sub),
     repository.listPracticeAttempts(claims.sub),
   ]);
-  const overview = buildEducationalOverview(pages, items, attempts);
+  const requestedPage = pages.find((page) => page.id === params.pagina) ?? null;
 
-  const selectedPage =
-    pages.find((page) => page.id === params.pagina) ?? pages[0] ?? null;
+  if (pages.length > 0 && !requestedPage) {
+    redirect(`/pratica?pagina=${encodeURIComponent(pages[0]!.id)}`);
+  }
+
+  const overview = buildEducationalOverview(pages, items, attempts);
+  const selectedPage = requestedPage;
   const pageItems = selectedPage
     ? practiceItemsForPage(items, selectedPage.id)
     : [];
