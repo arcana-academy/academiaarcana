@@ -31,10 +31,10 @@ export default async function FocoPage() {
           >
             <p className="aa-state-copy">Cada sessão iniciada e concluída é registrada com segurança para apoiar seu histórico de estudo.</p>
           </FeatureCard>
-          <FeatureCard title="Ritmo" description="Estruture blocos de trabalho e pausas de acordo com sua preferência." icon={<Clock3 size={22} />}>
+          <FeatureCard title="Ritmo" description="Estruture blocos de trabalho e pausas de acordo com sua preferência." icon={<Clock3 size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">Ver cronograma</Link>
           </FeatureCard>
-          <FeatureCard title="Conforto cognitivo" description="Preferências de acessibilidade devem acompanhar a experiência." icon={<Brain size={22} />}>
+          <FeatureCard title="Conforto cognitivo" description="Preferências de acessibilidade devem acompanhar a experiência." icon={<Brain size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar">Personalizar experiência</Link>
           </FeatureCard>
         </ArcanaFeatureGrid>
