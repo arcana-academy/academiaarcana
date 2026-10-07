@@ -16,7 +16,7 @@ test.describe("authenticated P1 practice surface", () => {
     "Configure E2E_EMAIL and E2E_PASSWORD for the authenticated educational flow.",
   );
 
-  test("keeps Practice page selection and URL semantically aligned", async ({
+  test("keeps Practice page and activity selection semantically aligned", async ({
     page,
   }) => {
     if (!e2eEmail || !e2ePassword) {
@@ -52,15 +52,64 @@ test.describe("authenticated P1 practice surface", () => {
       const selectedPageId = canonicalPracticeUrl.searchParams.get("pagina");
       expect(selectedPageId).toBeTruthy();
 
+      await expect(
+        page.locator("#practice-session-title, #objective-session-title"),
+      ).toHaveCount(0);
+
       await page.goto(
-        "/pratica?pagina=definitely-stale-page-id&item=stale-item&avaliacao=stale-assessment",
+        `/pratica?pagina=${encodeURIComponent(selectedPageId ?? "")}&item=stale-item&avaliacao=stale-assessment`,
       );
 
-      const normalizedUrl = new URL(page.url());
+      let normalizedUrl = new URL(page.url());
       expect(normalizedUrl.pathname).toBe("/pratica");
       expect(normalizedUrl.searchParams.get("pagina")).toBe(selectedPageId);
       expect(normalizedUrl.searchParams.has("item")).toBe(false);
       expect(normalizedUrl.searchParams.has("avaliacao")).toBe(false);
+      await expect(
+        page.locator("#practice-session-title, #objective-session-title"),
+      ).toHaveCount(0);
+
+      const activityList = page.getByRole("list", {
+        name: "Atividades deste conteúdo",
+      });
+      const firstActivity = activityList.getByRole("listitem").first();
+
+      if ((await firstActivity.count()) > 0) {
+        const activityHref = await firstActivity.getAttribute("href");
+        expect(activityHref).toBeTruthy();
+
+        await firstActivity.click();
+
+        const activityUrl = new URL(page.url());
+        const itemId = activityUrl.searchParams.get("item");
+        const assessmentId = activityUrl.searchParams.get("avaliacao");
+
+        expect(activityUrl.searchParams.get("pagina")).toBe(selectedPageId);
+        expect(Boolean(itemId) !== Boolean(assessmentId)).toBe(true);
+        await expect(
+          page.locator("#practice-session-title, #objective-session-title"),
+        ).toHaveCount(1);
+
+        if (itemId) {
+          await page.goto(
+            `/pratica?pagina=${encodeURIComponent(selectedPageId ?? "")}&item=${encodeURIComponent(itemId)}&avaliacao=stale-assessment`,
+          );
+          normalizedUrl = new URL(page.url());
+          expect(normalizedUrl.searchParams.get("item")).toBe(itemId);
+          expect(normalizedUrl.searchParams.has("avaliacao")).toBe(false);
+        } else if (assessmentId) {
+          await page.goto(
+            `/pratica?pagina=${encodeURIComponent(selectedPageId ?? "")}&item=stale-item&avaliacao=${encodeURIComponent(assessmentId)}`,
+          );
+          normalizedUrl = new URL(page.url());
+          expect(normalizedUrl.searchParams.get("avaliacao")).toBe(assessmentId);
+          expect(normalizedUrl.searchParams.has("item")).toBe(false);
+        }
+      }
+
+      await page.goto(
+        `/pratica?pagina=${encodeURIComponent(selectedPageId ?? "")}`,
+      );
 
       const href = await backToWorkspace.getAttribute("href");
       expect(href).toBe(
