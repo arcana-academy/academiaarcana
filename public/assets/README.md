@@ -1,6 +1,6 @@
 # Academia Arcana — Current Visual Assets
 
-This directory contains web-ready visual assets currently used by the Academia Arcana application.
+This directory contains web-ready visual assets present in the repository. Some are active application assets; others may be unused candidates pending Phase 2 validation.
 
 ## Governance status
 
@@ -26,7 +26,7 @@ Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is re
 - `intelligence/` — Mestre Arcano and intelligence-system symbols
 - `marketing/` — launch and communication assets
 
-## Registered current assets
+## Registered existing assets
 
 ### Institutional identity
 
@@ -37,9 +37,9 @@ Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is re
 
 - `AA-ASSET-002` — `sanctuary/aa-sanctuary-sigil.svg`
 - metadata: `sanctuary/aa-sanctuary-sigil.md`
-- `AA-ASSET-010` — `icons/aa-workspace.svg`
-- `AA-ASSET-011` — `icons/aa-cronograma.svg`
-- `AA-ASSET-012` — `icons/aa-sanctuary.svg`
+- `AA-ASSET-010` — `icons/aa-workspace.svg` — UNUSED CANDIDATE
+- `AA-ASSET-011` — `icons/aa-cronograma.svg` — ACTIVE
+- `AA-ASSET-012` — `icons/aa-sanctuary.svg` — UNUSED CANDIDATE
 - shared metadata: `icons/aa-academia-entry-icons.md`
 - `AA-ASSET-009` — `icons/aa-library-mark.svg`
 - metadata: `icons/aa-library-mark.md`
@@ -70,7 +70,7 @@ Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is re
 Every registered asset record must document:
 
 - stable `AA-ASSET-XXX` identifier;
-- CURRENT / TARGET / validation status;
+- repository/consumer status (ACTIVE, UNUSED CANDIDATE, CURRENT legacy implementation, or later validated state);
 - category and role;
 - purpose and semantic meaning;
 - allowed and forbidden uses;
