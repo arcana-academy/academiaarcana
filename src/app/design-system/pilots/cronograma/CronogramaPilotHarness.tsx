@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { StudyTaskBoard } from "@/components/planning/StudyTaskBoard";
 import { useTheme } from "@/design-system/themes";
@@ -36,21 +36,12 @@ function isThemeId(value: string | null): value is ThemeId {
   return Boolean(value && THEME_IDS.includes(value as ThemeId));
 }
 
-function isScenario(value: string | null): value is Scenario {
-  return value === "default" || value === "empty" || value === "error" || value === "connected";
-}
-
-export function CronogramaPilotHarness() {
+export function CronogramaPilotHarness({ scenario }: { scenario: Scenario }) {
   const { theme, setTheme } = useTheme();
-  const [scenario, setScenario] = useState<Scenario>("default");
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const requestedTheme = params.get("theme");
-    const requestedScenario = params.get("scenario");
-
+    const requestedTheme = new URLSearchParams(window.location.search).get("theme");
     if (isThemeId(requestedTheme)) setTheme(requestedTheme);
-    if (isScenario(requestedScenario)) setScenario(requestedScenario);
   }, [setTheme]);
 
   const initialTasks = useMemo(() => (scenario === "empty" ? [] : [task]), [scenario]);
