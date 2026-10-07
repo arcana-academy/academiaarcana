@@ -1,10 +1,10 @@
-# Academia Arcana — Current Visual Assets
+# Academia Arcana — Visual Asset Registry
 
 This directory contains web-ready visual assets present in the repository. Some are active application assets; others may be unused candidates pending Phase 2 validation.
 
 ## Governance status
 
-The files in this directory are **CURRENT implementation assets**. They are not automatically final visual canon.
+The files in this directory are **existing repository assets**. Active consumers, unused candidates and legacy implementations are distinguished explicitly. Repository presence does not make an asset current product usage or final visual canon.
 
 Phase 2 — Linguagem do Mundo governs their validation. An asset becomes final visual canon only after its role, semantics, accessibility, originality, theming behavior, responsive use, performance and system coherence are validated.
 
@@ -67,20 +67,30 @@ Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is re
 
 ## Metadata contract
 
-Every Markdown file below `public/assets/`, except this `README.md`, is an asset metadata record and must satisfy this contract.
+Every Markdown file below `public/assets/`, except this `README.md`, is an asset metadata record.
 
-Every registered asset record must document:
+### Cycle 1 minimum — enforced now
 
-- stable `AA-ASSET-XXX` identifier;
+Every metadata record must include:
+
+- at least one stable `AA-ASSET-XXX` declaration;
 - repository/consumer status (ACTIVE, UNUSED CANDIDATE, CURRENT legacy implementation, or later validated state);
-- category and role;
+- one defined primary graphic role;
+- theme behavior or an explicit pending state;
+- originality/source status or an explicit unverified state.
+
+### Final-canon gate — required before promotion
+
+Before any asset is promoted to final visual canon, its metadata must additionally establish:
+
 - purpose and semantic meaning;
 - allowed and forbidden uses;
 - accessibility treatment;
-- theming behavior when applicable;
-- implementation path;
-- originality/source status;
-- Phase 2 validation result before final-canon promotion.
+- implementation/consumer path;
+- responsive/scalability behavior where relevant;
+- performance/export requirements where relevant;
+- originality and source review;
+- Phase 2 validation result.
 
 Functional icons should continue to use Lucide React when semantically adequate. A custom vector does not become an Arcana symbol merely because it is decorative or bespoke.
 
