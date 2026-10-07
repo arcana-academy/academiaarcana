@@ -26,3 +26,12 @@ Do not treat this fallback cover as a user-specific identity. Do not overwrite a
 ## Phase 2 governance
 
 This file documents a CURRENT asset already present in the product. Its existing geometry may continue to be used operationally, but it is not final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
+
+
+## Phase 2 metadata
+
+- **Graphic role:** world object / illustration
+- **Consumer status:** ACTIVE
+- **Active consumers:** `src/app/grimorios/page.tsx`
+- **Theme behavior:** PENDING — the current standalone SVG has not yet passed Phase 2 cross-theme validation.
+- **Originality/source status:** repository-tracked source exists; external/source provenance and originality have not been independently verified in this cycle. Final-canon promotion remains blocked until that review is complete.
