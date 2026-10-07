@@ -8,11 +8,11 @@ File: `public/assets/grimoires/aa-grimoire-cover-base.svg`
 
 ## Purpose
 
-Fallback cover for Grimórios that do not have an approved specific cover asset.
+Fallback cover for Grimórios that do not have a validated specific cover asset.
 
 ## Usage rule
 
-Use the base cover only when a specific approved cover is not available. A persisted user cover may be used when its URL/source is valid and authorized by the application.
+Use the base cover only when a specific validated cover is not available. A persisted user cover may be used when its URL/source is valid and authorized by the application.
 
 ## Accessibility
 
@@ -20,7 +20,7 @@ The asset carries an internal title and description for direct document use. In 
 
 ## Restrictions
 
-Do not treat this fallback cover as a user-specific identity. Do not overwrite a valid approved custom cover with this asset.
+Do not treat this fallback cover as a user-specific identity. Do not overwrite a valid, validated custom cover with this asset.
 
 
 ## Phase 2 governance
