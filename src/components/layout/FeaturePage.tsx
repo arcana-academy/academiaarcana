@@ -51,7 +51,7 @@ export function FeaturePage({ eyebrow, title, description, items }: FeaturePageP
         </div>
         <Link className="aa-button aa-button-secondary" href="/santuario">
           Voltar ao Santuário
-          <ArrowRight size={18} aria-hidden="true" />
+          <ArrowRight size={20} aria-hidden="true" />
         </Link>
       </section>
     </div>
