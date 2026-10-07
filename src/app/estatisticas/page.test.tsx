@@ -6,6 +6,7 @@ const repositoryMocks = vi.hoisted(() => ({
   listPages: vi.fn(),
   listPracticeItems: vi.fn(),
   listPracticeAttempts: vi.fn(),
+  listArchivedPageHistory: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
@@ -28,6 +29,10 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
 
     listPracticeAttempts() {
       return repositoryMocks.listPracticeAttempts();
+    }
+
+    listArchivedPageHistory() {
+      return repositoryMocks.listArchivedPageHistory();
     }
   }
 
@@ -150,6 +155,7 @@ describe("EstatisticasPage", () => {
     repositoryMocks.listPages.mockResolvedValue([]);
     repositoryMocks.listPracticeItems.mockResolvedValue([]);
     repositoryMocks.listPracticeAttempts.mockResolvedValue([]);
+    repositoryMocks.listArchivedPageHistory.mockResolvedValue([]);
   });
 
   it("renders metrics derived from persisted gamification state", async () => {
@@ -183,6 +189,7 @@ describe("EstatisticasPage", () => {
             progressPercent: 0,
           }}
           educational={educational}
+          archivedLearningHistory={[]}
         />
       </div>,
     );
@@ -235,6 +242,59 @@ describe("EstatisticasPage", () => {
     expect(html).not.toContain(
       'href="/pratica?pagina=page-2&amp;item=objective-item"',
     );
+  });
+
+  it("renders preserved learning evidence from a deleted page", async () => {
+    repositoryMocks.listArchivedPageHistory.mockResolvedValue([
+      {
+        id: "history-1",
+        sourcePageId: "deleted-page-1",
+        archivedAt: "2026-10-07T12:00:00.000Z",
+        snapshot: {
+          page: {
+            id: "deleted-page-1",
+            title: "Anotações antigas",
+            content: {
+              type: "document",
+              blocks: [{ type: "paragraph", content: "Conteúdo preservado." }],
+            },
+          },
+          practiceItems: [
+            {
+              id: "item-1",
+              prompt: "Qual era a ideia principal?",
+              reference_answer: "Referência preservada.",
+              explanation: null,
+              attempts: [
+                {
+                  id: "attempt-1",
+                  answer: "Resposta preservada.",
+                  outcome: "partial",
+                  evidence_score: 0.6,
+                  feedback: "Feedback preservado.",
+                  created_at: "2026-10-06T12:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          pageProgress: [
+            {
+              status: "completed",
+              completed_at: "2026-10-05T12:00:00.000Z",
+              updated_at: "2026-10-05T12:00:00.000Z",
+            },
+          ],
+        },
+      },
+    ]);
+
+    const html = renderToStaticMarkup(await EstatisticasPage());
+
+    expect(html).toContain("Histórico de conteúdos removidos");
+    expect(html).toContain("Anotações antigas");
+    expect(html).toContain("Conteúdo preservado.");
+    expect(html).toContain("Resposta preservada.");
+    expect(html).toContain("Feedback preservado.");
   });
 
   it("keeps an honest empty review state when no review is due", async () => {
