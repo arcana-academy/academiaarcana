@@ -28,7 +28,7 @@ export function getReviewPracticeHref(
     (entry) => entry.practiceItemId === review.practiceItemId,
   );
 
-  if (Boolean(selfAssessment) === Boolean(objective)) {
+  if (selfAssessment && objective) {
     return null;
   }
 
@@ -41,9 +41,13 @@ export function getReviewPracticeHref(
     );
   }
 
+  if (!objective) {
+    return null;
+  }
+
   return (
     "/pratica?pagina=" +
-    encodeURIComponent(objective!.pageId) +
+    encodeURIComponent(objective.pageId) +
     "&avaliacao=" +
     encodeURIComponent(review.practiceItemId)
   );
