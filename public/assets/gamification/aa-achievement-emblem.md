@@ -1,7 +1,8 @@
-# AA-VIS-005 — Emblema Base de Conquista
+# AA-ASSET-005 — Emblema Base de Conquista
 
-Status: CANONICAL
+Status: CURRENT / LEGACY IMPLEMENTATION  
 Version: 1.0
+Validation: PENDING — Fase 2 / Linguagem do Mundo
 Category: gamification / achievement
 File: `public/assets/gamification/aa-achievement-emblem.svg`
 
@@ -28,3 +29,8 @@ In application UI the image is decorative and uses an empty `alt`; the surroundi
 ## Restrictions
 
 Do not use the emblem alone to communicate category, completion, rarity, score or ownership. Those semantics require explicit adjacent content.
+
+
+## Phase 2 governance
+
+This file documents a CURRENT asset already present in the product. Its existing geometry may continue to be used operationally, but it is not final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
