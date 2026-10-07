@@ -368,6 +368,15 @@ export default async function PraticaPage({
   ]);
   const requestedPage = pages.find((page) => page.id === params.pagina) ?? null;
 
+  if (
+    pages.length === 0 &&
+    (params.pagina !== undefined ||
+      params.item !== undefined ||
+      params.avaliacao !== undefined)
+  ) {
+    redirect("/pratica");
+  }
+
   if (pages.length > 0 && !requestedPage) {
     redirect(`/pratica?pagina=${encodeURIComponent(pages[0]!.id)}`);
   }
