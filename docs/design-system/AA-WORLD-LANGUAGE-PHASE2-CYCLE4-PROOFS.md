@@ -106,9 +106,19 @@ The lab freezes 36 deterministic hashes:
 
 `4 proofs × 3 variants × 3 viewports = 36`.
 
-Before acceptance, the complete hash set reproduced identically across all three Playwright retries after the visual iteration.
+### Hosted-CI baseline reconciliation
 
-The baseline manifest therefore records the iterated composition, not the initially rejected layout.
+After rebasing the proof branch onto `main@55d723c4b19b0eb62c3438ae39afe7d8711f3b82`, the previously versioned baseline did not match hosted Playwright output on mobile and desktop. The intervening `main` delta contained no proof, global visual-token, theme, asset, or proof-style changes.
+
+The hosted output was then reproduced identically:
+- across all three retries of Quality Gate attempt 1;
+- across all three retries of an independent Quality Gate attempt 2;
+- with tablet hashes remaining identical to the prior manifest;
+- while structure/reflow, composed contrast, reduced motion, asset-failure resilience, performance evidence, unit tests, accessibility tests and production build all remained green.
+
+The prior baseline had been added in the final documentation commit but never completed a hosted Quality Gate before the branch was superseded. The manifest is therefore reconciled to the independently reproducible hosted-CI pixel output without changing proof composition, CSS, JSX, assets, tokens, or product consumers.
+
+This remains a regression mechanism, not a new aesthetic approval.
 
 ## 9. Proof verdict constraints
 
