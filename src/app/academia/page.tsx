@@ -1,12 +1,77 @@
-import Image from "next/image";
 import Link from "next/link";
+
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
-const learningAreas = [
-  { href: "/workspace", title: "Workspace", description: "Organize grimórios, cadernos, capítulos e páginas.", icon: "/assets/icons/aa-workspace.svg" },
-  { href: "/cronograma", title: "Cronograma", description: "Planeje e acompanhe suas próximas tarefas de estudo.", icon: "/assets/icons/aa-cronograma.svg" },
-  { href: "/santuario", title: "Santuário", description: "Retome o contexto atual da sua jornada de aprendizagem.", icon: "/assets/icons/aa-sanctuary.svg" },
+const learningPaths = [
+  {
+    eyebrow: "Organização",
+    title: "Organize o conhecimento",
+    description: "Reúna seus estudos e estruture o que deseja aprender.",
+    links: [
+      {
+        href: "/grimorios",
+        title: "Grimórios",
+        description: "Explore sua biblioteca de estudos.",
+      },
+      {
+        href: "/workspace",
+        title: "Workspace",
+        description: "Estruture capítulos e páginas.",
+      },
+    ],
+  },
+  {
+    eyebrow: "Planejamento",
+    title: "Planeje e avance",
+    description: "Transforme objetivos em próximos passos e organize seu tempo.",
+    links: [
+      {
+        href: "/cronograma",
+        title: "Cronograma",
+        description: "Organize tarefas de estudo no tempo.",
+      },
+      {
+        href: "/missoes",
+        title: "Missões",
+        description: "Converta objetivos em ações executáveis.",
+      },
+    ],
+  },
+  {
+    eyebrow: "Estudo",
+    title: "Estude e pratique",
+    description: "Reserve um momento para focar e trabalhar com seus materiais.",
+    links: [
+      {
+        href: "/foco",
+        title: "Foco",
+        description: "Prepare uma sessão de estudo no seu ritmo.",
+      },
+      {
+        href: "/pratica",
+        title: "Prática",
+        description: "Acesse suas atividades de prática.",
+      },
+    ],
+  },
+  {
+    eyebrow: "Continuidade",
+    title: "Revise e retome",
+    description: "Recupere o contexto e consulte os registros disponíveis.",
+    links: [
+      {
+        href: "/santuario",
+        title: "Santuário",
+        description: "Veja o que importa agora na sua jornada.",
+      },
+      {
+        href: "/estatisticas",
+        title: "Estatísticas",
+        description: "Acompanhe os registros de aprendizagem.",
+      },
+    ],
+  },
 ] as const;
 
 export default async function AcademiaPage() {
@@ -14,36 +79,46 @@ export default async function AcademiaPage() {
 
   return (
     <AuthenticatedShell currentPath="/academia">
-      <main className="aa-page aa-page-narrow" aria-labelledby="academia-title">
+      <main className="aa-page aa-page-narrow academy-page" aria-labelledby="academia-title">
         <header className="aa-page-header">
           <div className="aa-page-header-copy">
             <p className="aa-eyebrow">Academia · aprendizagem</p>
             <h1 id="academia-title">Sua jornada de aprendizagem</h1>
-            <p>Um ponto de entrada para os espaços que sustentam seu estudo dentro da Academia Arcana.</p>
+            <p>
+              Organize seus estudos, escolha um próximo passo e retome quando precisar.
+            </p>
           </div>
         </header>
 
-        <section className="aa-stat-grid" aria-label="Visão da Academia">
-          <div className="aa-stat"><span className="aa-stat-label">Ambiente</span><div className="aa-stat-value">Arcana</div><div className="aa-stat-meta">Seu espaço de estudo</div></div>
-          <div className="aa-stat"><span className="aa-stat-label">Estrutura</span><div className="aa-stat-value">Modular</div><div className="aa-stat-meta">Ferramentas conectadas</div></div>
-          <div className="aa-stat"><span className="aa-stat-label">Foco</span><div className="aa-stat-value">Seu ritmo</div><div className="aa-stat-meta">Sem excesso de ruído</div></div>
-        </section>
+        <section className="academy-paths" aria-labelledby="academia-paths-title">
+          <header className="academy-paths-header">
+            <p className="aa-eyebrow">Caminhos de aprendizagem</p>
+            <h2 id="academia-paths-title">Por onde você quer começar?</h2>
+          </header>
 
-        <section className="aa-surface aa-sanctuary-section" aria-labelledby="academia-areas-title">
-          <div className="aa-surface-header">
-            <div>
-              <p className="aa-eyebrow">Portas de entrada</p>
-              <h2 id="academia-areas-title">Áreas de estudo</h2>
-            </div>
-          </div>
-          <div className="aa-stat-grid">
-            {learningAreas.map((area) => (
-              <article className="aa-surface aa-sanctuary-section" key={area.href}>
-                <Image className="aa-learning-area-icon" src={area.icon} alt="" width={64} height={64} />
-                <h3>{area.title}</h3>
-                <p>{area.description}</p>
-                <Link className="aa-button aa-button-secondary" href={area.href}>Abrir</Link>
-              </article>
+          <div className="academy-path-groups">
+            {learningPaths.map((path) => (
+              <section className="aa-surface academy-path-group" key={path.title}>
+                <header className="academy-path-group-header">
+                  <p className="aa-eyebrow">{path.eyebrow}</p>
+                  <h3>{path.title}</h3>
+                  <p>{path.description}</p>
+                </header>
+
+                <ul className="academy-path-list">
+                  {path.links.map((link) => (
+                    <li key={link.href}>
+                      <Link className="aa-button aa-button-ghost academy-path-link" href={link.href}>
+                        <span className="academy-path-link-copy">
+                          <strong>{link.title}</strong>
+                          <small>{link.description}</small>
+                        </span>
+                        <span className="academy-path-link-arrow" aria-hidden="true">→</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
           </div>
         </section>
