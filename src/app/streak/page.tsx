@@ -28,10 +28,10 @@ export default async function StreakPage() {
               {profile ? `${profile.streakDays} ${profile.streakDays === 1 ? "dia" : "dias"}` : "Nenhuma atividade registrada ainda."}
             </p>
           </FeatureCard>
-          <FeatureCard title="Última atividade" description="A data usada como referência pela continuidade persistida." icon={<History size={22} />}>
+          <FeatureCard title="Última atividade" description="A data usada como referência pela continuidade persistida." icon={<History size={20} />}>
             <p className="aa-state-copy">{profile?.lastActiveOn ?? "Nenhuma atividade registrada ainda."}</p>
           </FeatureCard>
-          <FeatureCard title="Sem punição" description="Uma pausa não deve transformar a experiência em fracasso." icon={<ShieldCheck size={22} />}>
+          <FeatureCard title="Sem punição" description="Uma pausa não deve transformar a experiência em fracasso." icon={<ShieldCheck size={20} />}>
             <p className="aa-state-copy">Sua sequência é apenas um indicador de continuidade. Ela não reduz seu progresso quando você precisa pausar.</p>
           </FeatureCard>
         </ArcanaFeatureGrid>

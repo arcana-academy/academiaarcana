@@ -56,7 +56,7 @@ export default async function MissoesPage() {
             <FeatureCard
               title="Objetivos"
               description="Metas de estudo que nasceram de eventos persistidos."
-              icon={<Target size={22} />}
+              icon={<Target size={20} />}
             >
               <ul className="aa-list" aria-label="Missões de hoje">
                 {missions.map((mission) => (
@@ -74,7 +74,7 @@ export default async function MissoesPage() {
             <FeatureCard
               title="Progresso significativo"
               description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial."
-              icon={<Sparkles size={22} />}
+              icon={<Sparkles size={20} />}
             >
               <p className="aa-state-copy">
                 As recompensas são calculadas pela operação atômica de conclusão de tarefa.

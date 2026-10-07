@@ -344,7 +344,7 @@ export function TrelloConnectionPanel() {
       ) : (
         <>
           <p className="aa-state-copy">
-            <CheckCircle2 size={18} aria-hidden="true" /> Conectado
+            <CheckCircle2 size={20} aria-hidden="true" /> Conectado
             {status.user?.fullName ? ` · ${status.user.fullName}` : ""}
             {status.user?.username ? ` · @${status.user.username}` : ""}
           </p>
@@ -468,7 +468,7 @@ export function TrelloConnectionPanel() {
                               style={{
                                 display: "flex",
                                 flexWrap: "wrap",
-                                gap: "0.5rem",
+                                gap: "var(--aa-spacing-sm)",
                               }}
                             >
                               <button

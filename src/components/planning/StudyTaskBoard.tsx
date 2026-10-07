@@ -302,7 +302,7 @@ export function StudyTaskBoard({
             {items.map((task) => (
               <li className="aa-list-item" key={task.id}>
                 <div><strong>{task.title}</strong><small>{formatDueAt(task.dueAt)}</small></div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)" }}>
                   <button
                     className="aa-button aa-button-secondary aa-button-sm"
                     type="button"

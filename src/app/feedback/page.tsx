@@ -108,7 +108,7 @@ export default function FeedbackPage() {
                 {status ? <p className="aa-feedback-status-success">{status}</p> : null}
               </div>
               <Button type="submit" size="lg" loading={loading} disabled={loading}>
-                <MessageSquareText aria-hidden="true" size={18} />
+                <MessageSquareText aria-hidden="true" size={20} />
                 Enviar feedback
               </Button>
             </div>

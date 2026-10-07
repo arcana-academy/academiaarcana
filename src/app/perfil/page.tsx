@@ -25,13 +25,13 @@ export default async function PerfilPage() {
         actions={[{ href: "/configuracoes", label: "Configurações", variant: "secondary" }]}
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Identidade" description="Informações básicas devem vir da sessão e dos dados de perfil autorizados." icon={<UserRound size={22} />}>
+          <FeatureCard title="Identidade" description="Informações básicas devem vir da sessão e dos dados de perfil autorizados." icon={<UserRound size={20} />}>
             <p className="aa-state-copy">Conta: {email}</p>{createdAt ? <p className="aa-state-copy">Conta criada em {createdAt}.</p> : null}
           </FeatureCard>
-          <FeatureCard title="Jornada" description="A aprendizagem continua pertencendo ao domínio Learning." icon={<BookOpen size={22} />}>
+          <FeatureCard title="Jornada" description="A aprendizagem continua pertencendo ao domínio Learning." icon={<BookOpen size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/grimorios">Abrir grimórios</Link>
           </FeatureCard>
-          <FeatureCard title="Privacidade" description="Preferências, consentimentos e permissões não são a mesma coisa." icon={<Shield size={22} />}>
+          <FeatureCard title="Privacidade" description="Preferências, consentimentos e permissões não são a mesma coisa." icon={<Shield size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/configuracoes">Gerenciar configurações</Link>
           </FeatureCard>
         </ArcanaFeatureGrid>

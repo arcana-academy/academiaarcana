@@ -87,7 +87,7 @@ export default async function ConquistasPage() {
               ))}
             </ul>
           </FeatureCard>
-          <FeatureCard title="Seu estado" description="O catálogo é uma projeção do estado de gamificação, não uma fonte paralela." icon={<Gem size={22} />}>
+          <FeatureCard title="Seu estado" description="O catálogo é uma projeção do estado de gamificação, não uma fonte paralela." icon={<Gem size={20} />}>
             <p className="aa-state-copy">Nível {progression.level} · {progression.totalXp} XP · {progression.streakDays} dias de sequência.</p>
           </FeatureCard>
         </ArcanaFeatureGrid>

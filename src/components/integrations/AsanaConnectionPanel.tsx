@@ -165,8 +165,8 @@ export function AsanaConnectionPanel() {
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
-            <CheckCircle2 size={18} aria-hidden="true" /><strong>Conectado</strong>
+          <div style={{ display: "flex", gap: "var(--aa-spacing-sm)", alignItems: "center", flexWrap: "wrap" }}>
+            <CheckCircle2 size={20} aria-hidden="true" /><strong>Conectado</strong>
             {status.user?.name ? <span>{status.user.name}</span> : null}
           </div>
           {status.user?.email ? <p className="aa-state-copy">Conta: {status.user.email}</p> : null}
@@ -187,7 +187,7 @@ export function AsanaConnectionPanel() {
                 {tasks.map((task) => (
                   <li className="aa-list-item" key={task.id}>
                     <div><strong>{task.name}</strong>{task.dueOn ? <small>Prazo: {task.dueOn}</small> : null}</div>
-                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: "var(--aa-spacing-sm)", flexWrap: "wrap" }}>
                       <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void completeTask(task.id)} disabled={busy}><CheckCircle2 size={16} aria-hidden="true" />Concluir</button>
                       <a className="aa-button aa-button-secondary aa-button-sm" href={`https://app.asana.com/0/0/${encodeURIComponent(task.id)}`} target="_blank" rel="noreferrer" aria-label={`Abrir tarefa ${task.name} no Asana`}><ExternalLink size={16} aria-hidden="true" />Abrir</a>
                     </div>

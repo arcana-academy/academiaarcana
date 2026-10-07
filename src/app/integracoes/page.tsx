@@ -61,7 +61,7 @@ export default async function IntegracoesPage() {
     <main
       aria-labelledby="integrations-title"
       style={{
-        maxWidth: "72rem",
+        maxWidth: "var(--aa-sizing-content-max)",
         margin: "0 auto",
         padding: "clamp(1.5rem, 4vw, 3rem)",
       }}
@@ -463,7 +463,7 @@ export default async function IntegracoesPage() {
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: "0.5rem",
+                  gap: "var(--aa-spacing-sm)",
                   listStyle: "none",
                   margin: 0,
                   padding: 0,
@@ -474,7 +474,7 @@ export default async function IntegracoesPage() {
                     key={tool}
                     style={{
                       border: "1px solid var(--aa-border-default)",
-                      borderRadius: 999,
+                      borderRadius: "var(--aa-radius-pill)",
                       padding: "0.35rem 0.6rem",
                     }}
                   >
@@ -568,7 +568,7 @@ export default async function IntegracoesPage() {
                         style={{
                           color: "var(--aa-text-secondary)",
                           display: "block",
-                          fontSize: "0.9rem",
+                          fontSize: "var(--aa-type-scale-sm)",
                         }}
                       >
                         {skill.workflow}

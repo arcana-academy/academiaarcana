@@ -33,12 +33,12 @@ export default function OpenSourceAiPage() {
                 <span aria-label={status.configured ? "Configurado" : "Opcional"}>{status.configured ? "● Configurado" : "○ Opcional"}</span>
               </div>
               <p style={{ margin: 0 }}>{integration.description}</p>
-              <div style={{ color: "var(--aa-text-secondary)", fontSize: "0.9rem" }}>
+              <div style={{ color: "var(--aa-text-secondary)", fontSize: "var(--aa-type-scale-sm)" }}>
                 <strong>Licença:</strong> {integration.license}<br />
                 <strong>Runtime:</strong> {integration.runtime}<br />
                 <strong>Capacidades:</strong> {integration.capabilities.join(", ")}
               </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)" }}>
                 <a className="aa-button aa-button-secondary" href={integration.websiteUrl} target="_blank" rel="noreferrer">Site</a>
                 <a className="aa-button aa-button-secondary" href={integration.repositoryUrl} target="_blank" rel="noreferrer">Repositório</a>
               </div>

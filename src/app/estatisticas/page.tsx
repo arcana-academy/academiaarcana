@@ -52,7 +52,7 @@ function GamificationStats({
       <FeatureCard
         title="Nível"
         description="Progressão calculada exclusivamente a partir do XP persistido."
-        icon={<BarChart3 size={22} />}
+        icon={<BarChart3 size={20} />}
       >
         <p className="aa-state-copy">Nível {progression.level}</p>
         <div
@@ -93,7 +93,7 @@ function GamificationStats({
       <FeatureCard
         title="Missões de hoje"
         description="Conclusões reais registradas para a data atual."
-        icon={<Target size={22} />}
+        icon={<Target size={20} />}
       >
         <p className="aa-state-copy">
           {completedMissionCount}/{missionCount} concluídas
@@ -103,7 +103,7 @@ function GamificationStats({
       <FeatureCard
         title="XP"
         description="Experiência concedida por eventos de estudo reconhecidos."
-        icon={<Sparkles size={22} />}
+        icon={<Sparkles size={20} />}
       >
         <p className="aa-state-copy">{progression.totalXp} XP</p>
       </FeatureCard>
@@ -128,7 +128,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Práticas"
           description="Atividades nativas criadas e vinculadas a conteúdos próprios."
-          icon={<BookOpen size={22} />}
+          icon={<BookOpen size={20} />}
         >
           <p className="aa-state-copy">
             {educational.statistics.practiceItemCount}
@@ -138,7 +138,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Recuperações"
           description="Tentativas registradas de recuperação ativa."
-          icon={<TrendingUp size={22} />}
+          icon={<TrendingUp size={20} />}
         >
           <p className="aa-state-copy">{educational.statistics.attemptCount}</p>
         </FeatureCard>
@@ -146,7 +146,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Taxa de recuperação forte"
           description="Tentativas marcadas como fortes ÷ tentativas totais."
-          icon={<TrendingUp size={22} />}
+          icon={<TrendingUp size={20} />}
         >
           <p className="aa-state-copy">
             {percent(educational.statistics.retrievalSuccessRate)}
@@ -156,7 +156,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Evidência média"
           description="Média das pontuações explícitas das autoavaliações."
-          icon={<BarChart3 size={22} />}
+          icon={<BarChart3 size={20} />}
         >
           <p className="aa-state-copy">
             {percent(educational.statistics.averageEvidenceScore)}
@@ -166,7 +166,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Páginas praticadas"
           description="Conteúdos próprios com pelo menos uma tentativa."
-          icon={<BookOpen size={22} />}
+          icon={<BookOpen size={20} />}
         >
           <p className="aa-state-copy">
             {educational.statistics.practicedPageCount}
@@ -176,7 +176,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Revisões liberadas"
           description="Itens cujo intervalo de revisão baseado no último resultado já chegou."
-          icon={<Target size={22} />}
+          icon={<Target size={20} />}
         >
           <p className="aa-state-copy">
             {educational.statistics.reviewDueCount}
@@ -186,7 +186,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Evidência autorreportada forte"
           description="Itens com pelo menos três autoavaliações recentes e média de evidência ≥ 90%. Isso não confirma domínio acadêmico."
-          icon={<Sparkles size={22} />}
+          icon={<Sparkles size={20} />}
         >
           <p className="aa-state-copy">
             {educational.statistics.itemsWithStrongSelfReportedEvidence}
@@ -196,7 +196,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Domínios confirmados"
           description="Avaliações objetivas cujo critério declarado foi satisfeito pelo mínimo de tentativas definido."
-          icon={<Target size={22} />}
+          icon={<Target size={20} />}
         >
           <p className="aa-state-copy">
             {educational.statistics.objectiveConfirmedCount}
@@ -206,7 +206,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
         <FeatureCard
           title="Avaliações objetivas"
           description="Quantidade de tarefas com critério explícito de correspondência exata normalizada."
-          icon={<BookOpen size={22} />}
+          icon={<BookOpen size={20} />}
         >
           <p className="aa-state-copy">
             {educational.statistics.objectiveAssessmentCount}
