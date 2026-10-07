@@ -1,12 +1,21 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const repositoryMocks = vi.hoisted(() => ({
-  listPages: vi.fn(),
-  listPracticeItems: vi.fn(),
-  listPracticeAttempts: vi.fn(),
-  listObjectiveAssessments: vi.fn(),
-  listObjectiveAttempts: vi.fn(),
+const { repositoryMocks, redirect } = vi.hoisted(() => ({
+  repositoryMocks: {
+    listPages: vi.fn(),
+    listPracticeItems: vi.fn(),
+    listPracticeAttempts: vi.fn(),
+    listObjectiveAssessments: vi.fn(),
+    listObjectiveAttempts: vi.fn(),
+  },
+  redirect: vi.fn((destination: string): never => {
+    throw new Error(`REDIRECT:${destination}`);
+  }),
+}));
+
+vi.mock("next/navigation", () => ({
+  redirect,
 }));
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
@@ -78,6 +87,7 @@ const itemOne = {
 
 describe("PraticaPage", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     repositoryMocks.listPages.mockResolvedValue([pageOne]);
     repositoryMocks.listPracticeItems.mockResolvedValue([itemOne]);
     repositoryMocks.listPracticeAttempts.mockResolvedValue([]);
@@ -85,7 +95,7 @@ describe("PraticaPage", () => {
     repositoryMocks.listObjectiveAttempts.mockResolvedValue([]);
   });
 
-  it("renders native retrieval practice without exposing the reference before an attempt", async () => {
+  it("keeps a valid requested page without redirecting", async () => {
     const html = renderToStaticMarkup(
       await PraticaPage({
         searchParams: Promise.resolve({ pagina: "page-1", item: "item-1" }),
@@ -98,6 +108,7 @@ describe("PraticaPage", () => {
     expect(html).toContain("Forte — consegui recuperar");
     expect(html).toContain("Como você avalia esta recuperação?");
     expect(html).not.toContain("Resposta de referência.");
+    expect(redirect).not.toHaveBeenCalled();
   });
 
   it("returns to the Workspace through the canonical selected-page URL", async () => {
@@ -110,33 +121,50 @@ describe("PraticaPage", () => {
     expect(html).toContain(
       'href="/workspace?view=tree&amp;page=page-1#current"',
     );
+    expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("uses the real fallback page instead of propagating a stale requested page", async () => {
-    const html = renderToStaticMarkup(
-      await PraticaPage({
-        searchParams: Promise.resolve({ pagina: "stale-page" }),
+  it("redirects a stale page request to the authenticated fallback page and drops subordinate params", async () => {
+    await expect(
+      PraticaPage({
+        searchParams: Promise.resolve({
+          pagina: "stale-page",
+          item: "stale-item",
+          avaliacao: "stale-assessment",
+        }),
       }),
-    );
+    ).rejects.toThrow("REDIRECT:/pratica?pagina=page-1");
 
-    expect(html).toContain(
-      'href="/workspace?view=tree&amp;page=page-1#current"',
-    );
-    expect(html).not.toContain("page=stale-page");
+    expect(redirect).toHaveBeenCalledWith("/pratica?pagina=page-1");
   });
 
-  it("keeps Workspace navigation generic when no page exists", async () => {
+  it("redirects a missing page request to the first authenticated page", async () => {
+    await expect(
+      PraticaPage({
+        searchParams: Promise.resolve({}),
+      }),
+    ).rejects.toThrow("REDIRECT:/pratica?pagina=page-1");
+
+    expect(redirect).toHaveBeenCalledWith("/pratica?pagina=page-1");
+  });
+
+  it("keeps the empty Practice state canonical without inventing a page", async () => {
     repositoryMocks.listPages.mockResolvedValue([]);
     repositoryMocks.listPracticeItems.mockResolvedValue([]);
 
     const html = renderToStaticMarkup(
       await PraticaPage({
-        searchParams: Promise.resolve({ pagina: "stale-page" }),
+        searchParams: Promise.resolve({
+          pagina: "stale-page",
+          item: "stale-item",
+          avaliacao: "stale-assessment",
+        }),
       }),
     );
 
     expect(html).toContain("Crie um conteúdo para começar");
     expect(html).toContain('href="/workspace"');
     expect(html).not.toContain("/workspace?view=tree&amp;page=");
+    expect(redirect).not.toHaveBeenCalled();
   });
 });
