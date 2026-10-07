@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { getWorkspaceCanonicalHref } from "@/application/learning/workspace/state";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import {
   buildEducationalOverview,
@@ -379,6 +380,15 @@ export default async function PraticaPage({
     selfAssessmentItems[0] ??
     null;
 
+  const workspaceHref = selectedPage
+    ? getWorkspaceCanonicalHref({
+        grimoireId: null,
+        notebookId: null,
+        chapterId: null,
+        pageId: selectedPage.id,
+      })
+    : "/workspace";
+
   return (
     <AuthenticatedShell currentPath="/pratica">
       <main className="aa-page" aria-labelledby="practice-title">
@@ -391,7 +401,7 @@ export default async function PraticaPage({
             nem uma avaliação semântica automática.
           </p>
           <nav aria-label="Navegação educacional" className="aa-action-row">
-            <Link className="aa-button aa-button-secondary" href="/workspace">
+            <Link className="aa-button aa-button-secondary" href={workspaceHref}>
               Voltar ao Workspace
             </Link>
             <Link className="aa-button aa-button-secondary" href="/estatisticas">
