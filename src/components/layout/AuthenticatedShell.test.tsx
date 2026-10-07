@@ -20,7 +20,8 @@ describe("AuthenticatedShell", () => {
     expect(
       screen.getByRole("link", { name: "Academia Arcana — Santuário" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Santuário")).toBeInTheDocument();
+    const topbarContext = screen.getByText("Academia Arcana").closest(".aa-topbar-context");
+    expect(topbarContext).toHaveTextContent("Academia Arcana/Santuário");
     const institutionalSeals = container.querySelectorAll('img[src="/assets/brand/aa-institutional-seal.svg"]');
     expect(institutionalSeals).toHaveLength(2);
     expect(Array.from(institutionalSeals).every((image) => image.getAttribute("src") === "/assets/brand/aa-institutional-seal.svg")).toBe(true);
