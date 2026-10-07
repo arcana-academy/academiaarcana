@@ -1,7 +1,8 @@
-# AA-VIS-001 — Institutional Seal
+# AA-ASSET-001 — Institutional Seal
 
-Status: CANONICAL  
-Version: 1.0  
+Status: CURRENT / LEGACY IMPLEMENTATION  
+Version: 1.0
+Validation: PENDING — Fase 2 / Linguagem do Mundo  
 Category: brand / identity  
 File: `public/assets/brand/aa-institutional-seal.svg`
 
@@ -37,3 +38,8 @@ Do not recolor, distort, rotate, add unrelated symbols, or replace the canonical
 ## Repository role
 
 This is an approved web deliverable. Editable source artwork remains outside `public/assets/` according to the repository's visual asset policy.
+
+
+## Phase 2 governance
+
+The asset remains a CURRENT implementation. Its geometry is not promoted to final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
