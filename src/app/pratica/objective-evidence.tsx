@@ -185,9 +185,7 @@ export function ObjectiveEvidenceSection({
     (item) => item.pageId === pageId && item.evidenceMode === "criterion_exact_match",
   );
   const selected =
-    objectiveItems.find((item) => item.id === selectedObjectiveItemId) ??
-    objectiveItems[0] ??
-    null;
+    objectiveItems.find((item) => item.id === selectedObjectiveItemId) ?? null;
 
   return (
     <section
