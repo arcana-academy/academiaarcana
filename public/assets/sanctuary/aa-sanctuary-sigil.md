@@ -1,7 +1,8 @@
-# AA-VIS-002 — Sanctuary Sigil
+# AA-ASSET-002 — Sanctuary Sigil
 
-Status: CANONICAL
+Status: CURRENT / LEGACY IMPLEMENTATION  
 Version: 1.0
+Validation: PENDING — Fase 2 / Linguagem do Mundo
 Category: sanctuary / identity
 File: `public/assets/sanctuary/aa-sanctuary-sigil.svg`
 
@@ -32,3 +33,8 @@ The SVG has an internal title and description for direct document use. In the ap
 ## Restrictions
 
 Do not use it as a replacement for the institutional seal, navigation icon, or achievement badge. Do not depend on color alone to communicate a state.
+
+
+## Phase 2 governance
+
+This file documents a CURRENT asset already present in the product. Its existing geometry may continue to be used operationally, but it is not final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
