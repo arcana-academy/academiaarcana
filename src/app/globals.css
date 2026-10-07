@@ -343,7 +343,7 @@ p {
 }
 
 .aa-topbar-eyebrow {
-  color: var(--aa-accent-secondary);
+  color: var(--aa-accent-primary);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -440,7 +440,7 @@ p {
 
 .aa-brand-name {
   margin-top: 0.18rem;
-  color: var(--aa-accent-secondary);
+  color: var(--aa-accent-primary);
   font-size: 1.28rem;
   letter-spacing: 0.02em;
 }
@@ -643,7 +643,7 @@ p {
 
 .aa-eyebrow {
   margin: 0 0 0.5rem;
-  color: var(--aa-accent-secondary);
+  color: var(--aa-accent-primary);
   font-size: var(--aa-type-scale-xs);
   font-weight: 750;
   letter-spacing: 0.12em;
@@ -995,7 +995,7 @@ p {
 
 .aa-status {
   justify-self: end;
-  color: var(--aa-accent-secondary);
+  color: var(--aa-accent-primary);
   font-size: var(--aa-type-scale-xs);
   font-weight: 700;
 }
