@@ -1,7 +1,8 @@
-# AA-VIS-003 — Grimoire Base Cover
+# AA-ASSET-003 — Grimoire Base Cover
 
-Status: CANONICAL
+Status: CURRENT / LEGACY IMPLEMENTATION  
 Version: 1.0
+Validation: PENDING — Fase 2 / Linguagem do Mundo
 Category: grimoires / cover
 File: `public/assets/grimoires/aa-grimoire-cover-base.svg`
 
@@ -20,3 +21,8 @@ The asset carries an internal title and description for direct document use. In 
 ## Restrictions
 
 Do not treat this fallback cover as a user-specific identity. Do not overwrite a valid approved custom cover with this asset.
+
+
+## Phase 2 governance
+
+This file documents a CURRENT asset already present in the product. Its existing geometry may continue to be used operationally, but it is not final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
