@@ -31,6 +31,23 @@ describe("gamification progression", () => {
     });
   });
 
+  it("reports progress toward upcoming milestones from persisted counters", () => {
+    const achievements = getAchievements(
+      { ...profile, xp: 150, streakDays: 3 },
+      [
+        { id: "m1", ownerId: "user-1", code: "a", title: "A", rewardXp: 10, targetDate: "2026-10-07", status: "completed", completedAt: "2026-10-07T09:00:00.000Z" },
+        { id: "m2", ownerId: "user-1", code: "b", title: "B", rewardXp: 10, targetDate: "2026-10-07", status: "open", completedAt: null },
+      ],
+    );
+
+    expect(achievements).toMatchObject([
+      { code: "first-xp", progress: { current: 10, target: 10, unit: "XP" } },
+      { code: "level-3", progress: { current: 150, target: 400, unit: "XP" } },
+      { code: "streak-7", progress: { current: 3, target: 7, unit: "dias" } },
+      { code: "mission-3", description: "Concluir 3 missões de hoje.", progress: { current: 1, target: 3, unit: "missões de hoje" } },
+    ]);
+  });
+
   it("unlocks achievements only from persisted-derived thresholds", () => {
     const achievements = getAchievements(profile, []);
     expect(achievements.filter((item) => item.unlocked).map((item) => item.code)).toEqual([
