@@ -148,17 +148,30 @@ describe("PraticaPage", () => {
     expect(redirect).toHaveBeenCalledWith("/pratica?pagina=page-1");
   });
 
-  it("keeps the empty Practice state canonical without inventing a page", async () => {
+  it("canonicalizes stale empty-state params back to /pratica without inventing a page", async () => {
     repositoryMocks.listPages.mockResolvedValue([]);
     repositoryMocks.listPracticeItems.mockResolvedValue([]);
 
-    const html = renderToStaticMarkup(
-      await PraticaPage({
+    await expect(
+      PraticaPage({
         searchParams: Promise.resolve({
           pagina: "stale-page",
           item: "stale-item",
           avaliacao: "stale-assessment",
         }),
+      }),
+    ).rejects.toThrow("REDIRECT:/pratica");
+
+    expect(redirect).toHaveBeenCalledWith("/pratica");
+  });
+
+  it("renders the canonical empty Practice state without redirecting", async () => {
+    repositoryMocks.listPages.mockResolvedValue([]);
+    repositoryMocks.listPracticeItems.mockResolvedValue([]);
+
+    const html = renderToStaticMarkup(
+      await PraticaPage({
+        searchParams: Promise.resolve({}),
       }),
     );
 
