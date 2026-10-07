@@ -45,7 +45,7 @@ The following remain authoritative:
 
 ## 3. Audit finding — identifier and canon conflict
 
-The repository contained nine visual-asset metadata files using `AA-VIS-001` through `AA-VIS-009` and declaring their geometry `CANONICAL`.
+The repository contained nine visual-asset metadata files using `AA-VIS-001` through `AA-VIS-009` and declaring their geometry `CANONICAL`. A grouped metadata file also used `AA-VIS-ICON-003–005` for three custom Academia entry icons.
 
 Those identifiers conflict with the closed visual-decision register, and the status conflicts with the Fase 1 checkpoint, which explicitly leaves final brand, glyphs and world assets open.
 
@@ -55,7 +55,7 @@ The repository also contains current custom vectors without individual Phase 2 m
 
 - `AA-VIS-XXX` remains reserved for visual-system decisions.
 - visual deliverables use `AA-ASSET-XXX`.
-- the nine already-used assets remain operational CURRENT implementations;
+- the twelve already-used assets covered by these legacy identifiers remain operational CURRENT implementations;
 - their geometry is **not** promoted to final visual canon by repository age or current use;
 - no SVG is deleted or visually redrawn in this cycle.
 
@@ -185,8 +185,11 @@ Repetition alone does not make a motif canonical.
 | AA-ASSET-007 | missions/aa-mission-document.svg | world object / domain motif | CURRENT / LEGACY IMPLEMENTATION |
 | AA-ASSET-008 | intelligence/aa-arcane-core.svg | domain sigil | CURRENT / LEGACY IMPLEMENTATION |
 | AA-ASSET-009 | icons/aa-library-mark.svg | custom knowledge mark | CURRENT / LEGACY IMPLEMENTATION |
+| AA-ASSET-010 | icons/aa-workspace.svg | functional custom icon | CURRENT / LEGACY IMPLEMENTATION |
+| AA-ASSET-011 | icons/aa-cronograma.svg | functional custom icon | CURRENT / LEGACY IMPLEMENTATION |
+| AA-ASSET-012 | icons/aa-sanctuary.svg | functional custom icon | CURRENT / LEGACY IMPLEMENTATION |
 
-Additional current custom SVGs such as workspace, cronograma and sanctuary icons remain pending individual asset metadata and role validation.
+The three Academia entry icons share the grouped metadata file `icons/aa-academia-entry-icons.md`; individual role validation remains pending.
 
 ## 11. Decision register
 
@@ -242,7 +245,7 @@ Before final-canon promotion, an asset must be assessed for identity, coherence,
 - a validated visual/token foundation;
 - current SVG assets already used by the product;
 - repeated but not fully governed Arcane motifs;
-- nine registered current assets;
+- twelve registered current assets;
 - additional custom SVGs without complete Phase 2 metadata;
 - functional Lucide usage across product surfaces.
 
@@ -330,7 +333,7 @@ The grammar prohibits arbitrary borrowing, but future assets still require revie
 - Fase 2 officially opened without reopening Fase 1;
 - Arcane graphic-role grammar established;
 - asset/decision identifier collision repaired;
-- nine current asset records migrated to AA-ASSET identifiers;
+- twelve current asset records migrated to AA-ASSET identifiers;
 - existing asset geometry explicitly separated from final canon;
 - accessibility and originality rules documented.
 
@@ -338,7 +341,7 @@ The grammar prohibits arbitrary borrowing, but future assets still require revie
 
 No new visual asset was produced.
 
-Nine existing files were registered as CURRENT / LEGACY IMPLEMENTATION under AA-ASSET-001–009.
+Twelve existing deliverables were registered as CURRENT / LEGACY IMPLEMENTATION under AA-ASSET-001–012.
 
 ### PENDÊNCIAS
 
