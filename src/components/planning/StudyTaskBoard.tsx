@@ -160,7 +160,7 @@ export function StudyTaskBoard({
   };
 
   return (
-    <main className="aa-page aa-page-narrow" aria-labelledby="cronograma-title">
+    <main className="aa-page aa-page-narrow aa-study-task-board" aria-labelledby="cronograma-title">
       <header className="aa-page-header">
         <div className="aa-page-header-knowledge">
           <Image
