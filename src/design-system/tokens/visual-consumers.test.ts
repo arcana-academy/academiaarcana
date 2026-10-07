@@ -18,12 +18,16 @@ const LEGACY_VARIABLES = [
   "--aa-shadow-arcane",
 ];
 
-function walkCss(directory: string): string[] {
+function walkFiles(directory: string, predicate: (name: string) => boolean): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) return walkCss(path);
-    return entry.isFile() && entry.name.endsWith(".css") ? [path] : [];
+    if (entry.isDirectory()) return walkFiles(path, predicate);
+    return entry.isFile() && predicate(entry.name) ? [path] : [];
   });
+}
+
+function walkCss(directory: string): string[] {
+  return walkFiles(directory, (name) => name.endsWith(".css"));
 }
 
 describe("visual consumer convergence", () => {
@@ -55,13 +59,11 @@ describe("visual consumer convergence", () => {
     expect(existsSync(join(SRC, "app/ArcanaLanding.module.css"))).toBe(false);
   });
 
-  test("the generated landing uses the canonical 16/20/24 icon scale", () => {
-    const source = readFileSync(
-      join(SRC, "components/generated/AcademiaArcanaLanding.generated.tsx"),
-      "utf8",
-    );
-    const sizes = [...source.matchAll(/size=\{(\d+)\}/g)].map((match) => Number(match[1]));
-    expect(sizes.length).toBeGreaterThan(0);
-    expect(sizes.every((size) => [16, 20, 24].includes(size))).toBe(true);
+  test("known off-scale Lucide sizes are absent from TSX consumers", () => {
+    const forbidden = /size=\{(?:14|18|19|22)\}/;
+    for (const path of walkFiles(SRC, (name) => name.endsWith(".tsx"))) {
+      const source = readFileSync(path, "utf8");
+      expect(source, `${relative(SRC, path)} contains a known off-scale icon size`).not.toMatch(forbidden);
+    }
   });
 });
