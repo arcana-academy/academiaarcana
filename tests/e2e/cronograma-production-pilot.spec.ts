@@ -23,6 +23,32 @@ async function assertNoHorizontalOverflow(page: Page, label: string): Promise<vo
   expect(overflow, `horizontal overflow: ${label}`).toBe(false);
 }
 
+async function settleVisualSurface(page: Page, root: Locator): Promise<void> {
+  await page.evaluate(async () => {
+    await document.fonts?.ready;
+  });
+  for (const image of await root.locator("img").all()) {
+    await image.evaluate(async (node) => {
+      const element = node as HTMLImageElement;
+      if (!element.complete) {
+        await new Promise<void>((resolve) => {
+          element.addEventListener("load", () => resolve(), { once: true });
+          element.addEventListener("error", () => resolve(), { once: true });
+        });
+      }
+      if (element.complete && element.naturalWidth > 0 && "decode" in element) {
+        await element.decode().catch(() => undefined);
+      }
+    });
+  }
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
+}
+
 function channelToLinear(channel: number): number {
   const value = channel / 255;
   return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
@@ -141,7 +167,7 @@ test("Cronograma pilot covers empty, error and connected Outlook states determin
   await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "error");
   await page.getByRole("textbox", { name: "Tarefa", exact: true }).fill("Tarefa que falha");
   await page.getByRole("button", { name: "Criar tarefa" }).click();
-  await expect(page.getByRole("alert")).toHaveText("Não foi possível criar a tarefa.");
+  await expect(page.locator(".aa-field-error[role=\"alert\"]")).toHaveText("Não foi possível criar a tarefa.");
 
   await page.goto("/design-system/pilots/cronograma?scenario=connected");
   await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "connected");
@@ -190,6 +216,7 @@ test("Cronograma production pilot matches deterministic visual baselines", async
     await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
     const board = page.locator(".aa-study-task-board");
     await expect(board).toBeVisible();
+    await settleVisualSurface(page, board);
     actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
   }
 
