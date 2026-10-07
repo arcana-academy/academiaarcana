@@ -14,6 +14,11 @@ export type Achievement = {
   title: string;
   description: string;
   unlocked: boolean;
+  progress: {
+    current: number;
+    target: number;
+    unit: string;
+  };
 };
 
 export function getLevelForXp(xp: number): number {
@@ -52,24 +57,28 @@ export function getAchievements(
       title: "Primeiro passo",
       description: "Alcançar os primeiros 10 XP.",
       unlocked: progression.totalXp >= 10,
+      progress: { current: Math.min(progression.totalXp, 10), target: 10, unit: "XP" },
     },
     {
       code: "level-3",
       title: "Aprendiz Arcano",
       description: "Alcançar o nível 3.",
       unlocked: progression.level >= 3,
+      progress: { current: Math.min(progression.totalXp, 400), target: 400, unit: "XP" },
     },
     {
       code: "streak-7",
       title: "Constância",
       description: "Manter 7 dias de continuidade de estudo.",
       unlocked: progression.streakDays >= 7,
+      progress: { current: Math.min(progression.streakDays, 7), target: 7, unit: "dias" },
     },
     {
       code: "mission-3",
       title: "Guardião das Missões",
-      description: "Concluir 3 missões no período exibido.",
+      description: "Concluir 3 missões de hoje.",
       unlocked: progression.completedMissionCount >= 3,
+      progress: { current: Math.min(progression.completedMissionCount, 3), target: 3, unit: "missões de hoje" },
     },
   ];
 }

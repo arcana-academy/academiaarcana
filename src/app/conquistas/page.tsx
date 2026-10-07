@@ -63,6 +63,24 @@ export default async function ConquistasPage() {
                     <div>
                       <strong>{achievement.title}</strong>
                       <p>{achievement.description}</p>
+                      <div
+                        className="aa-progress-track"
+                        role="progressbar"
+                        aria-label={`Progresso para ${achievement.title}`}
+                        aria-valuemin={0}
+                        aria-valuemax={achievement.progress.target}
+                        aria-valuenow={achievement.progress.current}
+                      >
+                        <div
+                          className="aa-progress-value"
+                          style={{
+                            width: `${Math.round((achievement.progress.current / achievement.progress.target) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <p className="aa-state-copy">
+                        {achievement.progress.current}/{achievement.progress.target} {achievement.progress.unit}
+                      </p>
                     </div>
                   </div>
                 </li>
