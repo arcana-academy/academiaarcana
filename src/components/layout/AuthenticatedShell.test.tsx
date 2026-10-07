@@ -20,7 +20,7 @@ describe("AuthenticatedShell", () => {
     expect(
       screen.getByRole("link", { name: "Academia Arcana — Santuário" }),
     ).toBeInTheDocument();
-    const topbarContext = screen.getByText("Academia Arcana").closest(".aa-topbar-context");
+    const topbarContext = container.querySelector(".aa-topbar-context");
     expect(topbarContext).toHaveTextContent("Academia Arcana/Santuário");
     const institutionalSeals = container.querySelectorAll('img[src="/assets/brand/aa-institutional-seal.svg"]');
     expect(institutionalSeals).toHaveLength(2);
@@ -37,13 +37,13 @@ describe("AuthenticatedShell", () => {
   });
 
   it("reflects the current area in the topbar context", () => {
-    render(
+    const { container } = render(
       <AuthenticatedShell currentPath="/amigos">
         <main>Conteúdo social</main>
       </AuthenticatedShell>,
     );
 
-    const topbar = screen.getByText("Academia Arcana").closest(".aa-topbar-context");
+    const topbar = container.querySelector(".aa-topbar-context");
     expect(topbar).toHaveTextContent("Academia Arcana/Amigos");
     expect(topbar).not.toHaveTextContent("Jornada de aprendizagem");
   });
