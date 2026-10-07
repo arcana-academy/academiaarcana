@@ -1,6 +1,14 @@
-# Academia Arcana — Approved Visual Assets
+# Academia Arcana — Current Visual Assets
 
-This directory contains web-ready visual assets approved for the Academia Arcana application.
+This directory contains web-ready visual assets currently used by the Academia Arcana application.
+
+## Governance status
+
+The files in this directory are **CURRENT implementation assets**. They are not automatically final visual canon.
+
+Phase 2 — Linguagem do Mundo governs their validation. An asset becomes final visual canon only after its role, semantics, accessibility, originality, theming behavior, responsive use, performance and system coherence are validated.
+
+Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is reserved for visual-system decisions.
 
 ## Categories
 
@@ -18,43 +26,59 @@ This directory contains web-ready visual assets approved for the Academia Arcana
 - `intelligence/` — Mestre Arcano and intelligence-system symbols
 - `marketing/` — launch and communication assets
 
-## Canonical assets
+## Registered current assets
 
 ### Institutional identity
 
-- `brand/aa-institutional-seal.svg`
-- `brand/aa-institutional-seal.md`
+- `AA-ASSET-001` — `brand/aa-institutional-seal.svg`
+- metadata: `brand/aa-institutional-seal.md`
 
 ### Sanctuary and learning areas
 
-- `sanctuary/aa-sanctuary-sigil.svg`
-- `sanctuary/aa-sanctuary-sigil.md`
-- `icons/aa-workspace.svg`
-- `icons/aa-cronograma.svg`
-- `icons/aa-sanctuary.svg`
-- `icons/aa-library-mark.svg`
+- `AA-ASSET-002` — `sanctuary/aa-sanctuary-sigil.svg`
+- metadata: `sanctuary/aa-sanctuary-sigil.md`
+- `icons/aa-workspace.svg` — CURRENT custom icon; individual Phase 2 metadata pending
+- `icons/aa-cronograma.svg` — CURRENT custom icon; individual Phase 2 metadata pending
+- `icons/aa-sanctuary.svg` — CURRENT custom icon; individual Phase 2 metadata pending
+- `AA-ASSET-009` — `icons/aa-library-mark.svg`
+- metadata: `icons/aa-library-mark.md`
 
 ### Knowledge and Grimoires
 
-- `grimoires/aa-grimoire-cover-base.svg`
-- `grimoires/aa-grimoire-cover-base.md`
+- `AA-ASSET-003` — `grimoires/aa-grimoire-cover-base.svg`
+- metadata: `grimoires/aa-grimoire-cover-base.md`
 
 ### Gamification and Missions
 
-- `gamification/aa-contained-arcane-flame.svg`
-- `gamification/aa-contained-arcane-flame.md`
-- `gamification/aa-achievement-emblem.svg`
-- `gamification/aa-achievement-emblem.md`
-- `missions/aa-mission-document.svg`
-- `missions/aa-mission-document.md`
+- `AA-ASSET-004` — `gamification/aa-contained-arcane-flame.svg`
+- metadata: `gamification/aa-contained-arcane-flame.md`
+- `AA-ASSET-005` — `gamification/aa-achievement-emblem.svg`
+- metadata: `gamification/aa-achievement-emblem.md`
+- `AA-ASSET-007` — `missions/aa-mission-document.svg`
+- metadata: `missions/aa-mission-document.md`
 
 ### Focus and Intelligence
 
-- `focus/aa-focus-sigil.svg`
-- `focus/aa-focus-sigil.md`
-- `intelligence/aa-arcane-core.svg`
-- `intelligence/aa-arcane-core.md`
+- `AA-ASSET-006` — `focus/aa-focus-sigil.svg`
+- metadata: `focus/aa-focus-sigil.md`
+- `AA-ASSET-008` — `intelligence/aa-arcane-core.svg`
+- metadata: `intelligence/aa-arcane-core.md`
 
-Each canonical asset should retain a matching metadata file describing purpose, approved usage, accessibility treatment and restrictions.
+## Metadata contract
 
-Keep source-editable files in the appropriate Adobe/Creative Cloud source library. This directory is for approved web deliverables, not raw working files.
+Every registered asset record must document:
+
+- stable `AA-ASSET-XXX` identifier;
+- CURRENT / TARGET / validation status;
+- category and role;
+- purpose and semantic meaning;
+- allowed and forbidden uses;
+- accessibility treatment;
+- theming behavior when applicable;
+- implementation path;
+- originality/source status;
+- Phase 2 validation result before final-canon promotion.
+
+Functional icons should continue to use Lucide React when semantically adequate. A custom vector does not become an Arcana symbol merely because it is decorative or bespoke.
+
+Keep editable source files in the appropriate source-art library. This directory contains web deliverables, not raw working files.
