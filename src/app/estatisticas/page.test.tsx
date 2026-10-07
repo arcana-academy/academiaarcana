@@ -190,6 +190,26 @@ describe("EstatisticasPage", () => {
     expect(pageHtml).toBe(viewHtml);
   });
 
+  it("preserves the statistics semantic boundaries after extraction", async () => {
+    const html = renderToStaticMarkup(await EstatisticasPage());
+
+    expect(html).toContain('role="progressbar"');
+    expect(html).toContain('aria-label="Progresso para o próximo nível"');
+    expect(html).toContain(
+      "Ausência de tentativas permanece como ausência de evidência.",
+    );
+    expect(html).toContain("Evidência autorreportada por conteúdo");
+    expect(html).toContain("Evidência objetiva");
+    expect(html).toContain(
+      "Nenhuma avaliação objetiva foi criada ainda. A ausência aqui não significa ausência de aprendizagem.",
+    );
+    expect(html).toContain(
+      "Nenhuma lacuna sinalizada com a evidência disponível. Isso não significa que todas as competências estejam dominadas.",
+    );
+    expect(html).toContain("confiança");
+    expect(html).toContain("Não há revisão liberada neste momento.");
+  });
+
   it("renders canonical review handoffs for self-assessment and objective activities", async () => {
     repositoryMocks.listPages.mockResolvedValue([
       { id: "page-1", title: "Fisiologia" },
