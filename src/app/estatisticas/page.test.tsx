@@ -12,15 +12,37 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockSupabaseEducationalPracticeRepository {
     listPages() {
-      return [];
+      return [{ id: "page-1", title: "Anatomia" }];
     }
 
     listPracticeItems() {
-      return [];
+      return [{
+        id: "practice-1",
+        ownerId: "user-1",
+        pageId: "page-1",
+        pageTitle: "Anatomia",
+        prompt: "Explique.",
+        referenceAnswer: "Resposta.",
+        explanation: null,
+        difficulty: 3 as const,
+        active: true,
+        createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z",
+      }];
     }
 
     listPracticeAttempts() {
-      return [];
+      return [{
+        id: "attempt-1",
+        ownerId: "user-1",
+        practiceItemId: "practice-1",
+        answer: "Resposta.",
+        outcome: "strong" as const,
+        evidenceScore: 1,
+        confidence: "partial" as const,
+        feedback: "Feedback.",
+        createdAt: "2026-09-01T00:00:00.000Z",
+      }];
     }
   }
 
@@ -64,5 +86,6 @@ describe("EstatisticasPage", () => {
     expect(html).toContain("7 dias");
     expect(html).toContain("/assets/gamification/aa-contained-arcane-flame.svg");
     expect(html).toContain("1/1 concluídas");
+    expect(html).toContain('href="/pratica?pagina=page-1&amp;item=practice-1"');
   });
 });
