@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import type { EducationalOverview } from "@/application/education/p1";
+import type { ArchivedPageLearningHistory } from "@/infrastructure/supabase/education/practice-repository";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { FeatureCard } from "@/components/ui/feature-card";
@@ -32,6 +33,7 @@ export type StatisticsGamificationProjection = {
 export type StatisticsViewProps = {
   gamification: StatisticsGamificationProjection;
   educational: EducationalOverview;
+  archivedLearningHistory: ArchivedPageLearningHistory[];
 };
 
 /** Formats a normalized evidence value for learner-facing statistics. */
@@ -359,6 +361,93 @@ function GapsSection({ educational }: { educational: EducationalOverview }) {
   );
 }
 
+/** Shows user-owned snapshots kept when pages with learning records are removed. */
+function ArchivedLearningHistorySection({
+  entries,
+}: {
+  entries: ArchivedPageLearningHistory[];
+}) {
+  return (
+    <section className="aa-card aa-card-default" aria-labelledby="learning-history-title">
+      <p className="aa-eyebrow">Registros preservados</p>
+      <h2 id="learning-history-title">Histórico de conteúdos removidos</h2>
+      <p className="aa-state-copy">
+        Conteúdo, progresso, atividades e tentativas continuam consultáveis aqui
+        após a remoção da página. Este histórico é privado da sua conta.
+      </p>
+      {entries.length === 0 ? (
+        <p className="aa-state-copy">
+          Nenhum conteúdo com registros de aprendizagem foi removido.
+        </p>
+      ) : (
+        <ul className="aa-list">
+          {entries.map((entry) => {
+            const page = entry.snapshot.page;
+            const pageText = page.content?.blocks
+              ?.map((block) => block.content)
+              .filter(Boolean)
+              .join("\\n\\n");
+            const attempts = entry.snapshot.practiceItems.flatMap((item) =>
+              item.attempts.map((attempt) => ({ item, attempt })),
+            );
+
+            return (
+              <li key={entry.id} className="aa-list-item aa-surface">
+                <details>
+                  <summary>
+                    <strong>{page.title}</strong>
+                    <span className="aa-state-copy">
+                      {" · "}Arquivado em{" "}
+                      {new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(
+                        new Date(entry.archivedAt),
+                      )}
+                      {" · "}{entry.snapshot.practiceItems.length} atividade(s)
+                      {" · "}{attempts.length} tentativa(s)
+                    </span>
+                  </summary>
+                  <div className="aa-stack">
+                    {pageText ? (
+                      <section aria-label="Conteúdo preservado">
+                        <h3>Conteúdo</h3>
+                        <p>{pageText}</p>
+                      </section>
+                    ) : null}
+                    {entry.snapshot.pageProgress.map((progress, index) => (
+                      <p key={index} className="aa-state-copy">
+                        Progresso: {progress.status === "completed" ? "Concluído" : progress.status === "in-progress" ? "Em andamento" : "Não iniciado"}
+                      </p>
+                    ))}
+                    {entry.snapshot.practiceItems.map((item) => (
+                      <section key={item.id} aria-label={`Atividade: ${item.prompt}`}>
+                        <h3>{item.prompt}</h3>
+                        <p><strong>Referência:</strong> {item.reference_answer}</p>
+                        {item.explanation ? <p><strong>Explicação:</strong> {item.explanation}</p> : null}
+                        {item.attempts.map((attempt) => (
+                          <div key={attempt.id}>
+                            <p className="aa-state-copy">
+                              Tentativa de{" "}
+                              {new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(
+                                new Date(attempt.created_at),
+                              )}{" · "}{attempt.outcome}{" · "}evidência{" "}
+                              {Math.round(Number(attempt.evidence_score) * 100)}%
+                            </p>
+                            <p><strong>Resposta:</strong> {attempt.answer}</p>
+                            <p><strong>Feedback:</strong> {attempt.feedback}</p>
+                          </div>
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+                </details>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 /** Renders the current review queue from the adaptive learning signals. */
 function ReviewSection({ educational }: { educational: EducationalOverview }) {
   const due = educational.reviews.filter((review) => review.due);
@@ -399,6 +488,7 @@ function ReviewSection({ educational }: { educational: EducationalOverview }) {
 export function StatisticsView({
   gamification,
   educational,
+  archivedLearningHistory,
 }: StatisticsViewProps) {
   return (
     <ArcanaPage
@@ -408,6 +498,7 @@ export function StatisticsView({
     >
       <GamificationStats gamification={gamification} />
       <EducationalStats educational={educational} />
+      <ArchivedLearningHistorySection entries={archivedLearningHistory} />
       <ProfileSignals educational={educational} />
       <EvidenceSection educational={educational} />
       <ObjectiveEvidenceSection educational={educational} />
