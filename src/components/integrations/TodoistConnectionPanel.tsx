@@ -153,7 +153,7 @@ export function TodoistConnectionPanel() {
       ) : (
         <>
           <div style={{ display: "grid", gap: "var(--aa-spacing-sm)" }}>
-            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}><CheckCircle2 size={18} aria-hidden="true" /><strong>Conectado</strong>{status.user?.fullName ? <span>{status.user.fullName}</span> : null}</div>
+            <div style={{ display: "flex", gap: "var(--aa-spacing-sm)", alignItems: "center", flexWrap: "wrap" }}><CheckCircle2 size={20} aria-hidden="true" /><strong>Conectado</strong>{status.user?.fullName ? <span>{status.user.fullName}</span> : null}</div>
             {status.user?.email ? <p className="aa-state-copy" style={{ margin: 0 }}>Conta: {status.user.email}</p> : null}
           </div>
 
@@ -172,8 +172,8 @@ export function TodoistConnectionPanel() {
               <ul className="aa-list">
                 {tasks.map((task) => (
                   <li className="aa-list-item" key={task.id}>
-                    <div><strong>{task.content}</strong>{task.due?.string ? <small><CalendarDays size={14} aria-hidden="true" /> {task.due.string}</small> : null}</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div><strong>{task.content}</strong>{task.due?.string ? <small><CalendarDays size={16} aria-hidden="true" /> {task.due.string}</small> : null}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)" }}>
                       <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void completeTask(task.id)} disabled={busy}><CheckCircle2 size={16} aria-hidden="true" />Concluir</button>
                       <a className="aa-button aa-button-secondary aa-button-sm" href={`https://app.todoist.com/app/task/${encodeURIComponent(task.id)}`} target="_blank" rel="noreferrer" aria-label={`Abrir tarefa ${task.content} no Todoist`}><ExternalLink size={16} aria-hidden="true" />Abrir</a>
                     </div>
