@@ -1,7 +1,8 @@
-# AA-VIS-008 — Núcleo Arcano
+# AA-ASSET-008 — Núcleo Arcano
 
-Status: CANONICAL
+Status: CURRENT / LEGACY IMPLEMENTATION  
 Version: 1.0
+Validation: PENDING — Fase 2 / Linguagem do Mundo
 Category: intelligence / guidance
 File: `public/assets/intelligence/aa-arcane-core.svg`
 
@@ -29,3 +30,8 @@ In application UI the image is decorative and uses an empty `alt`; surrounding h
 ## Restrictions
 
 Do not depict the Mestre Arcano as a human avatar, face, emotional character or autonomous authority figure.
+
+
+## Phase 2 governance
+
+This file documents a CURRENT asset already present in the product. Its existing geometry may continue to be used operationally, but it is not final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
