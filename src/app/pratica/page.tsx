@@ -389,10 +389,45 @@ export default async function PraticaPage({
   const selfAssessmentItems = pageItems.filter(
     (item) => item.evidenceMode !== "criterion_exact_match",
   );
+  const objectiveItems = pageItems.filter(
+    (item) => item.evidenceMode === "criterion_exact_match",
+  );
   const selectedItem =
-    selfAssessmentItems.find((item) => item.id === params.item) ??
-    selfAssessmentItems[0] ??
-    null;
+    selfAssessmentItems.find((item) => item.id === params.item) ?? null;
+  const selectedObjectiveItem =
+    objectiveItems.find((item) => item.id === params.avaliacao) ?? null;
+
+  if (selectedPage) {
+    const pageHref = `/pratica?pagina=${encodeURIComponent(selectedPage.id)}`;
+    const itemHref = selectedItem
+      ? `${pageHref}&item=${encodeURIComponent(selectedItem.id)}`
+      : null;
+    const assessmentHref = selectedObjectiveItem
+      ? `${pageHref}&avaliacao=${encodeURIComponent(selectedObjectiveItem.id)}`
+      : null;
+    const itemRequested = params.item !== undefined;
+    const assessmentRequested = params.avaliacao !== undefined;
+
+    if (selectedItem && selectedObjectiveItem) {
+      redirect(pageHref);
+    }
+
+    if (selectedItem && assessmentRequested) {
+      redirect(itemHref!);
+    }
+
+    if (selectedObjectiveItem && itemRequested) {
+      redirect(assessmentHref!);
+    }
+
+    if (
+      (itemRequested || assessmentRequested) &&
+      !selectedItem &&
+      !selectedObjectiveItem
+    ) {
+      redirect(pageHref);
+    }
+  }
 
   const workspaceHref = selectedPage
     ? getWorkspaceCanonicalHref({
@@ -452,7 +487,7 @@ export default async function PraticaPage({
                 <h2 id="selected-page-title">{selectedPage.title}</h2>
                 <PracticeItemList
                   items={pageItems}
-                  selectedItemId={selectedItem?.id}
+                  selectedItemId={selectedItem?.id ?? selectedObjectiveItem?.id}
                   overview={overview}
                 />
                 <PracticeCreationForm pageId={selectedPage.id} />
@@ -472,7 +507,7 @@ export default async function PraticaPage({
                 pageId={selectedPage.id}
                 items={pageItems}
                 attempts={attempts}
-                selectedObjectiveItemId={params.avaliacao}
+                selectedObjectiveItemId={selectedObjectiveItem?.id}
                 evidence={overview.objectiveEvidence}
               />
             ) : null}
