@@ -260,7 +260,14 @@ export function StudyTaskBoard({
         <div className="aa-surface-header">
           <div><p className="aa-eyebrow">Novo passo</p><h2 id="new-task-title">Adicionar tarefa de estudo</h2></div>
         </div>
-        <div className="aa-planning-form">
+        <form
+          className="aa-planning-form"
+          aria-labelledby="new-task-title"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
           <div className="aa-planning-form-row">
             <div className="aa-field">
               <label htmlFor="study-task-title">Tarefa</label>
@@ -270,12 +277,12 @@ export function StudyTaskBoard({
               <label htmlFor="study-task-due">Prazo</label>
               <input className="aa-input" id="study-task-due" type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
             </div>
-            <button className="aa-button aa-button-primary" type="button" disabled={isSubmitting || !title.trim()} onClick={submit}>
+            <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
               {isSubmitting ? "Criando…" : "Criar tarefa"}
             </button>
           </div>
           {error ? <p role="alert" className="aa-field-error">{error}</p> : null}
-        </div>
+        </form>
       </section>
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="upcoming-tasks-title">
@@ -284,7 +291,12 @@ export function StudyTaskBoard({
           <span className="aa-badge aa-badge-neutral">{items.length}</span>
         </div>
         {items.length === 0 ? (
-          <div className="aa-empty"><p>Nenhuma tarefa futura cadastrada.</p></div>
+          <div className="aa-empty">
+            <p>Nenhuma tarefa futura cadastrada.</p>
+            <a className="aa-button aa-button-secondary aa-button-sm" href="#study-task-title">
+              Criar primeira tarefa
+            </a>
+          </div>
         ) : (
           <ul className="aa-list aa-planning-list">
             {items.map((task) => (

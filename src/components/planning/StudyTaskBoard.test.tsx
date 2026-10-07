@@ -19,7 +19,7 @@ const task: StudyTask = {
 };
 
 describe("StudyTaskBoard", () => {
-  it("creates a task and adds it to the visible schedule", async () => {
+  it("creates a task and adds it to the visible schedule through the labeled form", async () => {
     const created = { ...task, id: "task-2", title: "Nova revisão" };
     const onCreate = vi.fn().mockResolvedValue(created);
 
@@ -34,7 +34,8 @@ describe("StudyTaskBoard", () => {
     fireEvent.change(screen.getByLabelText("Tarefa"), {
       target: { value: "Nova revisão" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Criar tarefa" }));
+    expect(screen.getByRole("button", { name: "Criar tarefa" })).toHaveAttribute("type", "submit");
+    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
 
     await waitFor(() =>
       expect(onCreate).toHaveBeenCalledWith({
@@ -44,6 +45,22 @@ describe("StudyTaskBoard", () => {
     );
     expect(await screen.findByText("Nova revisão")).toBeInTheDocument();
     expect(document.querySelector('img[src="/assets/icons/aa-cronograma.svg"]')).toBeInTheDocument();
+  });
+
+  it("offers a direct route to the task form when the schedule is empty", () => {
+    render(
+      <StudyTaskBoard
+        tasks={[]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+
+    expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Criar primeira tarefa" })).toHaveAttribute(
+      "href",
+      "#study-task-title",
+    );
   });
 
   it("removes a completed task from the upcoming list", async () => {
@@ -129,5 +146,4 @@ describe("StudyTaskBoard", () => {
 
     vi.unstubAllGlobals();
   });
-
 });
