@@ -49,17 +49,23 @@ describe("MissoesPage", () => {
     render(await MissoesPage());
 
     expect(screen.getByRole("heading", { name: "Missões", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("1/1 concluídas")).toBeInTheDocument();
+    expect(screen.getByText(/1\/1 concluídas/)).toBeInTheDocument();
     expect(screen.getByText("Concluir uma tarefa de estudo")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Missões de hoje" })).toBeInTheDocument();
     expect(document.querySelector('img[src="/assets/missions/aa-mission-document.svg"]')).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir cronograma" })).toHaveAttribute("href", "/cronograma");
+    expect(screen.queryByRole("link", { name: "Planejar um estudo" })).not.toBeInTheDocument();
     expect(listDailyMissionsMock).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
   });
 
-  it("renders an explicit empty state", async () => {
+  it("offers one clear route to plan a study when no mission exists", async () => {
     listDailyMissionsMock.mockResolvedValue([]);
 
     render(await MissoesPage());
 
     expect(screen.getByText("Nenhuma missão registrada hoje.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Planejar um estudo" })).toHaveAttribute("href", "/cronograma");
+    expect(screen.queryByRole("heading", { name: "Objetivos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Progresso significativo" })).not.toBeInTheDocument();
   });
 });
