@@ -46,14 +46,15 @@ select extensions.ok(
   'service_role não pode executar a RPC'
 );
 select extensions.ok(
-  not exists (
+  exists (
     select 1 from pg_constraint as constraint_row
     where constraint_row.conrelid = 'public.pages'::regclass
+      and constraint_row.conname = 'pages_chapter_id_position_unique'
       and constraint_row.contype = 'u'
-      and pg_get_constraintdef(constraint_row.oid) ilike '%chapter_id%'
-      and pg_get_constraintdef(constraint_row.oid) ilike '%position%'
+      and constraint_row.condeferrable
+      and not constraint_row.condeferred
   ),
-  'não existe UNIQUE(chapter_id, position)'
+  'UNIQUE(chapter_id, position) é deferrable e inicialmente imediata'
 );
 
 insert into auth.users (id, email)
@@ -243,45 +244,25 @@ select extensions.throws_ok(
 );
 
 reset role;
-update public.pages
-set position = 0
-where id = '40000000-0000-4000-8000-000000000002';
-
-select set_config(
-  'request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', true
-);
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}',
-  true
-);
-set local role authenticated;
-
 select extensions.throws_ok(
-  $$select public.move_workspace_page(
-    '40000000-0000-4000-8000-000000000001', 'down'
-  )$$,
-  '23514',
-  'Capítulo contém posições duplicadas.',
-  'estado inconsistente falha explicitamente'
+  $$update public.pages set position = 0
+    where id = '40000000-0000-4000-8000-000000000002'$$,
+  '23505',
+  null,
+  'posição duplicada é rejeitada pelo banco'
 );
 select extensions.is(
   (select position from public.pages
    where id = '40000000-0000-4000-8000-000000000001'),
   0,
-  'falha por duplicatas não move a página solicitada'
+  'tentativa duplicada preserva posição da página solicitada'
 );
 select extensions.is(
   (select position from public.pages
    where id = '40000000-0000-4000-8000-000000000002'),
-  0,
-  'falha por duplicatas não altera a página vizinha'
+  1,
+  'tentativa duplicada preserva posição da página vizinha'
 );
-
-reset role;
-update public.pages
-set position = 1
-where id = '40000000-0000-4000-8000-000000000002';
 
 create function pg_temp.fail_move_workspace_page_test()
 returns trigger
@@ -335,3 +316,4 @@ drop trigger move_workspace_page_test_failure on public.pages;
 
 select extensions.finish();
 rollback;
+
