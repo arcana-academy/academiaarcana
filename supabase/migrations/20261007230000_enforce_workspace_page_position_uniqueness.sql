@@ -131,7 +131,7 @@ begin
   v_target_id := (v_pages[v_target_index] ->> 'id')::uuid;
   v_target_position := (v_pages[v_target_index] ->> 'position')::integer;
 
-  set constraints pages_chapter_id_position_unique deferred;
+  set constraints public.pages_chapter_id_position_unique deferred;
 
   with desired(page_id, position) as (
     values
@@ -154,7 +154,7 @@ begin
   into v_updated_count, v_updated_pages
   from updated;
 
-  set constraints pages_chapter_id_position_unique immediate;
+  set constraints public.pages_chapter_id_position_unique immediate;
 
   if v_updated_count <> 2 then
     raise exception using
