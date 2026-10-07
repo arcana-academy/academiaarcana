@@ -1,13 +1,14 @@
-# AA-VIS-001 — Institutional Seal
+# AA-ASSET-001 — Institutional Seal
 
-Status: CANONICAL  
-Version: 1.0  
+Status: CURRENT / LEGACY IMPLEMENTATION  
+Version: 1.0
+Validation: PENDING — Fase 2 / Linguagem do Mundo  
 Category: brand / identity  
 File: `public/assets/brand/aa-institutional-seal.svg`
 
 ## Purpose
 
-Primary institutional seal for Academia Arcana.
+Current institutional-seal implementation for Academia Arcana.
 
 ## Visual construction
 
@@ -19,7 +20,7 @@ Primary institutional seal for Academia Arcana.
 - transparent background;
 - scalable SVG delivery.
 
-## Approved uses
+## Current uses
 
 - authenticated application navigation;
 - institutional identity surfaces;
@@ -32,8 +33,22 @@ The SVG includes an internal title and description for direct document embedding
 
 ## Restrictions
 
-Do not recolor, distort, rotate, add unrelated symbols, or replace the canonical geometry with text glyphs.
+Do not recolor, distort, rotate, add unrelated symbols, or replace the current geometry without an explicit Phase 2 migration with text glyphs.
 
 ## Repository role
 
-This is an approved web deliverable. Editable source artwork remains outside `public/assets/` according to the repository's visual asset policy.
+This is a current web deliverable. Editable source artwork remains outside `public/assets/` according to the repository's visual asset policy.
+
+
+## Phase 2 governance
+
+The asset remains a CURRENT implementation. Its geometry is not promoted to final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
+
+
+## Phase 2 metadata
+
+- **Graphic role:** institutional identity
+- **Consumer status:** ACTIVE
+- **Active consumers:** `src/components/layout/Sidebar.tsx`, `src/components/layout/AuthenticatedShell.tsx`
+- **Theme behavior:** PENDING — the current standalone SVG has not yet passed Phase 2 cross-theme validation.
+- **Originality/source status:** repository-tracked source exists; external/source provenance and originality have not been independently verified in this cycle. Final-canon promotion remains blocked until that review is complete.

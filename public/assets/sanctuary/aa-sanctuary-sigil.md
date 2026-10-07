@@ -1,7 +1,8 @@
-# AA-VIS-002 — Sanctuary Sigil
+# AA-ASSET-002 — Sanctuary Sigil
 
-Status: CANONICAL
+Status: CURRENT / LEGACY IMPLEMENTATION  
 Version: 1.0
+Validation: PENDING — Fase 2 / Linguagem do Mundo
 Category: sanctuary / identity
 File: `public/assets/sanctuary/aa-sanctuary-sigil.svg`
 
@@ -19,7 +20,7 @@ Dedicated atmospheric sigil for the Santuário, expressing orientation, continui
 - transparent background;
 - scalable SVG delivery.
 
-## Approved uses
+## Current uses
 
 - Santuário hero atmosphere;
 - Sanctuary-specific empty states and orientation surfaces when explicitly mapped;
@@ -32,3 +33,17 @@ The SVG has an internal title and description for direct document use. In the ap
 ## Restrictions
 
 Do not use it as a replacement for the institutional seal, navigation icon, or achievement badge. Do not depend on color alone to communicate a state.
+
+
+## Phase 2 governance
+
+This file documents a CURRENT asset already present in the product. Its existing geometry may continue to be used operationally, but it is not final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
+
+
+## Phase 2 metadata
+
+- **Graphic role:** domain sigil
+- **Consumer status:** ACTIVE
+- **Active consumers:** `src/components/sanctuary/SanctuaryHeader.tsx`
+- **Theme behavior:** PENDING — the current standalone SVG has not yet passed Phase 2 cross-theme validation.
+- **Originality/source status:** repository-tracked source exists; external/source provenance and originality have not been independently verified in this cycle. Final-canon promotion remains blocked until that review is complete.
