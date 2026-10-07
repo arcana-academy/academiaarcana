@@ -57,7 +57,7 @@ test("Cronograma pilot renders the real StudyTaskBoard at representative viewpor
     await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-pilot-status", "validation");
     await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "default");
     await expect(page.getByRole("heading", { name: "Cronograma", exact: true })).toBeVisible();
-    await expect(page.getByLabel("Tarefa")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Tarefa", exact: true })).toBeVisible();
     await expect(page.getByText("Revisar capítulo de Fisiologia")).toBeVisible();
     await assertNoHorizontalOverflow(page, viewport.label);
   }
@@ -113,7 +113,7 @@ test("Cronograma pilot preserves keyboard focus and reduced motion", async ({ pa
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
 
-  const input = page.getByLabel("Tarefa");
+  const input = page.getByRole("textbox", { name: "Tarefa", exact: true });
   await input.focus();
   await expect(input).toBeFocused();
 
@@ -139,7 +139,7 @@ test("Cronograma pilot covers empty, error and connected Outlook states determin
 
   await page.goto("/design-system/pilots/cronograma?scenario=error");
   await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "error");
-  await page.getByLabel("Tarefa").fill("Tarefa que falha");
+  await page.getByRole("textbox", { name: "Tarefa", exact: true }).fill("Tarefa que falha");
   await page.getByRole("button", { name: "Criar tarefa" }).click();
   await expect(page.getByRole("alert")).toHaveText("Não foi possível criar a tarefa.");
 
@@ -155,7 +155,7 @@ test("StudyTaskBoard remains usable when decorative assets fail", async ({ page 
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
 
   await expect(page.getByRole("heading", { name: "Cronograma", exact: true })).toBeVisible();
-  await expect(page.getByLabel("Tarefa")).toBeEnabled();
+  await expect(page.getByRole("textbox", { name: "Tarefa", exact: true })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Criar tarefa" })).toBeDisabled();
   await expect(page.getByText("Revisar capítulo de Fisiologia")).toBeVisible();
 });
