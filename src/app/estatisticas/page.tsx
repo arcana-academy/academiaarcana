@@ -376,7 +376,9 @@ function ReviewSection({ educational }: { educational: EducationalOverview }) {
                 <strong>Revisão liberada</strong>
                 <p>{review.reason}</p>
               </div>
-              <Link href={`/pratica?item=${encodeURIComponent(review.practiceItemId)}`}>
+              <Link
+                href={`/pratica?pagina=${encodeURIComponent(review.pageId)}&item=${encodeURIComponent(review.practiceItemId)}`}
+              >
                 Revisar
               </Link>
             </li>
