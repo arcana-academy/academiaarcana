@@ -101,7 +101,7 @@ describe("GrimoriosPage", () => {
     expect(html).toContain("Sua biblioteca");
     expect(html).toContain(">1 grimório<");
     expect(html).toContain("Novo grimório");
-    expect(html).toContain('href="/workspace?grimoire=grimoire-1"');
+    expect(html).toContain('href="/workspace?view=tree&amp;grimoire=grimoire-1#current"');
   });
 
   it("does not show an empty count when loading fails and offers a retry", async () => {
