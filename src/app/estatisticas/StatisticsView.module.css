@@ -1,0 +1,61 @@
+/* Phase 2 / Cycle 12 — StatisticsView analytical production pilot.
+   All rules are scoped to StatisticsView; shared primitives and global surfaces remain unchanged. */
+
+.statisticsView {
+  display: grid;
+  gap: var(--aa-spacing-lg);
+  min-width: 0;
+}
+
+.statisticsView :global(.aa-card) {
+  border-color: var(--aa-border-default);
+  box-shadow: var(--aa-shadows-sm);
+}
+
+.gamificationRegion {
+  min-width: 0;
+}
+
+.gamificationRegion :global(.aa-card-elevated) {
+  background: var(--aa-surfaces-elevated);
+  box-shadow: var(--aa-shadows-md);
+}
+
+.educationalOverview {
+  min-width: 0;
+  background: var(--aa-surfaces-panel);
+  box-shadow: var(--aa-shadows-sm);
+}
+
+.educationalOverview :global(.aa-card-elevated) {
+  background: var(--aa-surfaces-panel);
+  box-shadow: var(--aa-shadows-sm);
+}
+
+.analysisSection {
+  min-width: 0;
+  background: var(--aa-surfaces-panel);
+  box-shadow: var(--aa-shadows-sm);
+}
+
+.analysisSection :global(.aa-list-item) {
+  min-width: 0;
+  border-color: var(--aa-border-default);
+  background: var(--aa-surfaces-inset);
+}
+
+.analysisSection :global(.aa-list-item) > * {
+  min-width: 0;
+}
+
+.analysisSection :global(.aa-list-item) p,
+.analysisSection :global(.aa-list-item) span,
+.analysisSection :global(.aa-list-item) dd {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 48rem) {
+  .statisticsView {
+    gap: var(--aa-spacing-md);
+  }
+}
