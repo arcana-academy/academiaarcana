@@ -18,6 +18,7 @@ import {
   selfAssessmentEvidenceStateLabel,
 } from "@/lib/education/evidence-state-copy";
 import { getReviewPracticeHref } from "./review-handoff";
+import styles from "./StatisticsView.module.css";
 
 export type StatisticsGamificationProjection = {
   level: number;
@@ -45,7 +46,8 @@ function GamificationStats({
   gamification: StatisticsGamificationProjection;
 }) {
   return (
-    <ArcanaFeatureGrid>
+    <div className={styles.gamificationRegion} data-statistics-region="gamification">
+      <ArcanaFeatureGrid>
       <FeatureCard
         title="Nível"
         description="Progressão calculada exclusivamente a partir do XP persistido."
@@ -104,7 +106,8 @@ function GamificationStats({
       >
         <p className="aa-state-copy">{gamification.totalXp} XP</p>
       </FeatureCard>
-    </ArcanaFeatureGrid>
+      </ArcanaFeatureGrid>
+    </div>
   );
 }
 
@@ -112,7 +115,8 @@ function GamificationStats({
 function EducationalStats({ educational }: { educational: EducationalOverview }) {
   return (
     <section
-      className="aa-card aa-card-elevated"
+      className={`aa-card aa-card-elevated ${styles.educationalOverview}`}
+      data-statistics-region="educational-overview"
       aria-labelledby="education-stats-title"
     >
       <p className="aa-eyebrow">P1 · Estatísticas educacionais</p>
@@ -217,7 +221,11 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
 /** Renders confidence-labelled educational profile signals. */
 function ProfileSignals({ educational }: { educational: EducationalOverview }) {
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="profile-signals-title">
+    <section
+      className={`aa-card aa-card-default ${styles.analysisSection}`}
+      data-statistics-region="profile-signals"
+      aria-labelledby="profile-signals-title"
+    >
       <h2 id="profile-signals-title">Perfil educacional atual</h2>
       <p className="aa-state-copy">
         Estes são sinais revisáveis derivados do histórico disponível; não são
@@ -257,7 +265,11 @@ function ProfileSignals({ educational }: { educational: EducationalOverview }) {
 /** Renders item-level self-reported evidence projections. */
 function EvidenceSection({ educational }: { educational: EducationalOverview }) {
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="mastery-title">
+    <section
+      className={`aa-card aa-card-default ${styles.analysisSection}`}
+      data-statistics-region="self-reported-evidence"
+      aria-labelledby="mastery-title"
+    >
       <h2 id="mastery-title">Evidência autorreportada por conteúdo</h2>
       {educational.evidence.length ? (
         <ul className="aa-list">
@@ -293,7 +305,8 @@ function ObjectiveEvidenceSection({
 }) {
   return (
     <section
-      className="aa-card aa-card-default"
+      className={`aa-card aa-card-default ${styles.analysisSection}`}
+      data-statistics-region="objective-evidence"
       aria-labelledby="objective-evidence-title"
     >
       <h2 id="objective-evidence-title">Evidência objetiva</h2>
@@ -334,7 +347,11 @@ function ObjectiveEvidenceSection({
 /** Renders revisable signals derived from repeated weak educational evidence. */
 function GapsSection({ educational }: { educational: EducationalOverview }) {
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="gaps-title">
+    <section
+      className={`aa-card aa-card-default ${styles.analysisSection}`}
+      data-statistics-region="learning-gaps"
+      aria-labelledby="gaps-title"
+    >
       <h2 id="gaps-title">Possíveis lacunas</h2>
       {educational.learningGaps.length ? (
         <ul className="aa-list">
@@ -364,7 +381,11 @@ function ReviewSection({ educational }: { educational: EducationalOverview }) {
   const due = educational.reviews.filter((review) => review.due);
 
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="review-title">
+    <section
+      className={`aa-card aa-card-default ${styles.analysisSection}`}
+      data-statistics-region="reviews"
+      aria-labelledby="review-title"
+    >
       <h2 id="review-title">Revisão</h2>
       {due.length ? (
         <ul className="aa-list">
@@ -406,13 +427,15 @@ export function StatisticsView({
       title="Estatísticas"
       description="Indicadores educacionais derivados de tentativas reais, separados das métricas de gamificação."
     >
-      <GamificationStats gamification={gamification} />
-      <EducationalStats educational={educational} />
-      <ProfileSignals educational={educational} />
-      <EvidenceSection educational={educational} />
-      <ObjectiveEvidenceSection educational={educational} />
-      <GapsSection educational={educational} />
-      <ReviewSection educational={educational} />
+      <div className={styles.statisticsView} data-statistics-view="production">
+        <GamificationStats gamification={gamification} />
+        <EducationalStats educational={educational} />
+        <ProfileSignals educational={educational} />
+        <EvidenceSection educational={educational} />
+        <ObjectiveEvidenceSection educational={educational} />
+        <GapsSection educational={educational} />
+        <ReviewSection educational={educational} />
+      </div>
     </ArcanaPage>
   );
 }
