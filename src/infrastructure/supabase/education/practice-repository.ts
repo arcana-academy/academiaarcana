@@ -10,6 +10,7 @@ import type {
   PracticeOutcome,
 } from "@/domains/education";
 import { NORMALIZED_EXACT_MATCH_CRITERION } from "@/domains/education";
+import type { PageContent } from "@/domains/learning";
 
 type PageRow = { id: string; title: string };
 
@@ -28,6 +29,34 @@ type PracticeItemRow = {
   criterion?: string | null;
   criterion_version?: string | null;
   minimum_evidence?: number;
+};
+
+export type ArchivedPageLearningHistory = {
+  id: string;
+  sourcePageId: string;
+  archivedAt: string;
+  snapshot: {
+    page: { id: string; title: string; content: PageContent };
+    practiceItems: Array<{
+      id: string;
+      prompt: string;
+      reference_answer: string;
+      explanation: string | null;
+      attempts: Array<{
+        id: string;
+        answer: string;
+        outcome: PracticeOutcome;
+        evidence_score: number | string;
+        feedback: string;
+        created_at: string;
+      }>;
+    }>;
+    pageProgress: Array<{
+      status: string;
+      completed_at: string | null;
+      updated_at: string;
+    }>;
+  };
 };
 
 type PracticeAttemptRow = {
@@ -149,6 +178,29 @@ export class SupabaseEducationalPracticeRepository
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     return ((data ?? []) as PracticeAttemptRow[]).map(toAttempt);
+  }
+
+  /** Lists archived page snapshots and retained evidence for the authenticated owner. */
+  async listArchivedPageHistory(ownerId: string): Promise<ArchivedPageLearningHistory[]> {
+    const { data, error } = await this.supabase
+      .from("archived_page_learning_history")
+      .select("id, source_page_id, archived_at, snapshot")
+      .eq("owner_id", ownerId)
+      .order("archived_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    return ((data ?? []) as Array<{
+      id: string;
+      source_page_id: string;
+      archived_at: string;
+      snapshot: ArchivedPageLearningHistory["snapshot"];
+    }>).map((row) => ({
+      id: row.id,
+      sourcePageId: row.source_page_id,
+      archivedAt: row.archived_at,
+      snapshot: row.snapshot,
+    }));
   }
 
   /** Creates a self-assessment or bounded objective practice item. */
