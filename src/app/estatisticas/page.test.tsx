@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { buildEducationalOverview } from "@/application/education/p1";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const repositoryMocks = vi.hoisted(() => ({
@@ -69,6 +70,7 @@ vi.mock("@/components/layout/AuthenticatedShell", () => ({
 }));
 
 import EstatisticasPage from "./page";
+import { StatisticsView } from "./StatisticsView";
 
 const selfItem = {
   id: "self-item",
@@ -158,6 +160,34 @@ describe("EstatisticasPage", () => {
     expect(html).toContain("7 dias");
     expect(html).toContain("/assets/gamification/aa-contained-arcane-flame.svg");
     expect(html).toContain("1/1 concluídas");
+  });
+
+  it("keeps the extracted presentation byte-equivalent for the baseline projection", async () => {
+    const pageHtml = renderToStaticMarkup(await EstatisticasPage());
+    const educational = buildEducationalOverview(
+      [],
+      [],
+      [],
+      new Date("2026-10-07T00:00:00.000Z"),
+    );
+    const viewHtml = renderToStaticMarkup(
+      <div>
+        <StatisticsView
+          gamification={{
+            level: 4,
+            levelProgressXp: 0,
+            totalXp: 900,
+            streakDays: 7,
+            completedMissionCount: 1,
+            missionCount: 1,
+            progressPercent: 0,
+          }}
+          educational={educational}
+        />
+      </div>,
+    );
+
+    expect(pageHtml).toBe(viewHtml);
   });
 
   it("renders canonical review handoffs for self-assessment and objective activities", async () => {
