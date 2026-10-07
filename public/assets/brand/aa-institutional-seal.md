@@ -8,7 +8,7 @@ File: `public/assets/brand/aa-institutional-seal.svg`
 
 ## Purpose
 
-Primary institutional seal for Academia Arcana.
+Current institutional-seal implementation for Academia Arcana.
 
 ## Visual construction
 
@@ -20,7 +20,7 @@ Primary institutional seal for Academia Arcana.
 - transparent background;
 - scalable SVG delivery.
 
-## Approved uses
+## Current uses
 
 - authenticated application navigation;
 - institutional identity surfaces;
@@ -33,7 +33,7 @@ The SVG includes an internal title and description for direct document embedding
 
 ## Restrictions
 
-Do not recolor, distort, rotate, add unrelated symbols, or replace the canonical geometry with text glyphs.
+Do not recolor, distort, rotate, add unrelated symbols, or replace the current geometry without an explicit Phase 2 migration with text glyphs.
 
 ## Repository role
 
@@ -43,3 +43,12 @@ This is an approved web deliverable. Editable source artwork remains outside `pu
 ## Phase 2 governance
 
 The asset remains a CURRENT implementation. Its geometry is not promoted to final visual canon until it passes the Phase 2 world-language validation gate. The asset identifier uses the AA-ASSET namespace; AA-VIS identifiers are reserved for visual-system decisions.
+
+
+## Phase 2 metadata
+
+- **Graphic role:** institutional identity
+- **Consumer status:** ACTIVE
+- **Active consumers:** `src/components/layout/Sidebar.tsx`, `src/components/layout/AuthenticatedShell.tsx`
+- **Theme behavior:** PENDING — the current standalone SVG has not yet passed Phase 2 cross-theme validation.
+- **Originality/source status:** repository-tracked source exists; external/source provenance and originality have not been independently verified in this cycle. Final-canon promotion remains blocked until that review is complete.
