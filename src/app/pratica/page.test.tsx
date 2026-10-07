@@ -86,4 +86,30 @@ describe("PraticaPage", () => {
     expect(html).toContain("Como você avalia esta recuperação?");
     expect(html).not.toContain("Resposta de referência.");
   });
+
+  it("returns to the Workspace through the canonical selected-page URL", async () => {
+    const html = renderToStaticMarkup(
+      await PraticaPage({
+        searchParams: Promise.resolve({ pagina: "page-1" }),
+      }),
+    );
+
+    expect(html).toContain(
+      'href="/workspace?view=tree&amp;page=page-1#current"',
+    );
+  });
+
+  it("uses the real fallback page instead of propagating a stale requested page", async () => {
+    const html = renderToStaticMarkup(
+      await PraticaPage({
+        searchParams: Promise.resolve({ pagina: "stale-page" }),
+      }),
+    );
+
+    expect(html).toContain(
+      'href="/workspace?view=tree&amp;page=page-1#current"',
+    );
+    expect(html).not.toContain("page=stale-page");
+  });
+
 });
