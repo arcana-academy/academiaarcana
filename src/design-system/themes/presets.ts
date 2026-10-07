@@ -88,7 +88,7 @@ const sharedStatus = {
 };
 
 export const themePresets: Record<ThemeId, ThemePreset> = {
-  "mago-classico": createPreset("mago-classico", "Mago Clássico", { accent: { primary: "#B9A4CF", secondary: "#806A9A" } }),
+  "mago-classico": createPreset("mago-classico", "Mago Clássico", {}),
   escuro: createPreset("escuro", "Escuro", { surfaces: { canvas: "#101016", panel: "#181820", elevated: "#22222C", inset: "#0C0C11" }, accent: { primary: "#A89CC0", secondary: "#706685" } }),
   estudioso: createPreset("estudioso", "Estudioso", { surfaces: { canvas: "#191714", panel: "#25201A", elevated: "#302920", inset: "#14110E" }, accent: { primary: "#B69A6A", secondary: "#8D744D" }, typography: { body: "Georgia, serif", heading: "Georgia, serif" } }),
   natural: createPreset("natural", "Natural", { surfaces: { canvas: "#151B17", panel: "#1D271F", elevated: "#263329", inset: "#101510" }, accent: { primary: "#91B59A", secondary: "#64866D" } }),

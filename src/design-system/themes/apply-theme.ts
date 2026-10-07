@@ -1,8 +1,13 @@
 import { themePresets } from "./presets";
 import type { ThemeId, ThemePreset } from "../tokens/types";
 
+function toCssSegment(value: string): string {
+  const normalized = value.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+  return normalized === "breakpoints" ? "breakpoint" : normalized;
+}
+
 function toCssVariableName(path: string): string {
-  return `--aa-${path.replace(/\./g, "-")}`;
+  return `--aa-${path.split(".").map(toCssSegment).join("-")}`;
 }
 
 function flattenTokenChild(
