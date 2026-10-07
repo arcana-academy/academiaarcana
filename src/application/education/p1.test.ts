@@ -84,6 +84,13 @@ describe("educational overview", () => {
       passingAttemptCount: 2,
     });
 
+    expect(overview.reviews).toContainEqual(
+      expect.objectContaining({
+        practiceItemId: selfItem.id,
+        pageId: selfItem.pageId,
+      }),
+    );
+
     expect(overview.statistics.attemptCount).toBe(1);
     expect(overview.statistics.objectiveAttemptCount).toBe(2);
     expect(overview.statistics.objectiveConfirmedCount).toBe(1);
