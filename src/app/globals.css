@@ -2314,3 +2314,20 @@ p {
   }
 }
 
+/* Phase 2 / Cycle 8 — Cronograma production pilot.
+   Scope is intentionally local: shared surface/planning primitives remain unchanged. */
+.aa-study-task-board > .aa-surface {
+  border-color: var(--aa-border-default);
+  background: var(--aa-surfaces-panel);
+  box-shadow: var(--aa-shadows-sm);
+}
+
+.aa-study-task-board .aa-list-item {
+  border-color: var(--aa-border-default);
+  background: var(--aa-surfaces-inset);
+}
+
+.aa-study-task-board .aa-empty {
+  background: var(--aa-surfaces-inset);
+}
+
