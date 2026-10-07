@@ -47,6 +47,34 @@ describe("adaptive P1 signals", () => {
     });
   });
 
+  it("keeps criterion-referenced activities eligible for the existing review policy", () => {
+    const objectiveItem: PracticeItem = {
+      ...item,
+      id: "objective-1",
+      evidenceMode: "criterion_exact_match",
+      criterion: "Correspondência exata normalizada.",
+      criterionVersion: "1",
+      minimumEvidence: 2,
+    };
+    const objectiveAttempt: PracticeAttempt = {
+      ...attempt("objective-attempt", 1, "strong", "20"),
+      practiceItemId: objectiveItem.id,
+      evidenceType: "criterion-referenced",
+      criterionResult: "pass",
+    };
+
+    const review = buildReviewRecommendation(
+      objectiveItem,
+      [objectiveAttempt],
+      new Date("2026-09-28T00:00:00.000Z"),
+    );
+
+    expect(review).toMatchObject({
+      practiceItemId: "objective-1",
+      due: true,
+    });
+  });
+
   it("does not emit a gap signal from a single attempt", () => {
     expect(
       buildLearningGapSignal(item, [attempt("a1", 0.2, "insufficient", "29")]),
