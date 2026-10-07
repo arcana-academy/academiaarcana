@@ -19,7 +19,7 @@ describe("visual asset governance", () => {
   test("asset metadata does not reuse the AA-VIS decision namespace", () => {
     const violations = walkMarkdown(ASSET_ROOT)
       .filter((path) => path !== join(ASSET_ROOT, "README.md"))
-      .filter((path) => /^# AA-VIS-\d+/m.test(readFileSync(path, "utf8")))
+      .filter((path) => /\bAA-VIS-[A-Z0-9-]+\b/.test(readFileSync(path, "utf8")))
       .map((path) => relative(process.cwd(), path));
 
     expect(violations).toEqual([]);
