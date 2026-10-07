@@ -37,9 +37,10 @@ Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is re
 
 - `AA-ASSET-002` — `sanctuary/aa-sanctuary-sigil.svg`
 - metadata: `sanctuary/aa-sanctuary-sigil.md`
-- `icons/aa-workspace.svg` — CURRENT custom icon; individual Phase 2 metadata pending
-- `icons/aa-cronograma.svg` — CURRENT custom icon; individual Phase 2 metadata pending
-- `icons/aa-sanctuary.svg` — CURRENT custom icon; individual Phase 2 metadata pending
+- `AA-ASSET-010` — `icons/aa-workspace.svg`
+- `AA-ASSET-011` — `icons/aa-cronograma.svg`
+- `AA-ASSET-012` — `icons/aa-sanctuary.svg`
+- shared metadata: `icons/aa-academia-entry-icons.md`
 - `AA-ASSET-009` — `icons/aa-library-mark.svg`
 - metadata: `icons/aa-library-mark.md`
 
