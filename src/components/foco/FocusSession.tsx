@@ -1,7 +1,7 @@
 "use client";
 
 import { Pause, Play, RotateCcw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const DEFAULT_SECONDS = 25 * 60;
 
@@ -23,10 +23,30 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const completionInFlight = useRef(false);
+
+  const saveCompletedSession = useCallback(async (id: string) => {
+    if (completionInFlight.current) return;
+    completionInFlight.current = true;
+    setSaving(true);
+    try {
+      await completeSession(id);
+      setSessionId((current) => current === id ? null : current);
+      setError(null);
+    } catch (completionError) {
+      setError(
+        completionError instanceof Error
+          ? completionError.message
+          : "Não foi possível registrar a sessão.",
+      );
+    } finally {
+      completionInFlight.current = false;
+      setSaving(false);
+    }
+  }, [completeSession]);
 
   useEffect(() => {
     if (!running) return;
-
     if (deadline === null) return;
 
     const tick = () => {
@@ -35,22 +55,14 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
       if (nextRemaining === 0) {
         setRunning(false);
         setDeadline(null);
-        if (sessionId) {
-          setSaving(true);
-          void completeSession(sessionId)
-            .then(() => setSessionId(null))
-            .catch((completionError) => {
-              setError(completionError instanceof Error ? completionError.message : "Não foi possível registrar a sessão.");
-            })
-            .finally(() => setSaving(false));
-        }
+        if (sessionId) void saveCompletedSession(sessionId);
       }
     };
 
     tick();
     const interval = window.setInterval(tick, 250);
     return () => window.clearInterval(interval);
-  }, [completeSession, deadline, running, sessionId]);
+  }, [deadline, running, saveCompletedSession, sessionId]);
 
   const progress = useMemo(
     () => ((DEFAULT_SECONDS - remaining) / DEFAULT_SECONDS) * 100,
@@ -59,14 +71,15 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
   const completed = remaining === 0;
 
   function reset() {
+    if (saving || sessionId) return;
     setRunning(false);
     setDeadline(null);
     setRemaining(DEFAULT_SECONDS);
-    setSessionId(null);
     setError(null);
   }
 
   async function begin() {
+    if (saving || sessionId) return;
     setError(null);
     setSaving(true);
     try {
@@ -81,7 +94,13 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
     }
   }
 
-  const status = completed ? "Concluída" : running ? "Em andamento" : "Pausada";
+  const status = completed
+    ? sessionId
+      ? saving ? "Registrando" : "Registro pendente"
+      : "Concluída"
+    : running
+      ? "Em andamento"
+      : "Pausada";
 
   return (
     <section className="aa-focus-session" aria-labelledby="focus-session-title">
@@ -108,6 +127,11 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
           <div className="aa-progress-value" style={{ width: `${progress}%` }} />
         </div>
         {error ? <p className="aa-field-error" role="alert">{error}</p> : null}
+        {sessionId ? (
+          <p id="focus-session-reset-help" className="aa-state-copy">
+            Esta sessão já foi registrada. Pause ou retome o mesmo cronômetro; reiniciar fica disponível após a conclusão.
+          </p>
+        ) : null}
         <div className="aa-focus-session-actions">
           <button
             className="aa-button aa-button-primary"
@@ -115,7 +139,11 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
             onClick={() => {
               if (saving) return;
               if (completed) {
-                void begin();
+                if (sessionId) {
+                  void saveCompletedSession(sessionId);
+                } else {
+                  void begin();
+                }
                 return;
               }
               if (running) {
@@ -131,12 +159,28 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
               void begin();
             }}
             disabled={saving}
-            aria-label={running ? "Pausar sessão" : completed ? "Reiniciar sessão" : "Iniciar sessão"}
+            aria-label={
+              running
+                ? "Pausar sessão"
+                : completed
+                  ? sessionId ? "Tentar registrar sessão" : "Reiniciar sessão"
+                  : sessionId ? "Retomar sessão" : "Iniciar sessão"
+            }
           >
             {running ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
-            {running ? "Pausar" : completed ? "Reiniciar" : "Iniciar"}
+            {running
+              ? "Pausar"
+              : completed
+                ? sessionId ? saving ? "Registrando…" : "Tentar registrar" : "Reiniciar"
+                : sessionId ? "Retomar" : "Iniciar"}
           </button>
-          <button className="aa-button aa-button-secondary" type="button" onClick={reset}>
+          <button
+            className="aa-button aa-button-secondary"
+            type="button"
+            onClick={reset}
+            disabled={saving || Boolean(sessionId)}
+            aria-describedby={sessionId ? "focus-session-reset-help" : undefined}
+          >
             <RotateCcw size={18} aria-hidden="true" />
             Reiniciar
           </button>
