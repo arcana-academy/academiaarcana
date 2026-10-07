@@ -1495,15 +1495,17 @@ p {
   display: grid;
   place-items: center;
   min-height: 12rem;
-  margin-block: 1rem;
-  border: 1px solid color-mix(in srgb, var(--aa-accent-secondary) 55%, transparent);
+  margin-block: var(--aa-spacing-md);
+  border: 1px solid var(--aa-border-default);
   border-radius: var(--aa-radius-xl);
-  background: radial-gradient(circle, color-mix(in srgb, var(--aa-accent-primary) 14%, transparent), color-mix(in srgb, var(--aa-surfaces-inset) 32%, transparent) 65%);
+  background: var(--aa-surfaces-inset);
+  color: var(--aa-text-primary);
 }
 
 .aa-focus-timer span {
-  font-family: var(--aa-typography-heading);
+  font-family: var(--aa-typography-numeric);
   font-size: clamp(3.5rem, 10vw, 6.5rem);
+  font-weight: 650;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -1511,8 +1513,8 @@ p {
 .aa-focus-session-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.7rem;
-  margin-top: 1rem;
+  gap: var(--aa-spacing-sm);
+  margin-top: var(--aa-spacing-md);
 }
 
 
