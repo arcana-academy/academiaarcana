@@ -82,6 +82,8 @@ describe("GrimoriosPage", () => {
     expect(html).not.toContain("dados vinculados à sua conta");
     expect(html).not.toContain("Novo espaço");
     expect(html).not.toContain("Novo grimório");
+    expect(html).not.toContain("Abrir grimório");
+    expect(html).not.toContain("&amp;grimoire=");
   });
 
   it("shows the real list count and a clear action when grimoires exist", async () => {
@@ -115,5 +117,7 @@ describe("GrimoriosPage", () => {
     expect(html).toContain('type="submit"');
     expect(html).not.toContain("espaços de estudo");
     expect(html).not.toContain("Nenhum grimório ainda");
+    expect(html).not.toContain("Abrir grimório");
+    expect(html).not.toContain("&amp;grimoire=");
   });
 });
