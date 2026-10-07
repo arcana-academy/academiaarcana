@@ -17,7 +17,7 @@ export const AcademiaArcanaLanding = () => {
     <main className={styles.page}>
       <div className={styles.ambient} aria-hidden="true" />
       <nav className={styles.nav} aria-label="Navegação principal">
-        <Link href="/" className={styles.brand} aria-label="Academia Arcana"><span className={styles.brandMark}><Sparkles size={19} /></span><span className={styles.brandName}>Academia Arcana</span></Link>
+        <Link href="/" className={styles.brand} aria-label="Academia Arcana"><span className={styles.brandMark}><Sparkles size={20} /></span><span className={styles.brandName}>Academia Arcana</span></Link>
         <div className={styles.desktopNav}><a href="#recursos" className={styles.navLink}>Recursos</a><a href="#como-funciona" className={styles.navLink}>Como funciona</a><Link href="/login" className={styles.navCta}>Entrar na Academia</Link></div>
         <button type="button" className={styles.menuButton} aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? <X size={20} /> : <ChevronDown size={20} />}</button>
       </nav>
@@ -25,13 +25,13 @@ export const AcademiaArcanaLanding = () => {
 
       <section className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}><Wand2 size={14} /> Um novo jeito de estudar</p>
+          <p className={styles.eyebrow}><Wand2 size={16} /> Um novo jeito de estudar</p>
           <h1 id="home-title" className={styles.heroTitle}>Transforme seu estudo em <span>uma jornada.</span></h1>
           <p className={styles.lead}>A Academia Arcana une planejamento, foco, conhecimento e gamificação em uma experiência feita para você aprender com mais clareza — e continuar avançando.</p>
-          <div className={styles.actions}><Link href="/cadastro" className={styles.primary}>Descobrir a Academia <ArrowRight size={18} /></Link><a href="#recursos" className={styles.secondary}>Explorar recursos</a></div>
-          <div className={styles.trust} aria-label="Princípios do produto"><span><Check size={14} /> Acessível</span><span><Check size={14} /> Personalizável</span><span><Check size={14} /> Feito para aprender</span></div>
+          <div className={styles.actions}><Link href="/cadastro" className={styles.primary}>Descobrir a Academia <ArrowRight size={20} /></Link><a href="#recursos" className={styles.secondary}>Explorar recursos</a></div>
+          <div className={styles.trust} aria-label="Princípios do produto"><span><Check size={16} /> Acessível</span><span><Check size={16} /> Personalizável</span><span><Check size={16} /> Feito para aprender</span></div>
         </div>
-        <div className={styles.previewWrap} aria-label="Prévia do Santuário"><div className={styles.glow} aria-hidden="true" /><div className={styles.preview}><div className={styles.previewInner}><div className={styles.previewHeader}><div><p className={styles.previewKicker}>Seu santuário</p><h2 className={styles.previewTitle}>Boa noite, Arcanista.</h2></div><div className={styles.previewIcon}><Star size={18} /></div></div><div className={styles.mission}><div className={styles.missionMeta}><span>Missão de hoje</span><span>3 / 5</span></div><div className={styles.progress} aria-label="Progresso da missão: 60%"><div className={styles.progressBar} /></div><p className={styles.missionText}>Revisar Fundamentos de Neuroaprendizagem</p></div><div className={styles.stats}><div className={styles.stat}><p className={styles.statLabel}>Foco</p><p className={styles.statValue}>42 min</p></div><div className={styles.stat}><p className={styles.statLabel}>Sequência</p><p className={styles.statValue}>7 dias</p></div></div></div></div></div>
+        <div className={styles.previewWrap} aria-label="Prévia do Santuário"><div className={styles.glow} aria-hidden="true" /><div className={styles.preview}><div className={styles.previewInner}><div className={styles.previewHeader}><div><p className={styles.previewKicker}>Seu santuário</p><h2 className={styles.previewTitle}>Boa noite, Arcanista.</h2></div><div className={styles.previewIcon}><Star size={20} /></div></div><div className={styles.mission}><div className={styles.missionMeta}><span>Missão de hoje</span><span>3 / 5</span></div><div className={styles.progress} aria-label="Progresso da missão: 60%"><div className={styles.progressBar} /></div><p className={styles.missionText}>Revisar Fundamentos de Neuroaprendizagem</p></div><div className={styles.stats}><div className={styles.stat}><p className={styles.statLabel}>Foco</p><p className={styles.statValue}>42 min</p></div><div className={styles.stat}><p className={styles.statLabel}>Sequência</p><p className={styles.statValue}>7 dias</p></div></div></div></div></div>
       </section>
 
       <section id="recursos" className={styles.section + " " + styles.sectionBand} aria-labelledby="recursos-title">
