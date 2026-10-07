@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { getWorkspaceCanonicalHref } from "@/application/learning/workspace/state";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import type { Grimoire } from "@/domains/learning";
 import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/grimoire-repository";
@@ -97,7 +98,12 @@ export default async function GrimoiresPage() {
                     </div>
                     <Link
                       className="aa-button aa-button-ghost grimoires-library-open"
-                      href={`/workspace?grimoire=${encodeURIComponent(grimoire.id)}`}
+                      href={getWorkspaceCanonicalHref({
+                        grimoireId: grimoire.id,
+                        notebookId: null,
+                        chapterId: null,
+                        pageId: null,
+                      })}
                     >
                       Abrir grimório
                     </Link>
