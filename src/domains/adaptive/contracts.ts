@@ -24,6 +24,7 @@ export type AdaptiveRecommendation = {
 
 export type ReviewRecommendation = {
   practiceItemId: string;
+  pageId: string;
   due: boolean;
   nextReviewAt: string | null;
   reason: string;

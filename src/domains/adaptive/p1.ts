@@ -25,6 +25,7 @@ export function buildReviewRecommendation(
   if (!latest) {
     return {
       practiceItemId: item.id,
+      pageId: item.pageId,
       due: false,
       nextReviewAt: null,
       reason: "Ainda não há evidência para programar uma revisão.",
@@ -37,6 +38,7 @@ export function buildReviewRecommendation(
 
   return {
     practiceItemId: item.id,
+    pageId: item.pageId,
     due,
     nextReviewAt: next.toISOString(),
     reason: due
