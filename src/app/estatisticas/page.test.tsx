@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { buildEducationalOverview } from "@/application/education/p1";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const repositoryMocks = vi.hoisted(() => ({
@@ -69,6 +70,7 @@ vi.mock("@/components/layout/AuthenticatedShell", () => ({
 }));
 
 import EstatisticasPage from "./page";
+import { StatisticsView } from "./StatisticsView";
 
 const selfItem = {
   id: "self-item",
@@ -158,6 +160,54 @@ describe("EstatisticasPage", () => {
     expect(html).toContain("7 dias");
     expect(html).toContain("/assets/gamification/aa-contained-arcane-flame.svg");
     expect(html).toContain("1/1 concluídas");
+  });
+
+  it("keeps the extracted presentation byte-equivalent for the baseline projection", async () => {
+    const pageHtml = renderToStaticMarkup(await EstatisticasPage());
+    const educational = buildEducationalOverview(
+      [],
+      [],
+      [],
+      new Date("2026-10-07T00:00:00.000Z"),
+    );
+    const viewHtml = renderToStaticMarkup(
+      <div>
+        <StatisticsView
+          gamification={{
+            level: 4,
+            levelProgressXp: 0,
+            totalXp: 900,
+            streakDays: 7,
+            completedMissionCount: 1,
+            missionCount: 1,
+            progressPercent: 0,
+          }}
+          educational={educational}
+        />
+      </div>,
+    );
+
+    expect(pageHtml).toBe(viewHtml);
+  });
+
+  it("preserves the statistics semantic boundaries after extraction", async () => {
+    const html = renderToStaticMarkup(await EstatisticasPage());
+
+    expect(html).toContain('role="progressbar"');
+    expect(html).toContain('aria-label="Progresso para o próximo nível"');
+    expect(html).toContain(
+      "Ausência de tentativas permanece como ausência de evidência.",
+    );
+    expect(html).toContain("Evidência autorreportada por conteúdo");
+    expect(html).toContain("Evidência objetiva");
+    expect(html).toContain(
+      "Nenhuma avaliação objetiva foi criada ainda. A ausência aqui não significa ausência de aprendizagem.",
+    );
+    expect(html).toContain(
+      "Nenhuma lacuna sinalizada com a evidência disponível. Isso não significa que todas as competências estejam dominadas.",
+    );
+    expect(html).toContain("confiança");
+    expect(html).toContain("Não há revisão liberada neste momento.");
   });
 
   it("renders canonical review handoffs for self-assessment and objective activities", async () => {
