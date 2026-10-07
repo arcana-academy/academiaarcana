@@ -67,6 +67,8 @@ Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is re
 
 ## Metadata contract
 
+Every Markdown file below `public/assets/`, except this `README.md`, is an asset metadata record and must satisfy this contract.
+
 Every registered asset record must document:
 
 - stable `AA-ASSET-XXX` identifier;
