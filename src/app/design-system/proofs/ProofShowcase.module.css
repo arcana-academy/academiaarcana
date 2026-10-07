@@ -307,7 +307,7 @@
   overflow: hidden;
   min-height: 21rem;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(7rem, 0.4fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: var(--aa-spacing-lg);
   padding: var(--aa-spacing-lg);
@@ -335,10 +335,18 @@
 }
 
 .sanctuaryAtmosphere {
+  position: absolute;
+  right: var(--aa-spacing-lg);
+  top: 50%;
   z-index: 1;
   display: grid;
   place-items: center;
-  opacity: 0.76;
+  opacity: 0.52;
+  transform: translateY(-50%);
+}
+
+.targetSanctuary .targetContentPlate {
+  width: min(78%, 28rem);
 }
 
 .sanctuaryAtmosphere img {
@@ -382,9 +390,9 @@
   overflow: hidden;
   min-height: 21rem;
   display: grid;
-  grid-template-columns: minmax(6rem, 0.32fr) minmax(0, 1fr);
-  gap: var(--aa-spacing-lg);
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--aa-spacing-md);
+  align-content: center;
   padding: var(--aa-spacing-lg);
   border: 1px solid var(--aa-accent-primary);
   border-radius: var(--aa-radius-xl);
@@ -396,9 +404,11 @@
 
 .rewardHalo {
   position: absolute;
-  left: 12%;
+  left: 50%;
+  top: var(--aa-spacing-lg);
   width: 9rem;
   height: 9rem;
+  margin-left: -4.5rem;
   border: 1px solid color-mix(in srgb, var(--aa-accent-primary) 50%, transparent);
   border-radius: 50%;
   box-shadow:
@@ -411,8 +421,12 @@
   position: relative;
   z-index: 1;
   justify-self: center;
-  width: min(100%, 6rem);
+  width: min(100%, 5.5rem);
   height: auto;
+}
+
+.targetAchievement .targetContentPlate {
+  width: 100%;
 }
 
 .negativeAchievement {
@@ -460,10 +474,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .targetSanctuary,
-  .targetAchievement {
-    grid-template-columns: minmax(0, 1fr) minmax(6rem, 0.3fr);
-  }
 }
 
 @media (max-width: 48rem) {
@@ -491,10 +501,13 @@
   }
 
   .sanctuaryAtmosphere {
-    position: absolute;
     right: var(--aa-spacing-md);
-    top: var(--aa-spacing-md);
+    top: 50%;
     opacity: 0.28;
+  }
+
+  .targetSanctuary .targetContentPlate {
+    width: min(84%, 30rem);
   }
 
   .sanctuaryAtmosphere img {
@@ -502,11 +515,9 @@
   }
 
   .rewardHalo {
-    left: auto;
-    right: var(--aa-spacing-lg);
-    top: var(--aa-spacing-lg);
     width: 6rem;
     height: 6rem;
+    margin-left: -3rem;
     opacity: 0.5;
   }
 
@@ -549,6 +560,10 @@
 
   .sanctuaryAtmosphere {
     display: none;
+  }
+
+  .targetSanctuary .targetContentPlate {
+    width: 100%;
   }
 
   .targetSanctuary::after {
