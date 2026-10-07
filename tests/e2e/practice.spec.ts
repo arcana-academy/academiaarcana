@@ -40,5 +40,37 @@ test.describe("authenticated P1 practice surface", () => {
     const pages = page.getByRole("heading", { name: "Conteúdos praticáveis" });
 
     await expect(emptyState.or(pages)).toBeVisible();
+
+    const backToWorkspace = page.getByRole("link", {
+      name: "Voltar ao Workspace",
+    });
+
+    if (await pages.isVisible()) {
+      const href = await backToWorkspace.getAttribute("href");
+      expect(href).toMatch(
+        /^\/workspace\?view=tree&page=[^#]+#current$/,
+      );
+
+      await backToWorkspace.click();
+
+      await expect(page).toHaveURL(
+        /\/workspace\?view=tree&page=[^#]+#current$/,
+      );
+      await expect(page.locator('[aria-current="page"]')).toBeVisible();
+      await expect(page.locator('[data-active-path="true"]')).toHaveCount(4);
+
+      const canonicalUrl = page.url();
+      await page.reload();
+
+      await expect(page).toHaveURL(canonicalUrl);
+      await expect(page.locator('[aria-current="page"]')).toBeVisible();
+      await expect(page.locator('[data-active-path="true"]')).toHaveCount(4);
+      return;
+    }
+
+    await expect(backToWorkspace).toHaveAttribute("href", "/workspace");
+    await expect(
+      page.getByRole("link", { name: "Abrir Workspace" }),
+    ).toHaveAttribute("href", "/workspace");
   });
 });
