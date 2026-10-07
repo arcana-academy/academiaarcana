@@ -185,8 +185,8 @@ export function NotionConnectionPanel() {
       ) : (
         <>
           <div style={{ display: "grid", gap: "var(--aa-spacing-xs)" }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", alignItems: "center" }}>
-              <BookOpen size={18} aria-hidden="true" />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)", alignItems: "center" }}>
+              <BookOpen size={20} aria-hidden="true" />
               <strong>Conectado</strong>
               {status.workspace?.name ? <span>{status.workspace.name}</span> : null}
             </div>
@@ -241,7 +241,7 @@ export function NotionConnectionPanel() {
                         </small>
                       ) : null}
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)" }}>
                       <button
                         className="aa-button aa-button-secondary aa-button-sm"
                         type="button"
