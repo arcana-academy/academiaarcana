@@ -63,7 +63,7 @@ describe("StatisticsView accessibility and semantic boundary contract", () => {
 
   it("preserves objective confirmation, confidence and canonical review handoffs", () => {
     const { unmount } = renderScenario("objective-confirmed");
-    expect(screen.getByText("Confirmado", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/Confirmado · 3\/2 aprovações/)).toBeInTheDocument();
     expect(screen.getByText(/fonte: critério explícito/)).toBeInTheDocument();
     unmount();
 
