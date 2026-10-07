@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { CheckCircle2, Pause, Play, RotateCcw, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { useTheme } from "@/design-system/themes";
 import { THEME_IDS, themePresets } from "@/design-system/themes/presets";
@@ -26,7 +26,7 @@ function VariantCard({
   proofId: ProofId;
   variant: Variant;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <article
