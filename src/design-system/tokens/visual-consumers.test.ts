@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, test } from "vitest";
+import { themeToCssVariables } from "../themes/apply-theme";
+import { themePresets } from "../themes/presets";
 
 const SRC = join(process.cwd(), "src");
 const LEGACY_VARIABLES = [
@@ -30,7 +32,36 @@ function walkCss(directory: string): string[] {
   return walkFiles(directory, (name) => name.endsWith(".css"));
 }
 
+function readRootVariables(css: string): Record<string, string> {
+  const root = css.match(/:root\s*\{([\s\S]*?)\}/);
+  if (!root?.[1]) throw new Error("globals.css must define a :root token block");
+
+  return Object.fromEntries(
+    [...root[1].matchAll(/(--aa-[\w-]+)\s*:\s*([^;]+);/g)].map((match) => [
+      match[1],
+      match[2].replace(/\s+/g, " ").trim(),
+    ]),
+  );
+}
+
+function normalizeCssValue(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
 describe("visual consumer convergence", () => {
+  test("static :root fallback matches the mago-classico runtime theme", () => {
+    const css = readFileSync(join(SRC, "app/globals.css"), "utf8");
+    const rootVariables = readRootVariables(css);
+    const runtimeVariables = themeToCssVariables(themePresets["mago-classico"]);
+
+    for (const [property, value] of Object.entries(runtimeVariables)) {
+      expect(
+        rootVariables[property],
+        `${property} drifts between globals.css and mago-classico`,
+      ).toBe(normalizeCssValue(value));
+    }
+  });
+
   test("legacy visual variables are absent from every CSS consumer", () => {
     for (const path of walkCss(SRC)) {
       const css = readFileSync(path, "utf8");
