@@ -43,15 +43,42 @@ test("representative text-spacing override does not create structural overflow",
 
   for (const path of ["/", "/design-system?theme=mago-classico"]) {
     await page.goto(path);
-    await page.addStyleTag({
-      content: `
-        p, li, label, input, button, a {
+    await page.evaluate(() => {
+      const rule = `
+        .aa-wcag-text-spacing p,
+        .aa-wcag-text-spacing li,
+        .aa-wcag-text-spacing label,
+        .aa-wcag-text-spacing input,
+        .aa-wcag-text-spacing button,
+        .aa-wcag-text-spacing a {
           line-height: 1.5 !important;
           letter-spacing: 0.12em !important;
           word-spacing: 0.16em !important;
         }
-        p { margin-bottom: 2em !important; }
-      `,
+        .aa-wcag-text-spacing p { margin-bottom: 2em !important; }
+      `;
+
+      const sheet = [...document.styleSheets].find((candidate) => {
+        try {
+          return candidate.cssRules !== null;
+        } catch {
+          return false;
+        }
+      });
+
+      if (!sheet) throw new Error("No same-origin stylesheet available for text-spacing test.");
+
+      const index = sheet.cssRules.length;
+      sheet.insertRule(
+        ".aa-wcag-text-spacing p, .aa-wcag-text-spacing li, .aa-wcag-text-spacing label, .aa-wcag-text-spacing input, .aa-wcag-text-spacing button, .aa-wcag-text-spacing a { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }",
+        index,
+      );
+      sheet.insertRule(
+        ".aa-wcag-text-spacing p { margin-bottom: 2em !important; }",
+        index + 1,
+      );
+      document.documentElement.classList.add("aa-wcag-text-spacing");
+      void rule;
     });
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 1,
