@@ -77,6 +77,9 @@ jobs:
       - name: Run P1.5 objective evidence RLS and RPC tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_objective_evidence_p15_rls.test.sql
 
+      - name: Run archived learning history database tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_history_archive.test.sql
+
       - name: Stop local Supabase
         if: always()
         run: supabase stop
