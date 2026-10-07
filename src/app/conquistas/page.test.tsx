@@ -42,6 +42,9 @@ describe("ConquistasPage", () => {
     expect(html).toContain("Primeiro passo");
     expect(html).toContain("Aprendiz Arcano");
     expect(html).toContain("Constância");
+    expect(html).toContain("Progresso para Guardião das Missões");
+    expect(html).toContain('aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"');
+    expect(html).toContain("0/3 missões de hoje");
     expect(html).toContain('src="/assets/gamification/aa-achievement-emblem.svg"');
     expect(html).not.toContain("Nenhuma conquista persistida");
   });
