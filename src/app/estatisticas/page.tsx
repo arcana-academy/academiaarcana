@@ -24,6 +24,7 @@ import {
   selfAssessmentEvidenceStateLabel,
 } from "@/lib/education/evidence-state-copy";
 import { createClient } from "@/lib/supabase/server";
+import { getReviewPracticeHref } from "./review-handoff";
 
 /** Returns the current UTC calendar day used by persisted gamification missions. */
 function todayUtc(): string {
@@ -370,19 +371,25 @@ function ReviewSection({ educational }: { educational: EducationalOverview }) {
       <h2 id="review-title">Revisão</h2>
       {due.length ? (
         <ul className="aa-list">
-          {due.map((review) => (
-            <li className="aa-list-item aa-surface" key={review.practiceItemId}>
-              <div>
-                <strong>Revisão liberada</strong>
-                <p>{review.reason}</p>
-              </div>
-              <Link
-                href={`/pratica?pagina=${encodeURIComponent(review.pageId)}&item=${encodeURIComponent(review.practiceItemId)}`}
-              >
-                Revisar
-              </Link>
-            </li>
-          ))}
+          {due.map((review) => {
+            const practiceHref = getReviewPracticeHref(review, educational);
+
+            return (
+              <li className="aa-list-item aa-surface" key={review.practiceItemId}>
+                <div>
+                  <strong>Revisão liberada</strong>
+                  <p>{review.reason}</p>
+                </div>
+                {practiceHref ? (
+                  <Link href={practiceHref}>Revisar</Link>
+                ) : (
+                  <span className="aa-state-copy">
+                    Contexto da revisão indisponível.
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="aa-state-copy">Não há revisão liberada neste momento.</p>
