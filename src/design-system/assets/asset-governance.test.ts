@@ -42,15 +42,6 @@ function invalidDecisionNamespaceDeclarations(content: string): string[] {
   return [...headings, ...records];
 }
 
-function looksLikeAssetMetadata(content: string): boolean {
-  return (
-    /^Status:/m.test(content) ||
-    /^Category:/m.test(content) ||
-    /^File:/m.test(content) ||
-    /^Validation:/m.test(content)
-  );
-}
-
 describe("visual asset governance", () => {
   test("asset identifier declarations do not reuse the AA-VIS decision namespace", () => {
     const violations = metadataFiles().flatMap((path) => {
@@ -87,10 +78,9 @@ describe("visual asset governance", () => {
 
   test("asset metadata requires at least one valid AA-ASSET declaration", () => {
     const violations = metadataFiles()
-      .filter((path) => {
-        const content = readFileSync(path, "utf8");
-        return looksLikeAssetMetadata(content) && declaredAssetIds(content).length === 0;
-      })
+      .filter(
+        (path) => declaredAssetIds(readFileSync(path, "utf8")).length === 0,
+      )
       .map((path) => relative(process.cwd(), path));
 
     expect(violations).toEqual([]);
@@ -101,7 +91,6 @@ describe("visual asset governance", () => {
 
     for (const path of metadataFiles()) {
       const content = readFileSync(path, "utf8");
-      if (!looksLikeAssetMetadata(content)) continue;
 
       const required = [
         "Graphic role",
