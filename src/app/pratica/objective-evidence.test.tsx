@@ -28,6 +28,37 @@ const item = {
 };
 
 describe("ObjectiveEvidenceSection", () => {
+  it("does not implicitly select the first objective assessment when none is requested", () => {
+    const html = renderToStaticMarkup(
+      <ObjectiveEvidenceSection
+        pageId="page-1"
+        items={[item]}
+        attempts={[]}
+        selectedObjectiveItemId={undefined}
+        evidence={[]}
+      />,
+    );
+
+    expect(html).toContain("Avaliações com critério explícito");
+    expect(html).not.toContain('id="objective-session-title"');
+    expect(html).not.toContain('aria-current="page"');
+  });
+
+  it("does not fall back to the first objective assessment for a stale selector", () => {
+    const html = renderToStaticMarkup(
+      <ObjectiveEvidenceSection
+        pageId="page-1"
+        items={[item]}
+        attempts={[]}
+        selectedObjectiveItemId="stale-assessment"
+        evidence={[]}
+      />,
+    );
+
+    expect(html).not.toContain('id="objective-session-title"');
+    expect(html).not.toContain('aria-current="page"');
+  });
+
   it("does not expose the reference before an objective attempt", () => {
     const html = renderToStaticMarkup(
       <ObjectiveEvidenceSection
