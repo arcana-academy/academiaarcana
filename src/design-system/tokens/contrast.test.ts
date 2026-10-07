@@ -48,6 +48,14 @@ describe("theme semantic contrast", () => {
     expectAaContrast(themeId, "text.primary / surfaces.inset", theme.text.primary, theme.surfaces.inset);
     expectAaContrast(themeId, "text.secondary / surfaces.canvas", theme.text.secondary, theme.surfaces.canvas);
     expectAaContrast(themeId, "text.secondary / surfaces.panel", theme.text.secondary, theme.surfaces.panel);
+    expectAaContrast(themeId, "text.muted / surfaces.canvas", theme.text.muted, theme.surfaces.canvas);
+    expectAaContrast(themeId, "text.muted / surfaces.panel", theme.text.muted, theme.surfaces.panel);
+    expectAaContrast(themeId, "accent.primary / surfaces.canvas", theme.accent.primary, theme.surfaces.canvas);
+    expectAaContrast(themeId, "accent.primary / surfaces.panel", theme.accent.primary, theme.surfaces.panel);
+    expectAaContrast(themeId, "status.success / surfaces.panel", theme.status.success, theme.surfaces.panel);
+    expectAaContrast(themeId, "status.warning / surfaces.panel", theme.status.warning, theme.surfaces.panel);
+    expectAaContrast(themeId, "status.danger / surfaces.panel", theme.status.danger, theme.surfaces.panel);
+    expectAaContrast(themeId, "status.info / surfaces.panel", theme.status.info, theme.surfaces.panel);
     expectAaContrast(themeId, "text.inverse / accent.primary", theme.text.inverse, theme.accent.primary);
     expectAaContrast(themeId, "text.inverse / status.danger", theme.text.inverse, theme.status.danger);
   });
