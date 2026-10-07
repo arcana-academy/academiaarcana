@@ -13,10 +13,11 @@ describe("Phase 2 proof registry", () => {
     expect(proofRegistry).toHaveLength(4);
   });
 
-  test("proofs remain experimental and do not claim final asset status", () => {
+  test("proof-level approvals remain constrained and separate from final asset status", () => {
     for (const proof of proofRegistry) {
       expect(proof.id).toMatch(/^AA-PROOF-\d{3}$/);
-      expect(proof.verdict).toBe("EXPERIMENTAL");
+      expect(proof.verdict).toBe("APPROVED_WITH_CONSTRAINT");
+      expect(proof.constraint.trim().length).toBeGreaterThan(0);
       expect(proof.currentAsset ?? "").not.toMatch(/^AA-PROOF-/);
     }
   });

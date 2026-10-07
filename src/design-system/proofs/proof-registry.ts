@@ -19,6 +19,7 @@ export type ProofDefinition = {
   currentSource: string;
   currentAsset?: string;
   verdict: ProofVerdict;
+  constraint: string;
 };
 
 export const proofRegistry: readonly ProofDefinition[] = [
@@ -32,7 +33,8 @@ export const proofRegistry: readonly ProofDefinition[] = [
     light: ["functional", "activation"],
     currentSource: "src/components/foco/FocusSession.tsx",
     currentAsset: "AA-ASSET-006",
-    verdict: "EXPERIMENTAL",
+    verdict: "APPROVED_WITH_CONSTRAINT",
+    constraint: "Activation remains subtle and non-reward; Focus meaning cannot depend on motion or the legacy sigil.",
   },
   {
     id: "AA-PROOF-002",
@@ -44,7 +46,8 @@ export const proofRegistry: readonly ProofDefinition[] = [
     light: ["ambient"],
     currentSource: "src/app/grimorios/page.tsx",
     currentAsset: "AA-ASSET-003",
-    verdict: "EXPERIMENTAL",
+    verdict: "APPROVED_WITH_CONSTRAINT",
+    constraint: "T2 remains localized to the world object; AA-ASSET-003 remains legacy and is not final material canon.",
   },
   {
     id: "AA-PROOF-003",
@@ -56,7 +59,8 @@ export const proofRegistry: readonly ProofDefinition[] = [
     light: ["ambient", "transformation-conditional"],
     currentSource: "src/components/sanctuary/SanctuaryHeader.tsx",
     currentAsset: "AA-ASSET-002",
-    verdict: "EXPERIMENTAL",
+    verdict: "APPROVED_WITH_CONSTRAINT",
+    constraint: "T3 stays peripheral and removable on mobile; AA-ASSET-002 remains a decorative legacy sigil.",
   },
   {
     id: "AA-PROOF-004",
@@ -68,6 +72,7 @@ export const proofRegistry: readonly ProofDefinition[] = [
     light: ["transformation", "reward"],
     currentSource: "src/app/conquistas/page.tsx",
     currentAsset: "AA-ASSET-005",
-    verdict: "EXPERIMENTAL",
+    verdict: "APPROVED_WITH_CONSTRAINT",
+    constraint: "M3 is transient; this proof validates peak composition, not production state choreography or final AA-ASSET-005 geometry.",
   },
 ] as const;
