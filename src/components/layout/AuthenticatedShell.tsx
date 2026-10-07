@@ -2,7 +2,7 @@ import Image from "next/image";
 import { signOut } from "@/lib/auth/actions";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
 import { Sidebar } from "@/components/layout/Sidebar";
-import type { AuthenticatedRouteHref } from "@/config/navigation";
+import { navigationItems, type AuthenticatedRouteHref } from "@/config/navigation";
 
 type AuthenticatedShellProps = {
   currentPath: AuthenticatedRouteHref;
@@ -10,6 +10,8 @@ type AuthenticatedShellProps = {
 };
 
 export function AuthenticatedShell({ currentPath, children }: AuthenticatedShellProps) {
+  const currentNavigationItem = navigationItems.find((item) => item.href === currentPath);
+
   return (
     <div className="aa-shell">
       <Sidebar currentPath={currentPath} />
@@ -27,7 +29,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
           <div className="aa-topbar-context">
             <span className="aa-topbar-eyebrow">Academia Arcana</span>
             <span className="aa-topbar-divider" aria-hidden="true">/</span>
-            <span>Jornada de aprendizagem</span>
+            <span>{currentNavigationItem?.label ?? "Jornada de aprendizagem"}</span>
           </div>
 
           <form action={signOut}>
