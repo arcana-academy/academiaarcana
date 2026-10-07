@@ -20,7 +20,8 @@ describe("AuthenticatedShell", () => {
     expect(
       screen.getByRole("link", { name: "Academia Arcana — Santuário" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Jornada de aprendizagem")).toBeInTheDocument();
+    const topbarContext = container.querySelector(".aa-topbar-context");
+    expect(topbarContext).toHaveTextContent("Academia Arcana/Santuário");
     const institutionalSeals = container.querySelectorAll('img[src="/assets/brand/aa-institutional-seal.svg"]');
     expect(institutionalSeals).toHaveLength(2);
     expect(Array.from(institutionalSeals).every((image) => image.getAttribute("src") === "/assets/brand/aa-institutional-seal.svg")).toBe(true);
@@ -33,5 +34,17 @@ describe("AuthenticatedShell", () => {
         name: "Seu Santuário de aprendizagem",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("reflects the current area in the topbar context", () => {
+    const { container } = render(
+      <AuthenticatedShell currentPath="/amigos">
+        <main>Conteúdo social</main>
+      </AuthenticatedShell>,
+    );
+
+    const topbar = container.querySelector(".aa-topbar-context");
+    expect(topbar).toHaveTextContent("Academia Arcana/Amigos");
+    expect(topbar).not.toHaveTextContent("Jornada de aprendizagem");
   });
 });

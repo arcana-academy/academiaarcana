@@ -53,8 +53,8 @@ Impacto: MÉDIO/ALTO. R008 dizia que a nomenclatura de domínio ainda era parcia
 ### C-04 — P1.5 reconciliado no main
 Impacto: ALTO, resolvido. O estado corrente separa autoavaliação e evidência objetiva, preserva estado conflitante e separa contagens de tentativa; P1.5 continua limitado a criterion-referenced.
 
-### C-05 — Vercel em fontes históricas versus Render no estado arquitetural atual
-Impacto: ALTO entre domínios; fora da autoridade de Produto. O repositório atual usa Render como runtime/publicação canônica. Produto não altera Arquitetura ou Infraestrutura; a divergência foi encaminhada a Architecture + Documentation.
+### C-05 — Reconciliação das fontes históricas com Render
+Impacto: ALTO entre domínios; fora da autoridade de Produto. O repositório atual usa Render como runtime/publicação canônica. Reconciliação documental autorizada pelo usuário em 04/10/2026: Render permanece como único runtime/publicação canônico, sem etapa futura em outro provedor. Produto não altera Arquitetura ou Infraestrutura.
 
 ## O QUE FOI CORRIGIDO
 
@@ -121,8 +121,8 @@ Adaptive + Education + Learning devem definir sinais, confiança, calibração, 
 ### PI-03 — Social funcional
 Social + Identity + Authorization + UI/UX + QA; P2; superfície preparada, função real pendente.
 
-### PI-04 — Reconciliação documental de infraestrutura
-Architecture + Documentation devem reconciliar referências históricas a Vercel com o estado atual baseado em Render. Produto não define provedor.
+### PI-04 — Reconciliação documental de infraestrutura — RESOLVIDA
+Resolvida em 04/10/2026 por instrução do usuário: GitHub + GitHub Actions + Render + Supabase. A publicação continua condicionada ao Quality Gate e à aprovação explícita. Produto não define provedor. Este item é histórico e não constitui dependência ativa.
 
 ## BLOQUEIOS
 
@@ -130,7 +130,7 @@ Nenhum bloqueio crítico de Produto identificado.
 
 ## DEPENDÊNCIAS PARA OUTROS CHATS
 
-- Architecture: respeitar fronteiras funcionais; não promover issue histórica sem vínculo canônico; receber PI-04.
+- Architecture: respeitar fronteiras funcionais e não promover issue histórica sem vínculo canônico; PI-04 está resolvida.
 - Education: autoavaliação é autorreportada; evidência objetiva deve respeitar tarefa, critério e escopo.
 - Learning: separar fonte de evidência e claim de domínio; manter estados e proveniência.
 - Adaptive: revisão atual é heurística V1; evolução além dela é P2.
@@ -151,7 +151,7 @@ Nenhum bloqueio crítico de Produto identificado.
 
 ## PRÓXIMA AÇÃO
 
-QA/CI finaliza o gate do PR #473; Architecture + Documentation reconciliam a documentação de infraestrutura; Adaptive + Education + Learning tratam PI-02 como evolução P2; demais chats consomem os três documentos canônicos de Produto como contrato corrente.
+QA/CI finaliza o gate do PR #473; Adaptive + Education + Learning tratam PI-02 como evolução P2; demais chats consomem os três documentos canônicos de Produto como contrato corrente. A reconciliação de infraestrutura de PI-04 já está concluída.
 
 ## CRITÉRIO DE NÃO-REGRESSÃO FINAL
 

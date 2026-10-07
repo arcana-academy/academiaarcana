@@ -832,14 +832,14 @@ State: **CANÔNICO + DOCUMENTADO + VALIDADO**, with the current CSS-versus-Tailw
 
 **TÍTULO:** Exclusividade operacional do Render no baseline atual
 
-**CONTEXTO:** A arquitetura atual utiliza Render como plataforma canônica de runtime e deployment. Registros históricos ou constitucionais podem mencionar uma eventual etapa futura relacionada à Vercel, mas isso não constitui uma segunda cadeia operacional ativa.
+**CONTEXTO:** A arquitetura atual utiliza Render como plataforma canônica de runtime e deployment. A documentação de publicação deve refletir exclusivamente essa plataforma e o Quality Gate vigente.
 
-**PROBLEMA:** Uma formulação sobre uso futuro de Vercel pode ser interpretada como autorização operacional imediata ou como coexistência entre plataformas.
+**PROBLEMA:** Referências a plataformas descontinuadas podem criar uma segunda cadeia operacional indevida.
 
-**DECISÃO:** No baseline atual, Render é o único provedor canônico de application runtime/production deployment. Vercel e Netlify não fazem parte da cadeia operacional corrente e não devem ser introduzidos como caminho paralelo, fallback, preview de produção ou substituição implícita. Qualquer futura transição de plataforma dependerá da autoridade superior aplicável e de uma nova decisão arquitetural explícita, com migração, validação e não-regressão.
+**DECISÃO:** No baseline atual, Render é o único provedor canônico de application runtime/production deployment. Provedores alternativos não fazem parte da cadeia operacional corrente e não devem ser introduzidos como caminho paralelo, fallback, preview de produção ou substituição implícita. Qualquer futura transição de plataforma dependerá da autoridade superior aplicável e de uma nova decisão arquitetural explícita, com migração, validação e não-regressão.
 
 **ALTERNATIVAS CONSIDERADAS:**
-- manter Render e Vercel em paralelo;
+- manter dois provedores de runtime em paralelo;
 - permitir fallback implícito;
 - manter Render como único runtime atual e tratar qualquer migração futura como decisão formal.
 
