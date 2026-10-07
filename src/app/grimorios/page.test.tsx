@@ -46,8 +46,28 @@ describe("GrimoriosPage", () => {
     expect(html).toContain("Fisiologia");
     expect(html).toContain("/assets/icons/aa-library-mark.svg");
     expect(html).toContain("/assets/grimoires/aa-grimoire-cover-base.svg");
-    expect(html).toContain("href=\"/workspace?grimoire=grimoire-1\"");
+    expect(html).toContain("href=\"/workspace?view=tree&amp;grimoire=grimoire-1#current\"");
     expect(listByOwner).toHaveBeenCalledWith("user-1");
+  });
+
+  it("encodes the authenticated grimoire id in the canonical Workspace handoff", async () => {
+    listByOwner.mockResolvedValue([
+      {
+        id: "grimoire/with space",
+        ownerId: "user-1",
+        title: "Bioquímica",
+        description: null,
+        createdAt: "2026-01-01",
+        updatedAt: "2026-01-01",
+      },
+    ]);
+
+    const html = renderToStaticMarkup(await GrimoriosPage());
+
+    expect(html).toContain(
+      'href="/workspace?view=tree&amp;grimoire=grimoire%2Fwith%20space#current"',
+    );
+    expect(html).not.toContain('href="/workspace?grimoire=');
   });
 
   it("shows a focused empty state with one clear creation action", async () => {
@@ -62,6 +82,8 @@ describe("GrimoriosPage", () => {
     expect(html).not.toContain("dados vinculados à sua conta");
     expect(html).not.toContain("Novo espaço");
     expect(html).not.toContain("Novo grimório");
+    expect(html).not.toContain("Abrir grimório");
+    expect(html).not.toContain("&amp;grimoire=");
   });
 
   it("shows the real list count and a clear action when grimoires exist", async () => {
@@ -81,7 +103,7 @@ describe("GrimoriosPage", () => {
     expect(html).toContain("Sua biblioteca");
     expect(html).toContain(">1 grimório<");
     expect(html).toContain("Novo grimório");
-    expect(html).toContain('href="/workspace?grimoire=grimoire-1"');
+    expect(html).toContain('href="/workspace?view=tree&amp;grimoire=grimoire-1#current"');
   });
 
   it("does not show an empty count when loading fails and offers a retry", async () => {
@@ -95,5 +117,7 @@ describe("GrimoriosPage", () => {
     expect(html).toContain('type="submit"');
     expect(html).not.toContain("espaços de estudo");
     expect(html).not.toContain("Nenhum grimório ainda");
+    expect(html).not.toContain("Abrir grimório");
+    expect(html).not.toContain("&amp;grimoire=");
   });
 });
