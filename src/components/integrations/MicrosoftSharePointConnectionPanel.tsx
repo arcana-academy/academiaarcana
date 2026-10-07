@@ -275,8 +275,8 @@ export function MicrosoftSharePointConnectionPanel() {
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
-            <CheckCircle2 size={18} aria-hidden="true" />
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--aa-spacing-sm)", flexWrap: "wrap" }}>
+            <CheckCircle2 size={20} aria-hidden="true" />
             <strong>Conta Microsoft conectada</strong>
             {status.verifiedAt ? <span className="aa-state-copy">verificada em {new Date(status.verifiedAt).toLocaleString("pt-BR")}</span> : null}
           </div>
@@ -364,13 +364,13 @@ export function MicrosoftSharePointConnectionPanel() {
                     <div style={{ minWidth: 0 }}>
                       <strong style={{ display: "block" }}>{item.name ?? item.id}</strong>
                       <small>
-                        <FileText size={14} aria-hidden="true" />
+                        <FileText size={16} aria-hidden="true" />
                         {item.file?.mimeType ?? (item.folder ? "Pasta" : "Documento")}
                         {formatSize(item.size) ? ` · ${formatSize(item.size)}` : ""}
                         {item.lastModifiedDateTime ? ` · ${new Date(item.lastModifiedDateTime).toLocaleDateString("pt-BR")}` : ""}
                       </small>
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)" }}>
                       {item.webUrl ? <a className="aa-button aa-button-secondary aa-button-sm" href={item.webUrl} target="_blank" rel="noreferrer" aria-label={`Abrir ${item.name ?? "documento"} no SharePoint`}><ExternalLink size={16} aria-hidden="true" /> Abrir</a> : null}
                       <button className="aa-button aa-button-primary aa-button-sm" type="button" onClick={() => void selectSource(item)} disabled={busy}>
                         <FileText size={16} aria-hidden="true" /> Usar como fonte
@@ -390,7 +390,7 @@ export function MicrosoftSharePointConnectionPanel() {
                 Esta fonte foi registrada no seu workspace com RLS. O navegador recebe apenas metadados; o token Microsoft permanece no servidor.
               </p>
               {selectedSource.id ? <p className="aa-state-copy">Fonte registrada: {selectedSource.id}</p> : null}
-              <dl style={{ display: "grid", gap: "0.5rem" }}>
+              <dl style={{ display: "grid", gap: "var(--aa-spacing-sm)" }}>
                 <div><dt><strong>Tipo</strong></dt><dd>{selectedSource.mimeType ?? "não informado"}</dd></div>
                 <div><dt><strong>Tamanho</strong></dt><dd>{formatSize(selectedSource.size ?? undefined) ?? "não informado"}</dd></div>
               </dl>
