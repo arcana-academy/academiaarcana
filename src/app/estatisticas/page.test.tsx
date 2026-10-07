@@ -173,12 +173,14 @@ describe("EstatisticasPage", () => {
 
     const html = renderToStaticMarkup(await EstatisticasPage());
 
-    expect(html).toContain(
-      'href="/pratica?pagina=page-1&amp;item=self-item"',
-    );
-    expect(html).toContain(
-      'href="/pratica?pagina=page-2&amp;avaliacao=objective-item"',
-    );
+    expect(
+      html.match(/href="\/pratica\?pagina=page-1&amp;item=self-item"/g),
+    ).toHaveLength(2);
+    expect(
+      html.match(
+        /href="\/pratica\?pagina=page-2&amp;avaliacao=objective-item"/g,
+      ),
+    ).toHaveLength(2);
     expect(html).not.toContain('href="/pratica?item=');
   });
 
