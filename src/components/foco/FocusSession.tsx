@@ -167,7 +167,7 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
                   : sessionId ? "Retomar sessão" : "Iniciar sessão"
             }
           >
-            {running ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
+            {running ? <Pause size={20} aria-hidden="true" /> : <Play size={20} aria-hidden="true" />}
             {running
               ? "Pausar"
               : completed
@@ -181,7 +181,7 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
             disabled={saving || Boolean(sessionId)}
             aria-describedby={sessionId ? "focus-session-reset-help" : undefined}
           >
-            <RotateCcw size={18} aria-hidden="true" />
+            <RotateCcw size={20} aria-hidden="true" />
             Reiniciar
           </button>
         </div>
