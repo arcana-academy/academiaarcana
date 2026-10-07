@@ -184,7 +184,7 @@ Repetition alone does not make a motif canonical.
 | AA-ASSET-006 | focus/aa-focus-sigil.svg | domain sigil | CURRENT / LEGACY IMPLEMENTATION |
 | AA-ASSET-007 | missions/aa-mission-document.svg | world object / domain motif | CURRENT / LEGACY IMPLEMENTATION |
 | AA-ASSET-008 | intelligence/aa-arcane-core.svg | domain sigil | CURRENT / LEGACY IMPLEMENTATION |
-| AA-ASSET-009 | icons/aa-library-mark.svg | custom knowledge mark | CURRENT / LEGACY IMPLEMENTATION |
+| AA-ASSET-009 | icons/aa-library-mark.svg | domain sigil | CURRENT / LEGACY IMPLEMENTATION |
 | AA-ASSET-010 | icons/aa-workspace.svg | functional icon | UNUSED CANDIDATE |
 | AA-ASSET-011 | icons/aa-cronograma.svg | functional icon | ACTIVE / LEGACY IMPLEMENTATION |
 | AA-ASSET-012 | icons/aa-sanctuary.svg | functional icon | UNUSED CANDIDATE |
