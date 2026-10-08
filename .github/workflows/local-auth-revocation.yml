@@ -1,0 +1,51 @@
+name: Academia Arcana Local Auth Revocation
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-auth-revocation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-auth-revocation:
+    name: Isolated two-account Auth and RLS exercise
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Install test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Start ephemeral local Supabase
+        run: supabase start
+
+      - name: Exercise two isolated identities and global session revocation
+        run: node scripts/security/test-local-auth-revocation.mjs
+
+      - name: Stop ephemeral Supabase
+        if: always()
+        run: supabase stop --no-backup
