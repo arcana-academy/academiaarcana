@@ -8,15 +8,16 @@ import { SupabaseSocialRepository } from "@/infrastructure/supabase/social/socia
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 
-import {
-  acceptFriendRequestAction,
-  cancelFriendRequestAction,
-  declineFriendRequestAction,
-  removeFriendConnectionAction,
-} from "./actions";
-
 function countLabel(count: number, singular: string, plural: string) {
   return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function ConnectionActionUnavailable() {
+  return (
+    <p className="aa-state-copy" role="status">
+      Ações indisponíveis até que esta conexão possa ser identificada com segurança.
+    </p>
+  );
 }
 
 export default async function AmigosPage() {
@@ -62,25 +63,7 @@ export default async function AmigosPage() {
                     "amizades aceitas",
                   )}
             </p>
-
-            {accepted.map((connection) => (
-              <form
-                action={removeFriendConnectionAction}
-                key={connection.id}
-              >
-                <input
-                  type="hidden"
-                  name="connectionId"
-                  value={connection.id}
-                />
-                <button
-                  className="aa-button aa-button-danger aa-button-sm"
-                  type="submit"
-                >
-                  Remover amizade
-                </button>
-              </form>
-            ))}
+            {accepted.length > 0 && <ConnectionActionUnavailable />}
           </FeatureCard>
 
           <FeatureCard
@@ -97,38 +80,7 @@ export default async function AmigosPage() {
                     "solicitações pendentes",
                   )}
             </p>
-
-            {incomingPending.map((connection) => (
-              <div key={connection.id}>
-                <form action={acceptFriendRequestAction}>
-                  <input
-                    type="hidden"
-                    name="connectionId"
-                    value={connection.id}
-                  />
-                  <button
-                    className="aa-button aa-button-primary aa-button-sm"
-                    type="submit"
-                  >
-                    Aceitar
-                  </button>
-                </form>
-
-                <form action={declineFriendRequestAction}>
-                  <input
-                    type="hidden"
-                    name="connectionId"
-                    value={connection.id}
-                  />
-                  <button
-                    className="aa-button aa-button-ghost aa-button-sm"
-                    type="submit"
-                  >
-                    Recusar
-                  </button>
-                </form>
-              </div>
-            ))}
+            {incomingPending.length > 0 && <ConnectionActionUnavailable />}
           </FeatureCard>
 
           <FeatureCard
@@ -145,22 +97,7 @@ export default async function AmigosPage() {
                     "solicitações aguardando resposta",
                   )}
             </p>
-
-            {outgoingPending.map((connection) => (
-              <form action={cancelFriendRequestAction} key={connection.id}>
-                <input
-                  type="hidden"
-                  name="connectionId"
-                  value={connection.id}
-                />
-                <button
-                  className="aa-button aa-button-secondary aa-button-sm"
-                  type="submit"
-                >
-                  Cancelar solicitação
-                </button>
-              </form>
-            ))}
+            {outgoingPending.length > 0 && <ConnectionActionUnavailable />}
           </FeatureCard>
         </ArcanaFeatureGrid>
       </ArcanaPage>
