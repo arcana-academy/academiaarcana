@@ -28,6 +28,7 @@ describe("AuthenticatedShell", () => {
     expect(
       screen.getByRole("navigation", { name: "Navegação principal" }),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sair" })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {

@@ -8,7 +8,7 @@ type SidebarProps = {
 
 export function Sidebar({ currentPath }: SidebarProps) {
   return (
-    <aside className="aa-sidebar" aria-label="Navegação principal">
+    <div className="aa-sidebar">
       <div className="aa-sidebar-brand">
         <Link className="aa-brand-lockup" href="/santuario" aria-label="Academia Arcana — Santuário">
           <span className="aa-brand-mark" aria-hidden="true">
@@ -45,6 +45,6 @@ export function Sidebar({ currentPath }: SidebarProps) {
           })}
         </ul>
       </nav>
-    </aside>
+    </div>
   );
 }
