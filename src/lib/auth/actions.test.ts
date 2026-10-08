@@ -31,10 +31,19 @@ describe("signOut", () => {
     await signOut();
 
     expect(mocks.signOut).toHaveBeenCalledTimes(1);
+    expect(mocks.signOut).toHaveBeenCalledWith({ scope: "global" });
     expect(mocks.redirect).toHaveBeenCalledWith("/login");
   });
 
-  it("does not redirect when session revocation fails", async () => {
+  it("does not redirect when Supabase returns a revocation error", async () => {
+    const error = new Error("revocation failed");
+    mocks.signOut.mockResolvedValueOnce({ error });
+
+    await expect(signOut()).rejects.toBe(error);
+    expect(mocks.redirect).not.toHaveBeenCalled();
+  });
+
+  it("does not redirect when session revocation throws", async () => {
     const error = new Error("revocation failed");
     mocks.signOut.mockRejectedValueOnce(error);
 
