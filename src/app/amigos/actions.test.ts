@@ -21,10 +21,12 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("@/infrastructure/supabase/social/social-repository", () => ({
-  SupabaseSocialRepository: vi.fn().mockImplementation(() => ({
-    updateConnectionStatus: mocks.updateConnectionStatus,
-    deleteConnection: mocks.deleteConnection,
-  })),
+  SupabaseSocialRepository: vi.fn(function () {
+    return {
+      updateConnectionStatus: mocks.updateConnectionStatus,
+      deleteConnection: mocks.deleteConnection,
+    };
+  }),
 }));
 
 import {
