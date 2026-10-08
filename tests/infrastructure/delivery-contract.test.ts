@@ -13,7 +13,10 @@ const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8")
 
 describe("delivery infrastructure contract", () => {
   it("restricts workflow_run smoke checks to successful Quality Gate runs on main", () => {
-    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml").replaceAll(
+      "\r\n",
+      "\n",
+    );
 
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
     expect(workflow).toContain("types: [completed]");

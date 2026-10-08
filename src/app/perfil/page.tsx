@@ -13,7 +13,10 @@ export default async function PerfilPage() {
   const { data } = await supabase.auth.getUser();
   const email = data.user?.email ?? ("ID: " + claims.sub);
   const createdAt = data.user?.created_at
-    ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(new Date(data.user.created_at))
+    ? new Intl.DateTimeFormat("pt-BR", {
+        dateStyle: "medium",
+        timeZone: "UTC",
+      }).format(new Date(data.user.created_at))
     : null;
 
   return (

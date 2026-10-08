@@ -19,6 +19,8 @@ import {
 } from "@/lib/education/evidence-state-copy";
 import { getReviewPracticeHref } from "./review-handoff";
 
+import "./StatisticsView.css";
+
 export type StatisticsGamificationProjection = {
   level: number;
   levelProgressXp: number;
@@ -112,8 +114,9 @@ function GamificationStats({
 function EducationalStats({ educational }: { educational: EducationalOverview }) {
   return (
     <section
-      className="aa-card aa-card-elevated"
+      className="aa-card aa-card-elevated statistics-view__educational-statistics"
       aria-labelledby="education-stats-title"
+      data-statistics-layer="educational"
     >
       <p className="aa-eyebrow">P1 · Estatísticas educacionais</p>
       <h2 id="education-stats-title">Evidência de aprendizagem</h2>
@@ -217,7 +220,7 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
 /** Renders confidence-labelled educational profile signals. */
 function ProfileSignals({ educational }: { educational: EducationalOverview }) {
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="profile-signals-title">
+    <section className="aa-card aa-card-default statistics-view__profile" aria-labelledby="profile-signals-title">
       <h2 id="profile-signals-title">Perfil educacional atual</h2>
       <p className="aa-state-copy">
         Estes são sinais revisáveis derivados do histórico disponível; não são
@@ -257,7 +260,11 @@ function ProfileSignals({ educational }: { educational: EducationalOverview }) {
 /** Renders item-level self-reported evidence projections. */
 function EvidenceSection({ educational }: { educational: EducationalOverview }) {
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="mastery-title">
+    <section
+      className="aa-card aa-card-default statistics-view__self-reported"
+      aria-labelledby="mastery-title"
+      data-evidence-kind="self-reported"
+    >
       <h2 id="mastery-title">Evidência autorreportada por conteúdo</h2>
       {educational.evidence.length ? (
         <ul className="aa-list">
@@ -293,8 +300,10 @@ function ObjectiveEvidenceSection({
 }) {
   return (
     <section
-      className="aa-card aa-card-default"
+      className="aa-card aa-card-default statistics-view__objective"
       aria-labelledby="objective-evidence-title"
+      data-evidence-kind="objective"
+      data-statistics-layer="educational"
     >
       <h2 id="objective-evidence-title">Evidência objetiva</h2>
       {educational.objectiveEvidence.length ? (
@@ -334,7 +343,11 @@ function ObjectiveEvidenceSection({
 /** Renders revisable signals derived from repeated weak educational evidence. */
 function GapsSection({ educational }: { educational: EducationalOverview }) {
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="gaps-title">
+    <section
+      className="aa-card aa-card-default statistics-view__gaps"
+      aria-labelledby="gaps-title"
+      data-evidence-kind="learning-gap"
+    >
       <h2 id="gaps-title">Possíveis lacunas</h2>
       {educational.learningGaps.length ? (
         <ul className="aa-list">
@@ -364,7 +377,11 @@ function ReviewSection({ educational }: { educational: EducationalOverview }) {
   const due = educational.reviews.filter((review) => review.due);
 
   return (
-    <section className="aa-card aa-card-default" aria-labelledby="review-title">
+    <section
+      className="aa-card aa-card-default statistics-view__reviews"
+      aria-labelledby="review-title"
+      data-evidence-kind="review"
+    >
       <h2 id="review-title">Revisão</h2>
       {due.length ? (
         <ul className="aa-list">
@@ -406,13 +423,17 @@ export function StatisticsView({
       title="Estatísticas"
       description="Indicadores educacionais derivados de tentativas reais, separados das métricas de gamificação."
     >
-      <GamificationStats gamification={gamification} />
-      <EducationalStats educational={educational} />
-      <ProfileSignals educational={educational} />
-      <EvidenceSection educational={educational} />
-      <ObjectiveEvidenceSection educational={educational} />
-      <GapsSection educational={educational} />
-      <ReviewSection educational={educational} />
+      <div className="statistics-view" data-testid="statistics-view">
+        <div className="statistics-view__gamification" data-statistics-layer="gamification">
+          <GamificationStats gamification={gamification} />
+        </div>
+        <EducationalStats educational={educational} />
+        <ProfileSignals educational={educational} />
+        <EvidenceSection educational={educational} />
+        <ObjectiveEvidenceSection educational={educational} />
+        <GapsSection educational={educational} />
+        <ReviewSection educational={educational} />
+      </div>
     </ArcanaPage>
   );
 }
