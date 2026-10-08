@@ -48,4 +48,40 @@ export class SupabaseSocialRepository implements SocialRepository {
       toFriendConnection(row as FriendConnectionRow),
     );
   }
+
+  async updateConnectionStatus(
+    recipientId: string,
+    connectionId: string,
+    status: Exclude<FriendConnectionStatus, "pending">,
+  ): Promise<void> {
+    const { error } = await this.supabase
+      .from("friend_connections")
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", connectionId)
+      .eq("recipient_id", recipientId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async deleteConnection(
+    participantId: string,
+    connectionId: string,
+  ): Promise<void> {
+    const { error } = await this.supabase
+      .from("friend_connections")
+      .delete()
+      .eq("id", connectionId)
+      .or(
+        `requester_id.eq.${participantId},recipient_id.eq.${participantId}`,
+      );
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
 }
