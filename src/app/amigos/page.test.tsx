@@ -48,7 +48,7 @@ vi.mock(
 import AmigosPage from "./page";
 
 describe("AmigosPage", () => {
-  it("renders persisted social relationship counts without exposing identities", async () => {
+  it("renders relationship counts without identities or actions that require them", async () => {
     render(await AmigosPage());
 
     expect(
@@ -60,5 +60,16 @@ describe("AmigosPage", () => {
       screen.getByText("1 solicitação aguardando resposta"),
     ).toBeInTheDocument();
     expect(screen.queryByText(/user-[234]/i)).not.toBeInTheDocument();
+    expect(screen.getAllByRole("status")).toHaveLength(3);
+    expect(
+      screen.getAllByText(
+        "Ações indisponíveis até que esta conexão possa ser identificada com segurança.",
+      ),
+    ).toHaveLength(3);
+    expect(
+      screen.queryByRole("button", {
+        name: /remover amizade|aceitar|recusar|cancelar solicitação/i,
+      }),
+    ).not.toBeInTheDocument();
   });
 });

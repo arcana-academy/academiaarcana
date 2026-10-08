@@ -18,4 +18,13 @@ export type FriendConnection = {
 
 export interface SocialRepository {
   listConnections(participantId: string): Promise<FriendConnection[]>;
+  updateConnectionStatus(
+    recipientId: string,
+    connectionId: string,
+    status: Exclude<FriendConnectionStatus, "pending">,
+  ): Promise<void>;
+  deleteConnection(
+    participantId: string,
+    connectionId: string,
+  ): Promise<void>;
 }

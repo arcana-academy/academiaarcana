@@ -12,6 +12,14 @@ function countLabel(count: number, singular: string, plural: string) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
 
+function ConnectionActionUnavailable() {
+  return (
+    <p className="aa-state-copy" role="status">
+      Ações indisponíveis até que esta conexão possa ser identificada com segurança.
+    </p>
+  );
+}
+
 export default async function AmigosPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
@@ -55,6 +63,7 @@ export default async function AmigosPage() {
                     "amizades aceitas",
                   )}
             </p>
+            {accepted.length > 0 && <ConnectionActionUnavailable />}
           </FeatureCard>
 
           <FeatureCard
@@ -71,6 +80,7 @@ export default async function AmigosPage() {
                     "solicitações pendentes",
                   )}
             </p>
+            {incomingPending.length > 0 && <ConnectionActionUnavailable />}
           </FeatureCard>
 
           <FeatureCard
@@ -87,6 +97,7 @@ export default async function AmigosPage() {
                     "solicitações aguardando resposta",
                   )}
             </p>
+            {outgoingPending.length > 0 && <ConnectionActionUnavailable />}
           </FeatureCard>
         </ArcanaFeatureGrid>
       </ArcanaPage>
