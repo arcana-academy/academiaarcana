@@ -115,6 +115,13 @@ test("objective confirmation, due review, gaps and low-confidence signals remain
   await page.getByTestId("statistics-pilot-scenario-select").selectOption("low-confidence");
   await expect(page.locator(".statistics-view__profile")).toContainText("confiança Insuficiente");
   await expect(page.locator(".statistics-view__profile")).toContainText("1 tentativa(s)");
+  const lowConfidenceEvidence = page.locator('[data-evidence-kind="self-reported"]');
+  await expect(lowConfidenceEvidence).toContainText("Introdução às frações");
+  await expect(lowConfidenceEvidence).toContainText("30% · 1 tentativa(s)");
+  await expect(lowConfidenceEvidence).not.toContainText("Sem atividades de prática ainda.");
+  await expect(page.locator('[data-evidence-kind="review"]')).toContainText(
+    "Não há revisão liberada neste momento.",
+  );
 });
 
 test("all 40 themes keep composed contrast, evidence boundaries and no overflow", async ({ page }) => {
@@ -221,9 +228,29 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     actual[`statistics:mago-classico:${viewport.label}`] = capture.hash;
   }
 
+  // SHA-256 screenshots are meaningful only in the reference rasterization
+  // environment (GitHub Actions on Linux). Other OS/font renderers can vary
+  // byte-for-byte while preserving a correct and accessible visual layout.
+  // Continue capturing on other platforms without treating those hashes as
+  // proof of regression; the cross-platform semantic and responsive checks
+  // above remain mandatory everywhere.
+  const referenceRenderer =
+    process.env.CI === "true" &&
+    process.env.GITHUB_ACTIONS === "true" &&
+    process.env.RUNNER_OS === "Linux";
+
+  expect(Object.keys(actual)).toHaveLength(3);
+
   if (process.env.UPDATE_STATISTICS_PILOT_BASELINES === "1") {
+    // Baseline updates require explicit human review before committing.
     writeFileSync(baselinePath, `${JSON.stringify(actual, null, 2)}\n`);
-  } else {
+  } else if (referenceRenderer) {
     expect(actual).toEqual(baselines);
+  } else {
+    console.info(
+      "Statistics screenshot hashes recorded for a non-reference renderer; " +
+        "strict baseline comparison runs only on GitHub Actions Linux.",
+    );
+    console.info(`STATISTICS_PILOT_NON_REFERENCE_HASHES=${JSON.stringify(actual)}`);
   }
 });
