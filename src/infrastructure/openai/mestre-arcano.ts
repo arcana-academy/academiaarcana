@@ -1,3 +1,4 @@
+import type { MestreArcanoHelpLevel } from "@/domains/intelligence";
 import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
 
 import {
@@ -8,10 +9,13 @@ import {
 const OPENAI_API_ORIGIN = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-5.6-sol";
 
+export const MESTRE_ARCANO_INSTRUCTION_POLICY_VERSION = "2026-10-09-v1";
+
 export type MestreArcanoResult = {
   readonly output: string;
   readonly responseId: string | null;
   readonly model: string;
+  readonly instructionPolicyVersion: string;
 };
 
 export type OpenAIAgentVerification = {
