@@ -64,6 +64,37 @@ describe("Mestre Arcano OpenAI integration", () => {
   });
 
 
+  it("sends pedagogical guardrails that preserve active learning and learner agency", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+    vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
+
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "resp_guardrails",
+          model: "gpt-5.6-sol",
+          output_text: "Vamos começar por uma pista.",
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await runMestreArcano("Resolva esta questão para mim.", {
+      fetchImpl,
+      toolContext: createToolContext(),
+    });
+
+    const [, init] = fetchImpl.mock.calls[0] ?? [];
+    const body = JSON.parse(String(init?.body)) as { instructions?: string };
+
+    expect(body.instructions).toContain("tentativa do estudante");
+    expect(body.instructions).toContain("resposta direta");
+    expect(body.instructions).toContain("aprendizagem independente");
+    expect(body.instructions).toContain("hipótese revisável");
+    expect(body.instructions).toContain("recuperação espaçada");
+  });
+
+
   it("blocks external egress after private SharePoint data enters the model context", async () => {
     vi.stubEnv("OPENAI_API_KEY", "test-secret");
     vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
