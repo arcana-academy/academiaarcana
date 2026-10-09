@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { listTeacherClassroomsDraft, type ScopedTeacherClassroomReader } from "./list-classrooms-draft";
-import type { AuthorizationPolicy } from "@/core/authorization/contracts";
+import type { AuthorizationPolicy } from "@/core/authorization";
 
 const reader = (): ScopedTeacherClassroomReader => ({
   listForTeacherInContext: vi.fn(async () => [
