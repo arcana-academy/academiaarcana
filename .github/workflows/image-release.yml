@@ -39,6 +39,7 @@ jobs:
         id: provenance
         env:
           RELEASE_EVENT: ${{ github.event_name }}
+          RELEASE_REF: ${{ github.ref }}
           UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}
           UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}
           UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
@@ -64,6 +65,10 @@ jobs:
           elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then
             # Manual promotion requires independent approval recorded before
             # setting GHCR_PUBLISH_APPROVED_SHA; a dispatch alone is insufficient.
+            if [ "$RELEASE_REF" != "refs/heads/main" ]; then
+              echo "Manual image promotion must run from the trusted main workflow ref." >&2
+              exit 1
+            fi
             revision="$MANUAL_REVISION"
             run_id="$MANUAL_RUN_ID"
             if ! [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || ! [[ "$run_id" =~ ^[1-9][0-9]*$ ]]; then
