@@ -111,7 +111,7 @@ try {
     NEXT_TELEMETRY_DISABLED: "1",
     CI: "true",
   };
-  server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "-H", "127.0.0.1", "-p", "3000"], {
+  server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--webpack", "-H", "127.0.0.1", "-p", "3000"], {
     cwd: process.cwd(), env: nextEnv, stdio: ["ignore", "pipe", "pipe"], detached: false,
   });
   for (const stream of [server.stdout, server.stderr]) {
