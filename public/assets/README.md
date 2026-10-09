@@ -65,6 +65,13 @@ Asset records use the `AA-ASSET-XXX` namespace. The `AA-VIS-XXX` namespace is re
 - `AA-ASSET-008` — `intelligence/aa-arcane-core.svg`
 - metadata: `intelligence/aa-arcane-core.md`
 
+### Flonts — identidade ilustrada
+
+- `AA-ASSET-013` — `flonts/flonts-mago-mini-96.webp` — MINIATURA ATIVA APENAS NA BRANCH DE REVISÃO; sem deploy.
+- metadata: `flonts/README.md`
+- source lock: `docs/visual/FLONTS-VISUAL-LOCK.json`
+- master e outras variantes: ainda pendentes de inclusão no repositório. A existência desta entrada não significa liberação da arte final.
+
 ## Metadata contract
 
 Every Markdown file below `public/assets/`, except this `README.md`, is an asset metadata record.

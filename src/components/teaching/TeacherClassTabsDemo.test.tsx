@@ -1,0 +1,137 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { TeacherClassTabsDemo, TEACHER_CLASS_TAB_LABELS } from "./TeacherClassTabsDemo";
+
+describe("Professor Turma A tabs prototype", () => {
+  it("has nine unique accessible tabs and a panel without real student information", () => {
+    render(<TeacherClassTabsDemo />);
+    expect(screen.getAllByRole("tab")).toHaveLength(9);
+    expect(new Set(TEACHER_CLASS_TAB_LABELS).size).toBe(9);
+    expect(screen.getByRole("tab", { name: "Visão Geral" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Sem indicadores acadêmicos reais");
+    expect(screen.queryByRole("button", { name: /criar aula|editar|exportar|excluir/i })).not.toBeInTheDocument();
+  });
+
+  it("selects Aulas and Alunos without loading sensitive data", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Aulas" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Aulas da Turma");
+    expect(screen.getByRole("searchbox", { name: "Buscar aula demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("3 aula(s) demonstrativa(s) encontrada(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Alunos" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Nenhum dado pessoal de estudantes");
+    expect(screen.queryByRole("searchbox", { name: "Buscar aula demonstrativa" })).not.toBeInTheDocument();
+  });
+
+  it("shows material search only in the Conteúdos tab", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Conteúdos" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Biblioteca de materiais — demonstração");
+    expect(screen.getByRole("searchbox", { name: "Buscar material demonstrativo" })).toBeInTheDocument();
+    expect(screen.getByText("3 material(is) demonstrativo(s) encontrado(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Aulas" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar material demonstrativo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar aula demonstrativa" })).toBeInTheDocument();
+  });
+
+  it("keeps the activity filters isolated in the Atividades tab", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Atividades" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Atividades da turma — prévia demonstrativa");
+    expect(screen.getByRole("searchbox", { name: "Buscar atividade demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("4 atividade(s) demonstrativa(s) encontrada(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Conteúdos" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar atividade demonstrativa" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar material demonstrativo" })).toBeInTheDocument();
+  });
+
+  it("shows assessment rubrics only inside Avaliações, without affecting Atividades", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Avaliações" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Avaliações e rubricas — prévia demonstrativa");
+    expect(screen.getByRole("searchbox", { name: "Buscar avaliação demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("3 avaliação(ões) demonstrativa(s) encontrada(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Atividades" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar avaliação demonstrativa" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar atividade demonstrativa" })).toBeInTheDocument();
+  });
+
+  it("renders forum search only in Fórum, isolated from Avaliações", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Fórum" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Fórum da Turma A — prévia demonstrativa");
+    expect(screen.getByRole("searchbox", { name: "Buscar tópico demonstrativo" })).toBeInTheDocument();
+    expect(screen.getByText("4 tópico(s) demonstrativo(s) encontrado(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Avaliações" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar tópico demonstrativo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar avaliação demonstrativa" })).toBeInTheDocument();
+  });
+
+  it("renders report placeholders only in Relatórios and does not leak the Fórum interface", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Relatórios" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Relatórios da Turma A — prévia sem dados");
+    expect(screen.getByRole("searchbox", { name: "Buscar área de relatório" })).toBeInTheDocument();
+    expect(screen.getAllByText("Dados indisponíveis")).toHaveLength(4);
+    fireEvent.click(screen.getByRole("tab", { name: "Fórum" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar área de relatório" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar tópico demonstrativo" })).toBeInTheDocument();
+  });
+
+  it("renders read-only settings only in Configurações, isolated from Relatórios", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Configurações" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Configurações da Turma A — prévia somente leitura");
+    expect(screen.getByRole("searchbox", { name: "Buscar configuração demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("3 área(s) de configuração demonstrativa(s) encontrada(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Relatórios" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar configuração demonstrativa" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar área de relatório" })).toBeInTheDocument();
+  });
+
+  it("associates each tab to its own panel, with only the selected panel exposed", () => {
+    const { container } = render(<TeacherClassTabsDemo />);
+    const tabs = screen.getAllByRole("tab");
+    expect(container.querySelectorAll('[role="tabpanel"]')).toHaveLength(9);
+    for (const tab of tabs) {
+      const controlled = document.getElementById(tab.getAttribute("aria-controls") ?? "");
+      expect(controlled).not.toBeNull();
+      expect(controlled).toHaveAttribute("aria-labelledby", tab.id);
+      expect(controlled?.hasAttribute("hidden")).toBe(tab.getAttribute("aria-selected") !== "true");
+    }
+    fireEvent.click(screen.getByRole("tab", { name: "Alunos" }));
+    expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+    expect(screen.getByRole("tabpanel")).toHaveAttribute(
+      "aria-labelledby", screen.getByRole("tab", { name: "Alunos" }).id
+    );
+  });
+
+  it("renders student protections and overview content only on their respective tabs", () => {
+    const { container } = render(<TeacherClassTabsDemo />);
+    expect(screen.getByText("Visão Geral — mapa demonstrativo da turma")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Alunos" }));
+    expect(screen.getByText("Alunos — estrutura protegida, sem registros pessoais")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Dados de estudantes não carregados");
+    expect(screen.queryByText("Visão Geral — mapa demonstrativo da turma")).not.toBeInTheDocument();
+    expect(container.querySelectorAll("form, input, textarea, a[href]")).toHaveLength(0);
+    fireEvent.click(screen.getByRole("tab", { name: "Visão Geral" }));
+    expect(screen.getByText("Visão Geral — mapa demonstrativo da turma")).toBeInTheDocument();
+    expect(screen.queryByText("Alunos — estrutura protegida, sem registros pessoais")).not.toBeInTheDocument();
+  });
+
+  it("supports Arrow, Home and End keyboard tab navigation", () => {
+    render(<TeacherClassTabsDemo />);
+    const first = screen.getByRole("tab", { name: "Visão Geral" });
+    first.focus();
+    fireEvent.keyDown(first, { key: "ArrowRight" });
+    const second = screen.getByRole("tab", { name: "Aulas" });
+    expect(second).toHaveFocus();
+    expect(second).toHaveAttribute("aria-selected", "true");
+    fireEvent.keyDown(second, { key: "End" });
+    const last = screen.getByRole("tab", { name: "Configurações" });
+    expect(last).toHaveFocus();
+    fireEvent.keyDown(last, { key: "Home" });
+    expect(first).toHaveAttribute("aria-selected", "true");
+    expect(first).toHaveFocus();
+  });
+});

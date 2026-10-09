@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
 import Link from "next/link";
 import { navigationItems, type AuthenticatedRouteHref } from "@/components/navigation/AuthenticatedNavigation";
 
@@ -25,6 +26,24 @@ export function Sidebar({ currentPath }: SidebarProps) {
             <span className="aa-brand-name">Mapa Arcano</span>
           </span>
         </Link>
+        <div
+          className="aa-sidebar-flonts"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.65rem",
+            marginTop: "1rem",
+            padding: "0.5rem",
+            border: "1px solid var(--aa-border-default)",
+            borderRadius: "var(--aa-radius-md)",
+            background: "var(--aa-surfaces-inset)",
+          }}
+        >
+          <FlontsPortrait />
+          <span style={{ fontSize: "0.875rem", lineHeight: 1.35 }}>
+            Flonts está com você
+          </span>
+        </div>
       </div>
 
       <nav aria-label="Navegação principal">
