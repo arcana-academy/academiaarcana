@@ -15,20 +15,20 @@ A implementação de #579 já pertence a `main` e **permanece canônica**. A #57
 | Contrato / superfície | #577 | #579 / main antes da reconciliação | Decisão |
 | --- | --- | --- | --- |
 | `StatisticsView` como presentation-only com projeções prontas | Sim | Sim | Preservar #579; sem substituição do componente |
-| Isolamento da aparência | `StatisticsView.module.css` | `StatisticsView.css` escopado por `.statistics-view` | Preservar estratégia já integrada |
+| Isolamento da aparência | `StatisticsView.module.css` | `StatisticsView.css` escopado por `.statistics-view` | Preservar CSS local; corrigir `display: grid` ausente, sem alterar tokens globais |
 | Diferenciação de gamificação, autoavaliação, evidência objetiva, lacunas, reviews | Sim | Sim | Preservar semântica de #579 |
 | Harness determinístico com 5 cenários | Sim | Sim (seleção interativa) | Preservar #579 |
 | 40 temas, contraste, responsividade e teclado | Sim | Sim | Preservar E2E de #579 |
 | Testes consumer a11y específicos da view | 4 testes adicionais | Arquivo ausente e `test:a11y` sem StatisticsView | Recuperar contrato com fixtures canônicos de #579 |
 | Cenário `low-confidence` coerente | Evidência ausente no cenário histórico, sem comprovação de coerência completa | `evidence=[]` com métricas de tentativa > 0 | Corrigir fixture e regressão |
-| Baseline visual | 3 hashes referentes a #577 | 3 hashes diferentes e revisados em #579 | Preservar os hashes de #579; não transplantar baselines |
+| Baseline visual | 3 hashes referentes a #577 | 3 hashes revisados em #579 | Registrar os hashes históricos e substituir na branch por referência candidata após nova inspeção das capturas do grid corrigido; revisão independente ainda pendente |
 | Comparação de screenshot portátil | Hash estrito | Hash estrito em qualquer host | Comparar estritamente somente no renderer de referência GitHub Actions Linux; demais ambientes coletam telemetria e executam os demais asserts |
 | Independência de autenticação do harness | Projeções não consultam repository | RootLayout ainda resolve identidade | Explicitar dependência do layout |
 
 ## Lacunas e reparos propostos
 
 1. **P1 — Integridade de `low-confidence`:** inserir entrada de evidência autorreportada de 1 tentativa e score 0,30, com `confidence=insufficient` e `masteryConfirmed=false`. Zerar `profile.reviewNeed` no fixture, pois não existe revisão vencida. Não alterar a projeção ou o estado real dos usuários.
-2. **P1 — Portabilidade da regressão visual:** manter os três hashes da #579 e a comparação byte-a-byte **somente** no ambiente de referência (GitHub Actions Linux). Nos demais renderers, coletar hashes/imagens quando solicitado e não inferir regressão a partir de rasterização diferente. Responsividade, contraste, foco, reduced-motion e semântica continuam sendo verificados sem relaxamento. Uma alteração do ambiente de referência que invalide hashes exige inspeção e aprovação humana antes de atualizar baselines.
+2. **P1 — Portabilidade da regressão visual:** comparar hashes byte-a-byte **somente** no ambiente de referência (GitHub Actions Linux). Nos demais renderers, coletar hashes/imagens quando solicitado e não inferir regressão a partir de rasterização diferente. Responsividade, contraste, foco, reduced-motion e semântica continuam sendo verificados sem relaxamento. Uma alteração do ambiente de referência que invalide hashes exige inspeção e aprovação humana antes de atualizar baselines.
 3. **P1 — Cobertura consumer de acessibilidade:** recuperar quatro verificações de progresso acessível, distinção não cromática, estados sem dados, confirmação objetiva, revisão canônica e baixa confiança; acrescentar o arquivo ao comando `test:a11y`.
 4. **P2 — Transparência do harness:** esclarecer que as projeções prontas não consultam repositórios educacionais, mas `RootLayout` resolve a identidade da aplicação.
 
@@ -69,3 +69,29 @@ A implementação de #579 já pertence a `main` e **permanece canônica**. A #57
 **Ação corretiva limitada:** estabilizar captura aguardando fontes, imagens e frames; conservar os três hashes históricos da #579; anexar apenas as capturas sintéticas do harness ao Quality Gate como artefato de evidência para inspeção visual independente. Não atualizar baselines nem contornar a falha sem análise da imagem.
 
 **Estado após R2a:** regressão visual em investigação, **NO-GO para fechamento formal/merge** até nova execução, inspeção do artefato e disposição da divergência. Não houve deploy.
+
+## C12-R2c — Defeito de grid detectado nas capturas; referência candidata
+
+**Evidência preexistente:** `main` e #579 compartilham os mesmos blobs de `StatisticsView.tsx`, `StatisticsView.css`, `globals.css`, `ArcanaFeatureGrid.tsx`, fixtures, layout e `package-lock.json`. A causa histórica da divergência dos hashes da #579 **não foi identificada**: não há PNGs históricos recuperáveis para comprovar equivalência pixel a pixel; não atribuir o drift exclusivamente a fonte ou renderer.
+
+**Defeito visual identificado nas três capturas do run 37985037191:** `.statistics-view .aa-feature-grid` declarava `grid-template-columns`, mas não `display: grid`; a classe não tinha outra regra aplicando layout grid nos estilos consultados. Os cartões, inclusive no desktop, eram empilhados verticalmente. Corrigido **somente** no CSS local, com teste E2E para as grades de gamificação e indicadores educacionais em mobile, tablet e desktop.
+
+**Run de captura da grade corrigida:** https://github.com/arcana-academy/academiaarcana/actions/runs/37986308854  
+**Artefato:** https://github.com/arcana-academy/academiaarcana/actions/runs/37986308854/artifacts/11643970446  
+**Resultado antes da atualização da referência:** 185 arquivos / 871 unitários PASS, 8 arquivos / 18 testes a11y PASS, build PASS e E2E **53 PASS / 3 SKIP / 1 FAIL** somente na comparação com hashes antigos. Os três PNGs apresentam disposição horizontal dos cartões no desktop, reflow no tablet, pilha no mobile e nenhum corte aparente.
+
+**Comparação dimensional das imagens capturadas, antigo → corrigido:**
+- Mobile: `359×5702` → `359×5878`, mantendo uma coluna.
+- Tablet: `736×4667` → `736×3764`, cartões distribuídos em múltiplas colunas.
+- Desktop: `1248×4545` → `1248×2652`, quatro cards de gamificação e até cinco cards educacionais por linha.
+
+**Verificação visual realizada nesta reconciliação:** inspeção das três capturas do CI sobre integridade das superfícies, rótulos, links, proporções, ausência aparente de overflow, fontes legíveis e separação semântica de gamificação vs autoavaliação vs evidência objetiva. Sem PNGs de referência antigos, a inspeção não valida igualdade pixel a pixel com a #579.
+
+**Referência candidata gravada SOMENTE na branch da PR #587:**
+- Mobile `2eeec42fd183353cdd465f67e2da32d31cd71e1a0e52a65f6fbf6c26caa7f0f4`.
+- Tablet `879f64382178d4074e5d7f787780f8c56281c953b68c3dc7750f85c781346b6f`.
+- Desktop `cd5dbe5c92e11b1522c085da5ec1809977abd3e3cbf1efaa556803ae7bb80d8c`.
+
+**Governança:** a atualização desta baseline é candidata e rastreável, **não** dispensa revisão humana independente nem prova empírica de integração autenticada. É vedado aprovar C12-R3 ou mesclar pela mera passagem posterior do CI. Qualquer mudança visual subsequente exige novo artefato e análise do diff.
+
+**Próxima validação:** reexecutar Quality Gate completo com os três novos hashes e a asserção sobre ambas as grades; conferir status externos e HEAD; exigir revisão independente da PR e disposição dos apontamentos originais da #579.
