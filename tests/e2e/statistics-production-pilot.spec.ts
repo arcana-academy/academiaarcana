@@ -19,6 +19,32 @@ async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: 
   };
 }
 
+async function settleVisualSurface(page: Page, root: Locator): Promise<void> {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  for (const image of await root.locator("img").all()) {
+    await image.evaluate(async (node) => {
+      const element = node as HTMLImageElement;
+      if (!element.complete) {
+        await new Promise<void>((resolve) => {
+          element.addEventListener("load", () => resolve(), { once: true });
+          element.addEventListener("error", () => resolve(), { once: true });
+        });
+      }
+      if (element.complete && element.naturalWidth > 0 && "decode" in element) {
+        await element.decode().catch(() => undefined);
+      }
+    });
+  }
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
+}
+
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1,
@@ -62,6 +88,36 @@ test("StatisticsView stays usable at mobile, tablet and desktop sizes", async ({
     await expect(page.getByTestId("statistics-production-pilot")).toBeVisible();
     await expect(page.getByTestId("statistics-view")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Estatísticas", exact: true })).toBeVisible();
+
+    const gridColumns = await page.locator(".statistics-view__gamification .aa-feature-grid").evaluate(
+      (element) => {
+        const styles = getComputedStyle(element);
+        return {
+          display: styles.display,
+          columns: styles.gridTemplateColumns.split(" ").filter(Boolean).length,
+        };
+      },
+    );
+    expect(gridColumns.display, `gamification grid display: ${viewport.label}`).toBe("grid");
+    expect(gridColumns.columns, `gamification columns: ${viewport.label}`).toBeGreaterThanOrEqual(
+      viewport.label === "mobile" ? 1 : 2,
+    );
+
+    const educationalGridColumns = await page
+      .locator(".statistics-view__educational-statistics .aa-feature-grid")
+      .evaluate((element) => {
+        const styles = getComputedStyle(element);
+        return {
+          display: styles.display,
+          columns: styles.gridTemplateColumns.split(" ").filter(Boolean).length,
+        };
+      });
+    expect(educationalGridColumns.display, `educational grid: ${viewport.label}`).toBe("grid");
+    expect(
+      educationalGridColumns.columns,
+      `educational grid columns: ${viewport.label}`,
+    ).toBeGreaterThanOrEqual(viewport.label === "mobile" ? 1 : 2);
+
     await assertNoHorizontalOverflow(page, viewport.label);
   }
 });
@@ -115,6 +171,13 @@ test("objective confirmation, due review, gaps and low-confidence signals remain
   await page.getByTestId("statistics-pilot-scenario-select").selectOption("low-confidence");
   await expect(page.locator(".statistics-view__profile")).toContainText("confiança Insuficiente");
   await expect(page.locator(".statistics-view__profile")).toContainText("1 tentativa(s)");
+  const lowConfidenceEvidence = page.locator('[data-evidence-kind="self-reported"]');
+  await expect(lowConfidenceEvidence).toContainText("Introdução às frações");
+  await expect(lowConfidenceEvidence).toContainText("30% · 1 tentativa(s)");
+  await expect(lowConfidenceEvidence).not.toContainText("Sem atividades de prática ainda.");
+  await expect(page.locator('[data-evidence-kind="review"]')).toContainText(
+    "Não há revisão liberada neste momento.",
+  );
 });
 
 test("all 40 themes keep composed contrast, evidence boundaries and no overflow", async ({ page }) => {
@@ -213,6 +276,7 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     await page.goto("/design-system/pilots/statistics?scenario=mixed-evidence&theme=mago-classico");
     const view = page.getByTestId("statistics-view");
     await expect(view).toBeVisible();
+    await settleVisualSurface(page, view);
     const capture = await screenshotHash(view);
     if (captureDir) {
       mkdirSync(captureDir, { recursive: true });
@@ -221,9 +285,29 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     actual[`statistics:mago-classico:${viewport.label}`] = capture.hash;
   }
 
+  // SHA-256 screenshots are meaningful only in the reference rasterization
+  // environment (GitHub Actions on Linux). Other OS/font renderers can vary
+  // byte-for-byte while preserving a correct and accessible visual layout.
+  // Continue capturing on other platforms without treating those hashes as
+  // proof of regression; the cross-platform semantic and responsive checks
+  // above remain mandatory everywhere.
+  const referenceRenderer =
+    process.env.CI === "true" &&
+    process.env.GITHUB_ACTIONS === "true" &&
+    process.env.RUNNER_OS === "Linux";
+
+  expect(Object.keys(actual)).toHaveLength(3);
+
   if (process.env.UPDATE_STATISTICS_PILOT_BASELINES === "1") {
+    // Baseline updates require explicit human review before committing.
     writeFileSync(baselinePath, `${JSON.stringify(actual, null, 2)}\n`);
-  } else {
+  } else if (referenceRenderer) {
     expect(actual).toEqual(baselines);
+  } else {
+    console.info(
+      "Statistics screenshot hashes recorded for a non-reference renderer; " +
+        "strict baseline comparison runs only on GitHub Actions Linux.",
+    );
+    console.info(`STATISTICS_PILOT_NON_REFERENCE_HASHES=${JSON.stringify(actual)}`);
   }
 });
