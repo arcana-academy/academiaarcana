@@ -95,6 +95,33 @@ describe("Mestre Arcano OpenAI integration", () => {
   });
 
 
+  it("respects an explicit direct-answer help level", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "resp_direct",
+          model: "gpt-5.6-sol",
+          output_text: "Resposta direta.",
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await runMestreArcano("Qual é a resposta?", {
+      fetchImpl,
+      toolContext: createToolContext(),
+      helpLevel: "direct-answer",
+    });
+
+    const [, init] = fetchImpl.mock.calls[0] ?? [];
+    const body = JSON.parse(String(init?.body)) as { instructions?: string };
+
+    expect(body.instructions).toContain("Política pedagógica: 2026-10-09-v1");
+    expect(body.instructions).toContain("O estudante escolheu resposta direta");
+  });
+
   it("blocks external egress after private SharePoint data enters the model context", async () => {
     vi.stubEnv("OPENAI_API_KEY", "test-secret");
     vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
