@@ -15,6 +15,9 @@ A identidade visual oficial é **somente** a ilustração aprovada pela pessoa p
 A referência foi enviada como imagem nesta conversa. Não criar, trocar ou substituir
 Flonts por um gato parecido. O gerador de layouts **não** deve redesenhar Flonts.
 
+## Miniatura já integrada à branch
+- `flonts-mago-mini-96.webp` (96 × 120) — imagem derivada do arquivo aprovado, SHA-256 verificado; arquivo no PR de revisão, ainda não publicado.
+
 ## Arquivos a integrar após revisão
 - `flonts-mago-original-aprovado.png` (1122 × 1402) — master sem alteração;
 - `flonts-mago-960.webp` (960 × 1200) — detalhe/hero;
