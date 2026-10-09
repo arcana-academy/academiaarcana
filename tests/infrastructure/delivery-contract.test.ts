@@ -26,6 +26,15 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).not.toContain("github.event.workflow_run.head_branch == 'main'");
   });
 
+  it("keeps workflow-derived production revisions out of inline shell interpolation", () => {
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+
+    expect(workflow).toContain("EXPECTED_COMMIT: ${{ steps.expected.outputs.commit }}");
+    expect(workflow).toContain('expected_commit="$EXPECTED_COMMIT"');
+    expect(workflow).toContain('[[ "$expected" =~ ^[0-9a-f]{40}$ ]]');
+    expect(workflow).not.toContain('expected_commit="${{ steps.expected.outputs.commit }}"');
+  });
+
   it("publishes only the image artifact built by a successful main Quality Gate", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
 
