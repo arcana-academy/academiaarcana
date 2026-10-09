@@ -58,6 +58,11 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("academiaarcana-deploy-request");
     expect(workflow).toContain("packages: write");
     expect(workflow).toContain("steps.publish_image.outputs.image_url");
+    expect(workflow).toContain("UPSTREAM_RUN_ID:");
+    expect(workflow).toContain('unique_tag="${image}:${IMAGE_REVISION}-run-${UPSTREAM_RUN_ID}"');
+    expect(workflow).toContain("digest: (sha256:[0-9a-f]{64})");
+    expect(workflow).toContain("image_url=%s@%s");
+    expect(workflow).toContain("IMAGE_URL: ${{ needs.publish.outputs.image_url }}");
     expect(workflow).toContain("imgURL=$IMAGE_URL");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
