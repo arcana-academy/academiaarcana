@@ -25,6 +25,11 @@ describe("AuthenticatedShell", () => {
     const institutionalSeals = container.querySelectorAll('img[src="/assets/brand/aa-institutional-seal.svg"]');
     expect(institutionalSeals).toHaveLength(2);
     expect(Array.from(institutionalSeals).every((image) => image.getAttribute("src") === "/assets/brand/aa-institutional-seal.svg")).toBe(true);
+    const flontsPortrait = container.querySelector('img[src="/assets/flonts/flonts-mago-mini-96.webp"]');
+    expect(flontsPortrait).toBeInTheDocument();
+    expect(flontsPortrait).toHaveAttribute("width", "48");
+    expect(flontsPortrait).toHaveAttribute("height", "60");
+    expect(screen.getByText("Flonts está com você")).toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: "Navegação principal" }),
     ).toBeInTheDocument();
