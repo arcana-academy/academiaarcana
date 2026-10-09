@@ -101,11 +101,15 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://abcdefghijklmnopqrst.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC' }}
+          NEXT_PUBLIC_HONEYBADGER_API_KEY: ${{ vars.NEXT_PUBLIC_HONEYBADGER_API_KEY }}
+          NEXT_PUBLIC_HONEYBADGER_ASSETS_URL: ${{ vars.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL }}
           ACADEMIA_ARCANA_REVISION: ${{ github.sha }}
         run: |
           docker build --platform linux/amd64 \
             --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
             --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" \
+            --build-arg NEXT_PUBLIC_HONEYBADGER_API_KEY="$NEXT_PUBLIC_HONEYBADGER_API_KEY" \
+            --build-arg NEXT_PUBLIC_HONEYBADGER_ASSETS_URL="$NEXT_PUBLIC_HONEYBADGER_ASSETS_URL" \
             --build-arg ACADEMIA_ARCANA_REVISION="$ACADEMIA_ARCANA_REVISION" \
             --tag "academiaarcana:$ACADEMIA_ARCANA_REVISION" .
 
