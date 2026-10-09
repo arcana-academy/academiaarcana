@@ -1,3 +1,4 @@
+export { evaluateAuthorization } from "./contracts";
 export type {
   AccessAction,
   AccessDecision,
