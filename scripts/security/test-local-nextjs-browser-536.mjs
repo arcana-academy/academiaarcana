@@ -68,7 +68,9 @@ function restrictBrowser(context) {
   });
 }
 async function loginViaRealUI(page, email) {
-  await page.goto(origin + "/login", { waitUntil: "domcontentloaded" });
+  const response = await page.goto(origin + "/login", { waitUntil: "domcontentloaded" });
+  assert.ok(response?.headers()["content-security-policy"]?.includes("connect-src"),
+    "Historical Content-Security-Policy response header must remain enabled");
   await page.getByRole("heading", { name: "Entrar" }).waitFor();
   await page.getByRole("textbox", { name: "Email" }).fill(email);
   await page.getByLabel("Senha", { exact: true }).fill(password);
@@ -125,9 +127,12 @@ try {
   console.log("PASS: pinned historical Next.js starts on localhost with local-only Supabase");
 
   browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
-  const contextAnon = await browser.newContext({ baseURL: origin });
-  const contextA = await browser.newContext({ baseURL: origin });
-  const contextB = await browser.newContext({ baseURL: origin });
+  // HISTORICAL CSP intentionally allows HTTPS but not localhost:54321 HTTP.
+  // Only the synthetic loopback Chromium contexts bypass CSP; the app CSP is unchanged.
+  // This test MUST NOT be reported as HTTPS/CSP security-validation evidence.
+  const contextAnon = await browser.newContext({ baseURL: origin, bypassCSP: true });
+  const contextA = await browser.newContext({ baseURL: origin, bypassCSP: true });
+  const contextB = await browser.newContext({ baseURL: origin, bypassCSP: true });
   await Promise.all([restrictBrowser(contextAnon), restrictBrowser(contextA), restrictBrowser(contextB)]);
   const anonymousPage = await contextAnon.newPage();
   await anonymousPage.goto(origin + "/grimorios", { waitUntil: "domcontentloaded" });
