@@ -52,13 +52,46 @@ describe("delivery infrastructure contract", () => {
       });
 
     expect(canCancelAnActiveSmoke(workflow)).toBe(false);
-    for (const value of ["false", '"false"', "'false'", "\${{ false }}", "false # disabled"]) {
-      expect(canCancelAnActiveSmoke("jobs:\n  smoke:\n    concurrency:\n      group: smoke\n      cancel-in-progress: " + value)).toBe(false);
+
+    for (const value of [
+      "false",
+      '"false"',
+      "'false'",
+      '${{ false }}',
+      "false # disabled",
+    ]) {
+      const config = [
+        "jobs:",
+        "  smoke:",
+        "    concurrency:",
+        "      group: smoke",
+        `      cancel-in-progress: ${value}`,
+      ].join("\n");
+
+      expect(canCancelAnActiveSmoke(config)).toBe(false);
     }
-    for (const value of ["true", '"true"', "'true'", "\${{ inputs.cancel_smoke }}", ""]) {
-      expect(canCancelAnActiveSmoke("jobs:\n  smoke:\n    concurrency:\n      group: smoke\n      cancel-in-progress: " + value)).toBe(true);
+
+    for (const value of [
+      "true",
+      '"true"',
+      "'true'",
+      '${{ inputs.cancel_smoke }}',
+      "",
+    ]) {
+      const config = [
+        "jobs:",
+        "  smoke:",
+        "    concurrency:",
+        "      group: smoke",
+        `      cancel-in-progress: ${value}`,
+      ].join("\n");
+
+      expect(canCancelAnActiveSmoke(config)).toBe(true);
     }
-    expect(canCancelAnActiveSmoke("concurrency:\n  group: smoke\n  cancel-in-progress: true")).toBe(true);
+
+    expect(
+      canCancelAnActiveSmoke("concurrency:\n  group: smoke\n  cancel-in-progress: true"),
+    ).toBe(true);
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]');
     expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Image Release'");
     expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Quality Gate'");
