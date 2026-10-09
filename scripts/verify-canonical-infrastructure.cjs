@@ -63,6 +63,7 @@
   const ACTIVE_SURFACES = {
     "ci-cd": [
       ".github/workflows/quality.yml",
+      ".github/workflows/image-release.yml",
       ".github/workflows/production-smoke.yml",
       ".github/workflows/autofix.yml",
     ],

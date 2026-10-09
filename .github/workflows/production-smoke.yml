@@ -3,12 +3,13 @@ name: Academia Arcana Production Smoke
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Academia Arcana Quality Gate"]
+    workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]
     types: [completed]
     branches:
       - main
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -18,11 +19,51 @@ concurrency:
 jobs:
   smoke:
     name: Production Smoke
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+          (
+            (github.event.workflow_run.name == 'Academia Arcana Quality Gate' && github.event.workflow_run.event == 'push' && vars.RENDER_IMAGE_DEPLOY_ENABLED != 'true') ||
+            (github.event.workflow_run.name == 'Academia Arcana Image Release' && vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true')
+          )
+        )
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
+      - name: Download requested deployment revision
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Academia Arcana Image Release'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: academiaarcana-deploy-request
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/academiaarcana-deploy
+
+      - name: Resolve expected deployment revision
+        id: expected
+        shell: bash
+        env:
+          EVENT_REVISION: ${{ github.event.workflow_run.head_sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          TRIGGER_WORKFLOW: ${{ github.event.workflow_run.name || '' }}
+        run: |
+          set -euo pipefail
+          expected="$EVENT_REVISION"
+          if [ "$EVENT_NAME" = "workflow_run" ] && [ "$TRIGGER_WORKFLOW" = "Academia Arcana Image Release" ]; then
+            expected="$(cat /tmp/academiaarcana-deploy/academiaarcana-deployed-revision.txt)"
+          fi
+          if ! [[ "$expected" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Deployment revision must be a 40-character lowercase SHA." >&2
+            exit 1
+          fi
+          printf 'commit=%s\n' "$expected" >> "$GITHUB_OUTPUT"
+
       - name: Check production alias
         shell: bash
         run: |
@@ -47,10 +88,12 @@ jobs:
 
       - name: Check health endpoint
         shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ steps.expected.outputs.commit }}
         run: |
           set -euo pipefail
           base_url="https://academiaarcana.onrender.com"
-          expected_commit="${{ github.event.workflow_run.head_sha || github.sha }}"
+          expected_commit="$EXPECTED_COMMIT"
 
           for attempt in {1..12}; do
             if body="$(curl -fsS --max-time 20 "${base_url}/api/health")"; then

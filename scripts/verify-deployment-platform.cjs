@@ -7,6 +7,7 @@ const root = process.cwd();
 
 const requiredFiles = [
   "render.yaml",
+  ".github/workflows/image-release.yml",
   "src/app/api/health/route.ts",
 ];
 
@@ -14,6 +15,7 @@ const activeSurfaces = [
   "render.yaml",
   ".github/workflows/production-smoke.yml",
   ".github/workflows/quality.yml",
+  ".github/workflows/image-release.yml",
   "package.json",
   "README.md",
   "docs/deployment/render.md",

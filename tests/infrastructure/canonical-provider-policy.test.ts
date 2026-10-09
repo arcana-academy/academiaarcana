@@ -60,6 +60,7 @@ describe("canonical infrastructure provider policy", () => {
   it("keeps canonical delivery files free of competing infrastructure providers", () => {
     const activeFiles = [
       ".github/workflows/quality.yml",
+      ".github/workflows/image-release.yml",
       ".github/workflows/production-smoke.yml",
       "render.yaml",
       "package.json",

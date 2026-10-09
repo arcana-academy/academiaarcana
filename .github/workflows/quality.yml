@@ -89,3 +89,43 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
         run: npm run test:e2e
+
+      - name: Verify production public configuration
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: node scripts/verify-public-runtime-config.mjs
+
+      - name: Build production image
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://abcdefghijklmnopqrst.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC' }}
+          NEXT_PUBLIC_HONEYBADGER_API_KEY: ${{ vars.NEXT_PUBLIC_HONEYBADGER_API_KEY }}
+          NEXT_PUBLIC_HONEYBADGER_ASSETS_URL: ${{ vars.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL }}
+          ACADEMIA_ARCANA_REVISION: ${{ github.sha }}
+        run: |
+          docker build --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
+            --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" \
+            --build-arg NEXT_PUBLIC_HONEYBADGER_API_KEY="$NEXT_PUBLIC_HONEYBADGER_API_KEY" \
+            --build-arg NEXT_PUBLIC_HONEYBADGER_ASSETS_URL="$NEXT_PUBLIC_HONEYBADGER_ASSETS_URL" \
+            --build-arg ACADEMIA_ARCANA_REVISION="$ACADEMIA_ARCANA_REVISION" \
+            --tag "academiaarcana:$ACADEMIA_ARCANA_REVISION" .
+
+      - name: Smoke test isolated production image
+        timeout-minutes: 3
+        run: bash scripts/smoke-production-container.sh "${GITHUB_SHA}"
+
+      - name: Save production image artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker save "academiaarcana:${GITHUB_SHA}" --output /tmp/academiaarcana-image.tar
+
+      - name: Upload production image artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: academiaarcana-image-${{ github.sha }}
+          path: /tmp/academiaarcana-image.tar
+          if-no-files-found: error
+          retention-days: 1
