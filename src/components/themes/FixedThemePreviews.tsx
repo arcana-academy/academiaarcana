@@ -46,6 +46,7 @@ export function FixedThemePreviews() {
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                     <Image
                       src="/assets/flonts/flonts-mago-mini-96.webp"
+                      unoptimized
                       alt=""
                       width={48}
                       height={60}
