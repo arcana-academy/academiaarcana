@@ -45,11 +45,11 @@ describe("delivery infrastructure contract", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
 
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
-    expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
-    expect(workflow).toContain("github.event.workflow_run.event == 'push'");
-    expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
-    expect(workflow).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
-    expect(workflow).toContain("github.event.workflow_run.run_attempt == 1");
+    expect(workflow).toContain("UPSTREAM_RESULT: ${{ github.event.workflow_run.conclusion }}");
+    expect(workflow).toContain("UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}");
+    expect(workflow).toContain("UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}");
+    expect(workflow).toContain("UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}");
+    expect(workflow).toContain("UPSTREAM_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}");
     expect(workflow).toContain("needs: preflight");
     expect(workflow).toContain("Reject stale main revision before publishing");
     expect(workflow).toContain("Reject stale main revision before deployment");
@@ -66,6 +66,57 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("imgURL=$IMAGE_URL");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
+    expect(workflow).not.toContain("docker build");
+  });
+
+  it("requires a nonempty exact main source SHA approval before GHCR publishing", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const publishJob = workflow.split("\n  publish:\n")[1]?.split("\n  deploy:\n")[0];
+
+    expect(publishJob).toBeDefined();
+    expect(publishJob).toContain("needs: preflight");
+    expect(publishJob).toContain("vars.GHCR_PUBLISH_APPROVED_SHA != ''");
+    expect(publishJob).toContain(
+      "vars.GHCR_PUBLISH_APPROVED_SHA == needs.preflight.outputs.release_sha",
+    );
+    expect(publishJob).toContain("needs.preflight.result == 'success'");
+    expect(publishJob).toContain("packages: write");
+
+    // A missing approval variable must result in a skipped publisher.
+    // Deploy authorization is a separate, additional gate.
+    expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
+    expect(workflow).toContain("needs: [preflight, publish]");
+  });
+
+  it("promotes only an authenticated original push-to-main Quality Gate artifact", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const preflight = workflow.split("\n  preflight:\n")[1]?.split("\n  publish:\n")[0];
+    const publisher = workflow.split("\n  publish:\n")[1]?.split("\n  deploy:\n")[0];
+    const deployer = workflow.split("\n  deploy:\n")[1];
+
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).toContain("approved_revision:");
+    expect(workflow).toContain("quality_run_id:");
+    expect(preflight).toContain("actions: read");
+    expect(preflight).toContain('if [ "$RELEASE_EVENT" = "workflow_run" ]; then');
+    expect(preflight).toContain('elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then');
+    expect(preflight).toContain('if [ "$RELEASE_REF" != "refs/heads/main" ]; then');
+    expect(preflight).toContain('gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}"');
+    expect(preflight).toContain('.name == "Academia Arcana Quality Gate"');
+    expect(preflight).toContain('.event == "push"');
+    expect(preflight).toContain('.head_branch == "main"');
+    expect(preflight).toContain('.head_sha == $revision');
+    expect(preflight).toContain('.head_repository.full_name == $repository');
+    expect(preflight).toContain('.repository.full_name == $repository');
+    expect(preflight).toContain('.run_attempt == 1');
+    expect(preflight).toContain('.conclusion == "success"');
+    expect(preflight).toContain('upstream_run_id=%s');
+    expect(publisher).toContain("name: academiaarcana-image-${{ needs.preflight.outputs.release_sha }}");
+    expect(publisher).toContain("run-id: ${{ needs.preflight.outputs.upstream_run_id }}");
+    expect(publisher).toContain("IMAGE_REVISION: ${{ needs.preflight.outputs.release_sha }}");
+    expect(publisher).toContain("UPSTREAM_RUN_ID: ${{ needs.preflight.outputs.upstream_run_id }}");
+    expect(deployer).toContain("needs: [preflight, publish]");
+    expect(deployer).toContain("EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}");
     expect(workflow).not.toContain("docker build");
   });
 
