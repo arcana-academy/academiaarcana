@@ -45,6 +45,17 @@ describe("Professor Turma A tabs prototype", () => {
     expect(screen.getByRole("searchbox", { name: "Buscar material demonstrativo" })).toBeInTheDocument();
   });
 
+  it("shows assessment rubrics only inside Avaliações, without affecting Atividades", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Avaliações" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Avaliações e rubricas — prévia demonstrativa");
+    expect(screen.getByRole("searchbox", { name: "Buscar avaliação demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("3 avaliação(ões) demonstrativa(s) encontrada(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Atividades" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar avaliação demonstrativa" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar atividade demonstrativa" })).toBeInTheDocument();
+  });
+
   it("supports Arrow, Home and End keyboard tab navigation", () => {
     render(<TeacherClassTabsDemo />);
     const first = screen.getByRole("tab", { name: "Visão Geral" });
