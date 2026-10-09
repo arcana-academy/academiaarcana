@@ -160,6 +160,16 @@ describe("remote-first global signOut", () => {
     expect(mocks.redirect).not.toHaveBeenCalled();
   });
 
+
+  it("AUTH-P1-034: lets Next.js redirect control-flow exceptions escape", async () => {
+    mocks.redirect.mockImplementationOnce(() => {
+      throw new Error("NEXT_REDIRECT");
+    });
+    await expect(invoke()).rejects.toThrow("NEXT_REDIRECT");
+    expect(mocks.remoteSignOut).toHaveBeenCalledTimes(1);
+    expect(mocks.clearLocalAuthSession).toHaveBeenCalledTimes(1);
+  });
+
   it("does not include credentials or provider messages in logs", async () => {
     mocks.remoteSignOut.mockResolvedValueOnce({
       error: { status: 503, message: "private-jwt-value" },

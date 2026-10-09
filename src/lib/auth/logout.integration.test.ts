@@ -136,6 +136,28 @@ describe("Supabase Auth 2.117.2 and SSR 0.12.7 regression", () => {
       .toHaveLength(3);
   });
 
+
+  it("AUTH-P1-015: upstream helper issues expirations for explicitly configured cookie scopes", async () => {
+    const jar = makeCookieJar();
+    jar.values.set(storageKey + ".0", "a");
+    jar.values.set(storageKey + ".1", "b");
+    await clearAuthCookiesAtScopes({
+      storageKey,
+      scopes: [
+        { path: "/", domain: ".example.com" },
+        { path: "/legacy" },
+      ],
+      getAll: jar.getAll,
+      setAll: jar.setAll,
+    });
+    expect(jar.writes).toHaveLength(4);
+    expect(jar.writes.filter(({ options }) =>
+      options?.path === "/" && options?.domain === ".example.com")).toHaveLength(2);
+    expect(jar.writes.filter(({ options }) =>
+      options?.path === "/legacy" && !options?.domain)).toHaveLength(2);
+    expect(jar.writes.every(({ options }) => options?.maxAge === 0)).toBe(true);
+  });
+
   it("does not silently ignore cookie write errors", async () => {
     await expect(clearAuthCookiesAtScopes({
       storageKey,
