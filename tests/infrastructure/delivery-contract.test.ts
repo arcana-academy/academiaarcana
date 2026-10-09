@@ -28,7 +28,7 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED != 'true'");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Academia Arcana Image Release'");
-    expect(workflow).toContain("academiaarcana-deploy-${{ github.event.workflow_run.head_sha }}");
+    expect(workflow).toContain("academiaarcana-deploy-request");
   });
 
   it("validates workflow-derived production revisions before shell use", () => {
@@ -49,6 +49,13 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("github.event.workflow_run.event == 'push'");
     expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
     expect(workflow).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
+    expect(workflow).toContain("github.event.workflow_run.run_attempt == 1");
+    expect(workflow).toContain("needs: preflight");
+    expect(workflow).toContain("Reject stale main revision before publishing");
+    expect(workflow).toContain("Reject stale main revision before deployment");
+    expect(workflow).toContain("https://api.render.com/deploy/*");
+    expect(workflow).toContain('--proto "=https"');
+    expect(workflow).toContain("academiaarcana-deploy-request");
     expect(workflow).toContain("packages: write");
     expect(workflow).toContain("ghcr.io/arcana-academy/academiaarcana:${IMAGE_REVISION}");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
@@ -127,6 +134,17 @@ describe("delivery infrastructure contract", () => {
     const quality = readRepoFile(".github/workflows/quality.yml");
 
     expect(dockerignore).toContain(".env.*");
+    expect(dockerignore).toContain("*.pem");
+    expect(dockerignore).toContain("*.key");
+    expect(dockerfile).toContain("AS builder");
+    expect(dockerfile).toContain("AS runtime");
+    expect(dockerfile).toContain("npm prune --omit=dev --ignore-scripts");
+    expect(dockerfile).toContain("COPY --from=builder --chown=node:node /app /app");
+    expect(dockerfile).toContain("USER node");
+    expect(dockerfile).toContain("ARG NEXT_PUBLIC_HONEYBADGER_API_KEY");
+    expect(dockerfile).toContain("ARG NEXT_PUBLIC_HONEYBADGER_ASSETS_URL");
+    expect(quality).toContain("vars.NEXT_PUBLIC_HONEYBADGER_API_KEY");
+    expect(quality).toContain("vars.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL");
     expect(dockerfile).toContain("ARG NEXT_PUBLIC_SUPABASE_URL");
     expect(dockerfile).toContain("ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
     expect(dockerfile).toContain("ARG ACADEMIA_ARCANA_REVISION");
