@@ -88,6 +88,20 @@ test("StatisticsView stays usable at mobile, tablet and desktop sizes", async ({
     await expect(page.getByTestId("statistics-production-pilot")).toBeVisible();
     await expect(page.getByTestId("statistics-view")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Estatísticas", exact: true })).toBeVisible();
+
+    const gridColumns = await page.locator(".statistics-view__gamification .aa-feature-grid").evaluate(
+      (element) => {
+        const styles = getComputedStyle(element);
+        return {
+          display: styles.display,
+          columns: styles.gridTemplateColumns.split(" ").filter(Boolean).length,
+        };
+      },
+    );
+    expect(gridColumns.display, `gamification grid display: ${viewport.label}`).toBe("grid");
+    expect(gridColumns.columns, `gamification columns: ${viewport.label}`).toBeGreaterThanOrEqual(
+      viewport.label === "mobile" ? 1 : 2,
+    );
     await assertNoHorizontalOverflow(page, viewport.label);
   }
 });
