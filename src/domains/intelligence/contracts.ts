@@ -94,10 +94,31 @@ export type MestreArcanoToolContext = {
   readonly documents: MestreArcanoDocumentContextPort;
 };
 
+export const MESTRE_ARCANO_HELP_LEVELS = [
+  "unspecified",
+  "hint",
+  "decomposition",
+  "direct-answer",
+] as const;
+
+export type MestreArcanoHelpLevel =
+  (typeof MESTRE_ARCANO_HELP_LEVELS)[number];
+
+export function resolveMestreArcanoHelpLevel(
+  value: unknown,
+): MestreArcanoHelpLevel | null {
+  if (value === undefined) return "unspecified";
+  return typeof value === "string" &&
+    MESTRE_ARCANO_HELP_LEVELS.includes(value as MestreArcanoHelpLevel)
+    ? (value as MestreArcanoHelpLevel)
+    : null;
+}
+
 export type MestreArcanoExecution = {
   readonly output: string;
   readonly responseId: string | null;
   readonly model: string;
+  readonly instructionPolicyVersion: string;
 };
 
 export type MestreArcanoGateway = {
