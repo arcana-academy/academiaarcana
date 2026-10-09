@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
 import type { CSSProperties } from "react";
 import { FEATURED_THEME_CHOICES } from "@/design-system/themes/featured-themes";
 import { themePresets } from "@/design-system/themes/presets";
@@ -44,14 +44,7 @@ export function FixedThemePreviews() {
                     Prévia de hierarquia, tipografia e superfície. Dados de aprendizagem não são carregados.
                   </p>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <Image
-                      src="/assets/flonts/flonts-mago-mini-96.webp"
-                      unoptimized
-                      alt=""
-                      width={48}
-                      height={60}
-                      style={{ objectFit: "contain", flexShrink: 0 }}
-                    />
+                    <FlontsPortrait />
                     <span>Flonts está com você</span>
                   </div>
                 </div>
