@@ -95,3 +95,29 @@ A implementação de #579 já pertence a `main` e **permanece canônica**. A #57
 **Governança:** a atualização desta baseline é candidata e rastreável, **não** dispensa revisão humana independente nem prova empírica de integração autenticada. É vedado aprovar C12-R3 ou mesclar pela mera passagem posterior do CI. Qualquer mudança visual subsequente exige novo artefato e análise do diff.
 
 **Próxima validação:** reexecutar Quality Gate completo com os três novos hashes e a asserção sobre ambas as grades; conferir status externos e HEAD; exigir revisão independente da PR e disposição dos apontamentos originais da #579.
+
+## C12-R3b — Auditoria de reconciliação e redução do risco P1 (09/10/2026)
+
+**Base consultada antes do ciclo:** `main@cc17653dfe79c44dd83ba1ced8cb065383b11ca9`; PR #577 segue draft sem merge; PR #579 está merged; PR #587 segue draft.
+
+**Evidência anterior de validação (head `de773a8ae73648cc85de4e03b732ba4fe709c38a`):**
+- 9/9 workflows e 5/5 statuses externos em sucesso.
+- Quality Gate: 871 unitários, 18 a11y e 55 E2E PASS com 3 SKIP, build e smoke de imagem isolada PASS.
+- Três PNGs de referência candidata submetidos e reproduzidos no CI; não representam prova de identidade visual com os PNGs antigos de #579.
+- Não há review humano `APPROVED` na PR #587; as três threads da #579 permanecem `is_resolved=false` no registro original.
+
+**Disposição verificada dos três achados da #579, sem alterar suas threads:**
+1. `statistics-pilot-fixtures.ts` — **RESOLVIDO NO CÓDIGO DA #587**: `low-confidence` contém uma evidência sintética com uma tentativa, média 0,30 e sem confirmação de domínio; revisão vencida zerada. Regressões unitária/consumer e E2E disponíveis.
+2. `StatisticsPilotHarness.tsx` — **RESOLVIDO NO CÓDIGO DA #587**: texto não promete isenção de autenticação, declarando identidade resolvida pelo layout compartilhado.
+3. `statistics-production-pilot.spec.ts` — **MITIGAÇÃO REFORÇADA**: captura aguarda imagens/fontes, compara estritamente apenas em Linux/CI, produz PNGs sintéticos para inspeção, mantém contraprovas funcionais de acessibilidade, contraste e reflow. O workflow de Quality Gate passa de `ubuntu-latest` a **`ubuntu-24.04`** para impedir a migração automática do *major* de Ubuntu e reduzir instabilidade não relacionada ao código. O Playwright é determinado pelo `package-lock.json`.
+
+**Limite declarado da mitigação:** a label `ubuntu-24.04` **não** congela a imagem exata do runner: o GitHub distribui atualizações de pacotes e fontes continuamente. Logo, mudanças futuras podem alterar hashes. Em tais casos, preservar artefatos, diferenciar drift de regressão visual, revisar capturas e aprovar explicitamente nova baseline, em vez de desativar a verificação visual. A correção não garante reprodutibilidade universal em outros sistemas operacionais.
+
+**Checkpoint atual:** edição de workflow preparada no branch de correção, sujeita a Quality Gate **do NOVO head**. Se a verificação falhar, manter NO-GO, diagnosticar o erro e não presumir equivalência. Não houve merge, publicação nem deploy desta iniciativa.
+
+**Fronteira de aceite:**
+- C12-R2: passou no último head já testado; exige reexecução após o novo commit.
+- C12-R3: **NO-GO** até revisão independente por responsável, disposição canônica das threads, riscos registrados e autorização explícita separada de integração. Status `CodeRabbit=success` não constitui aprovação humana.
+- A revisão do harness sintético não substitui verificação da rota real autenticada ou do ambiente hospedado.
+
+**Próximo comando:** verificar o status do novo head da PR #587 (Quality Gate e checks externos), obter revisão humana independente sobre o delta final e registrar autorização formal de encerramento ou NO-GO, sem merge/deploy.
