@@ -45,6 +45,8 @@ jobs:
       image_url: ${{ steps.publish_image.outputs.image_url }}
     if: >-
       ${{
+        vars.GHCR_PUBLISH_APPROVED_SHA != '' &&
+        vars.GHCR_PUBLISH_APPROVED_SHA == github.event.workflow_run.head_sha &&
         github.event.workflow_run.conclusion == 'success' &&
         github.event.workflow_run.event == 'push' &&
         github.event.workflow_run.head_branch == 'main' &&
