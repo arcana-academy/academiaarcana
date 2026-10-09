@@ -7,6 +7,7 @@ const root = process.cwd();
 
 const requiredFiles = [
   "render.yaml",
+  ".github/workflows/image-release.yml",
   "src/app/api/health/route.ts",
 ];
 
@@ -14,6 +15,7 @@ const activeSurfaces = [
   "render.yaml",
   ".github/workflows/production-smoke.yml",
   ".github/workflows/quality.yml",
+  ".github/workflows/image-release.yml",
   "package.json",
   "README.md",
   "docs/deployment/render.md",
@@ -46,14 +48,11 @@ for (const relativePath of activeSurfaces) {
 const renderConfig = readFileSync(resolve(root, "render.yaml"), "utf8");
 const requiredRenderDirectives = [
   "type: web",
-  "runtime: node",
-  "branch: main",
-  "autoDeployTrigger: checksPass",
-  "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
-  "startCommand: npm start",
+  "runtime: image",
+  "url: ghcr.io/arcana-academy/academiaarcana:main",
+  "plan: free",
+  "region: ohio",
   "healthCheckPath: /api/health",
-  "key: NPM_CONFIG_IGNORE_SCRIPTS",
-  'value: "true"',
 ];
 
 for (const directive of requiredRenderDirectives) {

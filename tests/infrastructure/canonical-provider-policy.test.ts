@@ -60,6 +60,7 @@ describe("canonical infrastructure provider policy", () => {
   it("keeps canonical delivery files free of competing infrastructure providers", () => {
     const activeFiles = [
       ".github/workflows/quality.yml",
+      ".github/workflows/image-release.yml",
       ".github/workflows/production-smoke.yml",
       "render.yaml",
       "package.json",
@@ -85,13 +86,11 @@ describe("canonical infrastructure provider policy", () => {
 
     expect(render).toContain("name: academiaarcana");
     expect(render).toContain("type: web");
-    expect(render).toContain("runtime: node");
-    expect(render).toContain("branch: main");
-    expect(render).toContain("buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build");
-    expect(render).toContain("startCommand: npm start");
+    expect(render).toContain("runtime: image");
+    expect(render).toContain("url: ghcr.io/arcana-academy/academiaarcana:main");
+    expect(render).toContain("plan: free");
+    expect(render).toContain("region: ohio");
     expect(render).toContain("healthCheckPath: /api/health");
-    expect(render).toContain("NPM_CONFIG_IGNORE_SCRIPTS");
-    expect(render).toContain('value: "true"');
   });
 
   it("preserves the Supabase role as the application data backend", () => {

@@ -12,17 +12,31 @@ const root = process.cwd();
 const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("delivery infrastructure contract", () => {
-  it("restricts workflow_run smoke checks to successful Quality Gate runs on main", () => {
+  it("restricts workflow_run smoke checks to successful image releases on main", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml").replaceAll(
       "\r\n",
       "\n",
     );
 
-    expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
+    expect(workflow).toContain('workflows: ["Academia Arcana Image Release"]');
     expect(workflow).toContain("types: [completed]");
     expect(workflow).toContain("    branches:\n      - main");
-    expect(workflow).toContain("    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}");
+    expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
+    expect(workflow).toContain("academiaarcana-deploy-${{ github.event.workflow_run.head_sha }}");
     expect(workflow).not.toContain("github.event.workflow_run.head_branch == 'main'");
+  });
+
+  it("publishes only the image artifact built by a successful main Quality Gate", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+
+    expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
+    expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
+    expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
+    expect(workflow).toContain("packages: write");
+    expect(workflow).toContain("ghcr.io/arcana-academy/academiaarcana:${IMAGE_REVISION}");
+    expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
+    expect(workflow).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
+    expect(workflow).not.toContain("docker build");
   });
 
   it("defines one canonical provider for each infrastructure responsibility", () => {
@@ -57,14 +71,11 @@ describe("delivery infrastructure contract", () => {
     for (const expected of [
       "name: academiaarcana",
       "type: web",
-      "runtime: node",
-      "branch: main",
-      "autoDeployTrigger: checksPass",
-      "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
-      "startCommand: npm start",
+      "runtime: image",
+      "url: ghcr.io/arcana-academy/academiaarcana:main",
+      "plan: free",
+      "region: ohio",
       "healthCheckPath: /api/health",
-      "NPM_CONFIG_IGNORE_SCRIPTS",
-      'value: "true"',
       "NEXT_PUBLIC_SUPABASE_URL",
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
       "sync: false",
@@ -88,6 +99,21 @@ describe("delivery infrastructure contract", () => {
       const content = readRepoFile(path);
       expect(content).not.toMatch(/NETLIFY/i);
     }
+  });
+
+  it("builds the image without local environment files or runtime secrets", () => {
+    const dockerfile = readRepoFile("Dockerfile");
+    const dockerignore = readRepoFile(".dockerignore");
+    const quality = readRepoFile(".github/workflows/quality.yml");
+
+    expect(dockerignore).toContain(".env.*");
+    expect(dockerfile).toContain("ARG NEXT_PUBLIC_SUPABASE_URL");
+    expect(dockerfile).toContain("ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+    expect(dockerfile).toContain("ARG ACADEMIA_ARCANA_REVISION");
+    expect(quality).toContain("docker build --platform linux/amd64");
+    expect(quality).toContain("name: Verify production public configuration");
+    expect(quality).toContain("node scripts/verify-public-runtime-config.mjs");
+    expect(quality).not.toContain("secrets.");
   });
 
   it("blocks equivalent hosting and CI platforms from active delivery files", () => {

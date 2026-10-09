@@ -25,4 +25,18 @@ describe("GET /api/health", () => {
       revision: "a44cfed6ebc674d661a9b7504f4d339d41b31239",
     });
   });
+
+  it("reports the image revision when Render has an older Git revision", async () => {
+    vi.stubEnv("RENDER_GIT_COMMIT", "old-render-source-revision");
+    vi.stubEnv("ACADEMIA_ARCANA_REVISION", "b55cfed6ebc674d661a9b7504f4d339d41b31240");
+    vi.stubEnv("NEXT_PUBLIC_HONEYBADGER_REVISION", "");
+
+    const response = GET();
+
+    await expect(response.json()).resolves.toEqual({
+      status: "ok",
+      service: "academiaarcana",
+      revision: "b55cfed6ebc674d661a9b7504f4d339d41b31240",
+    });
+  });
 });

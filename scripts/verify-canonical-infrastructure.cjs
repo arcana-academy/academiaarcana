@@ -63,6 +63,7 @@
   const ACTIVE_SURFACES = {
     "ci-cd": [
       ".github/workflows/quality.yml",
+      ".github/workflows/image-release.yml",
       ".github/workflows/production-smoke.yml",
       ".github/workflows/autofix.yml",
     ],
@@ -313,12 +314,10 @@
   const requiredRenderDirectives = [
     "type: web",
     "name: academiaarcana",
-    "runtime: node",
-    "branch: main",
-    "autoDeployTrigger: checksPass",
-    "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
-    'key: SKIP_INSTALL_DEPS',
-    "startCommand: npm start",
+    "runtime: image",
+    "url: ghcr.io/arcana-academy/academiaarcana:main",
+    "plan: free",
+    "region: ohio",
     "healthCheckPath: /api/health",
   ];
 

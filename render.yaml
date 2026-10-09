@@ -1,19 +1,15 @@
 services:
   - type: web
     name: academiaarcana
-    runtime: node
-    branch: main
-    autoDeployTrigger: checksPass
-    buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build
-    startCommand: npm start
+    runtime: image
+    image:
+      url: ghcr.io/arcana-academy/academiaarcana:main
+    plan: free
+    region: ohio
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: SKIP_INSTALL_DEPS
-        value: "true"
-      - key: NPM_CONFIG_IGNORE_SCRIPTS
-        value: "true"
       - key: NEXT_PUBLIC_APP_ENV
         value: production
       - key: NEXT_PUBLIC_SUPABASE_URL
