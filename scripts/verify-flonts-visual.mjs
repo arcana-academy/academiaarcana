@@ -39,7 +39,7 @@ for (const entry of manifest.files) {
   if (!good) problem = true;
   statuses.push({ file: basename, status: good ? "VALID" : "MISMATCH", bytes: file.byteLength });
 }
-if (manifest.asset_id !== "AA-ASSET-013" || manifest.files.length !== 4 || allowed.size !== 4) {
+if (manifest.asset_id !== "AA-ASSET-013" || manifest.files.length !== 5 || allowed.size !== 5) {
   problem = true;
 }
 process.stdout.write(JSON.stringify({
