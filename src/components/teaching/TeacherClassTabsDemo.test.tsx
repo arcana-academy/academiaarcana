@@ -78,6 +78,17 @@ describe("Professor Turma A tabs prototype", () => {
     expect(screen.getByRole("searchbox", { name: "Buscar tópico demonstrativo" })).toBeInTheDocument();
   });
 
+  it("renders read-only settings only in Configurações, isolated from Relatórios", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Configurações" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Configurações da Turma A — prévia somente leitura");
+    expect(screen.getByRole("searchbox", { name: "Buscar configuração demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("3 área(s) de configuração demonstrativa(s) encontrada(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Relatórios" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar configuração demonstrativa" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar área de relatório" })).toBeInTheDocument();
+  });
+
   it("supports Arrow, Home and End keyboard tab navigation", () => {
     render(<TeacherClassTabsDemo />);
     const first = screen.getByRole("tab", { name: "Visão Geral" });
