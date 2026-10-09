@@ -1,3 +1,14 @@
+# AA-ASSET-013 — Flonts: ilustração-base aprovada
+
+**Status:** PROPOSTO PARA INTEGRAÇÃO / arquivo binário ainda ausente da branch
+
+## Phase 2 metadata
+
+- **Graphic role:** personagem ilustrado canônico aprovado para utilização contextual
+- **Consumer status:** PENDING — não integrado a componentes de produção
+- **Theme behavior:** manter o mesmo bitmap entre temas, sem recolorir, deformar ou redesenhar a aparência física
+- **Originality/source status:** ilustração fornecida e aprovada pela pessoa proprietária na conversa; os arquivos derivados WebP e a imagem original estão no pacote local, ainda não integrados como binários ao repositório
+
 # Flonts — arte oficial aprovada
 
 A identidade visual oficial é **somente** a ilustração aprovada pela pessoa proprietária.
