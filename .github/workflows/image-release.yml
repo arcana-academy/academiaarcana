@@ -41,6 +41,8 @@ jobs:
   publish:
     name: Publish reviewed image to GHCR
     needs: preflight
+    outputs:
+      image_url: ${{ steps.publish_image.outputs.image_url }}
     if: >-
       ${{
         github.event.workflow_run.conclusion == 'success' &&
@@ -81,19 +83,37 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: /tmp/academiaarcana-image
 
-      - name: Load and publish immutable and moving tags
+      - name: Publish uniquely tagged image and capture its immutable digest
+        id: publish_image
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_REVISION: ${{ github.event.workflow_run.head_sha }}
+          UPSTREAM_RUN_ID: ${{ github.event.workflow_run.id }}
         shell: bash
         run: |
           set -euo pipefail
+          if ! [[ "$IMAGE_REVISION" =~ ^[0-9a-f]{40}$ ]] || ! [[ "$UPSTREAM_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "Invalid image provenance for publication." >&2
+            exit 1
+          fi
+          image="ghcr.io/arcana-academy/academiaarcana"
+          unique_tag="${image}:${IMAGE_REVISION}-run-${UPSTREAM_RUN_ID}"
           docker load --input /tmp/academiaarcana-image/academiaarcana-image.tar
-          docker tag "academiaarcana:${IMAGE_REVISION}" "ghcr.io/arcana-academy/academiaarcana:${IMAGE_REVISION}"
-          docker tag "academiaarcana:${IMAGE_REVISION}" "ghcr.io/arcana-academy/academiaarcana:main"
+          docker tag "academiaarcana:${IMAGE_REVISION}" "$unique_tag"
+          current="$(git ls-remote --exit-code "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)"
+          if [ "$current" != "$IMAGE_REVISION" ]; then
+            echo "Main advanced before publication; refusing stale image." >&2
+            exit 1
+          fi
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          docker push "ghcr.io/arcana-academy/academiaarcana:${IMAGE_REVISION}"
-          docker push "ghcr.io/arcana-academy/academiaarcana:main"
+          push_result="$(docker push "$unique_tag" 2>&1)"
+          printf '%s\n' "$push_result"
+          digest="$(printf '%s\n' "$push_result" | sed -nE 's/^.*digest: (sha256:[0-9a-f]{64})( |$).*$/\1/p' | tail -n1)"
+          if ! [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "GHCR did not return a verifiable image digest." >&2
+            exit 1
+          fi
+          printf 'image_url=%s@%s\n' "$image" "$digest" >> "$GITHUB_OUTPUT"
           docker logout ghcr.io
 
   deploy:
@@ -125,9 +145,14 @@ jobs:
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           IMAGE_REVISION: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_URL: ${{ needs.publish.outputs.image_url }}
         shell: bash
         run: |
           set -euo pipefail
+          if ! [[ "$IMAGE_URL" =~ ^ghcr\.io/arcana-academy/academiaarcana@sha256:[0-9a-f]{64}$ ]]; then
+            echo "Deployment requires an immutable GHCR image digest." >&2
+            exit 1
+          fi
           if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
             echo "Render image deployment is enabled but its deploy hook secret is missing."
             exit 1
@@ -137,7 +162,7 @@ jobs:
             exit 1
           fi
           curl --fail --silent --show-error --proto "=https" --max-redirs 0 --get \
-            --data-urlencode "imgURL=ghcr.io/arcana-academy/academiaarcana:${IMAGE_REVISION}" \
+            --data-urlencode "imgURL=$IMAGE_URL" \
             "$RENDER_DEPLOY_HOOK_URL" >/dev/null
           printf '%s\n' "$IMAGE_REVISION" > /tmp/academiaarcana-deployed-revision.txt
 
