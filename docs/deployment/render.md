@@ -13,7 +13,7 @@ The image pipeline is being introduced in two stages so production keeps its exi
 1. The Quality Gate builds a `linux/amd64` image after lint, typecheck, unit, accessibility, build, and E2E checks pass. It passes only public Supabase browser configuration and the source revision; local `.env` files are excluded from the Docker context.
 2. After a successful Quality Gate triggered by a `push` to `main` in the official repository, a separate workflow publishes that exact image artifact to GHCR. Pull-request and fork-originated workflow artifacts cannot activate the privileged publisher. The publishing job does not check out or build repository code. Image deployment remains disabled during this stage.
 3. Once the GHCR image exists and is public, migrate the existing Render service to the immutable commit-tagged image while preserving its runtime environment and Secret Files.
-4. Update `render.yaml` to the image runtime and enable the deploy hook only after the Render service is confirmed healthy on the image.
+4. Reconcile `render.yaml` only after verifying the existing service's Blueprint ownership and migration constraints. Render Blueprint `runtime` is immutable for an existing service; do not blindly switch `runtime: node` to `runtime: image` or recreate the service during this phase. Plan any necessary source/Blueprint transition explicitly, verify the image-backed service is healthy, and only then enable the deploy hook.
 
 The Render deploy workflow requires `RENDER_IMAGE_DEPLOY_ENABLED=true` and the `RENDER_DEPLOY_HOOK_URL` secret. The secret is used only by the deploy job. The exact-revision smoke workflow verifies liveness, readiness, public routes, CSP, and integration status after a requested image deployment.
 
