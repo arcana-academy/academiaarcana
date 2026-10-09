@@ -12,6 +12,9 @@
 - Prévia demonstrativa de landing, formulário, galeria e cronograma, em `/design-system/eventos`.
 - Testes unitários do catálogo.
 - Pacote local separado com ilustração, variantes WebP, hashes e instruções.
+- Miniatura real de Flonts (`public/assets/flonts/flonts-mago-mini-96.webp`) integrada à branch e usada na Sidebar compartilhada; master e variantes maiores aguardam upload.
+- Arquivo de trava `docs/visual/FLONTS-VISUAL-LOCK.json`, verificador SHA-256 e teste automatizado.
+- Quatro temas fixos de demonstração vinculados aos presets existentes em `/design-system/temas-fixos`.
 
 ## Restrições de Produto e Segurança
 - Não usar WordPress/Elementor/ACF/CPT: não fazem parte da arquitetura atual.
@@ -21,7 +24,7 @@
 - Não ativar temas sazonais automaticamente: ativação contextual depende de decisões e regras aprovadas.
 
 ## Próximos bloqueadores
-1. Integrar binários aprovados do Flonts ao repositório (`public/assets/flonts/`) com revisão da biblioteca oficial.
+1. Integrar o arquivo mestre e as variantes 320/480/960 aprovadas do Flonts ao repositório. A miniatura 96×120 está integrada na branch, mas ainda não publicada.
 2. Auditar cada rota existente e mapear UX atual vs. contrato canônico para Professor, Tutor e Mentor.
 3. Priorizar rotas por P0/P1 e validar autorização em cada operação de leitura/escrita.
 4. Completar templates reutilizáveis e ligar ações reais a APIs seguras e testes.
