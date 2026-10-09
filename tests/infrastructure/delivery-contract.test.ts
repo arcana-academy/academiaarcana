@@ -31,6 +31,26 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("academiaarcana-deploy-request");
   });
 
+  it("keeps independent production smoke attempts from cancelling one another", () => {
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+
+    // A release triggered by the same upstream Quality Gate can finish with its
+    // deploy job skipped; it must never cancel an in-flight Git-backed smoke.
+    expect(workflow).not.toMatch(/^concurrency:/m);
+    expect(workflow).not.toContain("cancel-in-progress: true");
+    expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]');
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Image Release'");
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Quality Gate'");
+
+    // An authorized operator can manually smoke the *actual deployed* revision
+    // while main is ahead and Git auto-deploy is deliberately frozen.
+    expect(workflow).toContain("expected_revision:");
+    expect(workflow).toContain(
+      "inputs.expected_revision || github.event.workflow_run.head_sha || github.sha",
+    );
+    expect(workflow).toContain('[[ "$expected" =~ ^[0-9a-f]{40}$ ]]');
+  });
+
   it("validates workflow-derived production revisions before shell use", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml");
 
