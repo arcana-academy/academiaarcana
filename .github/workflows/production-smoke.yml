@@ -45,7 +45,11 @@ jobs:
           if [ "$EVENT_NAME" = "workflow_run" ]; then
             expected="$(cat /tmp/academiaarcana-deploy/academiaarcana-deployed-revision.txt)"
           fi
-          echo "commit=$expected" >> "$GITHUB_OUTPUT"
+          if ! [[ "$expected" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Deployment revision must be a 40-character lowercase SHA." >&2
+            exit 1
+          fi
+          printf 'commit=%s\n' "$expected" >> "$GITHUB_OUTPUT"
 
       - name: Check production alias
         shell: bash
@@ -71,10 +75,12 @@ jobs:
 
       - name: Check health endpoint
         shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ steps.expected.outputs.commit }}
         run: |
           set -euo pipefail
           base_url="https://academiaarcana.onrender.com"
-          expected_commit="${{ steps.expected.outputs.commit }}"
+          expected_commit="$EXPECTED_COMMIT"
 
           for attempt in {1..12}; do
             if body="$(curl -fsS --max-time 20 "${base_url}/api/health")"; then
