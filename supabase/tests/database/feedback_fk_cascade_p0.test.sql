@@ -134,7 +134,7 @@ values (
 -- PgTAP catches SQLSTATE 23502 in its own exception subtransaction;
 -- user C's failed DELETE must not leak changes into the local test transaction.
 select extensions.throws_ok(
-  $delete from auth.users where id = 'b5300000-0000-4000-8000-000000000003'$,
+  'delete from auth.users where id = ''b5300000-0000-4000-8000-000000000003''',
   '23502',
   null,
   'Simulated SET NULL plus NOT NULL blocks account deletion'
