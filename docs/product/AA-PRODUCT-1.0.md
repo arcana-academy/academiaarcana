@@ -334,7 +334,8 @@ Neurodesign é um princípio de design e interação, não diagnóstico.
 - propor exercícios;
 - apoiar metacognição;
 - trabalhar com contexto real e autorizado;
-- usar fontes externas quando habilitadas, tratando-as como evidência externa a ser verificada.
+- usar fontes externas quando habilitadas, tratando-as como evidência externa a ser verificada;
+- graduar o nível de ajuda para favorecer tentativa, pistas e recuperação ativa quando pedagogicamente adequado, preservando a escolha do estudante.
 
 ### Não pode
 
@@ -346,9 +347,10 @@ Neurodesign é um princípio de design e interação, não diagnóstico.
 - substituir a agência do estudante;
 - alterar estado crítico sem autorização apropriada;
 - acessar dados indiscriminadamente;
-- usar ferramentas como atalho para contornar fronteiras de segurança.
+- usar ferramentas como atalho para contornar fronteiras de segurança;
+- tratar engajamento, confiança percebida ou desempenho com assistência como prova de aprendizagem independente.
 
-O Mestre Arcano atual deve ser descrito como **assistente contextual V1**. Tutor/planejador avançado é P2/P3.
+O Mestre Arcano atual deve ser descrito como **assistente contextual V1**. Tutor/planejador avançado é P2/P3. Guardrails pedagógicos incrementais podem ser aplicados quando preservarem as decisões canônicas; sua eficácia deve ser validada antes de qualquer generalização.
 
 ## 17. Priorização canônica
 
@@ -503,3 +505,6 @@ A condição de “100% do produto” não significa todas as fases P0–P4 impl
 - `docs/product/AA-PRODUCT-REQUIREMENTS-1.0.md`
 - `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-02.md`
 - `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-03.md`
+- `docs/product/AA-PRODUCT-MESTRE-ARCANO-PEDAGOGICAL-EVALUATION-2026-10-09.md`
+- `docs/product/AA-MESTRE-ARCANO-EVALUATION-INSTRUMENTATION-2026-10-09.md`
+- `docs/product/AA-MESTRE-ARCANO-EXPERIMENT-PROTOCOL-2026-10-09.md`
