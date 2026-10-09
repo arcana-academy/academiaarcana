@@ -38,7 +38,7 @@ export function FixedThemePreviews() {
                 <header style={panel}>
                   <strong>Cabeçalho · Sua jornada</strong>
                 </header>
-                <main style={panel}>
+                <div style={panel}>
                   <h3 style={{ color: tokens.accent.primary }}>Painel de estudo</h3>
                   <p style={{ color: tokens.text.secondary }}>
                     Prévia de hierarquia, tipografia e superfície. Dados de aprendizagem não são carregados.
@@ -53,7 +53,7 @@ export function FixedThemePreviews() {
                     />
                     <span>Flonts está com você</span>
                   </div>
-                </main>
+                </div>
                 <footer style={{ ...panel, color: tokens.text.secondary }}>
                   Rodapé · Links e informações institucionais
                 </footer>
