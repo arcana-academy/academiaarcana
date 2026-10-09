@@ -40,7 +40,7 @@ describe("LogoutForm accessible errors and fallback", () => {
 
   it("shows only the global exit button initially", () => {
     render(<LogoutForm />);
-    expect(screen.getByRole("button", { name: "Sair", exact: true })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Sair$/ })).toBeEnabled();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /somente deste dispositivo/ })).not.toBeInTheDocument();
   });
@@ -49,7 +49,7 @@ describe("LogoutForm accessible errors and fallback", () => {
     hooks.primary = "revocation_failed";
     render(<LogoutForm />);
     expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível confirmar");
-    expect(screen.getByRole("button", { name: "Sair", exact: true })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Sair$/ })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Sair somente deste dispositivo" })).toBeEnabled();
     expect(screen.queryByText(/todos os dispositivos foram encerrados com sucesso/)).not.toBeInTheDocument();
   });
@@ -79,7 +79,7 @@ describe("LogoutForm accessible errors and fallback", () => {
     hooks.localPending = true;
     hooks.primary = "cleanup_incomplete";
     render(<LogoutForm />);
-    expect(screen.getByRole("button", { name: "Sair", exact: true })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Sair$/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Finalizando..." })).toBeDisabled();
   });
 
