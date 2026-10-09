@@ -154,6 +154,27 @@ describe("delivery infrastructure contract", () => {
     expect(quality).not.toContain("secrets.");
   });
 
+  it("starts the built runtime image before permitting a main image artifact", () => {
+    const workflow = readRepoFile(".github/workflows/quality.yml");
+    const smoke = readRepoFile("scripts/smoke-production-container.sh");
+
+    expect(workflow).toContain("Smoke test isolated production image");
+    expect(workflow.indexOf("Smoke test isolated production image")).toBeGreaterThan(
+      workflow.indexOf("Build production image"),
+    );
+    expect(workflow.indexOf("Smoke test isolated production image")).toBeLessThan(
+      workflow.indexOf("Save production image artifact"),
+    );
+    expect(smoke).toContain("docker run --detach --rm");
+    expect(smoke).toContain("--cap-drop ALL");
+    expect(smoke).toContain("no-new-privileges");
+    expect(smoke).toContain("docker exec");
+    expect(smoke).toContain("OPENAI_API_KEY");
+    expect(smoke).toContain("/api/health");
+    expect(smoke).toContain("response.revision !== revision");
+    expect(smoke).toContain("docker rm --force");
+  });
+
   it("blocks equivalent hosting and CI platforms from active delivery files", () => {
     const activeFiles = [
       ".github/workflows/quality.yml",

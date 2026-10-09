@@ -113,6 +113,10 @@ jobs:
             --build-arg ACADEMIA_ARCANA_REVISION="$ACADEMIA_ARCANA_REVISION" \
             --tag "academiaarcana:$ACADEMIA_ARCANA_REVISION" .
 
+      - name: Smoke test isolated production image
+        timeout-minutes: 3
+        run: bash scripts/smoke-production-container.sh "${GITHUB_SHA}"
+
       - name: Save production image artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: docker save "academiaarcana:${GITHUB_SHA}" --output /tmp/academiaarcana-image.tar
