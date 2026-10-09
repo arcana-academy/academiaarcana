@@ -37,6 +37,14 @@ Do not enable image deployment merely because the PR checks pass. Before closing
 - The existing service's Blueprint linkage and post-change declarative state have not been independently verified. The preparatory PR deliberately leaves `render.yaml` and production unchanged.
 - Use an immutable commit tag or registry digest; keep old verified images available for rollback. Do not enable `RENDER_IMAGE_DEPLOY_ENABLED` before the production source and smoke strategy have been validated.
 
+### Additional release safeguards
+
+- A separate low-privilege preflight rejects manual, foreign-repository, failed, or rerun Quality Gate events. The privileged GHCR publisher checks that the source SHA still equals the current `main` head before publishing; the deploy job repeats that freshness check before sending the HTTPS-only Render hook.
+- Image Release writes the deployment revision to the constant artifact `academiaarcana-deploy-request`, scoped by its GitHub Actions `run-id`, so a new `main` commit cannot change the downstream smoke artifact name.
+- The Docker context excludes local private keys and certificates. The final runtime image is copied from a separate builder after dev dependencies are pruned. The PR-only image is built for Linux AMD64 but is not published.
+- If browser Honeybadger monitoring is enabled in Render, the **public** `NEXT_PUBLIC_HONEYBADGER_API_KEY` and `NEXT_PUBLIC_HONEYBADGER_ASSETS_URL` must also be configured as GitHub Actions repository variables before an image built on `main` is approved for production. Both are browser-visible configuration; **never** pass server-only API tokens, source-map upload secrets, OAuth credentials, or other runtime-only values as Docker arguments. Verify build-time telemetry separately before cutover.
+- Commit-named image tags are labels, not immutable digests; maintain published digest evidence and registry retention before asserting exact rollback guarantees. Do not deploy older successful Quality Gate reruns.
+
 ## Runtime secret boundary
 
 Secrets are never committed to `render.yaml`.
