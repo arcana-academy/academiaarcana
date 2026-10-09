@@ -6,7 +6,7 @@ import { getSupabaseAuthStorageKey } from "@/infrastructure/supabase/auth-storag
 type CookieWrite = {
   name: string;
   value: string;
-  options?: { maxAge?: number };
+  options?: { maxAge?: number; path?: string; domain?: string };
 };
 
 function makeCookieJar() {
