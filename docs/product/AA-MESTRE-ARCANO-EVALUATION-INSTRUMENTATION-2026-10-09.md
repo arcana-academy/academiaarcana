@@ -112,10 +112,14 @@ Antes de persistência, Trust/Data devem fechar finalidade, necessidade, retenç
 
 ### Slice 1 — sem persistência
 
-- tornar `instructionPolicyVersion` constante e testável;
-- permitir `requestedHelpLevel` explícito no contrato de execução;
-- preservar o comportamento atual quando `unspecified`;
-- não adicionar analytics.
+Estado: **IMPLEMENTADO NO BRANCH DE VALIDAÇÃO**.
+
+- `MESTRE_ARCANO_INSTRUCTION_POLICY_VERSION` versiona a política;
+- `MestreArcanoHelpLevel` define `unspecified | hint | decomposition | direct-answer`;
+- o boundary server-side valida o valor recebido;
+- `unspecified` preserva o payload anterior;
+- escolhas explícitas são transmitidas ao runtime;
+- nenhuma persistência ou analytics foi adicionada.
 
 ### Slice 2 — avaliação controlada
 
@@ -131,12 +135,6 @@ Antes de persistência, Trust/Data devem fechar finalidade, necessidade, retenç
 
 ## 10. Próxima fatia executável
 
-Implementar Slice 1 como contrato não persistente:
+**Pré-registrar o protocolo de experimento para AA-MA-EVAL-001 e AA-MA-EVAL-002**, antes de criar persistência.
 
-1. constante versionada da política de instruções;
-2. tipo `MestreArcanoHelpLevel`;
-3. request opcional `helpLevel` validado server-side;
-4. instrução contextual correspondente;
-5. testes de fallback `unspecified`.
-
-Essa fatia prepara o experimento futuro sem coletar dados novos.
+O protocolo deve fixar: população elegível, unidade de randomização, braços, outcome primário sem assistência, janela temporal, tratamento de missingness/attrition, critérios de promoção e versão exata da intervenção. A coleta continua bloqueada até o gate de Trust/Data.
