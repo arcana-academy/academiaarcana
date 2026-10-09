@@ -21,8 +21,8 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]');
     expect(workflow).toContain("types: [completed]");
     expect(workflow).toContain("    branches:\n      - main");
-    expect(workflow).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
-    expect(workflow).toContain("github.event.workflow_run.event == 'push'");
+    expect(workflow).toContain("UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}");
+    expect(workflow).toContain("UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}");
     expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Quality Gate'");
     expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Image Release'");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED != 'true'");
@@ -45,11 +45,11 @@ describe("delivery infrastructure contract", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
 
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
-    expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
+    expect(workflow).toContain("UPSTREAM_RESULT: ${{ github.event.workflow_run.conclusion }}");
     expect(workflow).toContain("github.event.workflow_run.event == 'push'");
-    expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
+    expect(workflow).toContain("UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}");
     expect(workflow).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
-    expect(workflow).toContain("github.event.workflow_run.run_attempt == 1");
+    expect(workflow).toContain("UPSTREAM_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}");
     expect(workflow).toContain("needs: preflight");
     expect(workflow).toContain("Reject stale main revision before publishing");
     expect(workflow).toContain("Reject stale main revision before deployment");
@@ -85,7 +85,7 @@ describe("delivery infrastructure contract", () => {
     // A missing approval variable must result in a skipped publisher.
     // Deploy authorization is a separate, additional gate.
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
-    expect(workflow).toContain("needs: publish");
+    expect(workflow).toContain("needs: [preflight, publish]");
   });
 
   it("promotes only an authenticated original push-to-main Quality Gate artifact", () => {
