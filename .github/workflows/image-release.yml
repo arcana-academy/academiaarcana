@@ -6,12 +6,22 @@ on:
     types: [completed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      approved_revision:
+        description: "Exact approved main SHA (40 lowercase hex characters)"
+        required: true
+        type: string
+      quality_run_id:
+        description: "Original successful push-to-main Quality Gate run ID"
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: image-release-${{ github.event.workflow_run.head_branch }}
+  group: image-release-${{ github.event.workflow_run.head_branch || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -19,24 +29,73 @@ jobs:
     name: Verify trusted Quality Gate provenance
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
+    outputs:
+      release_sha: ${{ steps.provenance.outputs.release_sha }}
+      upstream_run_id: ${{ steps.provenance.outputs.upstream_run_id }}
     steps:
-      - name: Reject manual, foreign, or rerun releases
+      - name: Verify trusted source for event or explicit promotion
+        id: provenance
         env:
+          RELEASE_EVENT: ${{ github.event_name }}
           UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}
           UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}
           UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
           UPSTREAM_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
           UPSTREAM_RESULT: ${{ github.event.workflow_run.conclusion }}
+          UPSTREAM_REVISION: ${{ github.event.workflow_run.head_sha }}
+          UPSTREAM_ID: ${{ github.event.workflow_run.id }}
+          MANUAL_REVISION: ${{ inputs.approved_revision }}
+          MANUAL_RUN_ID: ${{ inputs.quality_run_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ "$UPSTREAM_EVENT" != "push" ] || [ "$UPSTREAM_BRANCH" != "main" ] ||
-             [ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
-             [ "$UPSTREAM_ATTEMPT" != "1" ] || [ "$UPSTREAM_RESULT" != "success" ]; then
-            echo "Image release requires an original successful push to main in this repository." >&2
+          if [ "$RELEASE_EVENT" = "workflow_run" ]; then
+            if [ "$UPSTREAM_EVENT" != "push" ] || [ "$UPSTREAM_BRANCH" != "main" ] ||
+               [ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
+               [ "$UPSTREAM_ATTEMPT" != "1" ] || [ "$UPSTREAM_RESULT" != "success" ]; then
+              echo "Image release requires an original successful push to main in this repository." >&2
+              exit 1
+            fi
+            revision="$UPSTREAM_REVISION"
+            run_id="$UPSTREAM_ID"
+          elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then
+            # Manual promotion requires independent approval recorded before
+            # setting GHCR_PUBLISH_APPROVED_SHA; a dispatch alone is insufficient.
+            revision="$MANUAL_REVISION"
+            run_id="$MANUAL_RUN_ID"
+            if ! [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || ! [[ "$run_id" =~ ^[1-9][0-9]*$ ]]; then
+              echo "Invalid manually approved revision or original Quality Gate run ID." >&2
+              exit 1
+            fi
+            run_json="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}")"
+            if ! printf '%s' "$run_json" | jq -e \
+                 --arg revision "$revision" \
+                 --arg repository "$GITHUB_REPOSITORY" '
+                   .name == "Academia Arcana Quality Gate" and
+                   .event == "push" and
+                   .head_branch == "main" and
+                   .head_sha == $revision and
+                   .head_repository.full_name == $repository and
+                   .repository.full_name == $repository and
+                   .run_attempt == 1 and
+                   .status == "completed" and
+                   .conclusion == "success"
+                 ' >/dev/null; then
+              echo "Manual promotion must reference the original successful official main Quality Gate." >&2
+              exit 1
+            fi
+          else
+            echo "Unsupported image release event." >&2
             exit 1
           fi
+          if ! [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || ! [[ "$run_id" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Unexpected or missing release provenance." >&2
+            exit 1
+          fi
+          printf 'release_sha=%s\nupstream_run_id=%s\n' "$revision" "$run_id" >> "$GITHUB_OUTPUT"
 
   publish:
     name: Publish reviewed image to GHCR
@@ -46,12 +105,8 @@ jobs:
     if: >-
       ${{
         vars.GHCR_PUBLISH_APPROVED_SHA != '' &&
-        vars.GHCR_PUBLISH_APPROVED_SHA == github.event.workflow_run.head_sha &&
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push' &&
-        github.event.workflow_run.head_branch == 'main' &&
-        github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.run_attempt == 1
+        vars.GHCR_PUBLISH_APPROVED_SHA == needs.preflight.outputs.release_sha &&
+        needs.preflight.result == 'success'
       }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -63,7 +118,7 @@ jobs:
     steps:
       - name: Reject stale main revision before publishing
         env:
-          EXPECTED_REVISION: ${{ github.event.workflow_run.head_sha }}
+          EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -80,8 +135,8 @@ jobs:
       - name: Download image built by the successful Quality Gate
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: academiaarcana-image-${{ github.event.workflow_run.head_sha }}
-          run-id: ${{ github.event.workflow_run.id }}
+          name: academiaarcana-image-${{ needs.preflight.outputs.release_sha }}
+          run-id: ${{ needs.preflight.outputs.upstream_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: /tmp/academiaarcana-image
 
@@ -89,8 +144,8 @@ jobs:
         id: publish_image
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE_REVISION: ${{ github.event.workflow_run.head_sha }}
-          UPSTREAM_RUN_ID: ${{ github.event.workflow_run.id }}
+          IMAGE_REVISION: ${{ needs.preflight.outputs.release_sha }}
+          UPSTREAM_RUN_ID: ${{ needs.preflight.outputs.upstream_run_id }}
         shell: bash
         run: |
           set -euo pipefail
@@ -120,7 +175,7 @@ jobs:
 
   deploy:
     name: Request Render image deployment
-    needs: publish
+    needs: [preflight, publish]
     if: ${{ vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -129,7 +184,7 @@ jobs:
     steps:
       - name: Reject stale main revision before deployment
         env:
-          EXPECTED_REVISION: ${{ github.event.workflow_run.head_sha }}
+          EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -146,7 +201,7 @@ jobs:
       - name: Request deployment of the immutable image
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-          IMAGE_REVISION: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_REVISION: ${{ needs.preflight.outputs.release_sha }}
           IMAGE_URL: ${{ needs.publish.outputs.image_url }}
         shell: bash
         run: |
