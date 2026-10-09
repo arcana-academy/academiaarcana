@@ -108,7 +108,7 @@ describe("remote-first global signOut", () => {
 
   it("handles thrown errors without deleting cookies", async () => {
     mocks.remoteSignOut.mockRejectedValueOnce(new Error("transport failed"));
-    await expect(invoke()).resolves.toEqual({ status: "revocation_failed" });
+    await expect(invoke()).resolves.toEqual({ status: "unexpected_error" });
     expect(mocks.clearLocalAuthSession).not.toHaveBeenCalled();
   });
 

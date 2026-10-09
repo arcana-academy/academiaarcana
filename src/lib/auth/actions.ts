@@ -59,8 +59,10 @@ export async function signOut(
     }
   } catch (error) {
     const result = classifyRevocationFailure(error);
-    noteFailure("remote", result.status);
-    return result;
+    const status =
+      result.status === "revocation_failed" ? "unexpected_error" : result.status;
+    noteFailure("remote", status);
+    return { status };
   }
 
   try {
