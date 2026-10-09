@@ -7,6 +7,7 @@ import { TeacherActivitiesDemo } from "./TeacherActivitiesDemo";
 import { TeacherAssessmentsDemo } from "./TeacherAssessmentsDemo";
 import { TeacherForumDemo } from "./TeacherForumDemo";
 import { TeacherReportsDemo } from "./TeacherReportsDemo";
+import { TeacherClassSettingsDemo } from "./TeacherClassSettingsDemo";
 import styles from "./TeacherClassTabsDemo.module.css";
 
 const CLASS_TABS = [
@@ -74,6 +75,7 @@ export function TeacherClassTabsDemo() {
         {active.label === "Avaliações" ? <TeacherAssessmentsDemo /> : null}
         {active.label === "Fórum" ? <TeacherForumDemo /> : null}
         {active.label === "Relatórios" ? <TeacherReportsDemo /> : null}
+        {active.label === "Configurações" ? <TeacherClassSettingsDemo /> : null}
         <p className={styles.notice}>Prévia demonstrativa: leitura, criação, edição, compartilhamento
           e exportação reais permanecem bloqueados até aprovação das políticas de acesso.</p>
       </div>
