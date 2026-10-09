@@ -1,3 +1,4 @@
+import styles from "./FixedThemePreviews.module.css";
 import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
 import type { CSSProperties } from "react";
 import { FEATURED_THEME_CHOICES } from "@/design-system/themes/featured-themes";
@@ -27,7 +28,7 @@ export function FixedThemePreviews() {
               {choice.label}
             </h2>
             <p style={{ marginBottom: "1rem", color: tokens.text.secondary }}>{choice.description}</p>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 3fr", gap: "0.75rem" }}>
+            <div className={styles.layout}>
               <aside aria-label={`Prévia da barra lateral: ${choice.label}`} style={panel}>
                 <p style={{ color: tokens.accent.primary, fontWeight: 700 }}>Academia Arcana</p>
                 <p style={{ color: tokens.text.secondary }}>Santuário</p>
