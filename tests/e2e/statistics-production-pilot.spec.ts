@@ -19,6 +19,32 @@ async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: 
   };
 }
 
+async function settleVisualSurface(page: Page, root: Locator): Promise<void> {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  for (const image of await root.locator("img").all()) {
+    await image.evaluate(async (node) => {
+      const element = node as HTMLImageElement;
+      if (!element.complete) {
+        await new Promise<void>((resolve) => {
+          element.addEventListener("load", () => resolve(), { once: true });
+          element.addEventListener("error", () => resolve(), { once: true });
+        });
+      }
+      if (element.complete && element.naturalWidth > 0 && "decode" in element) {
+        await element.decode().catch(() => undefined);
+      }
+    });
+  }
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
+}
+
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1,
@@ -220,6 +246,7 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     await page.goto("/design-system/pilots/statistics?scenario=mixed-evidence&theme=mago-classico");
     const view = page.getByTestId("statistics-view");
     await expect(view).toBeVisible();
+    await settleVisualSurface(page, view);
     const capture = await screenshotHash(view);
     if (captureDir) {
       mkdirSync(captureDir, { recursive: true });
