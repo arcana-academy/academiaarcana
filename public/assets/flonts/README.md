@@ -5,7 +5,7 @@
 ## Phase 2 metadata
 
 - **Graphic role:** personagem ilustrado canônico aprovado para utilização contextual
-- **Consumer status:** PENDING — não integrado a componentes de produção
+- **Consumer status:** ACTIVE NA BRANCH DE REVISÃO para miniatura da sidebar; arquivo mestre e variantes grandes ainda PENDING
 - **Theme behavior:** manter o mesmo bitmap entre temas, sem recolorir, deformar ou redesenhar a aparência física
 - **Originality/source status:** ilustração fornecida e aprovada pela pessoa proprietária na conversa; os arquivos derivados WebP e a imagem original estão no pacote local, ainda não integrados como binários ao repositório
 
