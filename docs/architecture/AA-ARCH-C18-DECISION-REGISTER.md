@@ -50,3 +50,13 @@ Nenhuma linha equivale a aprovação humana. O prefixo `DEP-C17-*` é apenas ide
 Cada item `DEP-C17-01–08` exige (1) autoridade ratificada, (2) documento/ADR canônico nomeado, (3) critério de aceite ligado ao recurso/ator/ação, (4) teste ou revisão independente relevante, (5) assinatura/resolução explícita. **Não contar** docs desta PR, PR aberta, `success` de fixture ou hipótese de owner como esses cinco requisitos.
 
 Se alguma decisão necessária não existir, o estado segue **ABERTA** e o futuro protótipo permanece `NO-GO` operacional. Decisões pré-existentes em Produto/Arquitetura permanecem inalteradas.
+
+## 5. Revalidação do Ciclo 19 (2026-10-09)
+
+**Estado preservado:** DEP-C17-01–08 = **8/8 ABERTAS; 0 FECHADAS**. A validação foi reexecutada contra `docs/product/`, `docs/architecture/`, `domain-policy.ts`, `data-ownership.ts` e evidências disponíveis da PR. Não foi localizado ato específico de homologação institucional. Nenhum princípio canônico antigo foi reaberto.
+
+- Veredito individual com evidências e lacunas: `docs/architecture/AA-ARCH-C19-CANONICAL-DECISION-EVIDENCE.md`.
+- Minutas de encaminhamento para a autoridade do Produto, Arquitetura e Segurança/Trust/Operação: `docs/architecture/AA-ARCH-C19-FORMAL-HANDOFFS.md`.
+- Checkpoint do ciclo: `docs/visual/MEGAOPERACAO-CICLO-19.md`.
+
+**Condição:** documentos de encaminhamento e comentários da PR não encerram DEP alguma. Somente decisão na fonte canônica, aceite e revisão apropriados justificam transição de estado. Sem GO operacional, sem migração, merge ou deploy.
