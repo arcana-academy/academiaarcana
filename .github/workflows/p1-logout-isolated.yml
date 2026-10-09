@@ -70,8 +70,11 @@ jobs:
       - name: A1 A2 B revocation, RLS and JWT residual proof
         run: node scripts/security/test-p1-logout-remote-first.mjs
 
-      - name: Build app against disposable local Supabase
-        run: npm run build
+      # Production prebuild intentionally rejects http://localhost and legacy local ANON_KEY.
+      # Execute Next's compiler directly only in this disposable test job;
+      # the separate Quality Gate still verifies the full production prebuild.
+      - name: Build isolated app with loopback Supabase
+        run: npm exec -- next build --webpack
 
       - name: Install Playwright
         run: npm exec -- playwright install --with-deps chromium
