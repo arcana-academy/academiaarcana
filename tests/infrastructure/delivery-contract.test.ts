@@ -57,7 +57,8 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain('--proto "=https"');
     expect(workflow).toContain("academiaarcana-deploy-request");
     expect(workflow).toContain("packages: write");
-    expect(workflow).toContain("ghcr.io/arcana-academy/academiaarcana:${IMAGE_REVISION}");
+    expect(workflow).toContain("steps.publish_image.outputs.image_url");
+    expect(workflow).toContain("imgURL=$IMAGE_URL");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
     expect(workflow).not.toContain("docker build");
