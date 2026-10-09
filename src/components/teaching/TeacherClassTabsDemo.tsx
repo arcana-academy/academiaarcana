@@ -8,6 +8,7 @@ import { TeacherAssessmentsDemo } from "./TeacherAssessmentsDemo";
 import { TeacherForumDemo } from "./TeacherForumDemo";
 import { TeacherReportsDemo } from "./TeacherReportsDemo";
 import { TeacherClassSettingsDemo } from "./TeacherClassSettingsDemo";
+import { TeacherClassOverviewDemo, TeacherStudentsDemo } from "./TeacherClassOverviewDemo";
 import styles from "./TeacherClassTabsDemo.module.css";
 
 const CLASS_TABS = [
@@ -27,7 +28,6 @@ export function TeacherClassTabsDemo() {
   const [selected, setSelected] = useState(0);
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
   const uid = useId();
-  const active = CLASS_TABS[selected];
 
   const handleTabKey = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let destination: number;
@@ -55,7 +55,7 @@ export function TeacherClassTabsDemo() {
       <div role="tablist" aria-label="Abas demonstrativas da Turma A" className={styles.tabs}>
         {CLASS_TABS.map((tab, index) => (
           <button key={tab.label} type="button" role="tab"
-            id={uid + "-tab-" + index} aria-controls={uid + "-panel"}
+            id={uid + "-tab-" + index} aria-controls={uid + "-panel-" + index}
             aria-selected={selected === index} tabIndex={selected === index ? 0 : -1}
             className={[styles.tab, selected === index ? styles.selected : ""].join(" ")}
             ref={(node) => { refs.current[index] = node; }}
@@ -64,21 +64,30 @@ export function TeacherClassTabsDemo() {
           >{tab.label}</button>
         ))}
       </div>
-      <div id={uid + "-panel"} role="tabpanel" aria-labelledby={uid + "-tab-" + selected}
-        tabIndex={0} className={styles.panel}>
-        <p className={styles.eyebrow}>Aba selecionada: {active.label}</p>
-        <h3>{active.title}</h3><p>{active.summary}</p>
-        <ul>{active.items.map((item) => <li key={item}>{item}</li>)}</ul>
-        {active.label === "Aulas" ? <TeacherLessonsDemo /> : null}
-        {active.label === "Conteúdos" ? <TeacherMaterialsDemo /> : null}
-        {active.label === "Atividades" ? <TeacherActivitiesDemo /> : null}
-        {active.label === "Avaliações" ? <TeacherAssessmentsDemo /> : null}
-        {active.label === "Fórum" ? <TeacherForumDemo /> : null}
-        {active.label === "Relatórios" ? <TeacherReportsDemo /> : null}
-        {active.label === "Configurações" ? <TeacherClassSettingsDemo /> : null}
-        <p className={styles.notice}>Prévia demonstrativa: leitura, criação, edição, compartilhamento
-          e exportação reais permanecem bloqueados até aprovação das políticas de acesso.</p>
-      </div>
+      {CLASS_TABS.map((tab, index) => (
+        <div key={tab.label} id={uid + "-panel-" + index} role="tabpanel"
+          aria-labelledby={uid + "-tab-" + index} hidden={selected !== index}
+          tabIndex={0} className={styles.panel}>
+          {selected === index ? (
+            <>
+              <p className={styles.eyebrow}>Aba selecionada: {tab.label}</p>
+              <h3>{tab.title}</h3><p>{tab.summary}</p>
+              <ul>{tab.items.map((item) => <li key={item}>{item}</li>)}</ul>
+              {tab.label === "Visão Geral" ? <TeacherClassOverviewDemo /> : null}
+              {tab.label === "Aulas" ? <TeacherLessonsDemo /> : null}
+              {tab.label === "Alunos" ? <TeacherStudentsDemo /> : null}
+              {tab.label === "Conteúdos" ? <TeacherMaterialsDemo /> : null}
+              {tab.label === "Atividades" ? <TeacherActivitiesDemo /> : null}
+              {tab.label === "Avaliações" ? <TeacherAssessmentsDemo /> : null}
+              {tab.label === "Fórum" ? <TeacherForumDemo /> : null}
+              {tab.label === "Relatórios" ? <TeacherReportsDemo /> : null}
+              {tab.label === "Configurações" ? <TeacherClassSettingsDemo /> : null}
+              <p className={styles.notice}>Prévia demonstrativa: leitura, criação, edição, compartilhamento
+                e exportação reais permanecem bloqueados até aprovação das políticas de acesso.</p>
+            </>
+          ) : null}
+        </div>
+      ))}
     </section>
   );
 }

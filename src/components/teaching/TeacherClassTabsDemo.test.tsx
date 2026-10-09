@@ -89,6 +89,36 @@ describe("Professor Turma A tabs prototype", () => {
     expect(screen.getByRole("searchbox", { name: "Buscar área de relatório" })).toBeInTheDocument();
   });
 
+  it("associates each tab to its own panel, with only the selected panel exposed", () => {
+    const { container } = render(<TeacherClassTabsDemo />);
+    const tabs = screen.getAllByRole("tab");
+    expect(container.querySelectorAll('[role="tabpanel"]')).toHaveLength(9);
+    for (const tab of tabs) {
+      const controlled = document.getElementById(tab.getAttribute("aria-controls") ?? "");
+      expect(controlled).not.toBeNull();
+      expect(controlled).toHaveAttribute("aria-labelledby", tab.id);
+      expect(controlled?.hasAttribute("hidden")).toBe(tab.getAttribute("aria-selected") !== "true");
+    }
+    fireEvent.click(screen.getByRole("tab", { name: "Alunos" }));
+    expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+    expect(screen.getByRole("tabpanel")).toHaveAttribute(
+      "aria-labelledby", screen.getByRole("tab", { name: "Alunos" }).id
+    );
+  });
+
+  it("renders student protections and overview content only on their respective tabs", () => {
+    const { container } = render(<TeacherClassTabsDemo />);
+    expect(screen.getByText("Visão Geral — mapa demonstrativo da turma")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Alunos" }));
+    expect(screen.getByText("Alunos — estrutura protegida, sem registros pessoais")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Dados de estudantes não carregados");
+    expect(screen.queryByText("Visão Geral — mapa demonstrativo da turma")).not.toBeInTheDocument();
+    expect(container.querySelectorAll("form, input, textarea, a[href]")).toHaveLength(0);
+    fireEvent.click(screen.getByRole("tab", { name: "Visão Geral" }));
+    expect(screen.getByText("Visão Geral — mapa demonstrativo da turma")).toBeInTheDocument();
+    expect(screen.queryByText("Alunos — estrutura protegida, sem registros pessoais")).not.toBeInTheDocument();
+  });
+
   it("supports Arrow, Home and End keyboard tab navigation", () => {
     render(<TeacherClassTabsDemo />);
     const first = screen.getByRole("tab", { name: "Visão Geral" });
