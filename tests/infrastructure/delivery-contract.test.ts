@@ -37,7 +37,28 @@ describe("delivery infrastructure contract", () => {
     // A release triggered by the same upstream Quality Gate can finish with its
     // deploy job skipped; it must never cancel an in-flight Git-backed smoke.
     expect(workflow).not.toMatch(/^concurrency:/m);
-    expect(workflow).not.toContain("cancel-in-progress: true");
+
+    // Cover workflow-level and jobs.<name>.concurrency declarations, including
+    // quoted values and expressions that may evaluate to true. Only explicit
+    // false values are non-cancelling.
+    const canCancelAnActiveSmoke = (source: string) =>
+      source.split(/\r?\n/).some((line) => {
+        const declaration = /^[ \t]*cancel-in-progress[ \t]*:[ \t]*(.*)$/i.exec(line);
+        if (!declaration) return false;
+
+        return !/^(?:false|"false"|'false'|\$\{\{\s*false\s*\}\})(?:[ \t]+#.*)?$/i.test(
+          declaration[1].trim(),
+        );
+      });
+
+    expect(canCancelAnActiveSmoke(workflow)).toBe(false);
+    for (const value of ["false", '"false"', "'false'", "\${{ false }}", "false # disabled"]) {
+      expect(canCancelAnActiveSmoke("jobs:\n  smoke:\n    concurrency:\n      group: smoke\n      cancel-in-progress: " + value)).toBe(false);
+    }
+    for (const value of ["true", '"true"', "'true'", "\${{ inputs.cancel_smoke }}", ""]) {
+      expect(canCancelAnActiveSmoke("jobs:\n  smoke:\n    concurrency:\n      group: smoke\n      cancel-in-progress: " + value)).toBe(true);
+    }
+    expect(canCancelAnActiveSmoke("concurrency:\n  group: smoke\n  cancel-in-progress: true")).toBe(true);
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]');
     expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Image Release'");
     expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Quality Gate'");
