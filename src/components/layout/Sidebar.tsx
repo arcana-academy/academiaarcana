@@ -40,6 +40,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
         >
           <Image
             src="/assets/flonts/flonts-mago-mini-96.webp"
+            unoptimized
             alt=""
             width={48}
             height={60}
