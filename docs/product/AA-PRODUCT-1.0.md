@@ -506,3 +506,5 @@ A condição de “100% do produto” não significa todas as fases P0–P4 impl
 - `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-02.md`
 - `docs/product/AA-PRODUCT-CHAT-01-AUDIT-2026-10-03.md`
 - `docs/product/AA-PRODUCT-MESTRE-ARCANO-PEDAGOGICAL-EVALUATION-2026-10-09.md`
+- `docs/product/AA-MESTRE-ARCANO-EVALUATION-INSTRUMENTATION-2026-10-09.md`
+- `docs/product/AA-MESTRE-ARCANO-EXPERIMENT-PROTOCOL-2026-10-09.md`
