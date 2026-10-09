@@ -100,6 +100,7 @@ describe("delivery infrastructure contract", () => {
     expect(preflight).toContain("actions: read");
     expect(preflight).toContain('if [ "$RELEASE_EVENT" = "workflow_run" ]; then');
     expect(preflight).toContain('elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then');
+    expect(preflight).toContain('if [ "$RELEASE_REF" != "refs/heads/main" ]; then');
     expect(preflight).toContain('gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}"');
     expect(preflight).toContain('.name == "Academia Arcana Quality Gate"');
     expect(preflight).toContain('.event == "push"');
