@@ -85,6 +85,10 @@ try {
     const pageA = await signInAndCheck(contextA, emailA, titleA, titleB);
     const pageB = await signInAndCheck(contextB, emailB, titleB, titleA);
     console.log("PASS: actual Next.js AuthForm login, browser HTTP cookies and two-account SSR RLS");
+    await pageA.reload({ waitUntil: "domcontentloaded" });
+    await expect(pageA.getByText(titleA, { exact: true })).toBeVisible();
+    await expect(pageA.getByText(titleB, { exact: true })).toHaveCount(0);
+    console.log("PASS: historical SSR cookie persists across a real Chromium page reload");
 
     const png = Buffer.from(
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLqUQAAAABJRU5ErkJggg==",
@@ -111,12 +115,13 @@ try {
     assert.ifError((await a.storage.from("grimoire-covers").remove([path])).error);
     console.log("PASS: browser-context HTTP Storage isolation with synthetic local JWTs");
 
-    await contextA.clearCookies();
+    await pageA.getByRole("button", { name: "Sair", exact: true }).click();
+    await expect(pageA).toHaveURL(/\/login(?:[?#]|$)/, { timeout: 45000 });
     await pageA.goto(app + "/academia");
     await expect(pageA).toHaveURL(/\/login(?:[?#]|$)/, { timeout: 30000 });
     await pageB.goto(app + "/grimorios");
     await expect(pageB.getByText(titleB, { exact: true })).toBeVisible();
-    console.log("PASS: clearing real browser auth cookies revokes A while B remains signed in");
+    console.log("PASS: real historical Next.js global sign-out clears A access while B remains signed in");
     console.log("CHECKPOINT P0-536: historical Next.js browser HTTP E2E PASS in local-only sandbox");
   } finally {
     await contextA.close();
