@@ -34,7 +34,7 @@ describe("Professor → Turma A → Avaliações (prévia)", () => {
     if (!record) return;
     expect(within(record).getByText("Ver rubrica e critérios demonstrativos").tagName).toBe("SUMMARY");
     expect(within(record).getByText("Identificação de conceitos")).toBeInTheDocument();
-    expect(within(record).getByText(/Em desenvolvimento · Em progresso · Consolidado/)).toBeInTheDocument();
+    expect(within(record).getAllByText(/Em desenvolvimento · Em progresso · Consolidado/)).toHaveLength(2);
     expect(within(record).getByText(/Entregas e resultados: indisponíveis/)).toBeInTheDocument();
   });
 });
