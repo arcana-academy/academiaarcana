@@ -77,9 +77,10 @@ jobs:
               console.error("Invalid publishable-only public Supabase build key.");
               process.exit(1);
             }
-            console.log("Public Supabase build variable shape and project match: PASS. Key value intentionally not logged.");
+            console.log("Public Supabase build variable shape and project match: PASS. The verifier does not echo its value.");
           '
           echo "Only repository variables containing the public browser URL and publishable key were used."
+          echo "Reminder: GitHub Actions can show public environment variables in runner logs; never supply server secrets to this workflow."
 
       - name: Pin reviewed npm
         run: npm install --global npm@11.19.1 --ignore-scripts

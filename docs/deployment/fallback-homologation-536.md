@@ -21,7 +21,7 @@ Read-only observations from GitHub repository Actions Variables and Supabase con
 | `NEXT_PUBLIC_HONEYBADGER_API_KEY` / `NEXT_PUBLIC_HONEYBADGER_ASSETS_URL` | No repository variables observed in Actions UI; workflow intentionally provides empty strings | NOT PARITY-PROVEN |
 | Server-only vars (e.g. `OPENAI_API_KEY`, encryption keys, database admin keys) | Never passed to Docker build or exported as public variables | REQUIRED / P0 |
 
-Public configuration is expected in browser-built JavaScript; it does not make private credentials suitable for `NEXT_PUBLIC_*`. The build runner validates public values before install/build and does not log them. A **separate** read-only comparison of the actual Render runtime browser configuration (not only GitHub Actions) remains required, because GitHub public variables need not equal live Render values. The new build is not production-equivalent merely because its key matches Supabase.
+Public configuration is expected in browser-built JavaScript; it does not make private credentials suitable for `NEXT_PUBLIC_*`. The validation script does not echo key bytes; **GitHub Actions itself records job-level environment values, including the intentionally public `sb_publishable_` key, in the run logs**. This is acceptable only for public client configuration. No runtime/admin token may ever be used in this workflow, and no full key values are copied into this dossier or checkpoint. A **separate** read-only comparison of the actual Render runtime browser configuration (not only GitHub Actions) remains required, because GitHub public variables need not equal live Render values. The new build is not production-equivalent merely because its key matches Supabase.
 
 ## 3. Supabase compatibility — read-only evidence
 
