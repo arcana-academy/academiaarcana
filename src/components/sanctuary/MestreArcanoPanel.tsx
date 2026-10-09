@@ -10,7 +10,7 @@ type AgentResponse = {
 
 const STARTER_PROMPTS = [
   "O que devo estudar agora?",
-  "Monte meu próximo passo de estudo.",
+  "Quero tentar primeiro. Me dê uma pista sem entregar a resposta.",
   "Explique como retomar meu estudo sem me sobrecarregar.",
 ] as const;
 
