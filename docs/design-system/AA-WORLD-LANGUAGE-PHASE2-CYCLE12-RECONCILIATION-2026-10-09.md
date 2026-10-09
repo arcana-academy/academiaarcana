@@ -59,3 +59,13 @@ A implementação de #579 já pertence a `main` e **permanece canônica**. A #57
 **Estado atual:** `PILOT VALIDATED / RECONCILIATION IN PROGRESS / FORMAL CLOSURE PENDING / NO MERGE / NO DEPLOY`.
 
 **Próximo comando:** Validar o HEAD desta branch com o Quality Gate de pull request, revisar o diff e os apontamentos herdados de #579, registrar o checkpoint C12-R2 e somente então emitir o veredito formal de encerramento ou NO-GO.
+
+## C12-R2a — Primeira execução no head de reconciliação
+
+**Head:** `cf1d18cb419ec752e2f1cf740a7d6688820cbc42`.  
+**GitHub Quality Gate:** falhou exclusivamente na asserção de três hashes visuais, depois de lint, typecheck, unitários, consumer a11y e build concluídos em PASS. E2E: **54 PASS / 3 SKIP / 1 FAIL**. Os outros oito workflows do commit concluíram com sucesso.  
+**Reproduzibilidade:** o teste visual falhou de forma idêntica em três tentativas. Hashes observados: mobile `2d0d38855f422e0a1530412f5dc1caf01a427b4472226b21c3fc37d7d5c63e66`; tablet `06e293d233a09de82d78824148f58f1a9d97a46693a734c8c876441ee8169ead`; desktop `511c62cd3fe8d8ea92ebfdb7a4f8d9672b2398621ba00bfe6f6a65910f3e4e53`. Estes hashes **não são baselines aprovados**.
+
+**Ação corretiva limitada:** estabilizar captura aguardando fontes, imagens e frames; conservar os três hashes históricos da #579; anexar apenas as capturas sintéticas do harness ao Quality Gate como artefato de evidência para inspeção visual independente. Não atualizar baselines nem contornar a falha sem análise da imagem.
+
+**Estado após R2a:** regressão visual em investigação, **NO-GO para fechamento formal/merge** até nova execução, inspeção do artefato e disposição da divergência. Não houve deploy.
