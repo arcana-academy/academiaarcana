@@ -56,6 +56,17 @@ describe("Professor Turma A tabs prototype", () => {
     expect(screen.getByRole("searchbox", { name: "Buscar atividade demonstrativa" })).toBeInTheDocument();
   });
 
+  it("renders forum search only in Fórum, isolated from Avaliações", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Fórum" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Fórum da Turma A — prévia demonstrativa");
+    expect(screen.getByRole("searchbox", { name: "Buscar tópico demonstrativo" })).toBeInTheDocument();
+    expect(screen.getByText("4 tópico(s) demonstrativo(s) encontrado(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Avaliações" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar tópico demonstrativo" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar avaliação demonstrativa" })).toBeInTheDocument();
+  });
+
   it("supports Arrow, Home and End keyboard tab navigation", () => {
     render(<TeacherClassTabsDemo />);
     const first = screen.getByRole("tab", { name: "Visão Geral" });
