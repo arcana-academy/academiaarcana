@@ -148,11 +148,12 @@ Ausência de dados não pode ser representada como zero ou baixo desempenho sem 
 
 ### AA-PROD-R018 — Mestre Arcano delimitado
 **Objetivo:** fornecer inteligência útil sem autoridade indevida.  
-**Pode:** explicar, organizar, recomendar, propor exercícios, apoiar planejamento/revisão/metacognição.  
-**Não pode:** inventar, diagnosticar, alterar estado crítico sem autorização, acessar indiscriminadamente, burlar limites.  
-**Aceitação:** contexto é autorizado e mínimo; incerteza é explicitada; fontes externas são tratadas como evidência a verificar.  
+**Pode:** explicar, organizar, recomendar, propor exercícios, apoiar planejamento/revisão/metacognição e graduar o nível de ajuda para preservar prática ativa quando pedagogicamente adequado.  
+**Não pode:** inventar, diagnosticar, alterar estado crítico sem autorização, acessar indiscriminadamente, burlar limites ou apresentar desempenho assistido como prova de aprendizagem independente.  
+**Aceitação:** contexto é autorizado e mínimo; incerteza é explicitada; fontes externas são tratadas como evidência a verificar; quando uma tarefa permite prática, o tutor pode favorecer tentativa/pista antes da solução completa sem bloquear resposta direta; metacognição, confiança e engajamento permanecem distintos de domínio; adaptação continua revisável.  
+**Validação:** hipóteses e métricas estão em `AA-PRODUCT-MESTRE-ARCANO-PEDAGOGICAL-EVALUATION-2026-10-09.md`.  
 **Prioridade:** P1/P2/P3.  
-**Status:** V1 IMPLEMENTADO TECNICAMENTE.
+**Status:** V1 IMPLEMENTADO TECNICAMENTE; GUARDRAILS PEDAGÓGICOS APLICADOS, EFICÁCIA A VALIDAR.
 
 ### AA-PROD-R019 — Estados de erro e ausência
 **Objetivo:** evitar ambiguidades de produto.  
