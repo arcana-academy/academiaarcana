@@ -17,8 +17,8 @@ jobs:
     env:
       STABLE_SHA: 17fb81477fbd3eed14b93103641004a766eb9ac1
       BASELINE_SHA: cc17653dfe79c44dd83ba1ced8cb065383b11ca9
-      NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
     steps:
       - name: Checkout exact last-live source revision
@@ -64,6 +64,22 @@ jobs:
           echo "Fallback application SHA: $STABLE_SHA"
           echo "Reviewed Docker recipe baseline SHA: $BASELINE_SHA"
           sha256sum stable/Dockerfile stable/.dockerignore stable/scripts/smoke-production-container.sh
+
+      - name: Verify real production-public browser build configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$NEXT_PUBLIC_SUPABASE_URL" = "https://fichnalpbcfjywwhixid.supabase.co"
+          node stable/scripts/verify-public-runtime-config.mjs
+          node -e '
+            const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+            if (!/^sb_publishable_[A-Za-z0-9_-]{22}_[A-Za-z0-9_-]{8}$/.test(key)) {
+              console.error("Invalid publishable-only public Supabase build key.");
+              process.exit(1);
+            }
+            console.log("Public Supabase build variable shape and project match: PASS. Key value intentionally not logged.");
+          '
+          echo "Only repository variables containing the public browser URL and publishable key were used."
 
       - name: Pin reviewed npm
         run: npm install --global npm@11.19.1 --ignore-scripts
