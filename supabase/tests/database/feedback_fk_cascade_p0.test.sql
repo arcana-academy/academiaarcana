@@ -6,7 +6,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(12);
+select extensions.plan(17);
 
 select extensions.ok(
   exists (
@@ -153,6 +153,67 @@ select extensions.is(
      and user_id = 'b5300000-0000-4000-8000-000000000003'),
   1,
   'Failed account deletion keeps synthetic feedback ownership intact'
+);
+
+-- A hypothetical forward repair, executed ONLY in a local disposable
+-- PostgreSQL test transaction. NOT a production DDL or retention decision.
+insert into auth.users (id, email)
+values ('b5300000-0000-4000-8000-000000000004', 'p0-feedback-fk-owner-d@example.test');
+
+insert into public.feedback_responses (id, user_id, email, feedback)
+values (
+  'b5310000-0000-4000-8000-000000000004',
+  'b5300000-0000-4000-8000-000000000004',
+  'p0-feedback-fk-owner-d@example.test',
+  'Synthetic unrelated feedback D'
+);
+
+alter table public.feedback_responses
+  drop constraint feedback_responses_user_id_fkey;
+
+alter table public.feedback_responses
+  add constraint feedback_responses_user_id_fkey
+  foreign key (user_id) references auth.users(id)
+  on delete cascade;
+
+select extensions.ok(
+  exists (
+    select 1 from pg_catalog.pg_constraint as c
+    join pg_catalog.pg_class as t on t.oid = c.conrelid
+    join pg_catalog.pg_namespace as n on n.oid = t.relnamespace
+    where n.nspname = 'public'
+      and t.relname = 'feedback_responses'
+      and c.conname = 'feedback_responses_user_id_fkey'
+      and c.confdeltype = 'c' and c.convalidated
+  ),
+  'Forward rehearsal restores validated CASCADE action'
+);
+
+select extensions.ok(
+  not has_table_privilege('authenticated', 'public.feedback_responses', 'DELETE'),
+  'Forward rehearsal preserves denial of user DELETE privileges'
+);
+
+delete from auth.users
+where id = 'b5300000-0000-4000-8000-000000000003';
+
+select extensions.is(
+  (select count(*)::integer from auth.users
+   where id = 'b5300000-0000-4000-8000-000000000003'), 0,
+  'Forward rehearsal permits synthetic user C deletion'
+);
+
+select extensions.is(
+  (select count(*)::integer from public.feedback_responses
+   where id = 'b5310000-0000-4000-8000-000000000003'), 0,
+  'Forward rehearsal cascades only C feedback'
+);
+
+select extensions.is(
+  (select count(*)::integer from public.feedback_responses
+   where id = 'b5310000-0000-4000-8000-000000000004'
+     and user_id = 'b5300000-0000-4000-8000-000000000004'), 1,
+  'Forward rehearsal preserves unrelated synthetic D feedback'
 );
 
 select * from extensions.finish();
