@@ -48,11 +48,14 @@ for (const relativePath of activeSurfaces) {
 const renderConfig = readFileSync(resolve(root, "render.yaml"), "utf8");
 const requiredRenderDirectives = [
   "type: web",
-  "runtime: image",
-  "url: ghcr.io/arcana-academy/academiaarcana:main",
-  "plan: free",
-  "region: ohio",
+  "runtime: node",
+  "branch: main",
+  "autoDeployTrigger: checksPass",
+  "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
+  "startCommand: npm start",
   "healthCheckPath: /api/health",
+  "key: NPM_CONFIG_IGNORE_SCRIPTS",
+  'value: "true"',
 ];
 
 for (const directive of requiredRenderDirectives) {

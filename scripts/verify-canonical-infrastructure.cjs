@@ -314,10 +314,12 @@
   const requiredRenderDirectives = [
     "type: web",
     "name: academiaarcana",
-    "runtime: image",
-    "url: ghcr.io/arcana-academy/academiaarcana:main",
-    "plan: free",
-    "region: ohio",
+    "runtime: node",
+    "branch: main",
+    "autoDeployTrigger: checksPass",
+    "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
+    'key: SKIP_INSTALL_DEPS',
+    "startCommand: npm start",
     "healthCheckPath: /api/health",
   ];
 

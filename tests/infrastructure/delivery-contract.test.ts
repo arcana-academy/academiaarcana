@@ -26,7 +26,7 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).not.toContain("github.event.workflow_run.head_branch == 'main'");
   });
 
-  it("keeps workflow-derived production revisions out of inline shell interpolation", () => {
+  it("validates workflow-derived production revisions before shell use", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml");
 
     expect(workflow).toContain("EXPECTED_COMMIT: ${{ steps.expected.outputs.commit }}");
@@ -80,11 +80,14 @@ describe("delivery infrastructure contract", () => {
     for (const expected of [
       "name: academiaarcana",
       "type: web",
-      "runtime: image",
-      "url: ghcr.io/arcana-academy/academiaarcana:main",
-      "plan: free",
-      "region: ohio",
+      "runtime: node",
+      "branch: main",
+      "autoDeployTrigger: checksPass",
+      "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
+      "startCommand: npm start",
       "healthCheckPath: /api/health",
+      "NPM_CONFIG_IGNORE_SCRIPTS",
+      'value: "true"',
       "NEXT_PUBLIC_SUPABASE_URL",
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
       "sync: false",
