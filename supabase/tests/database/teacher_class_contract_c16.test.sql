@@ -82,7 +82,7 @@ insert into aa_c16_isolated.teacher_assignments
   ('b1000000-0000-4000-8000-000000000002', 'f2000000-0000-4000-8000-000000000002',
    'c2000000-0000-4000-8000-000000000001', 'active', null, null);
 
-select extensions.plan(29);
+select extensions.plan(34);
 
 -- Ciclo 17: protect EVERY institutional fixture table with RLS, including
 -- institutions (which deliberately has no anon/authenticated table grants).
@@ -92,6 +92,19 @@ select extensions.is(
    where n.nspname='aa_c16_isolated' and c.relname='institutions'),
   true,
   'C17-021 institutions table also has RLS enabled'
+);
+
+-- Direct-grant regression: RLS does not replace table privileges.
+select extensions.is(
+  has_table_privilege('authenticated', 'aa_c16_isolated.institutions', 'SELECT'),
+  false,
+  'C18-033 authenticated is not granted institution SELECT'
+);
+
+select extensions.is(
+  has_table_privilege('anon', 'aa_c16_isolated.classrooms', 'SELECT'),
+  false,
+  'C18-034 anon is not granted classroom SELECT'
 );
 
 select extensions.is(
@@ -219,6 +232,29 @@ select extensions.throws_ok(
        where id='c1000000-0000-4000-8000-000000000001'$sql$,
   '42501', null,
   'C17-027 teacher cannot delete classroom'
+);
+
+-- Institution writes are forbidden for authenticated teachers irrespective
+-- of synthetic membership; no app/role/admin capability is inferred.
+select extensions.throws_ok(
+  $sql$insert into aa_c16_isolated.institutions (id, display_name)
+        values ('f3000000-0000-4000-8000-000000000003','Forged institution')$sql$,
+  '42501', null,
+  'C18-030 teacher cannot create an institution'
+);
+
+select extensions.throws_ok(
+  $sql$update aa_c16_isolated.institutions set display_name='Tampered'
+        where id='f1000000-0000-4000-8000-000000000001'$sql$,
+  '42501', null,
+  'C18-031 teacher cannot edit institution'
+);
+
+select extensions.throws_ok(
+  $sql$delete from aa_c16_isolated.institutions
+        where id='f1000000-0000-4000-8000-000000000001'$sql$,
+  '42501', null,
+  'C18-032 teacher cannot delete institution'
 );
 reset role;
 
