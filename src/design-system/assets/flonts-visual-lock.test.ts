@@ -11,11 +11,11 @@ const manifest = JSON.parse(readFileSync(
 )) as Manifest;
 
 describe("Flonts identity lock", () => {
-  it("uses one fixed approved master and exactly three responsive derivatives", () => {
+  it("uses one fixed approved master and responsive derivatives and a committed navigation thumbnail", () => {
     expect(manifest.asset_id).toBe("AA-ASSET-013");
     expect(manifest.master).toBe("flonts-mago-original-aprovado.png");
-    expect(manifest.files).toHaveLength(4);
-    expect(new Set(manifest.files.map((x) => x.filename)).size).toBe(4);
+    expect(manifest.files).toHaveLength(5);
+    expect(new Set(manifest.files.map((x) => x.filename)).size).toBe(5);
     for (const entry of manifest.files) {
       expect(Math.abs(entry.width / entry.height - 0.8)).toBeLessThan(0.001);
       expect(entry.sha256).toMatch(/^[a-f0-9]{64}$/);
