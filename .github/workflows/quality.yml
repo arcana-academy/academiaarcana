@@ -88,7 +88,19 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+          STATISTICS_PILOT_CAPTURE_DIR: test-results/statistics-pilot-captures
         run: npm run test:e2e
+
+      # Only synthetic StatisticsView pilot screenshots are captured.
+      # Retain them for visual inspection without weakening E2E assertions.
+      - name: Upload Statistics pilot visual evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: statistics-cycle12-screenshots-${{ github.run_id }}
+          path: test-results/statistics-pilot-captures/*.png
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Verify production public configuration
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
