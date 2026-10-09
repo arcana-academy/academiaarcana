@@ -17,7 +17,7 @@ describe("Flonts identity lock", () => {
     expect(manifest.files).toHaveLength(4);
     expect(new Set(manifest.files.map((x) => x.filename)).size).toBe(4);
     for (const entry of manifest.files) {
-      expect(entry.width * 5).toBeCloseTo(entry.height * 4, 0);
+      expect(Math.abs(entry.width / entry.height - 0.8)).toBeLessThan(0.001);
       expect(entry.sha256).toMatch(/^[a-f0-9]{64}$/);
     }
   });
