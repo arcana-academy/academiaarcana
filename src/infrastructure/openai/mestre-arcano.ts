@@ -15,7 +15,6 @@ export type MestreArcanoResult = {
   readonly output: string;
   readonly responseId: string | null;
   readonly model: string;
-  readonly instructionPolicyVersion: string;
 };
 
 export type OpenAIAgentVerification = {
@@ -451,6 +450,5 @@ export async function runMestreArcano(
       typeof result.payload.model === "string"
         ? result.payload.model
         : model,
-    instructionPolicyVersion: MESTRE_ARCANO_INSTRUCTION_POLICY_VERSION,
   };
 }
