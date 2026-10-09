@@ -7,6 +7,7 @@ import EventThemesPreviewPage from "./eventos/page";
 import FixedThemesPreviewPage from "./temas-fixos/page";
 import PortalPreviewsPage from "./portais/page";
 import TeacherClassroomPreviewPage from "./portais/professor/turmas/page";
+import ClassDetailPreviewPage from "./portais/professor/turmas/turma-a/page";
 
 describe("visual preview access boundary", () => {
   beforeEach(() => {
@@ -37,6 +38,12 @@ describe("visual preview access boundary", () => {
     expect(rendered.type).toBe("main");
   });
 
+  it("requires a session for the class-detail nine-tab preview", async () => {
+    const rendered = await ClassDetailPreviewPage();
+    expect(requireAuthenticatedUser).toHaveBeenCalledOnce();
+    expect(rendered.type).toBe("main");
+  });
+
   it("does not return either preview when authentication fails", async () => {
     requireAuthenticatedUser.mockRejectedValueOnce(new Error("authentication denied"));
     await expect(EventThemesPreviewPage()).rejects.toThrow("authentication denied");
@@ -46,5 +53,7 @@ describe("visual preview access boundary", () => {
     await expect(PortalPreviewsPage()).rejects.toThrow("authentication denied");
     requireAuthenticatedUser.mockRejectedValueOnce(new Error("authentication denied"));
     await expect(TeacherClassroomPreviewPage()).rejects.toThrow("authentication denied");
+    requireAuthenticatedUser.mockRejectedValueOnce(new Error("authentication denied"));
+    await expect(ClassDetailPreviewPage()).rejects.toThrow("authentication denied");
   });
 });
