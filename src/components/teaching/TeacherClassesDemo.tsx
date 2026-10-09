@@ -1,3 +1,4 @@
+import Link from "next/link";
 "use client";
 
 import { useMemo, useState } from "react";
@@ -51,7 +52,7 @@ export function TeacherClassesDemo() {
         <ul className={styles.list}>
           {filtered.map((entry) => (
             <li key={entry.id} className={styles.card}>
-              <div><strong>{entry.title}</strong><p>{entry.note}</p></div>
+              <div>{entry.id === "sample-a" ? <Link href="/design-system/portais/professor/turmas/turma-a"><strong>{entry.title}</strong> — ver abas demonstrativas</Link> : <strong>{entry.title}</strong>}<p>{entry.note}</p></div>
               <span className={styles.stage}>{entry.stage}</span>
             </li>
           ))}
