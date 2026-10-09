@@ -258,6 +258,22 @@ const reviewGap: EducationalOverview = {
 
 const lowConfidence: EducationalOverview = {
   ...noData,
+  // Keep the single reported attempt visible as self-reported evidence.
+  // Insufficient confidence is not equivalent to absent practice.
+  evidence: [
+    {
+      practiceItemId: "self-item-low-confidence",
+      pageId: "page-low-confidence",
+      pageTitle: "Introdução às frações",
+      state: "developing",
+      score: 0.3,
+      attemptCount: 1,
+      confidence: "insufficient",
+      reason: "Uma única autoavaliação ainda não permite concluir domínio.",
+      source: "self-assessment",
+      masteryConfirmed: false,
+    },
+  ],
   profile: {
     practiceCoverage: {
       value: 20,
@@ -272,7 +288,7 @@ const lowConfidence: EducationalOverview = {
       source: "self-assessment attempts",
     },
     reviewNeed: {
-      value: 1,
+      value: 0,
       unit: "count",
       confidence: "insufficient",
       source: "review history",
