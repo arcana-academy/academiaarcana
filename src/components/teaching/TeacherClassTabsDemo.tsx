@@ -4,6 +4,7 @@ import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
 import { TeacherLessonsDemo } from "./TeacherLessonsDemo";
 import { TeacherMaterialsDemo } from "./TeacherMaterialsDemo";
 import { TeacherActivitiesDemo } from "./TeacherActivitiesDemo";
+import { TeacherAssessmentsDemo } from "./TeacherAssessmentsDemo";
 import styles from "./TeacherClassTabsDemo.module.css";
 
 const CLASS_TABS = [
@@ -68,6 +69,7 @@ export function TeacherClassTabsDemo() {
         {active.label === "Aulas" ? <TeacherLessonsDemo /> : null}
         {active.label === "Conteúdos" ? <TeacherMaterialsDemo /> : null}
         {active.label === "Atividades" ? <TeacherActivitiesDemo /> : null}
+        {active.label === "Avaliações" ? <TeacherAssessmentsDemo /> : null}
         <p className={styles.notice}>Prévia demonstrativa: leitura, criação, edição, compartilhamento
           e exportação reais permanecem bloqueados até aprovação das políticas de acesso.</p>
       </div>
