@@ -6,7 +6,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(8);
+select extensions.plan(12);
 
 select extensions.ok(
   exists (
@@ -92,6 +92,67 @@ select extensions.is(
    where id in ('b5310000-0000-4000-8000-000000000001', 'b5310000-0000-4000-8000-000000000002')),
   0,
   'Deleting synthetic user B also cascades; no residual feedback orphan'
+);
+
+-- Reproduce the observed hosted FK contradiction ONLY in this disposable local
+-- Supabase transaction: ON DELETE SET NULL together with user_id NOT NULL.
+-- This is a negative test. It is never executed against a hosted project.
+-- Every DDL/DML operation is reverted by the outer ROLLBACK below.
+alter table public.feedback_responses
+  drop constraint feedback_responses_user_id_fkey;
+
+alter table public.feedback_responses
+  add constraint feedback_responses_user_id_fkey
+  foreign key (user_id) references auth.users(id)
+  on delete set null;
+
+select extensions.ok(
+  exists (
+    select 1
+    from pg_catalog.pg_constraint as c
+    join pg_catalog.pg_class as t on t.oid = c.conrelid
+    join pg_catalog.pg_namespace as n on n.oid = t.relnamespace
+    where n.nspname = 'public'
+      and t.relname = 'feedback_responses'
+      and c.conname = 'feedback_responses_user_id_fkey'
+      and c.confdeltype = 'n'
+  ),
+  'Simulated hosted FK uses ON DELETE SET NULL'
+);
+
+insert into auth.users (id, email)
+values ('b5300000-0000-4000-8000-000000000003', 'p0-feedback-fk-owner-c@example.test');
+
+insert into public.feedback_responses (id, user_id, email, feedback)
+values (
+  'b5310000-0000-4000-8000-000000000003',
+  'b5300000-0000-4000-8000-000000000003',
+  'p0-feedback-fk-owner-c@example.test',
+  'Synthetic isolated negative FK test feedback C'
+);
+
+-- PgTAP catches SQLSTATE 23502 in its own exception subtransaction;
+-- user C's failed DELETE must not leak changes into the local test transaction.
+select extensions.throws_ok(
+  $delete from auth.users where id = 'b5300000-0000-4000-8000-000000000003'$,
+  '23502',
+  null,
+  'Simulated SET NULL plus NOT NULL blocks account deletion'
+);
+
+select extensions.is(
+  (select count(*)::integer from auth.users
+   where id = 'b5300000-0000-4000-8000-000000000003'),
+  1,
+  'Failed account deletion keeps the synthetic user intact'
+);
+
+select extensions.is(
+  (select count(*)::integer from public.feedback_responses
+   where id = 'b5310000-0000-4000-8000-000000000003'
+     and user_id = 'b5300000-0000-4000-8000-000000000003'),
+  1,
+  'Failed account deletion keeps synthetic feedback ownership intact'
 );
 
 select * from extensions.finish();
