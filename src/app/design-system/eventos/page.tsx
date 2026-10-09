@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { EventTemplatePreview } from "@/components/events/EventTemplatePreview";
 import { EVENT_THEME_IDS } from "@/design-system/event-themes/catalog";
 import "@/design-system/event-themes/event-themes.css";
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function EventThemesPreviewPage() {
+export default async function EventThemesPreviewPage() {
+  await requireAuthenticatedUser();
+
   return (
     <main id="conteudo" style={{ maxWidth: "74rem", padding: "2rem 1rem", margin: "0 auto" }}>
       <h1>Temas de eventos — propostas visuais</h1>
