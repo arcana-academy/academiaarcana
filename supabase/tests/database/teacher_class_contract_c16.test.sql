@@ -81,6 +81,9 @@ insert into aa_c16_isolated.teacher_assignments
   ('b1000000-0000-4000-8000-000000000002', 'f2000000-0000-4000-8000-000000000002',
    'c2000000-0000-4000-8000-000000000001', 'active', null, null);
 
+select extensions.plan(20);
+
+-- Anon: no table/schema access.
 set local role anon;
 select extensions.throws_ok(
   $sql$select count(*) from aa_c16_isolated.classrooms$sql$,
@@ -97,7 +100,7 @@ select extensions.throws_ok(
 );
 reset role;
 
--- Role authenticated with missing subject MUST see nothing.
+-- Authenticated without a verified JWT subject.
 set local role authenticated;
 select extensions.is(
   (select count(*)::integer from aa_c16_isolated.classrooms),
@@ -112,15 +115,9 @@ select extensions.is(
 );
 reset role;
 
--- Professor A: one currently active binding; revoked and expired hidden.
+-- Professor A: active grant only, no unauthorized writes.
 select set_config('request.jwt.claim.sub', 'b1000000-0000-4000-8000-000000000001', true);
 select set_config('request.jwt.claims', '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
-set local role authenticated;
-reset role;
-
--- Professor B, same context and across two institutions, sees only B grants.
-select set_config('request.jwt.claim.sub', 'b1000000-0000-4000-8000-000000000002', true);
-select set_config('request.jwt.claims', '{"sub":"b1000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
 set local role authenticated;
 select extensions.is(
   (select count(*)::integer from aa_c16_isolated.classrooms),
@@ -174,9 +171,9 @@ select extensions.throws_ok(
 );
 reset role;
 
--- Forged self-editable user_metadata never substitutes an active binding.
-select set_config('request.jwt.claim.sub', 'b1000000-0000-4000-8000-000000000003', true);
-select set_config('request.jwt.claims', '{"sub":"b1000000-0000-4000-8000-000000000003","role":"authenticated","user_metadata":{"is_teacher":true,"institution_id":"f1000000-0000-4000-8000-000000000001"}}', true);
+-- Professor B: strictly isolated from A, spanning assigned contexts.
+select set_config('request.jwt.claim.sub', 'b1000000-0000-4000-8000-000000000002', true);
+select set_config('request.jwt.claims', '{"sub":"b1000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
 set local role authenticated;
 select extensions.is(
   (select count(*)::integer from aa_c16_isolated.classrooms),
@@ -197,21 +194,9 @@ select extensions.is(
 );
 reset role;
 
--- A class-id + institution-id mismatch fails referential integrity even for admin fixture setup.
-
-select extensions.throws_ok(
-  $sql$insert into aa_c16_isolated.teacher_assignments (actor_id,institution_id,classroom_id,status) values ('b1000000-0000-4000-8000-000000000003','f2000000-0000-4000-8000-000000000002','c1000000-0000-4000-8000-000000000001','active')$sql$,
-  '23503',
-  null,
-  'C16-018 cross-institution forged assignment violates composite FK'
-);
-
--- A's revocation must take effect without a new claim or client-side cache.
-update aa_c16_isolated.teacher_assignments set status='revoked', revoked_at=now()
-  where actor_id='b1000000-0000-4000-8000-000000000001'
-    and classroom_id='c1000000-0000-4000-8000-000000000001';
-select set_config('request.jwt.claim.sub', 'b1000000-0000-4000-8000-000000000001', true);
-select set_config('request.jwt.claims', '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+-- Professor C: user-editable claims are not an authorization source.
+select set_config('request.jwt.claim.sub', 'b1000000-0000-4000-8000-000000000003', true);
+select set_config('request.jwt.claims', '{"sub":"b1000000-0000-4000-8000-000000000003","role":"authenticated","user_metadata":{"is_teacher":true,"institution_id":"f1000000-0000-4000-8000-000000000001"}}', true);
 set local role authenticated;
 select extensions.is(
   (select count(*)::integer from aa_c16_isolated.classrooms),
@@ -226,21 +211,35 @@ select extensions.is(
 );
 reset role;
 
--- Recovery of the hypothetical grant is visible only after explicit restoration.
+-- Referential check for cross-institution assignment forgery.
+select extensions.throws_ok(
+  $sql$insert into aa_c16_isolated.teacher_assignments (actor_id,institution_id,classroom_id,status) values ('b1000000-0000-4000-8000-000000000003','f2000000-0000-4000-8000-000000000002','c1000000-0000-4000-8000-000000000001','active')$sql$,
+  '23503',
+  null,
+  'C16-018 cross-institution forged assignment violates composite FK'
+);
+
+-- Revocation takes effect with the same JWT for A.
+update aa_c16_isolated.teacher_assignments set status='revoked', revoked_at=now()
+  where actor_id='b1000000-0000-4000-8000-000000000001' and classroom_id='c1000000-0000-4000-8000-000000000001';
+select set_config('request.jwt.claim.sub', 'b1000000-0000-4000-8000-000000000001', true);
+select set_config('request.jwt.claims', '{"sub":"b1000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+set local role authenticated;
+select extensions.is(
+  (select count(*)::integer from aa_c16_isolated.classrooms),
+  0,
+  'C16-019 revoked teacher loses existing class immediately'
+);
+reset role;
+
+-- Recovery in the disposable fixture is explicit.
 update aa_c16_isolated.teacher_assignments set status='active', revoked_at=null
-  where actor_id='b1000000-0000-4000-8000-000000000001'
-    and classroom_id='c1000000-0000-4000-8000-000000000001';
+  where actor_id='b1000000-0000-4000-8000-000000000001' and classroom_id='c1000000-0000-4000-8000-000000000001';
 set local role authenticated;
 select extensions.is(
   (select count(*)::integer from aa_c16_isolated.classrooms),
   1,
   'C16-020 restored teacher may read one class again'
-);
-
-select extensions.is(
-  (select count(*)::integer from aa_c16_isolated.classrooms),
-  0,
-  'C16-019 revoked teacher loses existing class immediately'
 );
 reset role;
 
