@@ -12,18 +12,23 @@ const root = process.cwd();
 const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("delivery infrastructure contract", () => {
-  it("restricts workflow_run smoke checks to successful image releases on main", () => {
+  it("retains git-source smoke until the image deployment switch is enabled", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml").replaceAll(
       "\r\n",
       "\n",
     );
 
-    expect(workflow).toContain('workflows: ["Academia Arcana Image Release"]');
+    expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]');
     expect(workflow).toContain("types: [completed]");
     expect(workflow).toContain("    branches:\n      - main");
+    expect(workflow).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
+    expect(workflow).toContain("github.event.workflow_run.event == 'push'");
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Quality Gate'");
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Image Release'");
+    expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED != 'true'");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
+    expect(workflow).toContain("if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Academia Arcana Image Release'");
     expect(workflow).toContain("academiaarcana-deploy-${{ github.event.workflow_run.head_sha }}");
-    expect(workflow).not.toContain("github.event.workflow_run.head_branch == 'main'");
   });
 
   it("validates workflow-derived production revisions before shell use", () => {
@@ -32,6 +37,7 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("EXPECTED_COMMIT: ${{ steps.expected.outputs.commit }}");
     expect(workflow).toContain('expected_commit="$EXPECTED_COMMIT"');
     expect(workflow).toContain('[[ "$expected" =~ ^[0-9a-f]{40}$ ]]');
+    expect(workflow).toContain('if [ "$EVENT_NAME" = "workflow_run" ] && [ "$TRIGGER_WORKFLOW" = "Academia Arcana Image Release" ]; then');
     expect(workflow).not.toContain('expected_commit="${{ steps.expected.outputs.commit }}"');
   });
 
@@ -40,7 +46,9 @@ describe("delivery infrastructure contract", () => {
 
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
     expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
+    expect(workflow).toContain("github.event.workflow_run.event == 'push'");
     expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
+    expect(workflow).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
     expect(workflow).toContain("packages: write");
     expect(workflow).toContain("ghcr.io/arcana-academy/academiaarcana:${IMAGE_REVISION}");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
