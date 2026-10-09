@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { FixedThemePreviews } from "@/components/themes/FixedThemePreviews";
 
 export const metadata: Metadata = {
@@ -7,7 +8,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function FixedThemesPage() {
+export default async function FixedThemesPage() {
+  await requireAuthenticatedUser();
+
   return (
     <main style={{ maxWidth: "80rem", margin: "0 auto", padding: "2rem 1rem" }}>
       <h1>Temas fixos — prévias de implementação</h1>
