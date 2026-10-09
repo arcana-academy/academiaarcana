@@ -18,7 +18,9 @@ describe("MobileNavigation", () => {
 
     expect(menu).toHaveAttribute("open");
     expect(screen.getByRole("navigation", { name: "Navegação móvel" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Workspace" })).toHaveAttribute("aria-current", "page");
+    const currentLink = screen.getByRole("link", { name: "Workspace" });
+    expect(currentLink).toHaveAttribute("aria-current", "page");
+    expect(currentLink.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByRole("link", { name: "Grimórios" })).toHaveAttribute("href", "/grimorios");
   });
 });

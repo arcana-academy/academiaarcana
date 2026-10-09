@@ -31,6 +31,8 @@ export function Sidebar({ currentPath }: SidebarProps) {
         <ul className="aa-sidebar-list">
           {navigationItems.map((item) => {
             const active = item.href === currentPath;
+            const Icon = item.icon;
+
             return (
               <li key={item.href}>
                 <Link
@@ -38,6 +40,9 @@ export function Sidebar({ currentPath }: SidebarProps) {
                   className={`aa-sidebar-link ${active ? "aa-sidebar-link-active" : ""}`}
                   aria-current={active ? "page" : undefined}
                 >
+                  <span className="aa-sidebar-icon" aria-hidden="true">
+                    <Icon size={20} />
+                  </span>
                   <span>{item.label}</span>
                 </Link>
               </li>
