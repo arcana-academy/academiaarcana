@@ -1,6 +1,6 @@
 # P0 #536 — GHCR retention and recoverable fallback: guarded runbook
 
-Date: 2026-10-09. Status: **PREPARED / UNEXECUTED / NO-GO for publication, merge or deploy**.
+Date: 2026-10-09. Status: **DISPOSABLE OCI DRY-RUN PASSED / OPERATIONAL BACKUP UNEXECUTED / NO-GO for publication, merge or deploy**.
 Owner approval required at **each mutating gate**. This document is a plan, not a scheduled workflow or permission to operate production.
 
 ## 1. Current evidence and exact immutable identities
@@ -46,6 +46,14 @@ Authoritative checkpoints: https://github.com/arcana-academy/academiaarcana/issu
 6. Record a proposed independent backup owner/location and access model, restore target and retention period. **Do not create/upload any archive or change settings in this phase.**
 
 **Snapshot evidence is time-specific.** A past success of a registry GET or CI workflow does not prove present retention. No assumed GitHub settings should be reported as immutable retention guarantees.
+
+## 3A. Completed disposable OCI archive and filesystem restore dry-run (2026-10-09)
+
+**Technical dry-run ONLY, not the independent backup/restore gate.** A separate ephemeral browser VM downloaded the **already published primary** manifest `sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658` anonymously from GHCR and verified the complete manifest SHA-256. The same exercise streamed **8/8 complete descriptor blobs** (config and 7 compressed layers; total **216,970,542 bytes**), checking full-body SHA-256 and recorded descriptor size for each.
+
+The VM built a local OCI layout with the source Docker schema 2 manifest, packaged it in a **216,995,840-byte tar**, extracted that tar to a separate temporary directory, and verified all **9/9 content-addressed objects** (manifest plus 8 blobs) against digest and size. The archive's complete SHA-256 was `f35b959424b611253be8b958013f8e9eff60988f0ede3a9c51466a215662c069`, unchanged on remeasurement. The negative test flipped one byte of a **temporary restored** 93-byte layer, and SHA verification rejected the corrupted restore. After deleting and restoring the directory again from the untampered tar, 9/9 objects passed. [Full execution receipt and limitations on issue #536](https://github.com/arcana-academy/academiaarcana/issues/536#issuecomment-6090844711).
+
+**Deliberate limitations:** no external persistence of the tar (stored under `/tmp` only); **no independent failure domain or custody/retention control**; no approved destination; no secondary fallback digest; no registry push; no local Docker daemon/container boot, Render rollback or production test. The exercise proves the byte-integrity mechanics of a **disposable OCI filesystem round trip only**. It does **not** authorize or satisfy future Gates A–D, and must not be called an operational backup or tested deployment rollback. The Runbook's nonmutating-preflight prohibition on **persisting or uploading archives** remains in force.
 
 ## 4. Future action gates (all separately authorized, NOT executed here)
 
@@ -94,4 +102,4 @@ Record one immutable receipt per image and one receipt per restore exercise:
 - `skopeo copy` and digest-preserving fail-closed mode: https://github.com/containers/skopeo/blob/main/docs/skopeo-copy.1.md
 - Render prebuilt-image pull and rollback limitations: https://render.com/docs/deploying-an-image and https://render.com/docs/rollbacks
 
-**FINAL STATUS: PREPARED / NOT EXECUTED. GHCR retention, persisted fallback and tested restoration remain NOT PROVEN. Issue #536 remains P0/OPEN.**
+**FINAL STATUS: LOCAL OCI ARCHIVE/FILESYSTEM RESTORE DRY-RUN PASS; OPERATIONAL BACKUP, FALLBACK DIGEST AND RESTORE TO APPROVED REGISTRY/CONTAINER NOT EXECUTED. GHCR retention and independent disaster recovery remain NOT PROVEN. Issue #536 remains P0/OPEN.**
