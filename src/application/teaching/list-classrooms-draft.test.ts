@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { listTeacherClassroomsDraft, type ScopedTeacherClassroomReader } from "./list-classrooms-draft";
+import {
+  listTeacherClassroomsDraft,
+  type ActiveTeacherClassBindingVerifier,
+  type ScopedTeacherClassroomReader,
+} from "./list-classrooms-draft";
 import type { AuthorizationPolicy } from "@/core/authorization";
 
 const reader = (): ScopedTeacherClassroomReader => ({
@@ -10,55 +14,138 @@ const reader = (): ScopedTeacherClassroomReader => ({
   ]),
 });
 
-const policy: AuthorizationPolicy = ({ resourceId, contextId }) =>
-  contextId === "school-A" && resourceId !== "class-private"
+const policy: AuthorizationPolicy = ({ actorId, resourceId, contextId }) =>
+  actorId === "prof-1" && contextId === "school-A" && resourceId !== "class-private"
     ? { allowed: true, scope: "context" }
     : { allowed: false, reason: "missing-permission" };
 
-describe("proposed teacher classroom boundary", () => {
-  it("refuses absent identity or context without reading rows", async () => {
+const binding = (): ActiveTeacherClassBindingVerifier => ({
+  isActiveTeacherClassBinding: vi.fn(async (actorId, contextId, classId) =>
+    actorId === "prof-1" && contextId === "school-A" && classId === "class-1"
+  ),
+});
+
+describe("proposed teacher classroom boundary — Ciclo 15", () => {
+  it("refuses missing or noncanonical identities before querying a provider", async () => {
     const gateway = reader();
-    expect(await listTeacherClassroomsDraft({ actorId: null, contextId: "school-A", reader: gateway }))
-      .toEqual({ status: "denied", reason: "unauthenticated" });
-    expect(await listTeacherClassroomsDraft({ actorId: "prof-1", contextId: null, reader: gateway }))
-      .toEqual({ status: "denied", reason: "wrong-context" });
+    for (const actorId of [null, "", " ", " prof-1"]) {
+      expect(await listTeacherClassroomsDraft({
+        actorId, contextId: "school-A", reader: gateway, authorization: policy, bindingVerifier: binding(),
+      })).toEqual({ status: "denied", reason: "unauthenticated" });
+    }
+    for (const contextId of [null, "", "school-A "]) {
+      expect(await listTeacherClassroomsDraft({
+        actorId: "prof-1", contextId, reader: gateway, authorization: policy, bindingVerifier: binding(),
+      })).toEqual({ status: "denied", reason: "wrong-context" });
+    }
     expect(gateway.listForTeacherInContext).not.toHaveBeenCalled();
   });
 
-  it("defaults to denial when role policy is not supplied", async () => {
+  it("denies absent or explicitly refusing authorization before reading any rows", async () => {
     const gateway = reader();
-    expect(await listTeacherClassroomsDraft({ actorId: "prof-1", contextId: "school-A", reader: gateway }))
-      .toEqual({ status: "denied", reason: "policy-denied" });
+    expect(await listTeacherClassroomsDraft({
+      actorId: "prof-1", contextId: "school-A", reader: gateway, bindingVerifier: binding(),
+    })).toEqual({ status: "denied", reason: "policy-denied" });
+    expect(await listTeacherClassroomsDraft({
+      actorId: "prof-2", contextId: "school-A", reader: gateway,
+      authorization: policy, bindingVerifier: binding(),
+    })).toEqual({ status: "denied", reason: "missing-permission" });
     expect(gateway.listForTeacherInContext).not.toHaveBeenCalled();
   });
 
-  it("rejects self-scoped grants and missing backend adapters", async () => {
+  it("rejects incorrect grant scopes and missing providers without calling the reader", async () => {
+    const gateway = reader();
     const selfPolicy: AuthorizationPolicy = () => ({ allowed: true, scope: "self" });
-    const gateway = reader();
     expect(await listTeacherClassroomsDraft({
-      actorId: "prof-1", contextId: "school-A", authorization: selfPolicy, reader: gateway,
+      actorId: "prof-1", contextId: "school-A", authorization: selfPolicy,
+      reader: gateway, bindingVerifier: binding(),
     })).toEqual({ status: "denied", reason: "wrong-context" });
-    expect(gateway.listForTeacherInContext).not.toHaveBeenCalled();
     expect(await listTeacherClassroomsDraft({
-      actorId: "prof-1", contextId: "school-A", authorization: policy,
+      actorId: "prof-1", contextId: "school-A", authorization: policy, reader: gateway,
     })).toEqual({ status: "unavailable" });
+    expect(await listTeacherClassroomsDraft({
+      actorId: "prof-1", contextId: "school-A", authorization: policy, bindingVerifier: binding(),
+    })).toEqual({ status: "unavailable" });
+    expect(gateway.listForTeacherInContext).not.toHaveBeenCalled();
   });
 
-  it("filters unauthorized and foreign-context rows after the scoped query", async () => {
-    const result = await listTeacherClassroomsDraft({
-      actorId: "prof-1", contextId: "school-A", reader: reader(), authorization: policy,
-    });
-    expect(result).toEqual({
+  it("filters foreign-context, forbidden and inactive rows using both authorization and binding", async () => {
+    const verifier = binding();
+    expect(await listTeacherClassroomsDraft({
+      actorId: "prof-1", contextId: "school-A", reader: reader(),
+      authorization: policy, bindingVerifier: verifier,
+    })).toEqual({
       status: "ok", classrooms: [{ id: "class-1", contextId: "school-A", title: "Turma A" }],
     });
+    expect(verifier.isActiveTeacherClassBinding).toHaveBeenCalledTimes(1);
+    expect(verifier.isActiveTeacherClassBinding).toHaveBeenCalledWith("prof-1", "school-A", "class-1");
   });
 
-  it("does not expose partial data or adapter errors", async () => {
-    const broken: ScopedTeacherClassroomReader = {
-      listForTeacherInContext: vi.fn(async () => { throw new Error("internal credentials"); }),
+  it("prevents cross-account access even if a context policy is overpermissive", async () => {
+    const permissive: AuthorizationPolicy = () => ({ allowed: true, scope: "context" });
+    const verifier = binding();
+    const output = await listTeacherClassroomsDraft({
+      actorId: "prof-2", contextId: "school-A", reader: reader(),
+      authorization: permissive, bindingVerifier: verifier,
+    });
+    expect(output).toEqual({ status: "ok", classrooms: [] });
+    expect(verifier.isActiveTeacherClassBinding).toHaveBeenCalledWith("prof-2", "school-A", "class-1");
+  });
+
+  it("rechecks revocation on every request without caching a granted relationship", async () => {
+    let active = true;
+    const verifier: ActiveTeacherClassBindingVerifier = {
+      isActiveTeacherClassBinding: vi.fn(async (_actor, _ctx, classId) => active && classId === "class-1"),
     };
+    const input = {
+      actorId: "prof-1", contextId: "school-A", reader: reader(),
+      authorization: policy, bindingVerifier: verifier,
+    };
+    expect(await listTeacherClassroomsDraft(input)).toMatchObject({
+      status: "ok", classrooms: [{ id: "class-1" }],
+    });
+    active = false;
+    expect(await listTeacherClassroomsDraft(input)).toEqual({ status: "ok", classrooms: [] });
+    expect(verifier.isActiveTeacherClassBinding).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns unavailable, without partial data, on reader, policy or relationship errors", async () => {
+    const brokenReader: ScopedTeacherClassroomReader = {
+      listForTeacherInContext: vi.fn(async () => { throw new Error("sensitive adapter detail"); }),
+    };
+    const brokenPolicy: AuthorizationPolicy = () => { throw new Error("internal policy detail"); };
+    const brokenVerifier: ActiveTeacherClassBindingVerifier = {
+      isActiveTeacherClassBinding: vi.fn(async () => { throw new Error("private membership detail"); }),
+    };
+    const base = { actorId: "prof-1", contextId: "school-A" };
     expect(await listTeacherClassroomsDraft({
-      actorId: "prof-1", contextId: "school-A", reader: broken, authorization: policy,
+      ...base, authorization: policy, reader: brokenReader, bindingVerifier: binding(),
     })).toEqual({ status: "unavailable" });
+    const safeReader = reader();
+    expect(await listTeacherClassroomsDraft({
+      ...base, authorization: brokenPolicy, reader: safeReader, bindingVerifier: binding(),
+    })).toEqual({ status: "unavailable" });
+    expect(safeReader.listForTeacherInContext).not.toHaveBeenCalled();
+    expect(await listTeacherClassroomsDraft({
+      ...base, authorization: policy, reader: reader(), bindingVerifier: brokenVerifier,
+    })).toEqual({ status: "unavailable" });
+  });
+
+  it("rejects malformed candidate rows even when authorization is permissive", async () => {
+    const malformed: ScopedTeacherClassroomReader = {
+      listForTeacherInContext: vi.fn(async () => [
+        { id: " ", contextId: "school-A", title: "Blank" },
+        { id: "class-1 ", contextId: "school-A", title: "Trailing" },
+        { id: "class-1", contextId: "school-A", title: "  " },
+        { id: "class-foreign", contextId: "school-B", title: "Foreign" },
+      ]),
+    };
+    const permissive: AuthorizationPolicy = () => ({ allowed: true, scope: "context" });
+    const verifier = binding();
+    expect(await listTeacherClassroomsDraft({
+      actorId: "prof-1", contextId: "school-A",
+      reader: malformed, authorization: permissive, bindingVerifier: verifier,
+    })).toEqual({ status: "ok", classrooms: [] });
+    expect(verifier.isActiveTeacherClassBinding).not.toHaveBeenCalled();
   });
 });
