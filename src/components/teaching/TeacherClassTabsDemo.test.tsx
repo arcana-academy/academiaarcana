@@ -16,8 +16,11 @@ describe("Professor Turma A tabs prototype", () => {
     render(<TeacherClassTabsDemo />);
     fireEvent.click(screen.getByRole("tab", { name: "Aulas" }));
     expect(screen.getByRole("tabpanel")).toHaveTextContent("Aulas da Turma");
+    expect(screen.getByRole("searchbox", { name: "Buscar aula demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("3 aula(s) demonstrativa(s) encontrada(s)")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "Alunos" }));
     expect(screen.getByRole("tabpanel")).toHaveTextContent("Nenhum dado pessoal de estudantes");
+    expect(screen.queryByRole("searchbox", { name: "Buscar aula demonstrativa" })).not.toBeInTheDocument();
   });
 
   it("supports Arrow, Home and End keyboard tab navigation", () => {
