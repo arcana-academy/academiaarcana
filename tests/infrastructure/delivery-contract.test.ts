@@ -69,6 +69,25 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).not.toContain("docker build");
   });
 
+  it("requires a nonempty exact main source SHA approval before GHCR publishing", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const publishJob = workflow.split("\n  publish:\n")[1]?.split("\n  deploy:\n")[0];
+
+    expect(publishJob).toBeDefined();
+    expect(publishJob).toContain("needs: preflight");
+    expect(publishJob).toContain("vars.GHCR_PUBLISH_APPROVED_SHA != ''");
+    expect(publishJob).toContain(
+      "vars.GHCR_PUBLISH_APPROVED_SHA == github.event.workflow_run.head_sha",
+    );
+    expect(publishJob).toContain("github.event.workflow_run.run_attempt == 1");
+    expect(publishJob).toContain("packages: write");
+
+    // A missing approval variable must result in a skipped publisher.
+    // Deploy authorization is a separate, additional gate.
+    expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
+    expect(workflow).toContain("needs: publish");
+  });
+
   it("defines one canonical provider for each infrastructure responsibility", () => {
     const roles = CANONICAL_INFRASTRUCTURE_PROVIDERS.map((item) => item.role);
 
