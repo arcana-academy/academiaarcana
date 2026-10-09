@@ -55,7 +55,10 @@ export function MestreArcanoPanel() {
       const response = await fetch("/api/agent/mestre-arcano", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: normalized, helpLevel }),
+        body: JSON.stringify({
+          input: normalized,
+          ...(helpLevel === "unspecified" ? {} : { helpLevel }),
+        }),
       });
 
       const payload = (await response.json()) as AgentResponse;
