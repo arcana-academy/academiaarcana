@@ -1,6 +1,7 @@
 "use client";
 import { useId, useRef, useState, type KeyboardEvent } from "react";
 import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
+import { TeacherLessonsDemo } from "./TeacherLessonsDemo";
 import styles from "./TeacherClassTabsDemo.module.css";
 
 const CLASS_TABS = [
@@ -62,6 +63,7 @@ export function TeacherClassTabsDemo() {
         <p className={styles.eyebrow}>Aba selecionada: {active.label}</p>
         <h3>{active.title}</h3><p>{active.summary}</p>
         <ul>{active.items.map((item) => <li key={item}>{item}</li>)}</ul>
+        {active.label === "Aulas" ? <TeacherLessonsDemo /> : null}
         <p className={styles.notice}>Prévia demonstrativa: leitura, criação, edição, compartilhamento
           e exportação reais permanecem bloqueados até aprovação das políticas de acesso.</p>
       </div>
