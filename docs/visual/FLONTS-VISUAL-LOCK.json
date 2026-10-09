@@ -1,0 +1,38 @@
+{
+  "schema": "AA-FLONTS-VISUAL-LOCK-1",
+  "asset_id": "AA-ASSET-013",
+  "approval": "user-approved-art-reference",
+  "integration_state": "PENDING_BINARY_UPLOAD",
+  "master": "flonts-mago-original-aprovado.png",
+  "root": "public/assets/flonts",
+  "files": [
+    {
+      "filename": "flonts-mago-original-aprovado.png",
+      "bytes": 3644468,
+      "width": 1122,
+      "height": 1402,
+      "sha256": "534c85bed756ff7fe42fa0c6de09062efa4119b30ef5c268e7c67742c0726128"
+    },
+    {
+      "filename": "flonts-mago-960.webp",
+      "bytes": 186870,
+      "width": 960,
+      "height": 1200,
+      "sha256": "3b8f8419afc6559bcdfcaf5ad8c04a26a76b358ffd7c97f383f16ee12222d733"
+    },
+    {
+      "filename": "flonts-mago-480.webp",
+      "bytes": 53562,
+      "width": 480,
+      "height": 600,
+      "sha256": "0d5e1f819d80339dcd0c5931c94dea08bbdad9e977c862a442d18cc55066317a"
+    },
+    {
+      "filename": "flonts-mago-320.webp",
+      "bytes": 22832,
+      "width": 320,
+      "height": 400,
+      "sha256": "8c4e9613be5c02e8959f39c10f04da6d636728bcd69bc19ab286cd632184388b"
+    }
+  ]
+}
