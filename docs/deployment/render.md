@@ -51,6 +51,29 @@ The Quality Gate includes `bash scripts/smoke-production-container.sh "$GITHUB_S
 
 This is an **ephemeral CI validation only**: no Render deploy, no GHCR publication, no real API keys, no remote Supabase readiness, and no claim about runtime integrations. The actual `/api/ready`, CSP, production integration status and exact image digest remain post-migration gates. If the container check fails, the Quality Gate is red and no main image artifact may be saved.
 
+### P0 #536: containment after the externally merged release (2026-10-09)
+
+**Observed, not authorized:** PR #582 was merged externally into `main` at `cc17653dfe79c44dd83ba1ced8cb065383b11ca9`. GitHub's Quality Gate and isolated container tests passed and the trusted Image Release published a GHCR digest. Its Render deploy job was skipped. The existing Render Free service was still Git-backed, `autoDeployTrigger=checksPass`, with the last observed live revision `17fb81477fbd3eed14b93103641004a766eb9ac1`. This does **not** prove the service is permanently safe from a later Git auto-deploy.
+
+**Read-only smoke fix:** the previous workflow-level `concurrency: production-smoke / cancel-in-progress: true` could cancel an in-flight Git-backed verification when the downstream Image Release started another Production Smoke workflow, even when that second smoke job was skipped. This workflow intentionally has **no concurrency cancellation**: independent read-only smoke attempts complete independently. Their success must still be determined by **exact deployed SHA**, not just the HTTP root response.
+
+**Production freeze workflow (approval required; do not execute implicitly):**
+
+1. Confirm the service is the same `srv-dauor697lnhs739cicag` on Render Free, currently Git-backed `main`. Check Deploys and Events for any running or queued Git build.
+2. Reconfirm that Git **Auto-Deploy remains Off** in the existing service (`autoDeploy=no`, `autoDeployTrigger=off`) and re-read the deployment queue. If either setting differs, **stop** and obtain separate operational approval before changing delivery behavior. Do not change runtime environment or secrets.
+3. Before merging this smoke fix, determine whether `main` is ahead of production. A passing `main` Quality Gate does not imply the Render `/api/health` revision has advanced.
+4. When Git auto-deploy is paused, operators may use manual `Academia Arcana Production Smoke` with `expected_revision` set to the **40-character SHA actually live** on Render. This only verifies the existing service; it does not deploy anything, and a passing result must not be attributed to a new commit.
+5. Do not merge more work into `main` until the Git-backed auto-deploy risk is controlled, reviewed and tested. Preserve the exact current stable deploy for rollback.
+
+**GHCR source and retention acceptance (currently unverified):**
+
+- Expected registry reference from the successful main Image Release: `ghcr.io/arcana-academy/academiaarcana@sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658`. This digest is evidence of a successful publisher, **not** evidence that anyone can anonymously pull it.
+- GHCR visibility is independent of the repository's visibility. In the package settings, verify **Public** (or arrange an authorized private-registry credential) and confirm in a clean, unauthenticated Docker/OCI client that this **specific digest** resolves to a `linux/amd64` manifest. Never expose tokens in output or logs.
+- Verify who can delete package versions and whether automatic cleanup or retention policies might remove the active digest. Preserve the active digest and at least the earlier known-good rollback digests; log the mapping from source SHA → build run → unique provenance tag → manifest digest. If any version is missing or may be pruned, **NO-GO** for image-backed production.
+- Do not change package visibility, install credentials, delete images, or modify billing settings during a read-only audit. The image contains publicly deployed application code, but this does not replace inspection of layers and source-map contents before making it public.
+- Render pulls the image from the registry for **every deployment** and may pull again on restarts/rescheduling. If a required digest disappears, rollback/recovery can fail. Reference: https://render.com/docs/deploying-an-image
+- Only after independent authorization: align Blueprint ownership, reconfirm that Git auto-deploy remains disabled, choose the existing Render service, change its source to the verified digest with an explicitly approved deployment, verify readiness/security/smoke, and retain rollback digests. Do not enable `RENDER_IMAGE_DEPLOY_ENABLED` prematurely.
+
 ## Runtime secret boundary
 
 Secrets are never committed to `render.yaml`.

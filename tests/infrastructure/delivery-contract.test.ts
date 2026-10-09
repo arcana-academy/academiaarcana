@@ -31,6 +31,80 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("academiaarcana-deploy-request");
   });
 
+  it("keeps independent production smoke attempts from cancelling one another", () => {
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+
+    // A release triggered by the same upstream Quality Gate can finish with its
+    // deploy job skipped; it must never cancel an in-flight Git-backed smoke.
+    expect(workflow).not.toMatch(/^concurrency:/m);
+
+    // Cover workflow-level and jobs.<name>.concurrency declarations, including
+    // quoted values and expressions that may evaluate to true. Only explicit
+    // false values are non-cancelling.
+    const canCancelAnActiveSmoke = (source: string) =>
+      source.split(/\r?\n/).some((line) => {
+        const declaration = /^[ \t]*cancel-in-progress[ \t]*:[ \t]*(.*)$/i.exec(line);
+        if (!declaration) return false;
+
+        return !/^(?:false|"false"|'false'|\$\{\{\s*false\s*\}\})(?:[ \t]+#.*)?$/i.test(
+          declaration[1].trim(),
+        );
+      });
+
+    expect(canCancelAnActiveSmoke(workflow)).toBe(false);
+
+    for (const value of [
+      "false",
+      '"false"',
+      "'false'",
+      '${{ false }}',
+      "false # disabled",
+    ]) {
+      const config = [
+        "jobs:",
+        "  smoke:",
+        "    concurrency:",
+        "      group: smoke",
+        `      cancel-in-progress: ${value}`,
+      ].join("\n");
+
+      expect(canCancelAnActiveSmoke(config)).toBe(false);
+    }
+
+    for (const value of [
+      "true",
+      '"true"',
+      "'true'",
+      '${{ inputs.cancel_smoke }}',
+      "",
+    ]) {
+      const config = [
+        "jobs:",
+        "  smoke:",
+        "    concurrency:",
+        "      group: smoke",
+        `      cancel-in-progress: ${value}`,
+      ].join("\n");
+
+      expect(canCancelAnActiveSmoke(config)).toBe(true);
+    }
+
+    expect(
+      canCancelAnActiveSmoke("concurrency:\n  group: smoke\n  cancel-in-progress: true"),
+    ).toBe(true);
+    expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]');
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Image Release'");
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Quality Gate'");
+
+    // An authorized operator can manually smoke the *actual deployed* revision
+    // while main is ahead and Git auto-deploy is deliberately frozen.
+    expect(workflow).toContain("expected_revision:");
+    expect(workflow).toContain(
+      "inputs.expected_revision || github.event.workflow_run.head_sha || github.sha",
+    );
+    expect(workflow).toContain('[[ "$expected" =~ ^[0-9a-f]{40}$ ]]');
+  });
+
   it("validates workflow-derived production revisions before shell use", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml");
 
