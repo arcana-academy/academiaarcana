@@ -34,6 +34,17 @@ describe("Professor Turma A tabs prototype", () => {
     expect(screen.getByRole("searchbox", { name: "Buscar aula demonstrativa" })).toBeInTheDocument();
   });
 
+  it("keeps the activity filters isolated in the Atividades tab", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Atividades" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Atividades da turma — prévia demonstrativa");
+    expect(screen.getByRole("searchbox", { name: "Buscar atividade demonstrativa" })).toBeInTheDocument();
+    expect(screen.getByText("4 atividade(s) demonstrativa(s) encontrada(s)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: "Conteúdos" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar atividade demonstrativa" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar material demonstrativo" })).toBeInTheDocument();
+  });
+
   it("supports Arrow, Home and End keyboard tab navigation", () => {
     render(<TeacherClassTabsDemo />);
     const first = screen.getByRole("tab", { name: "Visão Geral" });
