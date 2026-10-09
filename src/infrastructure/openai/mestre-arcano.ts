@@ -426,14 +426,16 @@ export async function runMestreArcano(
   {
     fetchImpl = fetch,
     toolContext,
+    helpLevel = "unspecified",
   }: {
     readonly fetchImpl?: OpenAIFetch;
     readonly toolContext: import("@/domains/intelligence").MestreArcanoToolContext;
+    readonly helpLevel?: MestreArcanoHelpLevel;
   },
 ): Promise<MestreArcanoResult> {
   const normalizedInput = normalizeMestreArcanoInput(input);
   const model = getModel();
-  const instructions = buildMestreArcanoInstructions();
+  const instructions = buildMestreArcanoInstructions(helpLevel);
   const result = await runMestreArcanoLoop({
     initialInput: normalizedInput,
     model,
@@ -449,5 +451,6 @@ export async function runMestreArcano(
       typeof result.payload.model === "string"
         ? result.payload.model
         : model,
+    instructionPolicyVersion: MESTRE_ARCANO_INSTRUCTION_POLICY_VERSION,
   };
 }
