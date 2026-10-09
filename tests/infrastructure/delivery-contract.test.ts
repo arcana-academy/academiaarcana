@@ -103,7 +103,7 @@ describe("delivery infrastructure contract", () => {
       "type: web",
       "runtime: node",
       "branch: main",
-      "autoDeployTrigger: checksPass",
+      "autoDeployTrigger: off",
       "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
       "startCommand: npm start",
       "healthCheckPath: /api/health",
@@ -116,6 +116,7 @@ describe("delivery infrastructure contract", () => {
       expect(blueprint).toContain(expected);
     }
 
+    expect(blueprint).not.toContain("autoDeployTrigger: checksPass");
     expect(blueprint).not.toMatch(/service_role|sb_secret_/i);
     expect(blueprint).not.toMatch(/Netlify/i);
   });
