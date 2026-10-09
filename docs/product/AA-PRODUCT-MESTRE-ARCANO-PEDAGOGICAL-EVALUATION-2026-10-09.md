@@ -121,11 +121,19 @@ Continuam sem alteração:
 - P1.5 — criterion-referenced V1 de escopo limitado;
 - Mestre Arcano avançado continua P2/P3 em evolução.
 
-## 8. Próximo trabalho prioritário
+## 8. Estado de execução e próximo trabalho
 
-**Desenhar a instrumentação mínima de AA-MA-EVAL-001 e AA-MA-EVAL-002**, sem persistir conteúdo de conversa desnecessário e sem alterar o estado educacional canônico.
+**Concluído nesta rodada:**
 
-A implementação só deve avançar após definir eventos e propriedades estritamente necessários, fonte de verdade, retenção, autorização/consentimento aplicável e como vincular avaliação sem assistência à interação anterior sem criar vigilância indevida.
+- matriz de avaliação pedagógica;
+- guardrails AA-MA-G01–G05;
+- Slice 1 não persistente com política versionada e níveis explícitos de ajuda;
+- desenho de instrumentação mínima;
+- protocolo experimental pré-registrável para AA-MA-EVAL-001/002.
+
+**Ainda bloqueado:** persistência experimental, randomização e coleta.
+
+**Próximo trabalho prioritário:** fechar o checklist interdomínio de Trust/Data/Learning/UI/QA e obter baseline suficiente para definir MDE ou margem de não-inferioridade antes de qualquer coleta.
 
 ## 9. Fontes
 
