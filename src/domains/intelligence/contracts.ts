@@ -118,7 +118,6 @@ export type MestreArcanoExecution = {
   readonly output: string;
   readonly responseId: string | null;
   readonly model: string;
-  readonly instructionPolicyVersion: string;
 };
 
 export type MestreArcanoGateway = {
