@@ -2,7 +2,7 @@
   "schema": "AA-FLONTS-VISUAL-LOCK-1",
   "asset_id": "AA-ASSET-013",
   "approval": "user-approved-art-reference",
-  "integration_state": "PENDING_BINARY_UPLOAD",
+  "integration_state": "PARTIAL_MINIATURE_COMMITTED",
   "master": "flonts-mago-original-aprovado.png",
   "root": "public/assets/flonts",
   "files": [
@@ -33,6 +33,13 @@
       "width": 320,
       "height": 400,
       "sha256": "8c4e9613be5c02e8959f39c10f04da6d636728bcd69bc19ab286cd632184388b"
+    },
+    {
+      "filename": "flonts-mago-mini-96.webp",
+      "bytes": 3184,
+      "width": 96,
+      "height": 120,
+      "sha256": "8337e05f3195aa55c14510024da4a886b4d39d5d37335471eab095390155a947"
     }
   ]
 }
