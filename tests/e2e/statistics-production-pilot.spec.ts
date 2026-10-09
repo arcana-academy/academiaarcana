@@ -102,6 +102,22 @@ test("StatisticsView stays usable at mobile, tablet and desktop sizes", async ({
     expect(gridColumns.columns, `gamification columns: ${viewport.label}`).toBeGreaterThanOrEqual(
       viewport.label === "mobile" ? 1 : 2,
     );
+
+    const educationalGridColumns = await page
+      .locator(".statistics-view__educational-statistics .aa-feature-grid")
+      .evaluate((element) => {
+        const styles = getComputedStyle(element);
+        return {
+          display: styles.display,
+          columns: styles.gridTemplateColumns.split(" ").filter(Boolean).length,
+        };
+      });
+    expect(educationalGridColumns.display, `educational grid: ${viewport.label}`).toBe("grid");
+    expect(
+      educationalGridColumns.columns,
+      `educational grid columns: ${viewport.label}`,
+    ).toBeGreaterThanOrEqual(viewport.label === "mobile" ? 1 : 2);
+
     await assertNoHorizontalOverflow(page, viewport.label);
   }
 });
