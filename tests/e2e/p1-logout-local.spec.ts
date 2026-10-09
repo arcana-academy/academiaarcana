@@ -127,3 +127,20 @@ test("AUTH-P1-033: other tab rechecking server state converges to login", async 
   await other.goto("/santuario");
   await expect(other).toHaveURL(/\/login/);
 });
+
+
+test("AUTH-P1-019/020: delayed auth-cookie replay must not reopen a revoked session", async ({ page, context }) => {
+  const a = await newIdentity();
+  await prepareBrowserSession(page, context, a.email, a.password);
+  // Model the Set-Cookie payload from a previously in-flight session refresh.
+  // This is a deterministic stale-response replay, not a measured network race.
+  const stale = (await context.cookies()).filter(({ name }) => isAuthCookie(name));
+  expect(stale.length).toBeGreaterThan(0);
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  await expect(page).toHaveURL(/\/login/);
+  expect((await context.cookies()).filter(({ name }) => isAuthCookie(name))).toHaveLength(0);
+
+  await context.addCookies(stale);
+  await page.goto("/santuario");
+  await expect(page).toHaveURL(/\/login/);
+});
