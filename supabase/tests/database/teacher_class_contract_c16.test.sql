@@ -34,6 +34,7 @@ create table aa_c16_isolated.teacher_assignments (
 
 -- Permission and row policies for this test-only model. Deliberately no
 -- anonymous grants, write grants, SECURITY DEFINER functions or views.
+alter table aa_c16_isolated.institutions enable row level security;
 alter table aa_c16_isolated.classrooms enable row level security;
 alter table aa_c16_isolated.teacher_assignments enable row level security;
 revoke all on schema aa_c16_isolated from public, anon;
@@ -81,7 +82,23 @@ insert into aa_c16_isolated.teacher_assignments
   ('b1000000-0000-4000-8000-000000000002', 'f2000000-0000-4000-8000-000000000002',
    'c2000000-0000-4000-8000-000000000001', 'active', null, null);
 
-select extensions.plan(20);
+select extensions.plan(29);
+
+-- Ciclo 17: protect EVERY institutional fixture table with RLS, including
+-- institutions (which deliberately has no anon/authenticated table grants).
+select extensions.is(
+  (select c.relrowsecurity from pg_class c
+   join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname='aa_c16_isolated' and c.relname='institutions'),
+  true,
+  'C17-021 institutions table also has RLS enabled'
+);
+
+select extensions.is(
+  has_table_privilege('authenticated','aa_c16_isolated.teacher_assignments','UPDATE'),
+  false,
+  'C17-022 authenticated has no assignment UPDATE privilege'
+);
 
 -- Anon: no table/schema access.
 set local role anon;
@@ -98,6 +115,12 @@ select extensions.throws_ok(
   null,
   'C16-002 anon cannot inspect teacher assignments'
 );
+
+select extensions.throws_ok(
+  $sql$select count(*) from aa_c16_isolated.institutions$sql$,
+  '42501', null,
+  'C17-023 anon cannot read institution metadata'
+);
 reset role;
 
 -- Authenticated without a verified JWT subject.
@@ -112,6 +135,12 @@ select extensions.is(
   (select count(*)::integer from aa_c16_isolated.teacher_assignments),
   0,
   'C16-004 no authenticated subject sees zero assignments'
+);
+
+select extensions.throws_ok(
+  $sql$select count(*) from aa_c16_isolated.institutions$sql$,
+  '42501', null,
+  'C17-024 authenticated without binding has no institution table access'
 );
 reset role;
 
@@ -169,6 +198,28 @@ select extensions.throws_ok(
   null,
   'C16-012 authenticated cannot delete assignment'
 );
+
+select extensions.throws_ok(
+  $sql$insert into aa_c16_isolated.classrooms (id,institution_id,title)
+        values ('c1000000-0000-4000-8000-000000000003',
+                'f1000000-0000-4000-8000-000000000001', 'Fake class')$sql$,
+  '42501', null,
+  'C17-025 teacher cannot create arbitrary classroom'
+);
+
+select extensions.throws_ok(
+  $sql$update aa_c16_isolated.classrooms set title='Tampered'
+       where id='c1000000-0000-4000-8000-000000000001'$sql$,
+  '42501', null,
+  'C17-026 teacher cannot edit classroom'
+);
+
+select extensions.throws_ok(
+  $sql$delete from aa_c16_isolated.classrooms
+       where id='c1000000-0000-4000-8000-000000000001'$sql$,
+  '42501', null,
+  'C17-027 teacher cannot delete classroom'
+);
 reset role;
 
 -- Professor B: strictly isolated from A, spanning assigned contexts.
@@ -192,6 +243,12 @@ select extensions.is(
   0,
   'C16-015 B cannot see A assignments'
 );
+
+select extensions.throws_ok(
+  $sql$select count(*) from aa_c16_isolated.institutions$sql$,
+  '42501', null,
+  'C17-028 teacher B cannot directly enumerate institutions'
+);
 reset role;
 
 -- Professor C: user-editable claims are not an authorization source.
@@ -208,6 +265,12 @@ select extensions.is(
   (select count(*)::integer from aa_c16_isolated.teacher_assignments),
   0,
   'C16-017 forged user_metadata cannot reveal assignments'
+);
+
+select extensions.throws_ok(
+  $sql$select count(*) from aa_c16_isolated.institutions$sql$,
+  '42501', null,
+  'C17-029 forged teacher claim cannot enumerate institutions'
 );
 reset role;
 
