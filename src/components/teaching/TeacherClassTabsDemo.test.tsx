@@ -67,6 +67,17 @@ describe("Professor Turma A tabs prototype", () => {
     expect(screen.getByRole("searchbox", { name: "Buscar avaliação demonstrativa" })).toBeInTheDocument();
   });
 
+  it("renders report placeholders only in Relatórios and does not leak the Fórum interface", () => {
+    render(<TeacherClassTabsDemo />);
+    fireEvent.click(screen.getByRole("tab", { name: "Relatórios" }));
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Relatórios da Turma A — prévia sem dados");
+    expect(screen.getByRole("searchbox", { name: "Buscar área de relatório" })).toBeInTheDocument();
+    expect(screen.getAllByText("Dados indisponíveis")).toHaveLength(4);
+    fireEvent.click(screen.getByRole("tab", { name: "Fórum" }));
+    expect(screen.queryByRole("searchbox", { name: "Buscar área de relatório" })).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Buscar tópico demonstrativo" })).toBeInTheDocument();
+  });
+
   it("supports Arrow, Home and End keyboard tab navigation", () => {
     render(<TeacherClassTabsDemo />);
     const first = screen.getByRole("tab", { name: "Visão Geral" });
