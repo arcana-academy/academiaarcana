@@ -5,6 +5,7 @@ vi.mock("@/lib/auth/require-authenticated-user", () => ({ requireAuthenticatedUs
 
 import EventThemesPreviewPage from "./eventos/page";
 import FixedThemesPreviewPage from "./temas-fixos/page";
+import PortalPreviewsPage from "./portais/page";
 
 describe("visual preview access boundary", () => {
   beforeEach(() => {
@@ -23,10 +24,18 @@ describe("visual preview access boundary", () => {
     expect(rendered.type).toBe("main");
   });
 
+  it("requires a verified session for proposed role-based portal shells", async () => {
+    const rendered = await PortalPreviewsPage();
+    expect(requireAuthenticatedUser).toHaveBeenCalledOnce();
+    expect(rendered.type).toBe("main");
+  });
+
   it("does not return either preview when authentication fails", async () => {
     requireAuthenticatedUser.mockRejectedValueOnce(new Error("authentication denied"));
     await expect(EventThemesPreviewPage()).rejects.toThrow("authentication denied");
     requireAuthenticatedUser.mockRejectedValueOnce(new Error("authentication denied"));
     await expect(FixedThemesPreviewPage()).rejects.toThrow("authentication denied");
+    requireAuthenticatedUser.mockRejectedValueOnce(new Error("authentication denied"));
+    await expect(PortalPreviewsPage()).rejects.toThrow("authentication denied");
   });
 });
