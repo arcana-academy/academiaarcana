@@ -88,8 +88,21 @@ Workspace RLS uses `auth.uid()` to enforce ownership through the hierarchy Grimo
 ## 8. Server-side mutation contract
 Workspace Server Actions call `requireAuthenticatedUser()` before accessing repositories. Client-supplied IDs are not trusted as proof of ownership; RLS remains the database-level authorization boundary.
 
-## 9. Logout
-Logout uses the server Supabase client and `supabase.auth.signOut()`, then redirects to `/login`. No application-level token blacklist or custom credential store is maintained.
+## 9. Logout (P1 remote-first candidate — branch only)
+The previous global sign-out action used \`supabase.auth.signOut({ scope: "global" })\`; auth-js 2.117.2 removes SSR session storage even after some remote errors.
+
+The isolated P1 candidate uses a server-only \`supabase.auth.admin.signOut(accessToken, "global")\` call with the current request's access token. This call performs the remote revocation without local storage side effects. Only once the provider confirms success does a separate SSR cookie-expiration helper run. It uses the public \`clearAuthCookiesAtScopes\` helper from @supabase/ssr 0.12.7, with the same storage key as the server/proxy clients.
+
+- No password, service-role credential, JWT, or refresh token is provided by the form or logged.
+- Remote error: retain available credentials and display a safe retry state. Timeouts may have succeeded on the provider, so they are classified as indeterminate.
+- Remote success followed by cookie-expiration failure: do not claim local sign-out success; provide an explicit local-only recovery action, never a second remote revocation inferred from client-provided state.
+- The user can independently choose to leave only the current device, explicitly acknowledging that other sessions may remain active.
+- \`redirect("/login")\` runs only after cookie expiration reports no server-side errors.
+- Access JWTs from revoked sessions may remain valid until their expiry (\`exp\`).
+- E2E validation with a real browser is required before merge: emitted cookie writes are not proof of browser application, and concurrent refresh responses might reintroduce stale cookies.
+- The helper is documented upstream primarily for cookie-scope migrations, so its routine-logout use is conditional on integration and browser E2E verification.
+
+This candidate is NOT approved for production until the P1 acceptance checklist and hosted QA gates are satisfied.
 
 ## 10. Credential and secret invariants
 1. Never introduce `SUPABASE_SERVICE_ROLE_KEY` into browser code.

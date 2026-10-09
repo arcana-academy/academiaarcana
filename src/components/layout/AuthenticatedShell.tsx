@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { signOut } from "@/lib/auth/actions";
+import { LogoutForm } from "@/components/layout/LogoutForm";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { navigationItems, type AuthenticatedRouteHref } from "@/config/navigation";
@@ -32,11 +32,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
             <span>{currentNavigationItem?.label ?? "Jornada de aprendizagem"}</span>
           </div>
 
-          <form action={signOut}>
-            <button className="aa-button aa-button-ghost aa-button-sm" type="submit">
-              Sair
-            </button>
-          </form>
+          <LogoutForm />
         </header>
 
         <div className="aa-main-content">{children}</div>

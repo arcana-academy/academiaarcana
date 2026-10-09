@@ -5,6 +5,7 @@ import { AuthenticatedShell } from "./AuthenticatedShell";
 
 vi.mock("@/lib/auth/actions", () => ({
   signOut: vi.fn(),
+  finishLocalLogout: vi.fn(),
 }));
 
 describe("AuthenticatedShell", () => {
@@ -44,7 +45,7 @@ describe("AuthenticatedShell", () => {
       </AuthenticatedShell>,
     );
 
-    const topbar = container.querySelector(".aa-topbar-context");
+    const topbar = container.querySelector(".aa-topbar");
     expect(topbar).toHaveTextContent("Academia Arcana/Amigos");
     expect(topbar).not.toHaveTextContent("Jornada de aprendizagem");
   });

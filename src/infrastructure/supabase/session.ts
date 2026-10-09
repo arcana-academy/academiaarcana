@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getPublicRuntimeConfig } from "@/core/config";
+import { getSupabaseAuthStorageKey } from "./auth-storage";
 
 export async function updateSupabaseSession(
   request: NextRequest,
@@ -11,6 +12,7 @@ export async function updateSupabaseSession(
   const { supabaseUrl, supabasePublishableKey } = getPublicRuntimeConfig();
 
   const supabase = createServerClient(supabaseUrl, supabasePublishableKey, {
+    auth: { storageKey: getSupabaseAuthStorageKey(supabaseUrl) },
     cookies: {
       getAll() {
         return request.cookies.getAll();
