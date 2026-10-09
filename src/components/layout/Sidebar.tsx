@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
 import Link from "next/link";
 import { navigationItems, type AuthenticatedRouteHref } from "@/components/navigation/AuthenticatedNavigation";
 
@@ -38,14 +39,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
             background: "var(--aa-surfaces-inset)",
           }}
         >
-          <Image
-            src="/assets/flonts/flonts-mago-mini-96.webp"
-            unoptimized
-            alt=""
-            width={48}
-            height={60}
-            style={{ width: 48, height: 60, objectFit: "contain", flexShrink: 0 }}
-          />
+          <FlontsPortrait />
           <span style={{ fontSize: "0.875rem", lineHeight: 1.35 }}>
             Flonts está com você
           </span>
