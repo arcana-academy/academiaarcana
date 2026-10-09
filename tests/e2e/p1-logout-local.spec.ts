@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import { expect, test, type Page } from "@playwright/test";
+import { createServerClient } from "@supabase/ssr";
+import { expect, test, type Page, type BrowserContext } from "@playwright/test";
 
 // The standard CI suite skips these tests; the isolated workflow supplies local Auth.
 const enabled = process.env.P1_LOCAL_AUTH_E2E === "1";
@@ -39,11 +40,42 @@ async function newIdentity() {
   expect(result.data.session).not.toBeNull();
   return { person, email, password };
 }
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Senha").fill(password);
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+async function prepareBrowserSession(
+  page: Page, context: BrowserContext, email: string, password: string,
+) {
+  // Use the installed @supabase/ssr cookie encoder to seed a real local
+  // authenticated session. This deliberately does not exercise login UI.
+  const person = client();
+  const signedIn = await person.auth.signInWithPassword({ email, password });
+  expect(signedIn.error).toBeNull();
+  const current = signedIn.data.session;
+  expect(current).not.toBeNull();
+  if (!current) throw new Error("Synthetic session unavailable");
+  const jar = new Map<string, string>();
+  const serverClient = createServerClient(url, key, {
+    cookies: {
+      getAll: () => Array.from(jar, ([name, value]) => ({ name, value })),
+      setAll: (setCookies) => {
+        for (const item of setCookies) {
+          if (item.options?.maxAge === 0) {
+            jar.delete(item.name);
+          } else {
+            jar.set(item.name, item.value);
+          }
+        }
+      },
+    },
+  });
+  const seeded = await serverClient.auth.setSession({
+    access_token: current.access_token,
+    refresh_token: current.refresh_token,
+  });
+  expect(seeded.error).toBeNull();
+  expect(Array.from(jar).some(([name]) => isAuthCookie(name))).toBe(true);
+  await context.addCookies(Array.from(jar, ([name, value]) => ({
+    name, value, url: "http://127.0.0.1:3000",
+  })));
+  await page.goto("/santuario");
   await expect(page).toHaveURL(/\/santuario/);
   await expect(page.getByRole("button", { name: "Sair", exact: true })).toBeVisible();
 }
@@ -58,7 +90,7 @@ test("AUTH-P1-022/023/027/030: browser logout A1 revokes A2, preserves B and cle
   const b = await newIdentity();
   const a2 = client();
   expect((await a2.auth.signInWithPassword({ email: a.email, password: a.password })).error).toBeNull();
-  await login(page, a.email, a.password);
+  await prepareBrowserSession(page, context, a.email, a.password);
   expect((await context.cookies()).some(({ name }) => isAuthCookie(name))).toBe(true);
   await page.getByRole("button", { name: "Sair", exact: true }).click();
   await expect(page).toHaveURL(/\/login/);
@@ -71,7 +103,7 @@ test("AUTH-P1-022/023/027/030: browser logout A1 revokes A2, preserves B and cle
 
 test("AUTH-P1-014/030: cleanup expires extra auth fragments, not unrelated cookies", async ({ page, context }) => {
   const a = await newIdentity();
-  await login(page, a.email, a.password);
+  await prepareBrowserSession(page, context, a.email, a.password);
   const storageKey = "sb-" + new URL(url).hostname.split(".")[0] + "-auth-token";
   await context.addCookies([
     { name: storageKey + ".18", value: "synthetic-extra", url: "http://127.0.0.1:3000" },
@@ -86,7 +118,7 @@ test("AUTH-P1-014/030: cleanup expires extra auth fragments, not unrelated cooki
 
 test("AUTH-P1-033: other tab rechecking server state converges to login", async ({ page, context }) => {
   const a = await newIdentity();
-  await login(page, a.email, a.password);
+  await prepareBrowserSession(page, context, a.email, a.password);
   const other = await context.newPage();
   await other.goto("/santuario");
   await expect(other.getByRole("button", { name: "Sair", exact: true })).toBeVisible();
