@@ -1,5 +1,5 @@
-import { evaluateAuthorization } from "@/core/authorization/contracts";
-import type { AuthorizationPolicy, AccessDecision } from "@/core/authorization/contracts";
+import { evaluateAuthorization } from "@/core/authorization";
+import type { AuthorizationPolicy, AccessDecision } from "@/core/authorization";
 
 /**
  * Prototype contract for the first Professor → Turmas listing.
