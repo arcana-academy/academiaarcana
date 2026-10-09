@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
 import { getPortalPreview, type PortalPreviewId } from "@/design-system/portal-previews/catalog";
 import styles from "./PortalShellPreview.module.css";
@@ -31,6 +32,16 @@ export function PortalShellPreview({ id }: { id: PortalPreviewId }) {
             real é exibido, nenhuma ação de criação ou edição está disponível.
           </p>
         </div>
+        {id === "professor" ? (
+          <div className={styles.panel}>
+            <h3>Primeiro fluxo demonstrativo</h3>
+            <p>
+              <Link href="/design-system/portais/professor/turmas">
+                Abrir protótipo de Turmas — filtros e estados fictícios
+              </Link>
+            </p>
+          </div>
+        ) : null}
         <div className={styles.panel}>
           <h3>Bloqueio de implementação</h3>
           <p>{portal.note}</p>
