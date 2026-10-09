@@ -23,7 +23,10 @@ concurrency:
 jobs:
   quality:
     name: Quality Gate
-    runs-on: ubuntu-latest
+    # Cycle 12 StatisticsView hashes require a stable Ubuntu major version.
+    # Hosted runner image packages may still update; image metadata and visual
+    # evidence must be reviewed before accepting any future baseline changes.
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
 
     steps:
