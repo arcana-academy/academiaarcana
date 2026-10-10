@@ -36,8 +36,12 @@ export async function POST(request: Request) {
       maxTokens: body.maxTokens,
     });
     return NextResponse.json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Falha inesperada no gateway.";
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    // Provider errors may include upstream response bodies or credentials.
+    // Never forward untrusted diagnostics to the browser.
+    return NextResponse.json(
+      { error: "Não foi possível processar a solicitação de IA." },
+      { status: 502, headers: { "Cache-Control": "private, no-store" } },
+    );
   }
 }
