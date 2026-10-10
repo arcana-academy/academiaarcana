@@ -12,6 +12,13 @@ import {
 
 export const dynamic = "force-dynamic";
 
+function verificationUnavailable() {
+  return NextResponse.json(
+    { providerId: "notion", status: "request_failed" },
+    { status: 502, headers: { "Cache-Control": "private, no-store" } },
+  );
+}
+
 export async function GET() {
   const { cookieStore, credentials } = await getNotionCredentialsContext();
 
@@ -39,11 +46,15 @@ export async function GET() {
       { status: 200, headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
+    // A temporary upstream failure must not revoke a valid local connection.
     if (
-      error instanceof NotionConnectionError &&
-      error.code === "reauthorization_required" &&
-      credentials.refreshToken
+      !(error instanceof NotionConnectionError) ||
+      error.code !== "reauthorization_required"
     ) {
+      return verificationUnavailable();
+    }
+
+    if (credentials.refreshToken) {
       try {
         const refreshed = await refreshAndPersistNotionCredentials(
           cookieStore,
@@ -66,13 +77,20 @@ export async function GET() {
           },
           { status: 200, headers: { "Cache-Control": "private, no-store" } },
         );
-      } catch {
-        cookieStore.delete(NOTION_CREDENTIALS_COOKIE);
+      } catch (refreshError) {
+        // Preserve the credential (including a newly rotated refresh token)
+        // when the provider is unreachable after a refresh attempt.
+        if (
+          !(refreshError instanceof NotionConnectionError) ||
+          refreshError.code !== "reauthorization_required"
+        ) {
+          return verificationUnavailable();
+        }
       }
-    } else {
-      cookieStore.delete(NOTION_CREDENTIALS_COOKIE);
     }
 
+    // Only a confirmed authorization failure requires reconnection.
+    cookieStore.delete(NOTION_CREDENTIALS_COOKIE);
     return NextResponse.json(
       { providerId: "notion", status: "reauthorization_required" },
       { status: 200, headers: { "Cache-Control": "private, no-store" } },
