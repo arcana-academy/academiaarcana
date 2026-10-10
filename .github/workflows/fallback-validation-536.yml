@@ -1,0 +1,185 @@
+name: Academia Arcana P0 536 Fallback Build Validation
+
+on:
+  push:
+    branches:
+      - chore/536-fallback-validation-20261009
+      - integration/p0-536-release-train-20261009
+
+permissions:
+  contents: read
+
+jobs:
+  validate-stable-source:
+    name: Validate isolated legacy fallback image
+    if: ${{ github.repository == 'arcana-academy/academiaarcana' && (github.ref == 'refs/heads/chore/536-fallback-validation-20261009' || github.ref == 'refs/heads/integration/p0-536-release-train-20261009') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      STABLE_SHA: 17fb81477fbd3eed14b93103641004a766eb9ac1
+      BASELINE_SHA: cc17653dfe79c44dd83ba1ced8cb065383b11ca9
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+
+    steps:
+      - name: Checkout exact last-live source revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 17fb81477fbd3eed14b93103641004a766eb9ac1
+          path: stable
+          persist-credentials: false
+
+      - name: Checkout reviewed security-only image recipe
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: cc17653dfe79c44dd83ba1ced8cb065383b11ca9
+          path: reviewed-recipe
+          persist-credentials: false
+
+      - name: Set up supported Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Check immutable provenance and build-only overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C stable rev-parse HEAD)" = "$STABLE_SHA"
+          test "$(git -C reviewed-recipe rev-parse HEAD)" = "$BASELINE_SHA"
+          test ! -e stable/Dockerfile
+          test ! -e stable/.dockerignore
+          test ! -e stable/scripts/smoke-production-container.sh
+          cp reviewed-recipe/Dockerfile stable/Dockerfile
+          cp reviewed-recipe/.dockerignore stable/.dockerignore
+          cp reviewed-recipe/scripts/smoke-production-container.sh stable/scripts/smoke-production-container.sh
+          cmp reviewed-recipe/Dockerfile stable/Dockerfile
+          cmp reviewed-recipe/.dockerignore stable/.dockerignore
+          cmp reviewed-recipe/scripts/smoke-production-container.sh stable/scripts/smoke-production-container.sh
+          test -z "$(git -C stable diff --name-only)"
+          grep -qF '.env.*' stable/.dockerignore
+          grep -qF '*.pem' stable/.dockerignore
+          grep -qF '*.key' stable/.dockerignore
+          grep -qF 'AS runtime' stable/Dockerfile
+          grep -qF 'USER node' stable/Dockerfile
+          echo "Fallback application SHA: $STABLE_SHA"
+          echo "Reviewed Docker recipe baseline SHA: $BASELINE_SHA"
+          sha256sum stable/Dockerfile stable/.dockerignore stable/scripts/smoke-production-container.sh
+
+      - name: Verify real production-public browser build configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$NEXT_PUBLIC_SUPABASE_URL" = "https://fichnalpbcfjywwhixid.supabase.co"
+          node stable/scripts/verify-public-runtime-config.mjs
+          node -e '
+            const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+            if (!/^sb_publishable_[A-Za-z0-9_-]{22}_[A-Za-z0-9_-]{8}$/.test(key)) {
+              console.error("Invalid publishable-only public Supabase build key.");
+              process.exit(1);
+            }
+            console.log("Public Supabase build variable shape and project match: PASS. The verifier does not echo its value.");
+          '
+          echo "Only repository variables containing the public browser URL and publishable key were used."
+          echo "Reminder: GitHub Actions can show public environment variables in runner logs; never supply server secrets to this workflow."
+
+      - name: Pin reviewed npm
+        run: npm install --global npm@11.19.1 --ignore-scripts
+
+      - name: Verify reviewed dependency lifecycle boundary
+        working-directory: stable
+        run: node scripts/verify-dependency-lifecycle-scripts.cjs
+
+      - name: Verify source supply-chain workflow guard
+        working-directory: stable
+        run: node scripts/verify-supply-chain-workflows.cjs
+
+      - name: Install dependencies without lifecycle scripts
+        working-directory: stable
+        run: npm ci --ignore-scripts
+
+      - name: Rebuild only reviewed native dependencies
+        working-directory: stable
+        run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+
+      - name: Audit stable production dependencies
+        working-directory: stable
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint stable application
+        working-directory: stable
+        run: npm run lint
+
+      - name: Typecheck stable application
+        working-directory: stable
+        run: npm run typecheck
+
+      - name: Unit tests of stable application
+        working-directory: stable
+        run: npm test
+
+      - name: Accessibility tests of stable application
+        working-directory: stable
+        run: npm run test:a11y
+
+      - name: Build fallback Docker image without runtime secrets
+        working-directory: stable
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
+            --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" \
+            --build-arg NEXT_PUBLIC_HONEYBADGER_API_KEY="" \
+            --build-arg NEXT_PUBLIC_HONEYBADGER_ASSETS_URL="" \
+            --build-arg ACADEMIA_ARCANA_REVISION="$STABLE_SHA" \
+            --tag "academiaarcana:$STABLE_SHA" .
+
+      - name: Smoke-test isolated fallback image
+        working-directory: stable
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/smoke-production-container.sh "$STABLE_SHA"
+
+      - name: Inspect local digest and prevent claims of registry publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="academiaarcana:$STABLE_SHA"
+          image_id="$(docker image inspect --format '{{.Id}}' "$image")"
+          [[ "$image_id" =~ ^sha256:[0-9a-f]{64}$ ]]
+          test "$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$image")" = "linux/amd64"
+          test "$(docker image inspect --format '{{.Config.User}}' "$image")" = "node"
+          docker image inspect "$image" --format '{{json .Config.Env}}' | node -e '
+            let text = "";
+            process.stdin.on("data", chunk => text += chunk);
+            process.stdin.on("end", () => {
+              const names = JSON.parse(text).map(value => value.split("=")[0]);
+              const runtimeOnly = [
+                "OPENAI_API_KEY",
+                "PARALLEL_API_KEY",
+                "EXA_API_KEY",
+                "OUTLOOK_CALENDAR_SESSION_SECRET",
+                "SUPABASE_SERVICE_ROLE_KEY",
+                "SUPABASE_SECRET_KEY"
+              ];
+              const found = runtimeOnly.filter(value => names.includes(value));
+              if (found.length) {
+                console.error("Runtime-only keys appear in isolated image config: " + found.join(", "));
+                process.exit(1);
+              }
+              console.log("No selected runtime-only secret names were present in image ENV.");
+            });
+          '
+          {
+            echo "### P0 #536: isolated fallback image validation"
+            echo "Application source commit: \`$STABLE_SHA\`"
+            echo "Reviewed security recipe commit: \`$BASELINE_SHA\`"
+            echo "Local image configuration SHA-256: \`$image_id\`"
+            echo "Platform: \`linux/amd64\` | runtime user: \`node\`"
+            echo "Registry manifest digest: **NOT AVAILABLE — IMAGE NOT PUBLISHED**"
+            echo "Supabase browser values: **verified production-public GitHub vars (URL + publishable key only)**; no authenticated remote integration demonstrated."
+            echo "This fallback image exists only inside this isolated CI runner; no GHCR push, artifact upload, Render hook or deploy."
+          } >> "$GITHUB_STEP_SUMMARY"

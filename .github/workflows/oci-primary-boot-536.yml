@@ -1,0 +1,134 @@
+name: Academia Arcana P0 536 Published Primary Local Restore
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/oci-primary-boot-536.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  primary-local-restore:
+    name: Recover published primary image to an isolated local Docker runtime
+    if: >-
+      ${{
+        github.repository == 'arcana-academy/academiaarcana' &&
+        github.event.pull_request.head.repo.full_name == 'arcana-academy/academiaarcana' &&
+        github.event.pull_request.head.ref == 'integration/p0-536-release-train-20261009'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    env:
+      SOURCE_SHA: cc17653dfe79c44dd83ba1ced8cb065383b11ca9
+      PRIMARY_DIGEST: sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658
+      PUBLIC_IMAGE: ghcr.io/arcana-academy/academiaarcana@sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658
+      LOCAL_IMAGE: academiaarcana:primary-local-recovery-536
+    steps:
+      - name: Anonymous pull and validate immutable registry source
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          docker logout ghcr.io >/dev/null 2>&1 || true
+          docker pull --platform linux/amd64 "$PUBLIC_IMAGE"
+          image_id="$(docker image inspect --format '{{.Id}}' "$PUBLIC_IMAGE")"
+          [[ "$image_id" =~ ^sha256:[0-9a-f]{64}$ ]]
+          docker image inspect "$PUBLIC_IMAGE" | node -e '
+            let input = "";
+            process.stdin.on("data", b => input += b);
+            process.stdin.on("end", () => {
+              const i = JSON.parse(input)[0];
+              const forbidden = [
+                "OPENAI_API_KEY", "PARALLEL_API_KEY", "EXA_API_KEY",
+                "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY",
+                "OUTLOOK_CALENDAR_SESSION_SECRET"
+              ];
+              if (!i.RepoDigests?.includes(process.env.PUBLIC_IMAGE)) process.exit(1);
+              if (i.Os !== "linux" || i.Architecture !== "amd64") process.exit(1);
+              if (!i.Config?.User || ["0", "root"].includes(i.Config.User)) process.exit(1);
+              const keys = new Set((i.Config.Env || []).map(v => v.split("=", 1)[0]));
+              if (forbidden.some(k => keys.has(k))) process.exit(1);
+              console.log("PASS: exact public digest, architecture, non-root and ENV name boundary.");
+            });
+          '
+          printf 'IMAGE_ID=%s\n' "$image_id" >> "$GITHUB_ENV"
+
+      - name: Serialize, erase local image references, and reload from local-only tar
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          archive="$RUNNER_TEMP/aa536-primary-local.tar"
+          docker tag "$PUBLIC_IMAGE" "$LOCAL_IMAGE"
+          docker save --output "$archive" "$LOCAL_IMAGE"
+          test -s "$archive"
+          sha256sum "$archive" > "$archive.sha256"
+          (cd "$RUNNER_TEMP" && sha256sum --check --status "$(basename "$archive").sha256")
+          docker image rm --force "$IMAGE_ID"
+          if docker image inspect "$LOCAL_IMAGE" >/dev/null 2>&1; then
+            echo "Source image still cached; not a genuine local restore." >&2
+            exit 1
+          fi
+          docker load --input "$archive" >/dev/null
+          restored="$(docker image inspect --format '{{.Id}}' "$LOCAL_IMAGE")"
+          if [ "$restored" != "$IMAGE_ID" ]; then
+            echo "Image config identity changed after local restore." >&2
+            exit 1
+          fi
+          echo "PASS: local Docker save/delete/load roundtrip preserves image config SHA."
+
+      - name: Boot restored image and assert exact published source revision
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cid=""
+          cleanup() {
+            if [ -n "$cid" ]; then
+              docker rm --force "$cid" >/dev/null 2>&1 || true
+            fi
+            rm -f "$RUNNER_TEMP/aa536-primary-local.tar" \
+              "$RUNNER_TEMP/aa536-primary-local.tar.sha256"
+          }
+          trap cleanup EXIT
+          cid="$(docker run --detach --rm \
+            --publish 127.0.0.1:10080:10000 \
+            --cap-drop ALL --security-opt no-new-privileges \
+            "$LOCAL_IMAGE")"
+          if [ "$(docker exec "$cid" id -u)" = "0" ]; then
+            echo "Root user not allowed." >&2
+            exit 1
+          fi
+          for attempt in $(seq 1 35); do
+            if ! docker inspect "$cid" >/dev/null 2>&1; then
+              echo "Local restored container stopped early." >&2
+              exit 1
+            fi
+            if body="$(curl --fail --silent --max-time 5 http://127.0.0.1:10080/api/health)"; then
+              if node -e '
+                const x = JSON.parse(process.argv[1]);
+                if (x.status !== "ok" ||
+                    x.service !== "academiaarcana" ||
+                    x.revision !== process.env.SOURCE_SHA) process.exit(1);
+              ' "$body"; then
+                echo "PASS: source image actually booted from local archive; historical main revision exact."
+                exit 0
+              fi
+            fi
+            sleep 2
+          done
+          echo "No exact healthy revision from the restored container." >&2
+          exit 1
+
+      - name: Scope and remaining gates
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### P0 #536: already-public primary image local Docker restore"
+            echo "Public GHCR input: \`$PRIMARY_DIGEST\`"
+            echo "Expected revision: \`$SOURCE_SHA\`"
+            echo "Disposable local Docker save/load only. No archive upload, registry push, Render deploy or private production secrets."
+            echo "A Docker config ID is NOT an OCI registry manifest digest after remote transfer."
+            echo "This does NOT prove off-GHCR durable retention, restoration in a separate registry, a second historical fallback digest, production integrations or Render rollback."
+          } >> "$GITHUB_STEP_SUMMARY"

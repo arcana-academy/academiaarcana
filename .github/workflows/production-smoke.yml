@@ -2,6 +2,11 @@ name: Academia Arcana Production Smoke
 
 on:
   workflow_dispatch:
+    inputs:
+      expected_revision:
+        description: "Exact deployed SHA to validate if Git auto-deploy is paused"
+        required: false
+        type: string
   workflow_run:
     workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]
     types: [completed]
@@ -12,10 +17,9 @@ permissions:
   actions: read
   contents: read
 
-concurrency:
-  group: production-smoke
-  cancel-in-progress: true
-
+# Production smoke is read-only. Do not use workflow-level concurrency:
+# a successful Image Release can trigger a skipped smoke and cancel an active
+# Git-backed smoke before it checks the actual deployed revision.
 jobs:
   smoke:
     name: Production Smoke
@@ -49,7 +53,7 @@ jobs:
         id: expected
         shell: bash
         env:
-          EVENT_REVISION: ${{ github.event.workflow_run.head_sha || github.sha }}
+          EVENT_REVISION: ${{ inputs.expected_revision || github.event.workflow_run.head_sha || github.sha }}
           EVENT_NAME: ${{ github.event_name }}
           TRIGGER_WORKFLOW: ${{ github.event.workflow_run.name || '' }}
         run: |

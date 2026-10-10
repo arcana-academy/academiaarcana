@@ -1,0 +1,39 @@
+# P0 #536 — Fallback-image proof of concept (validation only)
+
+**Status: PROPOSED / NOT APPROVED FOR DEPLOYMENT OR PUBLICATION.**
+
+## Immutable inputs
+
+- Application source at the last Render LIVE commit: `17fb81477fbd3eed14b93103641004a766eb9ac1`.
+- Only the build hardening recipe (not the application source) is overlaid from `cc17653dfe79c44dd83ba1ced8cb065383b11ca9`: `Dockerfile`, `.dockerignore` and `scripts/smoke-production-container.sh`.
+- These three files did **not** exist in the last-live source. Both checkouts are pinned by full Git SHA; workflow refuses changes to any tracked application files.
+- Workflow: `.github/workflows/fallback-validation-536.yml`; scope limited to pushes in branches `chore/536-fallback-validation-20261009` and `integration/p0-536-release-train-20261009`; `permissions: contents: read`; no privileged repo/package write token; pinned GitHub Actions; no secret references.
+
+## Controlled one-off test
+
+The runner checks historical dependency lifecycle restrictions, installs with ignored lifecycle scripts and an explicit reviewed rebuild, audits production dependencies, runs lint, typecheck, unit and accessibility suites, builds the secured `linux/amd64` Docker image and smoke-tests the container as non-root on localhost. The smoke test checks `/api/health`, exact **historical** revision and presence/absence (without displaying any secret values) of selected runtime-only names.
+
+**Updated validation:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are provided through real GitHub Actions `vars`, independently matched against the connected Supabase project and its active `academia_arcana_web` publishable key on 2026-10-09. The validation script checks the public URL and key shape without echoing the value. However, GitHub Actions runner logs display the job-level public `sb_publishable_` variable; it is a browser-publishable key, not a server secret. No private server key may ever be supplied to the workflow. Honeybadger public fields remain empty, and no runtime-only credentials are passed. The public values are embedded into the image by Next.js; this is expected but requires confirming parity with the current Render browser environment before any production use. This does **not** demonstrate real Supabase authentication, data writes, storage or integration readiness, and the image is not published. Every release still requires fresh approval for a persistent digest and real integration tests. See `docs/deployment/fallback-homologation-536.md`.
+
+No Docker image, OCI archive, or workflow artifact is uploaded anywhere. `docker image inspect .Id` yields a **local image config digest**, which is **not** a remote OCI/GHCR manifest digest; registry digest can be recorded only after a separately approved publication. The GitHub Actions job summary provides the source SHA, reviewed recipe SHA and local image ID for this CI run. Runner images are ephemeral and **not** suitable for rollback after the job ends.
+
+## Unresolved rollback / production gates
+
+1. Build and smoke must pass on exactly the pinned source; failures require investigation before considering a fallback.
+2. Recheck code/config compatibility with present Supabase database migrations and runtime integration requirements; public build variables alone prove **no** remote readiness.
+3. Review version/permission retention for the production GHCR package, currently **one active tagged version and no recoverable older version**; package actions access is `Admin` (delete/restore). Consider explicitly approved least-privilege `Write` and an independently protected backup archive.
+4. Require explicit approval for any upload, GHCR visibility change, retention change, Render source change, runtime secret action, merge or deployment. Preserve Render Free and Git autoDeploy OFF.
+5. A genuine production rollback needs at least one **separate**, persistent, retrievable digest tested after publication, plus a documented recovery drill. A local image ID in ephemeral CI is insufficient. Preserve the current Render Git-backed live deployment until migration safety is demonstrated.
+
+## Acceptance tracking
+
+- [ ] Fallback sandbox tests, Docker build, and isolated smoke green
+- [ ] Local image ID provenance and security checks recorded
+- [x] GitHub production-public browser variables matched to active Supabase project/key without revealing key values (2026-10-09)
+- [ ] Render production public-browser configuration parity proven and post-build smoke completed
+- [ ] Compatibility / remote readiness tested in an authorized nonproduction integration environment
+- [ ] Persistent fallback OCI artifact or registry digest stored with controlled retention
+- [ ] Rollback drill and GHCR delete/restore governance approved
+- [ ] Explicit approval for any future production action
+
+Refer to canonical P0 issue https://github.com/arcana-academy/academiaarcana/issues/536.
