@@ -181,7 +181,16 @@ jobs:
   deploy:
     name: Request Render image deployment
     needs: [preflight, publish]
-    if: ${{ vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true' }}
+    if: >-
+      ${{
+        vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true' &&
+        vars.RENDER_DEPLOY_APPROVED_RUN_ID != '' &&
+        vars.RENDER_DEPLOY_APPROVED_RUN_ID == format('{0}', github.run_id) &&
+        github.run_attempt == 1 &&
+        github.event_name == 'workflow_dispatch'
+      }}
+    environment:
+      name: render-production-approval
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}

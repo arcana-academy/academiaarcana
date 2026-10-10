@@ -179,6 +179,13 @@ async function main() {
   assert.ok(wrongUpdate.error, "B must not overwrite A private PNG");
   ok(await bucketA.update(pathA, png, { contentType: "image/png" }),
     "A updates own private PNG");
+  // A cross-owner DELETE may return an empty-list success under RLS;
+  // check the protected object's actual survival, not the HTTP status.
+  await bucketB.remove([pathA]);
+  const survivedCrossDelete = ok(await bucketA.download(pathA),
+    "A still reads own PNG after B tries cross-owner DELETE");
+  assert.deepEqual(Buffer.from(await survivedCrossDelete.arrayBuffer()), png,
+    "B must not delete or corrupt A's private PNG");
   const removeA = ok(await bucketA.remove([pathA]), "A deletes own synthetic PNG");
   assert.ok(Array.isArray(removeA));
   ok(await bucketB.remove([pathB]), "B deletes own synthetic PNG");

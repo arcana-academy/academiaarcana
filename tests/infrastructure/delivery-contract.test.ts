@@ -162,6 +162,24 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("needs: [preflight, publish]");
   });
 
+  it("requires a separate run-specific gate for every Render deployment", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const deployJob = workflow.split("\n  deploy:\n")[1];
+
+    expect(deployJob).toBeDefined();
+    expect(deployJob).toContain("needs: [preflight, publish]");
+    expect(deployJob).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
+    expect(deployJob).toContain("vars.RENDER_DEPLOY_APPROVED_RUN_ID != ''");
+    expect(deployJob).toContain(
+      "vars.RENDER_DEPLOY_APPROVED_RUN_ID == format('{0}', github.run_id)",
+    );
+    expect(deployJob).toContain("github.run_attempt == 1");
+    expect(deployJob).toContain("github.event_name == 'workflow_dispatch'");
+    expect(deployJob).toContain("name: render-production-approval");
+    expect(deployJob).toContain("permissions: {}");
+    expect(deployJob).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
+  });
+
   it("promotes only an authenticated original push-to-main Quality Gate artifact", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
     const preflight = workflow.split("\n  preflight:\n")[1]?.split("\n  publish:\n")[0];

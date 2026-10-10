@@ -78,6 +78,11 @@ try {
         "Real browser must persist Supabase auth cookies");
       const loaded = await page.goto(app + "/grimorios");
       assert.equal(loaded.status(), 200);
+      const initialHtml = await loaded.text();
+      assert.ok(initialHtml.includes(mine),
+        "Initial server-rendered HTML must contain the owner's grimoire");
+      assert.ok(!initialHtml.includes(foreign),
+        "Initial server-rendered HTML must not leak a foreign grimoire");
       await expect(page.getByText(mine, { exact: true })).toBeVisible();
       await expect(page.getByText(foreign, { exact: true })).toHaveCount(0);
       return page;

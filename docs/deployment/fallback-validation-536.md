@@ -7,7 +7,7 @@
 - Application source at the last Render LIVE commit: `17fb81477fbd3eed14b93103641004a766eb9ac1`.
 - Only the build hardening recipe (not the application source) is overlaid from `cc17653dfe79c44dd83ba1ced8cb065383b11ca9`: `Dockerfile`, `.dockerignore` and `scripts/smoke-production-container.sh`.
 - These three files did **not** exist in the last-live source. Both checkouts are pinned by full Git SHA; workflow refuses changes to any tracked application files.
-- Workflow: `.github/workflows/fallback-validation-536.yml`; scope only push to branch `chore/536-fallback-validation-20261009`; `permissions: contents: read`; no privileged repo/package write token; pinned GitHub Actions; no secret references.
+- Workflow: `.github/workflows/fallback-validation-536.yml`; scope limited to pushes in branches `chore/536-fallback-validation-20261009` and `integration/p0-536-release-train-20261009`; `permissions: contents: read`; no privileged repo/package write token; pinned GitHub Actions; no secret references.
 
 ## Controlled one-off test
 
@@ -20,7 +20,7 @@ No Docker image, OCI archive, or workflow artifact is uploaded anywhere. `docker
 ## Unresolved rollback / production gates
 
 1. Build and smoke must pass on exactly the pinned source; failures require investigation before considering a fallback.
-2. Recheck code/config compatibility with present Supabase database migrations and runtime integration requirements; synthetic credentials prove **no** remote readiness.
+2. Recheck code/config compatibility with present Supabase database migrations and runtime integration requirements; public build variables alone prove **no** remote readiness.
 3. Review version/permission retention for the production GHCR package, currently **one active tagged version and no recoverable older version**; package actions access is `Admin` (delete/restore). Consider explicitly approved least-privilege `Write` and an independently protected backup archive.
 4. Require explicit approval for any upload, GHCR visibility change, retention change, Render source change, runtime secret action, merge or deployment. Preserve Render Free and Git autoDeploy OFF.
 5. A genuine production rollback needs at least one **separate**, persistent, retrievable digest tested after publication, plus a documented recovery drill. A local image ID in ephemeral CI is insufficient. Preserve the current Render Git-backed live deployment until migration safety is demonstrated.
