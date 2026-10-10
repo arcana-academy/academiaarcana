@@ -8,6 +8,8 @@ import { createServerClient } from "@supabase/ssr";
 // Fatal guard: neither remote URLs nor service-role/admin keys may be used.
 assert.equal(process.env.SUPABASE_ACCESS_TOKEN, undefined, "hosted access token not allowed");
 assert.equal(process.env.DATABASE_URL, undefined, "remote database URL not allowed");
+assert.equal(process.env.SUPABASE_URL, undefined, "remote Supabase URL not allowed");
+assert.equal(process.env.SUPABASE_SERVICE_ROLE_KEY, undefined, "preconfigured service-role key not allowed");
 
 const raw = execFileSync("supabase", ["status", "-o", "env"], {
   encoding: "utf8", timeout: 20000, stdio: ["ignore", "pipe", "pipe"],
@@ -151,6 +153,27 @@ async function main() {
   assert.equal(invisibleUpdate.length, 0);
   console.log("PASS: PostgREST HTTP anonymous denial, two-account SELECT and cross-owner INSERT/UPDATE");
 
+  // Keep this coverage aligned with the independent historical PR #585: Feedback
+  // is personally owned and must not leak across synthetic user sessions.
+  const feedbackA = ok(await a.from("feedback_responses").insert({
+    user_id: uidA, email: emailA, feedback: "Synthetic P0 HTTP test only",
+  }).select("id").single(), "A inserts synthetic feedback");
+  const feedbackOwner = ok(await a.from("feedback_responses")
+    .select("id").eq("id", feedbackA.id), "A reads own feedback");
+  assert.equal(feedbackOwner.length, 1);
+  const feedbackForeign = ok(await b.from("feedback_responses")
+    .select("id").eq("id", feedbackA.id), "B attempts reading A feedback");
+  assert.equal(feedbackForeign.length, 0, "B must not read A feedback");
+  const feedbackForged = await b.from("feedback_responses").insert({
+    user_id: uidA, email: emailB, feedback: "Forbidden cross-owner insert",
+  });
+  assert.ok(feedbackForged.error, "RLS must deny cross-owner Feedback insertion");
+  const feedbackGuest = await anonymous.from("feedback_responses")
+    .select("id").eq("id", feedbackA.id);
+  assert.ok(feedbackGuest.error || (feedbackGuest.data ?? []).length === 0,
+    "Anonymous cannot read private Feedback");
+  console.log("PASS: Feedback owner SELECT/INSERT and cross-owner/anonymous denial");
+
   // The tracked bucket only permits images. No real photos, accounts or files.
   const png = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLqUQAAAABJRU5ErkJggg==",
@@ -179,6 +202,8 @@ async function main() {
   assert.ok(wrongUpdate.error, "B must not overwrite A private PNG");
   ok(await bucketA.update(pathA, png, { contentType: "image/png" }),
     "A updates own private PNG");
+  ok(await bucketA.upload(pathA, png, { contentType: "image/png", upsert: true }),
+    "A upserts own existing private PNG with RLS");
   // A cross-owner DELETE may return an empty-list success under RLS;
   // check the protected object's actual survival, not the HTTP status.
   await bucketB.remove([pathA]);
@@ -189,8 +214,29 @@ async function main() {
   const removeA = ok(await bucketA.remove([pathA]), "A deletes own synthetic PNG");
   assert.ok(Array.isArray(removeA));
   ok(await bucketB.remove([pathB]), "B deletes own synthetic PNG");
-  console.log("PASS: Storage HTTP private bucket owner-only upload/download/replace/delete and cross-user denial");
-  console.log("CHECKPOINT P0-536: synthetic HTTP Auth, cookie replay, PostgREST and Storage PASS, local only");
+  console.log("PASS: Storage HTTP private bucket owner-only upload/download/upsert/delete and cross-user denial");
+
+  // Recreate a fresh SSR cookie session and verify logout invalidates it.
+  const logoutClient = ssr();
+  const logoutSignIn = ok(await logoutClient.auth.signInWithPassword({
+    email: emailA, password,
+  }), "SSR synthetic session to exercise sign-out");
+  assert.equal(logoutSignIn.user.id, uidA);
+  assert.ok(cookies.size > 0);
+  const signout = await logoutClient.auth.signOut();
+  assert.ifError(signout.error);
+  const sessionAfterLogout = await ssr().auth.getSession();
+  assert.ifError(sessionAfterLogout.error);
+  assert.equal(sessionAfterLogout.data.session, null,
+    "A new SSR client must not recover a signed-out session");
+  const unauthorizedAfterLogout = await ssr().from("grimoires")
+    .select("id").eq("id", rowA.id);
+  assert.ok(unauthorizedAfterLogout.error ||
+    (unauthorizedAfterLogout.data ?? []).length === 0,
+    "Signed-out SSR client cannot read private Grimoire");
+  console.log("PASS: SSR cookie logout and private PostgREST denial");
+
+  console.log("CHECKPOINT P0-536: synthetic Auth, SSR, Feedback RLS, Storage and logout PASS, local only");
 }
 
 main().catch(error => {
