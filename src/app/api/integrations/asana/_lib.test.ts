@@ -68,8 +68,10 @@ describe("Asana subject-bound credentials and refresh", () => {
     mockShouldRefresh.mockReturnValueOnce(true);
     const context = await getAsanaCredentialsContext();
     expect(context).toEqual({ credentials: renewed, status: "connected" });
-    expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(current);
-    expect(mockEncrypt).toHaveBeenCalledExactlyOnceWith(renewed);
+    expect(mockRefresh).toHaveBeenCalledOnce();
+    expect(mockRefresh).toHaveBeenCalledWith(current);
+    expect(mockEncrypt).toHaveBeenCalledOnce();
+    expect(mockEncrypt).toHaveBeenCalledWith(renewed);
     expect(jar.set).toHaveBeenCalledWith(
       "__Host-aa-asana-credentials",
       "synthetic-rotated-cookie",
