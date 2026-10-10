@@ -4,13 +4,46 @@ import {
   createNotionPage,
   NotionConnectionError,
   searchNotion,
+  type NotionCredentials,
 } from "@/infrastructure/integrations/notion";
-import { getNotionCredentialsContext } from "../_lib";
+import {
+  getNotionCredentialsContext,
+  refreshAndPersistNotionCredentials,
+} from "../_lib";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Reuse the subject-validated credentials context and retry only after an
+ * upstream authorization error. A successful refresh persists the rotated
+ * token before any retry; unrelated errors are never retried.
+ */
+async function withNotionTokenRecovery<T>(
+  cookieStore: Awaited<ReturnType<typeof getNotionCredentialsContext>>["cookieStore"],
+  credentials: NotionCredentials,
+  operation: (accessToken: string) => Promise<T>,
+): Promise<T> {
+  try {
+    return await operation(credentials.accessToken);
+  } catch (error) {
+    if (
+      !(error instanceof NotionConnectionError) ||
+      error.code !== "reauthorization_required" ||
+      !credentials.refreshToken
+    ) {
+      throw error;
+    }
+
+    const refreshed = await refreshAndPersistNotionCredentials(
+      cookieStore,
+      credentials,
+    );
+    return operation(refreshed.accessToken);
+  }
+}
+
 export async function GET(request: Request) {
-  const { credentials } = await getNotionCredentialsContext();
+  const { cookieStore, credentials } = await getNotionCredentialsContext();
 
   if (!credentials) {
     return NextResponse.json(
@@ -22,7 +55,11 @@ export async function GET(request: Request) {
   const query = new URL(request.url).searchParams.get("query") ?? "";
 
   try {
-    const result = await searchNotion(credentials.accessToken, query);
+    const result = await withNotionTokenRecovery(
+      cookieStore,
+      credentials,
+      (token) => searchNotion(token, query),
+    );
     return NextResponse.json(
       { status: "connected", results: result.output },
       { status: 200, headers: { "Cache-Control": "private, no-store" } },
@@ -43,7 +80,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { credentials } = await getNotionCredentialsContext();
+  const { cookieStore, credentials } = await getNotionCredentialsContext();
 
   if (!credentials) {
     return NextResponse.json({ error: "disconnected" }, { status: 409 });
@@ -64,12 +101,22 @@ export async function POST(request: Request) {
     );
   }
 
+  // Keep validated inputs stable across the async retry closure.
+  const parentPageId = body.parentPageId;
+  const title = body.title;
+  const pageBody = body.body;
+
   try {
-    const result = await createNotionPage(credentials.accessToken, {
-      parentPageId: body.parentPageId,
-      title: body.title,
-      body: body.body,
-    });
+    const result = await withNotionTokenRecovery(
+      cookieStore,
+      credentials,
+      (token) =>
+        createNotionPage(token, {
+          parentPageId,
+          title,
+          body: pageBody,
+        }),
+    );
     return NextResponse.json(result.output, { status: 201 });
   } catch (error) {
     return NextResponse.json(
