@@ -60,9 +60,9 @@ describe("POST /api/feedback", () => {
   });
 
   it("returns 401 for typed authentication errors", async () => {
-    mockCreateFeedback.mockRejectedValue(
-      new FeedbackAuthenticationError("É necessário estar autenticado para enviar feedback."),
-    );
+    mockCreateFeedback.mockImplementationOnce(async () => {
+      throw new FeedbackAuthenticationError("É necessário estar autenticado para enviar feedback.");
+    });
     const response = await POST(makeRequest(valid));
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({
@@ -72,7 +72,9 @@ describe("POST /api/feedback", () => {
   });
 
   it("returns 500 without leaking unexpected storage error details", async () => {
-    mockCreateFeedback.mockRejectedValue(new Error("internal credential: private-value"));
+    mockCreateFeedback.mockImplementationOnce(async () => {
+      throw new Error("internal credential: private-value");
+    });
     const response = await POST(makeRequest(valid));
     const body = await response.text();
     expect(response.status).toBe(500);
