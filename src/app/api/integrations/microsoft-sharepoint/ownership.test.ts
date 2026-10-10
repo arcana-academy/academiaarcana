@@ -93,8 +93,8 @@ describe("Microsoft SharePoint subject ownership", () => {
       }),
     }));
     mockCreateClient.mockResolvedValue({
-      from: (_table: string) => ({
-        select: (_columns: string) => ({ eq: ownerFilter }),
+      from: () => ({
+        select: () => ({ eq: ownerFilter }),
       }),
     });
 
@@ -126,8 +126,8 @@ describe("Microsoft SharePoint subject ownership", () => {
         "utf8",
       );
 
-      expect(source, route).not.toMatch(/\\buser\\.id\\b/);
-      expect(source, route).toMatch(/\\buser\\.sub\\b/);
+      expect(source, route).not.toMatch(/\buser\.id\b/);
+      expect(source, route).toMatch(/\buser\.sub\b/);
     }
   });
 });
