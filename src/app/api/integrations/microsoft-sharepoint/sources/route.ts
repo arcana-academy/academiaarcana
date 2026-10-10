@@ -14,7 +14,7 @@ export async function GET() {
     .select(
       "id, provider_id, source_type, name, mime_type, web_url, last_modified_at, size_bytes, site_id, drive_id, item_id, status, created_at, updated_at",
     )
-    .eq("owner_id", user.id)
+    .eq("owner_id", user.sub)
     .order("updated_at", { ascending: false })
     .limit(50);
 
