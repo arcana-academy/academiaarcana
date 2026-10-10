@@ -55,6 +55,23 @@ The VM built a local OCI layout with the source Docker schema 2 manifest, packag
 
 **Deliberate limitations:** no external persistence of the tar (stored under `/tmp` only); **no independent failure domain or custody/retention control**; no approved destination; no secondary fallback digest; no registry push; no local Docker daemon/container boot, Render rollback or production test. The exercise proves the byte-integrity mechanics of a **disposable OCI filesystem round trip only**. It does **not** authorize or satisfy future Gates A–D, and must not be called an operational backup or tested deployment rollback. The Runbook's nonmutating-preflight prohibition on **persisting or uploading archives** remains in force.
 
+## 3B. Reusable offline integrity verifier (2026-10-10, tested in isolated VM)
+
+The **branch-only** verifier `scripts/security/oci_recovery_536.py` provides an independent, **offline, read-only** second pass on a *previously obtained* OCI-layout tar. It does **not** create archives, download from GHCR, upload, authenticate, publish, change GitHub/Render configuration or run a container. It verifies both the entire archive SHA256 and the exact expected manifest SHA256, every config/layer hash and descriptor size, `linux/amd64` and a non-root runtime user; rejects traversal, symlinks, duplicates and extra tar entries, and does not extract or execute content.
+
+**Actual completed reproducibility tests:** the script's 8 offline synthetic cases (including corruption, wrong manifest and tar hash, traversal and root user) passed in an isolated VM. The **same script** also verified a *freshly downloaded public primary image* tar: manifest digest `sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658`; 8/8 complete config and layer blobs fetched anonymously and SHA256-checked; 9/9 OCI objects inspected; 216,970,542 blob bytes; a local 216,995,840-byte OCI tar checked. That disposable tar was deleted immediately; **no durable off-GHCR backup exists as a result of this test**. (Tar SHA is packaging-specific and may differ between otherwise identical-layout exports.)
+
+After approval of a **specific independently controlled destination** and after retrieval from that destination, use this check (do not insert hypothetical receipt values):
+
+~~~sh
+python3 scripts/security/oci_recovery_536.py \
+  --archive /approved-independent-restore-readback/oci-image.tar \
+  --digest sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658 \
+  --archive-sha sha256:<exact-64-hex-value-from-original-signed-receipt>
+~~~
+
+The primary OCI tar alone is **not** a historical fallback digest. A `PASS` from this tool proves byte integrity, not independent retention, registry push restoration, application start, authentic production parity, account privacy retention or rollback. A permitted tool such as `skopeo copy --preserve-digests` remains a separately approved step, and its archive format/digest preservation must be independently checked before custody acceptance.
+
 ## 4. Future action gates (all separately authorized, NOT executed here)
 
 ### Gate A — approve a production-compatible fallback build
