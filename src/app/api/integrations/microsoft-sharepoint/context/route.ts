@@ -131,7 +131,7 @@ export async function GET(request: Request) {
   const user = await requireAuthenticatedUser();
 
   try {
-    const source = await resolveSource(request, user.id);
+    const source = await resolveSource(request, user.sub);
     return NextResponse.json({ source });
   } catch (error) {
     const message =
@@ -183,7 +183,7 @@ export async function POST(request: Request) {
 
     const source = await resolveSource(
       new Request(contextUrl),
-      user.id,
+      user.sub,
     );
 
     const supabase = await createClient();
@@ -191,7 +191,7 @@ export async function POST(request: Request) {
       .from("external_document_sources")
       .upsert(
         {
-          owner_id: user.id,
+          owner_id: user.sub,
           provider_id: source.providerId,
           source_type: source.type,
           site_id: source.siteId,
