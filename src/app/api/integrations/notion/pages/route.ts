@@ -101,15 +101,20 @@ export async function POST(request: Request) {
     );
   }
 
+  // Keep validated inputs stable across the async retry closure.
+  const parentPageId = body.parentPageId;
+  const title = body.title;
+  const pageBody = body.body;
+
   try {
     const result = await withNotionTokenRecovery(
       cookieStore,
       credentials,
       (token) =>
         createNotionPage(token, {
-          parentPageId: body.parentPageId,
-          title: body.title,
-          body: body.body,
+          parentPageId,
+          title,
+          body: pageBody,
         }),
     );
     return NextResponse.json(result.output, { status: 201 });
