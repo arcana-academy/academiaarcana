@@ -1,0 +1,93 @@
+name: Academia Arcana P0 536 Historical HTTP Auth RLS Storage
+
+on:
+  push:
+    branches:
+      - chore/536-fallback-validation-20261009
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0-536-local-http-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  local-http-security:
+    name: Historical Auth SSR cookies PostgREST RLS and Storage (disposable HTTP stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact historical LIVE source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 17fb81477fbd3eed14b93103641004a766eb9ac1
+          path: historical
+          persist-credentials: false
+
+      - name: Checkout review harness at validation commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: harness
+          persist-credentials: false
+
+      - name: Set up supported Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Set up pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Check strictly historical source and reviewed test provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C historical rev-parse HEAD)" = "17fb81477fbd3eed14b93103641004a766eb9ac1"
+          test "$(git -C harness rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(find historical/supabase/migrations -maxdepth 1 -name '*.sql' -type f | wc -l | tr -d ' ')" = "24"
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${DATABASE_URL:-}"
+          test -z "${SUPABASE_URL:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+          test -f harness/scripts/security/test-historical-supabase-http-536.mjs
+          echo "Pinned historical LIVE source, branch harness and local-only environment: PASS"
+
+      - name: Install only historical lockfile dependencies without scripts
+        working-directory: historical
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          node -e "require.resolve('@supabase/ssr');require.resolve('@supabase/supabase-js')"
+
+      - name: Launch disposable full Supabase HTTP stack
+        working-directory: historical
+        shell: bash
+        timeout-minutes: 22
+        run: |
+          set -euo pipefail
+          supabase start
+          supabase migration up --local --include-all
+          echo "Local full stack started; no remote project linked or accessed."
+
+      - name: Validate historical Auth HTTP cookies RLS and private Storage
+        working-directory: historical
+        shell: bash
+        timeout-minutes: 12
+        run: |
+          set -euo pipefail
+          cp ../harness/scripts/security/test-historical-supabase-http-536.mjs scripts/security/test-historical-supabase-http-536.mjs
+          test -z "$(git diff --name-only)"
+          node scripts/security/test-historical-supabase-http-536.mjs
+
+      - name: Stop disposable full Supabase stack
+        if: always()
+        working-directory: historical
+        shell: bash
+        run: supabase stop
