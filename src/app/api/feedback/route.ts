@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createFeedback } from "@/infrastructure/supabase/feedback-repository";
+import { createFeedback, FeedbackAuthenticationError } from "@/infrastructure/supabase/feedback-repository";
 
 const FeedbackSchema = z.object({
   name: z.string().trim().max(120).transform((value) => value || null),
@@ -16,17 +16,26 @@ export async function POST(request: Request) {
     const record = await createFeedback(input);
     return NextResponse.json(
       { id: record.id, createdAt: record.createdAt },
-      { status: 201, headers: { "Cache-Control": "no-store" } },
-    );
-  } catch (error) {
-    const message =
-      error instanceof z.ZodError
-        ? "Revise os campos do formulário."
-        : error instanceof Error
-          ? error.message
-          : "Não foi possível salvar o feedback.";
+      { status: 201, headers: { "Cache-Cont  } catch (error) {
+    const headers = { "Cache-Control": "no-store" };
 
-    const status = message.includes("autentic") || message.includes("sessão") ? 401 : 400;
-    return NextResponse.json({ error: message }, { status });
+    if (error instanceof z.ZodError || error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "Revise os campos do formulário." },
+        { status: 400, headers },
+      );
+    }
+
+    if (error instanceof FeedbackAuthenticationError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 401, headers },
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Não foi possível salvar o feedback." },
+      { status: 500, headers },
+    );
   }
 }
