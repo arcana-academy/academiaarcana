@@ -97,7 +97,8 @@ describe("Notion status: preserve subject-bound credentials on transient errors"
       providerId: "notion",
       status: "connected",
     });
-    expect(mockRefresh).toHaveBeenCalledExactlyOnceWith(cookieStore, credentials);
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).toHaveBeenCalledWith(cookieStore, credentials);
     expect(mockVerify).toHaveBeenNthCalledWith(1, credentials.accessToken, {
       id: credentials.workspaceId,
       name: credentials.workspaceName,
@@ -120,7 +121,8 @@ describe("Notion status: preserve subject-bound credentials on transient errors"
     await expect(response.json()).resolves.toMatchObject({
       status: "reauthorization_required",
     });
-    expect(cookieStore.delete).toHaveBeenCalledExactlyOnceWith("aa-notion-credentials");
+    expect(cookieStore.delete).toHaveBeenCalledTimes(1);
+    expect(cookieStore.delete).toHaveBeenCalledWith("aa-notion-credentials");
     expect(mockRefresh).not.toHaveBeenCalled();
   });
 
@@ -130,7 +132,8 @@ describe("Notion status: preserve subject-bound credentials on transient errors"
     const response = await GET();
     expect(response.status).toBe(200);
     expect((await response.json()).status).toBe("reauthorization_required");
-    expect(cookieStore.delete).toHaveBeenCalledExactlyOnceWith("aa-notion-credentials");
+    expect(cookieStore.delete).toHaveBeenCalledTimes(1);
+    expect(cookieStore.delete).toHaveBeenCalledWith("aa-notion-credentials");
   });
 
   it("preserves credentials if the refresh endpoint is temporarily unavailable", async () => {
