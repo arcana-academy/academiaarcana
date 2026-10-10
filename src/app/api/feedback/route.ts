@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createFeedback, FeedbackAuthenticationError } from "@/infrastructure/supabase/feedback-repository";
+import {
+  createFeedback,
+  FeedbackAuthenticationError,
+} from "@/infrastructure/supabase/feedback-repository";
 
 const FeedbackSchema = z.object({
   name: z.string().trim().max(120).transform((value) => value || null),
@@ -16,7 +19,9 @@ export async function POST(request: Request) {
     const record = await createFeedback(input);
     return NextResponse.json(
       { id: record.id, createdAt: record.createdAt },
-      { status: 201, headers: { "Cache-Cont  } catch (error) {
+      { status: 201, headers: { "Cache-Control": "no-store" } },
+    );
+  } catch (error) {
     const headers = { "Cache-Control": "no-store" };
 
     if (error instanceof z.ZodError || error instanceof SyntaxError) {
