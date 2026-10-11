@@ -53,7 +53,8 @@ jobs:
           readonly PR603="b704042db05aab5865435366904e85d1bea1ab10"
           readonly PR610="3c9e500a67ed9e10dfb46b9f85fdafec4e60e255"
           git fetch --no-tags origin refs/pull/603/head refs/pull/610/head
-          test "$(git rev-parse FETCH_HEAD)" = "$PR610"
+          test "$(git ls-remote origin refs/pull/603/head | cut -f1)" = "$PR603"
+          test "$(git ls-remote origin refs/pull/610/head | cut -f1)" = "$PR610"
           git cat-file -e "${PR603}^{commit}"
           git cat-file -e "${PR610}^{commit}"
           git merge-base --is-ancestor "$ORIGINAL_MAIN" "$PR603"
