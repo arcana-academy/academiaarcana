@@ -53,4 +53,15 @@ rewrite("src/app/api/integrations/asana/tasks/route.ts", [
   ['  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: 401 });\n\n  try {\n    const body = await request.json() as { taskId?: string };',
    '  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: status === "request_failed" ? 502 : 401 });\n\n  try {\n    const body = await request.json() as { taskId?: string };'],
 ]);
+rewrite("src/app/api/integrations/asana/_lib.test.ts", [
+  [
+    '  ASANA_CREDENTIALS_COOKIE: "__Host-aa-asana-credentials",\n',
+    '  ASANA_CREDENTIALS_COOKIE: "__Host-aa-asana-credentials",\n' +
+    '  AsanaConnectionError: class AsanaConnectionError extends Error {\n' +
+    '    constructor(message: string, readonly code: string) { super(message); }\n' +
+    '  },\n',
+  ],
+]);
+console.log("CP04 TEST MOCK REPAIR: new typed exception imported by candidate code");
+
 console.log("CP04 PROPOSED EPHEMERAL REPAIR READY: no branch or PR modified");
