@@ -1,0 +1,98 @@
+name: CP04 Asana Proposed Repair + 606 + 611 Isolation
+on:
+  push:
+    branches:
+      - test/cp04-asana-review-606-611-20261010
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cp04-asana-integration-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  composition:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout isolated candidate without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Lock baseline and enforce secret isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          git merge-base --is-ancestor 7ae39f9c047047b6b48ee136f843e667b16863c1 HEAD
+          for key in DATABASE_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_DB_PASSWORD SUPABASE_ACCESS_TOKEN RENDER_API_KEY ASANA_CLIENT_SECRET ASANA_ACCESS_TOKEN ASANA_REFRESH_TOKEN; do
+            if [[ -n "${!key:-}" ]]; then echo "::error::CP04 blocked by runtime secret: $key"; exit 1; fi
+          done
+          node scripts/verify-supply-chain-workflows.cjs
+
+      - name: Compose exactly the reviewed heads in ephemeral worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          readonly REVIEW="7ae39f9c047047b6b48ee136f843e667b16863c1"
+          readonly P606="01d5ce1cd4cd0692b73a5c0cd0cc3b9df20f835a"
+          readonly P611="4ac63a999bc1bea3e04f5fc344cab8e9cecd0ae8"
+          git fetch --no-tags origin refs/pull/606/head refs/pull/611/head
+          for entry in "606:$P606" "611:$P611"; do
+            number="${entry%%:*}"; sha="${entry#*:}"
+            test "$(git ls-remote origin "refs/pull/$number/head" | cut -f1)" = "$sha"
+            git cat-file -e "${sha}^{commit}"
+            git merge-base --is-ancestor cc17653dfe79c44dd83ba1ced8cb065383b11ca9 "$sha"
+          done
+          git config user.name "CP04 Ephemeral Review Runner"
+          git config user.email "ci-only@local.invalid"
+          for sha in "$P606" "$P611"; do
+            if ! git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$sha"; then
+              echo "::error::Conflict detected in isolated merge; manual review required"
+              git diff --name-only --diff-filter=U
+              exit 1
+            fi
+            echo "CP04_TEMP_AFTER_MERGE=$(git rev-parse HEAD)"
+          done
+          for sha in "$REVIEW" "$P606" "$P611"; do git merge-base --is-ancestor "$sha" HEAD; done
+          git diff --quiet && git diff --cached --quiet
+          git diff --check cc17653dfe79c44dd83ba1ced8cb065383b11ca9 HEAD
+          echo "CP04_INTEGRATED_EPHEMERAL_SHA=$(git rev-parse HEAD)"
+
+      - name: Install dependencies
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+
+      - name: Typecheck exactly integrated code
+        run: npm run typecheck
+
+      - name: Run Asana synthetic contract regressions only
+        run: |
+          npm exec -- vitest run \
+            src/app/api/integrations/asana/_lib.test.ts \
+            src/app/api/integrations/asana/tasks/route.test.ts \
+            src/app/api/integrations/asana/projects/route.test.ts \
+            src/app/api/integrations/asana/status/route.test.ts \
+            src/infrastructure/integrations/asana-transient-refresh.test.ts \
+            src/infrastructure/integrations/asana-refresh-token-preservation.test.ts \
+            src/infrastructure/integrations/asana.test.ts \
+            src/components/integrations/AsanaConnectionPanel.test.tsx
+
+      - name: Confirm disposable-only completion
+        if: always()
+        run: |
+          echo "No git push, shared branch merge, provider API call or deploy performed."
+          git status --short
