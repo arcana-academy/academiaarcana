@@ -122,15 +122,27 @@ export function MestreArcanoPanel() {
           id="mestre-arcano-input"
           className="aa-input aa-mestre-input"
           value={input}
-          onChange={(event) => {
-            setInput(event.target.value);
-            setHelpLevel("unspecified");
-          }}
+          onChange={(event) => setInput(event.target.value)}
           placeholder="Pergunte sobre seu estudo, planejamento ou próximo passo..."
           rows={3}
           maxLength={8000}
           disabled={pending}
         />
+        <label htmlFor="mestre-arcano-help-level">Como prefere receber ajuda?</label>
+        <select
+          id="mestre-arcano-help-level"
+          className="aa-input"
+          value={helpLevel}
+          onChange={(event) =>
+            setHelpLevel(event.target.value as MestreArcanoHelpLevel)
+          }
+          disabled={pending}
+        >
+          <option value="unspecified">Sem preferência</option>
+          <option value="hint">Uma pista</option>
+          <option value="decomposition">Passo a passo</option>
+          <option value="direct-answer">Resposta direta</option>
+        </select>
         <button
           className="aa-button aa-button-primary"
           type="submit"
