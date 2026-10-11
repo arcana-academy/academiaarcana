@@ -1,0 +1,183 @@
+name: CP04 Controlled Asana 601 606 611 Composition
+on:
+  push:
+    branches:
+      - test/cp04-controlled-asana-601-606-611-20261010
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cp04-asana-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  asana-isolated:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Read-only disposable checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Verify pinned main and safe environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          for key in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_SERVICE_ROLE_KEY DATABASE_URL RENDER_API_KEY ASANA_CLIENT_SECRET ASANA_ACCESS_TOKEN ASANA_REFRESH_TOKEN OPENAI_API_KEY; do
+            if [[ -n "${!key:-}" ]]; then
+              echo "::error::CP04 unexpected sensitive runtime variable: $key"
+              exit 1
+            fi
+          done
+          git diff --quiet && git diff --cached --quiet
+          node scripts/verify-supply-chain-workflows.cjs
+
+      - name: Compose exact three draft PRs in disposable checkout only
+        shell: bash
+        run: |
+          set -euo pipefail
+          readonly MAIN="cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          readonly P601="ec5b9cec1f4eebb3eb8cc5a99096fd98a62f3084"
+          readonly P606="01d5ce1cd4cd0692b73a5c0cd0cc3b9df20f835a"
+          readonly P611="4ac63a999bc1bea3e04f5fc344cab8e9cecd0ae8"
+          git fetch --no-tags origin refs/pull/601/head refs/pull/606/head refs/pull/611/head
+          for entry in "601:$P601" "606:$P606" "611:$P611"; do
+            number="${entry%%:*}"
+            sha="${entry#*:}"
+            test "$(git ls-remote origin "refs/pull/$number/head" | cut -f1)" = "$sha"
+            git cat-file -e "${sha}^{commit}"
+            git merge-base --is-ancestor "$MAIN" "$sha"
+          done
+          git config user.name "CP04 Disposable Runner"
+          git config user.email "ci-only@local.invalid"
+          for sha in "$P601" "$P606" "$P611"; do
+            if ! git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$sha"; then
+              echo "::error::CP04 merge conflict in disposable runner; no persistent files changed"
+              git diff --name-only --diff-filter=U
+              exit 1
+            fi
+            echo "CP04_TRANSIENT_MERGE_HEAD=$(git rev-parse HEAD)"
+          done
+          for sha in "$P601" "$P606" "$P611"; do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          git diff --quiet && git diff --cached --quiet
+          git diff --check "$MAIN" HEAD
+          echo "CP04_COMBINED_TEMP_SHA=$(git rev-parse HEAD)"
+          node --input-type=module <<'JS'
+          import { readFileSync } from "node:fs";
+          const ctx = readFileSync("src/app/api/integrations/asana/_lib.ts","utf8");
+          const adapter = readFileSync("src/infrastructure/integrations/asana.ts","utf8");
+          const status = readFileSync("src/app/api/integrations/asana/status/route.ts","utf8");
+          for (const [s,m] of [
+            [ctx,"getAsanaCredentialsContext"],[ctx,"refreshAsanaCredentials"],
+            [adapter,"refreshed.refreshToken ?? credentials.refreshToken"],
+            [status,"verificationStarted"],[status,'"request_failed"']
+          ]) {
+            if (!s.includes(m)) throw new Error("CP04 contract lost: " + m);
+          }
+          console.log("CP04_COMPOSITION_CONTRACT PASS: tasks/projects, token retention, status fallback");
+          JS
+
+      - name: Install dependencies for changed Asana tree
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+
+      - name: Typecheck exact combined tree
+        run: npm run typecheck
+
+      - name: Execute only Asana affected suites with synthetic credentials
+        run: |
+          npm exec -- vitest run \
+            src/app/api/integrations/asana/_lib.test.ts \
+            src/app/api/integrations/asana/tasks/route.test.ts \
+            src/app/api/integrations/asana/projects/route.test.ts \
+            src/infrastructure/integrations/asana-refresh-token-preservation.test.ts \
+            src/app/api/integrations/asana/status/route.test.ts \
+            src/components/integrations/AsanaConnectionPanel.test.tsx \
+            src/infrastructure/integrations/asana.test.ts
+
+      - name: Add disposable negative regression for temporary refresh outage
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > src/app/api/integrations/asana/cp04-transient-outage.test.ts <<'TS'
+          import { beforeEach, describe, expect, it, vi } from "vitest";
+
+          const m = vi.hoisted(() => ({
+            cookies: vi.fn(), auth: vi.fn(), decrypt: vi.fn(),
+            shouldRefresh: vi.fn(), refresh: vi.fn(), encrypt: vi.fn(),
+          }));
+          vi.mock("next/headers", () => ({ cookies: m.cookies }));
+          vi.mock("@/lib/auth/require-authenticated-user", () => ({
+            requireAuthenticatedUser: m.auth,
+          }));
+          vi.mock("@/infrastructure/integrations/asana", () => {
+            class AsanaConnectionError extends Error {
+              constructor(message: string, readonly code: string) {
+                super(message);
+                this.name = "AsanaConnectionError";
+              }
+            }
+            return {
+              ASANA_CREDENTIALS_COOKIE: "__Host-aa-asana-credentials",
+              AsanaConnectionError,
+              decryptAsanaCredentials: m.decrypt,
+              shouldRefreshAsanaCredentials: m.shouldRefresh,
+              refreshAsanaCredentials: m.refresh,
+              encryptAsanaCredentials: m.encrypt,
+            };
+          });
+          import { AsanaConnectionError } from "@/infrastructure/integrations/asana";
+          import { getAsanaCredentialsContext } from "./_lib";
+          const cookie = {
+            subjectId: "synthetic-owner",
+            accessToken: "synthetic-access",
+            refreshToken: "synthetic-refresh",
+            accessTokenExpiresAt: 1,
+          };
+          describe("CP04 transient 429/503 must not revoke encrypted Asana connection", () => {
+            const jar = { get: vi.fn(), set: vi.fn(), delete: vi.fn() };
+            beforeEach(() => {
+              vi.resetAllMocks();
+              m.cookies.mockResolvedValue(jar);
+              m.auth.mockResolvedValue({ sub: "synthetic-owner" });
+              jar.get.mockReturnValue({ value: "synthetic-cookie" });
+              m.decrypt.mockResolvedValue(cookie);
+              m.shouldRefresh.mockReturnValue(true);
+            });
+            it.each(["rate_limited", "request_failed"])(
+              "retains credentials and reports temporary %s for tasks and projects",
+              async code => {
+                m.refresh.mockRejectedValue(new AsanaConnectionError("synthetic outage", code));
+                const ctx = await getAsanaCredentialsContext();
+                expect(ctx).toEqual({ credentials: null, status: "request_failed" });
+                expect(jar.delete).not.toHaveBeenCalled();
+                expect(jar.set).not.toHaveBeenCalled();
+              },
+            );
+          });
+          TS
+
+      - name: Check transient outage invariant on unmodified draft PR composition
+        run: npm exec -- vitest run src/app/api/integrations/asana/cp04-transient-outage.test.ts
+
+      - name: Confirm disposable-only cleanup
+        if: always()
+        run: |
+          echo "CP04 ephemeral runner: no push, deployments, external provider calls or database changes."
+          git status --short
