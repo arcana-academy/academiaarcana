@@ -173,8 +173,90 @@ jobs:
           });
           TS
 
-      - name: Check transient outage invariant on unmodified draft PR composition
-        run: npm exec -- vitest run src/app/api/integrations/asana/cp04-transient-outage.test.ts
+      - name: Record original PR composition's demonstrated transient regression
+        shell: bash
+        run: |
+          set +e
+          npm exec -- vitest run src/app/api/integrations/asana/cp04-transient-outage.test.ts > /tmp/cp04-original-regression.log 2>&1
+          result=$?
+          set -e
+          cat /tmp/cp04-original-regression.log
+          if [[ "$result" -eq 0 ]]; then
+            echo "::error::CP04 baseline unexpectedly passed the new invariant; abort proposed repair"
+            exit 1
+          fi
+          grep -q '2 failed' /tmp/cp04-original-regression.log
+          grep -q 'reauthorization_required' /tmp/cp04-original-regression.log
+          echo "CP04_ORIGINAL_COMPOSITION_REPRODUCED: 2 transient refresh invariants FAIL"
+          echo "CP04: diagnosis recorded; apply candidate ONLY inside this disposable checkout"
+
+      - name: Apply isolated candidate (never commit/push application changes)
+        run: node scripts/cp04-disposable-asana-repair.mjs
+
+      - name: Add disposable HTTP response tests for Asana refresh adapter
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > src/infrastructure/integrations/cp04-refresh-http.test.ts <<'TS'
+          import { afterEach, describe, expect, it, vi } from "vitest";
+          import { refreshAsanaCredentials } from "./asana";
+          const credentials = {
+            subjectId: "synthetic-owner",
+            accessToken: "synthetic-access",
+            refreshToken: "synthetic-refresh",
+            accessTokenExpiresAt: 1,
+          };
+          describe("CP04 classify upstream refresh failures without exposing credentials", () => {
+            afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+            it.each([408, 429, 500, 503])("keeps a recoverable classification for HTTP %d", async code => {
+              vi.stubEnv("ASANA_CLIENT_ID","synthetic-client");
+              vi.stubEnv("ASANA_CLIENT_SECRET","synthetic-secret");
+              vi.stubGlobal("fetch",vi.fn(async () => new Response("{}",{status:code})));
+              await expect(refreshAsanaCredentials(credentials)).rejects.toMatchObject({
+                name:"AsanaConnectionError",code:"request_failed"
+              });
+              expect(credentials.refreshToken).toBe("synthetic-refresh");
+            });
+            it.each([400, 401, 403])("keeps fail-closed auth rejection HTTP %d", async code => {
+              vi.stubEnv("ASANA_CLIENT_ID","synthetic-client");
+              vi.stubEnv("ASANA_CLIENT_SECRET","synthetic-secret");
+              vi.stubGlobal("fetch",vi.fn(async () => new Response("{}",{status:code})));
+              await expect(refreshAsanaCredentials(credentials)).rejects.toMatchObject({
+                name:"AsanaConnectionError",code:"reauthorization_required"
+              });
+            });
+            it("classifies network fetch failure as retryable",async()=>{
+              vi.stubEnv("ASANA_CLIENT_ID","synthetic-client");
+              vi.stubEnv("ASANA_CLIENT_SECRET","synthetic-secret");
+              vi.stubGlobal("fetch",vi.fn(async () => {throw new TypeError("synthetic network outage");}));
+              await expect(refreshAsanaCredentials(credentials)).rejects.toMatchObject({
+                name:"AsanaConnectionError",code:"request_failed"
+              });
+            });
+          });
+          TS
+
+      - name: Typecheck repaired ephemeral candidate plus targeted test code
+        run: npm run typecheck
+
+      - name: Run repaired Asana task project status refresh and transient tests
+        run: |
+          npm exec -- vitest run \
+            src/app/api/integrations/asana/_lib.test.ts \
+            src/app/api/integrations/asana/tasks/route.test.ts \
+            src/app/api/integrations/asana/projects/route.test.ts \
+            src/infrastructure/integrations/asana-refresh-token-preservation.test.ts \
+            src/app/api/integrations/asana/status/route.test.ts \
+            src/components/integrations/AsanaConnectionPanel.test.tsx \
+            src/infrastructure/integrations/asana.test.ts \
+            src/app/api/integrations/asana/cp04-transient-outage.test.ts \
+            src/infrastructure/integrations/cp04-refresh-http.test.ts
+
+      - name: Document ephemeral changed paths without pushing
+        run: |
+          git diff --check
+          git diff --name-only
+          echo "CP04_PROPOSAL_ONLY: tested in throwaway runner; not integrated into draft PRs"
 
       - name: Confirm disposable-only cleanup
         if: always()
