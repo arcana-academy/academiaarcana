@@ -72,6 +72,10 @@ Desempenho em avaliação posterior **sem assistência**, criterion-referenced e
 
 Elegível somente quando o estudante solicita resposta completa em contexto de prática.
 
+**Lacuna metodológica a fechar antes de pré-registro (gate Learning/Education + Estatística):** o instante de elegibilidade e a população de análise precisam ser definidos **antes da primeira exposição à intervenção** e de forma não afetada pela variante. Se a solicitação de resposta completa acontecer depois de uma exposição capaz de alterar essa escolha, selecionar somente quem solicitou a resposta poderá introduzir viés pós-tratamento; essa subpopulação não deve ser tratada automaticamente como ITT. Pré-especificar o evento inicial elegível, sequência elegibilidade → assignment/exposição, unidade de análise, momento zero e denominador fixo de todas as pessoas elegíveis atribuídas. Exclusões e ausência de avaliação posterior devem ser reportadas, não recodificadas como falha.
+
+**Métrica de mecanismo ainda proposta:** distinguir o **primeiro pedido** que dispara o feedback metacognitivo dos **pedidos subsequentes**, pré-definindo numerador, denominador, janela e tratamento de episódios repetidos. O pedido que antecede o nudge não é evidência de efeito causado pelo nudge. Se a mensuração exigir novos eventos, Trust e Data devem aprovar previamente a finalidade e o contrato; nenhuma nova coleta é autorizada aqui.
+
 ### Controle
 
 Respeitar a solicitação de resposta direta sem lembrete metacognitivo adicional.
