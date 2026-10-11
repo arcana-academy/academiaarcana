@@ -206,3 +206,62 @@ test.describe("CP03C local-only authenticated sidebar", () => {
     });
   }
 });
+
+
+test.describe("CP03D Chromium 200% zoom and responsive equivalent on composed PRs", () => {
+  test.skip(!enabled, "Only a disposable loopback Supabase stack can run this spec");
+  test.describe.configure({ mode: "serial" });
+  test.beforeAll(async () => {
+    validateCp03cIsolation(process.env, { requireUser: true });
+    await verifyLocalAuthReady(process.env);
+  });
+
+  for (const viewport of medium) {
+    test(`Chromium compositor zoom 200% ${viewport.width}x${viewport.height}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await login(page);
+      const cdp = await page.context().newCDPSession(page);
+      try {
+        await cdp.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
+        await expect.poll(async () => page.evaluate(() => window.visualViewport?.scale ?? 0))
+          .toBeGreaterThanOrEqual(1.95);
+        const sidebar = page.locator(".aa-sidebar");
+        await expect(sidebar).toBeVisible();
+        const nav = sidebar.getByRole("navigation", { name: "Navegação principal" });
+        await expect(nav.getByRole("link")).toHaveCount(15);
+        const last = nav.getByRole("link", { name: "Configurações" });
+        await last.scrollIntoViewIfNeeded();
+        await last.focus();
+        await expect(last).toBeFocused();
+        await noHorizontalOverflow(page);
+        const visualViewportScale = await page.evaluate(() => window.visualViewport?.scale ?? 0);
+        console.log(`CP03D PASS compositor pinch scale: viewport ${viewport.width}x${viewport.height}, factor ${visualViewportScale}`);
+      } finally {
+        await cdp.send("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
+        await cdp.detach();
+      }
+    });
+
+    test(`layout reflow at 200%-equivalent CSS viewport ${viewport.width}x${viewport.height}`, async ({ page }) => {
+      const equivalent = { width: viewport.width / 2, height: viewport.height / 2 };
+      await page.setViewportSize(equivalent);
+      await login(page);
+      const sidebar = page.locator(".aa-sidebar");
+      await expect(sidebar).toBeHidden();
+      const disclosure = page.locator("details.aa-mobile-navigation");
+      const trigger = disclosure.locator("summary");
+      await trigger.focus();
+      await expect(trigger).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(disclosure).toHaveAttribute("open", "");
+      const nav = disclosure.getByRole("navigation", { name: "Navegação móvel" });
+      await expect(nav.getByRole("link")).toHaveCount(15);
+      const last = nav.getByRole("link", { name: "Configurações" });
+      await last.scrollIntoViewIfNeeded();
+      await last.focus();
+      await expect(last).toBeInViewport();
+      await noHorizontalOverflow(page);
+      console.log(`CP03D PASS 200%-equivalent reflow ${equivalent.width}x${equivalent.height}`);
+    });
+  }
+});
