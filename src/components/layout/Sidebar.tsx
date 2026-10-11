@@ -28,7 +28,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
       </div>
 
       <nav aria-label="Navegação principal">
-        <ul className="aa-sidebar-list">
+        <ul className="aa-sidebar-nav">
           {navigationItems.map((item) => {
             const active = item.href === currentPath;
             const Icon = item.icon;
