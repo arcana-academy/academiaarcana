@@ -45,6 +45,7 @@ describe("AuthenticatedShell", () => {
     );
 
     const sidebar = container.querySelector(".aa-sidebar");
+    expect(sidebar?.querySelector(".aa-sidebar-nav")).toBeInTheDocument();
     const sidebarLinks = sidebar?.querySelectorAll(".aa-sidebar-link");
     expect(sidebarLinks).toHaveLength(15);
     expect(sidebar?.querySelectorAll(".aa-sidebar-icon svg")).toHaveLength(15);
