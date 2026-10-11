@@ -3,6 +3,7 @@
  * Reuses the existing production frontend in a disposable, loopback-only stack.
  */
 import { expect, test } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 import { validateCp03cIsolation, verifyLocalAuthReady } from "../../scripts/cp03c-local-boundary.mjs";
 
 const enabled = process.env.CP03C_LOCAL_AUTH_ENABLED === "1";
@@ -26,11 +27,29 @@ async function login(page) {
     }
     return route.abort("blockedbyclient");
   });
+  const localAuth = [];
+  page.on("response", response => {
+    const u = new URL(response.url());
+    if (["127.0.0.1", "localhost"].includes(u.hostname) && u.pathname.startsWith("/auth/v1/")) {
+      localAuth.push({ path: u.pathname, status: response.status(), method: response.request().method() });
+    }
+  });
+  page.on("requestfailed", request => {
+    const u = new URL(request.url());
+    if (["127.0.0.1", "localhost"].includes(u.hostname) && u.pathname.startsWith("/auth/v1/")) {
+      localAuth.push({ path: u.pathname, failed: request.failure()?.errorText ?? "unknown" });
+    }
+  });
   await page.goto(`${frontend}/login`);
   await page.getByLabel("Email").fill(process.env.E2E_EMAIL);
   await page.getByLabel("Senha").fill(process.env.E2E_PASSWORD);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page).toHaveURL(/\/santuario(?:\?|$)/);
+  try {
+    await expect(page).toHaveURL(/\/santuario(?:\?|$)/);
+  } catch {
+    const alerts = await page.locator('[role="alert"]').allTextContents();
+    throw new Error(`CP03C browser login did not reach Sanctuary: ${JSON.stringify({ path: new URL(page.url()).pathname, alerts: alerts.map(s => s.slice(0,120)), localAuth })}`);
+  }
 }
 
 async function noHorizontalOverflow(page) {
@@ -42,10 +61,18 @@ async function noHorizontalOverflow(page) {
 }
 
 test.describe("CP03C local-only authenticated sidebar", () => {
+  test.describe.configure({ mode: "serial" });
   test.skip(!enabled, "CP03C_LOCAL_AUTH_ENABLED=1 is required; no real user or hosted Supabase allowed");
   test.beforeAll(async () => {
     validateCp03cIsolation(process.env, { requireUser: true });
     await verifyLocalAuthReady(process.env);
+    const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { error } = await client.auth.signInWithPassword({ email: process.env.E2E_EMAIL, password: process.env.E2E_PASSWORD });
+    if (error) throw new Error(`CP03C local GoTrue password verification failed: status ${error.status}, code ${error.code ?? "unknown"}`);
+    await client.auth.signOut();
+    console.log("CP03C: local password authentication confirmed through Supabase API");
   });
 
   for (const viewport of medium) {
