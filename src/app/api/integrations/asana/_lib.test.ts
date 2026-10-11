@@ -127,7 +127,10 @@ describe("Asana subject-bound credentials and refresh", () => {
 
   it("retains subject-bound cookie when a successful refresh response contains invalid JSON", async () => {
     mockShouldRefresh.mockReturnValueOnce(true);
-    mockRefresh.mockRejectedValueOnce(new SyntaxError("synthetic HTTP 200 invalid JSON"));
+    const { AsanaConnectionError } = await import("@/infrastructure/integrations/asana");
+    mockRefresh.mockRejectedValueOnce(
+      new AsanaConnectionError("synthetic malformed OAuth response", "request_failed"),
+    );
     const context = await getAsanaCredentialsContext();
     expect(context).toEqual({ credentials: null, status: "request_failed" });
     expect(jar.delete).not.toHaveBeenCalled();
