@@ -385,6 +385,7 @@ p {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
 }
 
 .aa-sidebar-brand {
@@ -465,7 +466,8 @@ p {
   font-size: var(--aa-type-scale-sm);
 }
 
-.aa-sidebar-nav {
+.aa-sidebar-nav,
+.aa-sidebar-list {
   display: grid;
   gap: 0.3rem;
   list-style: none;
@@ -1228,7 +1230,7 @@ p {
 
 @media (max-width: 64rem) {
   .aa-shell {
-    grid-template-columns: 5.5rem minmax(0, 1fr);
+    grid-template-columns: 13rem minmax(0, 1fr);
   }
 
   .aa-sidebar {
