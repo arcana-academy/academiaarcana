@@ -124,7 +124,9 @@ Isso é suficiente para **definir** um outcome objetivo, mas não para estimar e
 
 ### 5.2 Outcome primário recomendado
 
-Para AA-MA-EVAL-001/002, o outcome primário deve ser:
+**Proposta não ratificada:** a matriz anterior da #586 designava offloading como primário de EVAL-002, ao passo que o protocolo e este checklist priorizam aprendizagem independente. Os campos da matriz foram harmonizados apenas como *candidatos*, sujeitos a Learning/Education e Estatística; offloading continua mecanismo secundário candidato, sem inferência de aprendizagem.
+
+Para AA-MA-EVAL-001/002, o desfecho primário *candidato*, ainda sujeito a ratificação nominal de Learning/Education e Estatística, é:
 
 > resultado de uma avaliação criterion-referenced posterior, pré-especificada e realizada **sem assistência do Mestre Arcano**.
 
