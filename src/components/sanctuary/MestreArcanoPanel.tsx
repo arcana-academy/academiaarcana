@@ -3,21 +3,41 @@
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 
+import type { MestreArcanoHelpLevel } from "@/domains/intelligence";
+
 type AgentResponse = {
   output?: unknown;
   error?: unknown;
 };
 
 const STARTER_PROMPTS = [
-  "O que devo estudar agora?",
-  "Monte meu próximo passo de estudo.",
-  "Explique como retomar meu estudo sem me sobrecarregar.",
-] as const;
+  {
+    text: "O que devo estudar agora?",
+    helpLevel: "unspecified",
+  },
+  {
+    text: "Quero tentar primeiro. Me dê uma pista sem entregar a resposta.",
+    helpLevel: "hint",
+  },
+  {
+    text: "Ajude-me a decompor o problema em passos.",
+    helpLevel: "decomposition",
+  },
+  {
+    text: "Quero a resposta direta e depois verifico se entendi.",
+    helpLevel: "direct-answer",
+  },
+] as const satisfies readonly {
+  text: string;
+  helpLevel: MestreArcanoHelpLevel;
+}[];
 
 const arcaneCore = "/assets/intelligence/aa-arcane-core.svg";
 
 export function MestreArcanoPanel() {
   const [input, setInput] = useState("");
+  const [helpLevel, setHelpLevel] =
+    useState<MestreArcanoHelpLevel>("unspecified");
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -35,7 +55,10 @@ export function MestreArcanoPanel() {
       const response = await fetch("/api/agent/mestre-arcano", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: normalized }),
+        body: JSON.stringify({
+          input: normalized,
+          ...(helpLevel === "unspecified" ? {} : { helpLevel }),
+        }),
       });
 
       const payload = (await response.json()) as AgentResponse;
@@ -78,12 +101,15 @@ export function MestreArcanoPanel() {
         {STARTER_PROMPTS.map((prompt) => (
           <button
             className="aa-mestre-prompt"
-            key={prompt}
+            key={prompt.text}
             type="button"
-            onClick={() => setInput(prompt)}
+            onClick={() => {
+              setInput(prompt.text);
+              setHelpLevel(prompt.helpLevel);
+            }}
             disabled={pending}
           >
-            {prompt}
+            {prompt.text}
           </button>
         ))}
       </div>
@@ -96,7 +122,10 @@ export function MestreArcanoPanel() {
           id="mestre-arcano-input"
           className="aa-input aa-mestre-input"
           value={input}
-          onChange={(event) => setInput(event.target.value)}
+          onChange={(event) => {
+            setInput(event.target.value);
+            setHelpLevel("unspecified");
+          }}
           placeholder="Pergunte sobre seu estudo, planejamento ou próximo passo..."
           rows={3}
           maxLength={8000}

@@ -17,6 +17,43 @@ describe("MestreArcanoPanel", () => {
     ).toBeInTheDocument();
   });
 
+  it("envia o nível de ajuda somente quando o estudante faz uma escolha explícita", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          output: "Comece por esta pista.",
+          responseId: "resp_hint",
+          model: "gpt-5.6-sol",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    render(<MestreArcanoPanel />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Quero tentar primeiro. Me dê uma pista sem entregar a resposta.",
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Consultar Mestre Arcano" }));
+
+    await screen.findByText("Comece por esta pista.");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/agent/mestre-arcano",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          input: "Quero tentar primeiro. Me dê uma pista sem entregar a resposta.",
+          helpLevel: "hint",
+        }),
+      }),
+    );
+
+    fetchMock.mockRestore();
+  });
+
   it("consulta o agente e apresenta a resposta", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
