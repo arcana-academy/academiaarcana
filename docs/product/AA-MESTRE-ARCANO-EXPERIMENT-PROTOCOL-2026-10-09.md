@@ -6,6 +6,8 @@
 >
 > Autoridade: `AA-PRODUCT-1.0.md`, `AA-PRODUCT-REQUIREMENTS-1.0.md` e `AA-PRODUCT-MESTRE-ARCANO-PEDAGOGICAL-EVALUATION-2026-10-09.md`.
 
+**Mapeamento de identificadores:** AA-MA-EXP-001 operacionaliza a hipótese AA-MA-EVAL-001; AA-MA-EXP-002 operacionaliza AA-MA-EVAL-002. Este é apenas um mapeamento documental; nenhum assignment ou coleta está ativo. Os outcomes abaixo continuam candidatos e não constituem pré-registro congelado.
+
 ## 1. Pergunta
 
 Ajuda graduada e feedback metacognitivo no Mestre Arcano melhoram ou preservam aprendizagem posterior sem assistência, sem reduzir autonomia nem criar abandono material?
