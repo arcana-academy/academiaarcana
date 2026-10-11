@@ -38,6 +38,42 @@ describe("Todoist OAuth refresh error provenance", () => {
     expect((error as Error).message).not.toContain("synthetic-secret-upstream-response");
   });
 
+  it("recognizes only a proven invalid_grant on a 400 response as token revocation", async () => {
+    vi.stubEnv("TODOIST_CLIENT_ID", "synthetic-client-id");
+    vi.stubEnv("TODOIST_CLIENT_SECRET", "synthetic-client-secret");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ error: "invalid_grant" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+    await expect(refreshTodoistCredentials(credentials)).rejects.toMatchObject({
+      httpStatus: 400,
+      oauthError: "invalid_grant",
+    });
+  });
+
+  it("does not classify generic HTTP 400 as a revoked token", async () => {
+    vi.stubEnv("TODOIST_CLIENT_ID", "synthetic-client-id");
+    vi.stubEnv("TODOIST_CLIENT_SECRET", "synthetic-client-secret");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ error: "incorrect_application_credentials" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+    await expect(refreshTodoistCredentials(credentials)).rejects.toMatchObject({
+      httpStatus: 400,
+      oauthError: undefined,
+    });
+  });
+
   it("retains the owner when refresh succeeds", async () => {
     vi.stubEnv("TODOIST_CLIENT_ID", "synthetic-client-id");
     vi.stubEnv("TODOIST_CLIENT_SECRET", "synthetic-client-secret");
