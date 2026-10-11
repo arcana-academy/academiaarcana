@@ -1,0 +1,71 @@
+name: CP04 Asana Review Regression
+on:
+  push:
+    branches:
+      - fix/cp04-asana-transient-refresh-review-20261010
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cp04-asana-review-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  asana-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout candidate without stored credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Preflight immutable baseline and credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          git merge-base --is-ancestor "ec5b9cec1f4eebb3eb8cc5a99096fd98a62f3084" HEAD
+          for key in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_SERVICE_ROLE_KEY DATABASE_URL RENDER_API_KEY ASANA_CLIENT_SECRET ASANA_ACCESS_TOKEN ASANA_REFRESH_TOKEN OPENAI_API_KEY; do
+            if [[ -n "${!key:-}" ]]; then
+              echo "::error::CP04 review blocked by runtime secret: $key"
+              exit 1
+            fi
+          done
+          git diff --quiet && git diff --cached --quiet
+          node scripts/verify-supply-chain-workflows.cjs
+          echo "CP04_REVIEW_PINNED_SHA=$(git rev-parse HEAD)"
+
+      - name: Install project test dependencies
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+
+      - name: Typecheck candidate SHA
+        run: npm run typecheck
+
+      - name: Test only Asana refresh, task and project behaviors
+        run: |
+          npm exec -- vitest run \
+            src/app/api/integrations/asana/_lib.test.ts \
+            src/app/api/integrations/asana/tasks/route.test.ts \
+            src/app/api/integrations/asana/projects/route.test.ts \
+            src/infrastructure/integrations/asana-transient-refresh.test.ts \
+            src/infrastructure/integrations/asana.test.ts
+
+      - name: Confirm no upstream mutation
+        if: always()
+        run: |
+          echo "CP04 safe review only; no publish, deploy, provider connections, or database operations"
+          git status --short
