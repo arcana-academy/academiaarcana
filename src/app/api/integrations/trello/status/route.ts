@@ -11,7 +11,7 @@ export async function GET() {
   if (!credentials) {
     return NextResponse.json(
       { providerId: "trello", status },
-      { status: 200, headers: { "Cache-Control": "private, no-store" } },
+      { status: status === "request_failed" ? 502 : 200, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 
