@@ -29,7 +29,7 @@ function makeClient() {
         error: null,
       })),
     },
-    from: vi.fn((_table: string) => ({
+    from: vi.fn(() => ({
       upsert: vi.fn(async (row: StoredCredential & {
         owner_id: string; provider_id: string;
       }) => {
