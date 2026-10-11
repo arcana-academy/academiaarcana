@@ -1,6 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import type { FeedbackInput, FeedbackRecord } from "@/domains/trust";
 
+export class FeedbackAuthenticationError extends Error {
+  constructor() {
+    super("É necessário estar autenticado para enviar feedback.");
+    this.name = "FeedbackAuthenticationError";
+  }
+}
+
 export async function createFeedback(input: FeedbackInput): Promise<FeedbackRecord> {
   const supabase = await createClient();
   const {
@@ -8,12 +15,8 @@ export async function createFeedback(input: FeedbackInput): Promise<FeedbackReco
     error: userError,
   } = await supabase.auth.getUser();
 
-  if (userError) {
-    throw new Error("Não foi possível validar a sessão.");
-  }
-
-  if (!user) {
-    throw new Error("É necessário estar autenticado para enviar feedback.");
+  if (userError || !user) {
+    throw new FeedbackAuthenticationError();
   }
 
   const { data, error } = await supabase
