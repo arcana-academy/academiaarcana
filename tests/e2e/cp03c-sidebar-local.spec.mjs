@@ -25,9 +25,28 @@ async function login(page) {
     if (requestUrl.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(requestUrl.hostname)) {
       return route.continue();
     }
+    blockedHosts.push({ host: requestUrl.hostname, path: requestUrl.pathname });
     return route.abort("blockedbyclient");
   });
   const localAuth = [];
+  const blockedHosts = [];
+  const browserErrors = [];
+  page.on("pageerror", error => browserErrors.push({ source: "pageerror", type: error.name }));
+  page.on("console", event => {
+    if (event.type() === "error") browserErrors.push({ source: "console", type: "error" });
+  });
+  await page.addInitScript(() => {
+    window.__cp03cFetchTargets = [];
+    const originalFetch = window.fetch;
+    window.fetch = function (...args) {
+      try {
+        const source = typeof args[0] === "string" ? args[0] : args[0]?.url;
+        const u = new URL(source, window.location.origin);
+        window.__cp03cFetchTargets.push({ host: u.hostname, port: u.port, path: u.pathname });
+      } catch {}
+      return originalFetch.apply(this, args);
+    };
+  });
   page.on("response", response => {
     const u = new URL(response.url());
     if (["127.0.0.1", "localhost"].includes(u.hostname) && u.pathname.startsWith("/auth/v1/")) {
@@ -48,7 +67,8 @@ async function login(page) {
     await expect(page).toHaveURL(/\/santuario(?:\?|$)/);
   } catch {
     const alerts = await page.locator('[role="alert"]').allTextContents();
-    throw new Error(`CP03C browser login did not reach Sanctuary: ${JSON.stringify({ path: new URL(page.url()).pathname, alerts: alerts.map(s => s.slice(0,120)), localAuth })}`);
+    const fetchTargets = await page.evaluate(() => window.__cp03cFetchTargets ?? []);
+    throw new Error(`CP03C browser login did not reach Sanctuary: ${JSON.stringify({ path: new URL(page.url()).pathname, alerts: alerts.map(s => s.slice(0,120)), localAuth, fetchTargets: fetchTargets.slice(-15), blockedHosts: blockedHosts.slice(-15), browserErrors: browserErrors.slice(-10) })}`);
   }
 }
 
