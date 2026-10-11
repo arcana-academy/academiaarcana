@@ -32,6 +32,8 @@ Para o primeiro experimento, o outcome primário mais simples e auditável é **
 
 ## 3. Estado empírico atual
 
+**Escopo da decisão:** AA-MA-EVAL-001/002 são hipóteses e AA-MA-EXP-001/002 seus desenhos operacionais propostos. Aprendizagem independente como desfecho primário permanece candidata e exige aprovação nominal Learning/Education e Estatística.
+
 Consulta agregada read-only ao Supabase atual em 2026-10-10:
 
 | Medida | Valor |
@@ -46,6 +48,20 @@ Consulta agregada read-only ao Supabase atual em 2026-10-10:
 | SD de evidence_score | não estimável |
 
 **Conclusão:** não existe baseline interno observacional para estimar `p0`, variância, ICC, attrition ou distribuição por item.
+
+### Proveniência reproduzível do subconjunto agregado
+
+Consulta somente de leitura reexecutada em 2026-10-10: 0 itens, 0 tentativas, 0 tentativas criterion-referenced e 0 owners distintos com tentativas. Nenhum texto individual foi acessado:
+
+```sql
+SELECT
+ (SELECT COUNT(*) FROM public.educational_practice_items) AS educational_practice_items,
+ (SELECT COUNT(*) FROM public.educational_practice_attempts) AS total_attempts,
+ (SELECT COUNT(*) FROM public.educational_practice_attempts WHERE evidence_type = 'criterion-referenced') AS criterion_referenced_attempts,
+ (SELECT COUNT(DISTINCT owner_id) FROM public.educational_practice_attempts) AS learners_with_attempts;
+```
+
+Não inferir distribuição por item, baseline dos elegíveis sem tentativas, ICC ou attrition a partir desses zeros. Nenhum número de tamanho de amostra fica autorizado.
 
 Não usar fixtures/testes como se fossem dados de usuários.
 
