@@ -8,6 +8,8 @@ Workflow `.github/workflows/fallback-historical-ssr-http-536.yml` independently 
 
 Test harness: `scripts/security/test-historical-supabase-http-536.mjs` in the review branch, copied as an untracked artifact to the temporary historical checkout. It calls real local HTTP Auth endpoints to sign in artificial users A and B, then verifies that `@supabase/ssr` cookies can authenticate a freshly constructed server client using `auth.getUser()` and `auth.getClaims()`. It sends HTTP requests through `supabase-js`/PostgREST against `grimoires` and `feedback_responses` to prove each user's RLS ownership and reject forgery / anonymous read. It exercises the private `grimoire-covers` Storage API for owner upload and download, denial of cross-owner/anonymous reads and spoofed paths, safe owner replacement (upsert requires SELECT+UPDATE+INSERT), then tests logout and session-cookie invalidation.
 
+**PR-head provenance:** For `pull_request` events, `GITHUB_SHA` can designate GitHub's synthetic test-merge commit. The supplemental workflow explicitly checks out `github.event.pull_request.head.sha` for the harness and asserts `git rev-parse HEAD` matches that exact source SHA and the official repository. It continues to pin the historical application SHA separately. The earlier green workflow run #38103537670 pertains to the **pre-correction workflow** and is not CI evidence for this updated head. The updated check requires a new per-SHA run.
+
 **Pass must come from the exact HEAD's completed GitHub Actions job and its step logs**, not source review or previous runs. Failures must be registered without claiming success.
 
 ## Explicitly not proven
