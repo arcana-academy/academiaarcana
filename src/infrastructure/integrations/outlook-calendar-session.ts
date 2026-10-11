@@ -216,7 +216,9 @@ export async function getOutlookAccessToken(
     }
 
     if (!options.refresh) return null;
-    return refreshAccessToken(
+    // Await so network failures are handled by this function's existing
+    // error boundary instead of leaking a raw rejected fetch promise.
+    return await refreshAccessToken(
       ownerId,
       decrypt(credential.refresh_token_ciphertext),
     );
