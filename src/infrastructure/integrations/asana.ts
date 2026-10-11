@@ -278,7 +278,15 @@ export async function refreshAsanaCredentials(credentials: AsanaCredentials): Pr
     throw new AsanaConnectionError("A autorização do Asana expirou ou foi revogada. Reconecte a conta.", "reauthorization_required");
   }
 
-  return { subjectId: credentials.subjectId, ...normalizeTokenSet(await response.json()) };
+  const refreshed = normalizeTokenSet(await response.json());
+  // A successful refresh can return only a new access token. Keep the
+  // original long-lived refresh token unless Asana explicitly rotates it.
+  // Otherwise the status route persists a cookie that cannot renew again.
+  return {
+    subjectId: credentials.subjectId,
+    ...refreshed,
+    refreshToken: refreshed.refreshToken ?? credentials.refreshToken,
+  };
 }
 
 async function asanaRequest<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
