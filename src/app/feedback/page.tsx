@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { MessageSquareText, Sparkles } from "lucide-react";
 
@@ -13,11 +14,13 @@ export default function FeedbackPage() {
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("");
     setError("");
+    setAuthRequired(false);
     setLoading(true);
 
     try {
@@ -30,6 +33,7 @@ export default function FeedbackPage() {
 
       if (!response.ok) {
         setError(payload.error ?? "Não foi possível salvar o feedback.");
+        setAuthRequired(response.status === 401);
         return;
       }
 
@@ -105,6 +109,11 @@ export default function FeedbackPage() {
             <div className="aa-feedback-form-footer">
               <div aria-live="polite" className="aa-feedback-status">
                 {error ? <p role="alert" className="aa-feedback-status-error">{error}</p> : null}
+                {authRequired ? (
+                  <Link className="aa-button aa-button-secondary aa-button-sm" href="/login">
+                    Entrar para enviar feedback
+                  </Link>
+                ) : null}
                 {status ? <p className="aa-feedback-status-success">{status}</p> : null}
               </div>
               <Button type="submit" size="lg" loading={loading} disabled={loading}>
