@@ -52,7 +52,9 @@ async function getCredentialsOrUnauthorized() {
       // Keep the owner-bound encrypted credential so recovery remains possible.
       const authorizationRejected =
         error instanceof TodoistConnectionError &&
-        (error.httpStatus === 401 || error.httpStatus === 403);
+        (error.httpStatus === 401 ||
+          error.httpStatus === 403 ||
+          error.oauthError === "invalid_grant");
       if (authorizationRejected) {
         cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
       }
