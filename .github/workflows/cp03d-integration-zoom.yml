@@ -50,6 +50,16 @@ jobs:
           npm ci --ignore-scripts
           npm rebuild esbuild unrs-resolver --ignore-scripts=false
 
+      - name: Lint and typecheck full composed tree
+        run: |
+          npm run lint
+          npm run typecheck
+
+      - name: Unit and accessibility suites on composed tree
+        run: |
+          npm test
+          npm run test:a11y
+
       - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
         with:
