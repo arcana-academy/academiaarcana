@@ -84,7 +84,10 @@ export type TodoistConnectionVerification = {
 };
 
 export class TodoistConnectionError extends Error {
-  constructor(message = "Todoist não está configurado ou autorizado.") {
+  constructor(
+    message = "Todoist não está configurado ou autorizado.",
+    readonly httpStatus?: number,
+  ) {
     super(message);
     this.name = "TodoistConnectionError";
   }
@@ -369,6 +372,7 @@ export async function refreshTodoistCredentials(
   if (!response.ok) {
     throw new TodoistConnectionError(
       "Não foi possível renovar a autorização do Todoist.",
+      response.status,
     );
   }
 
