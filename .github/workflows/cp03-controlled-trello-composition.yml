@@ -1,0 +1,119 @@
+name: CP03 Controlled Trello 603 + 610 Composition
+
+on:
+  push:
+    branches:
+      - test/cp03-controlled-trello-603-610-20261010
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cp03-trello-compose-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trello-isolated:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Read-only checkout on disposable runner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup reviewed Node toolchain
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Confirm clean baseline and credentials boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse refs/heads/main)" = "cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          for key in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_SERVICE_ROLE_KEY DATABASE_URL OPENAI_API_KEY PARALLEL_API_KEY EXA_API_KEY RENDER_API_KEY TRELLO_CLIENT_SECRET TRELLO_ACCESS_TOKEN TRELLO_REFRESH_TOKEN; do
+            if [[ -n "${!key:-}" ]]; then
+              echo "::error::CP03 blocked: runtime credential variable is present: $key"
+              exit 1
+            fi
+          done
+          git diff --quiet && git diff --cached --quiet
+          node scripts/verify-supply-chain-workflows.cjs
+
+      - name: Compose fixed PR heads ONLY in this ephemeral checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          readonly ORIGINAL_MAIN="cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          readonly PR603="b704042db05aab5865435366904e85d1bea1ab10"
+          readonly PR610="3c9e500a67ed9e10dfb46b9f85fdafec4e60e255"
+          git fetch --no-tags origin refs/pull/603/head refs/pull/610/head
+          test "$(git rev-parse FETCH_HEAD)" = "$PR610"
+          git cat-file -e "${PR603}^{commit}"
+          git cat-file -e "${PR610}^{commit}"
+          git merge-base --is-ancestor "$ORIGINAL_MAIN" "$PR603"
+          git merge-base --is-ancestor "$ORIGINAL_MAIN" "$PR610"
+          git config user.name "CP03 Disposable Runner"
+          git config user.email "ci-only@local.invalid"
+          git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$PR603"
+          echo "CP03 after #603: $(git rev-parse HEAD)"
+          # Fails closed on conflicts; never choose ours/theirs silently.
+          if ! git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$PR610"; then
+            echo "::error::CP03 composition conflict: manual reconciliation required, no shared branch changed"
+            git diff --name-only --diff-filter=U
+            exit 1
+          fi
+          git merge-base --is-ancestor "$ORIGINAL_MAIN" HEAD
+          git merge-base --is-ancestor "$PR603" HEAD
+          git merge-base --is-ancestor "$PR610" HEAD
+          git diff --quiet && git diff --cached --quiet
+          git diff --check "$ORIGINAL_MAIN" HEAD
+          echo "CP03_COMBINED_TEMP_SHA=$(git rev-parse HEAD)"
+          git log -3 --format='%h %s'
+          node --input-type=module <<'JS'
+          import { readFileSync } from "node:fs";
+          const client = readFileSync("src/infrastructure/integrations/trello.ts", "utf8");
+          const route = readFileSync("src/app/api/integrations/trello/boards/route.ts", "utf8");
+          const context = readFileSync("src/app/api/integrations/trello/_lib.ts", "utf8");
+          const expected = [
+            [client, "export class TrelloRefreshError"],
+            [client, "readonly httpStatus?: number"],
+            [route, "authorizationRejected"],
+            [route, 'status: authorizationRejected ? 401 : 502'],
+            [route, 'status === "request_failed" ? 502'],
+            [context, '"request_failed"'],
+          ];
+          for (const [source, marker] of expected) {
+            if (!source.includes(marker)) throw new Error(`CP03 combined contract lost: ${marker}`);
+          }
+          console.log("CP03_COMBINED_CONTRACT PASS: both HTTP error and refresh semantics remain");
+          JS
+
+      - name: Install project dependencies for changed integration
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+
+      - name: Typecheck merged tree (material composition)
+        run: npm run typecheck
+
+      - name: Run only Trello HTTP and OAuth refresh regression tests
+        run: |
+          npm exec -- vitest run \
+            src/app/api/integrations/trello/boards/route.test.ts \
+            src/infrastructure/integrations/trello-http-errors.test.ts \
+            src/infrastructure/integrations/trello-refresh-errors.test.ts \
+            src/app/api/integrations/trello/_lib.test.ts \
+            src/app/api/integrations/trello/refresh-failure-routes.test.ts
+
+      - name: Confirm ephemeral checkout only
+        if: always()
+        shell: bash
+        run: |
+          echo "CP03 temporary runner complete. No push, deploy, migration or external provider calls."
+          git status --short
