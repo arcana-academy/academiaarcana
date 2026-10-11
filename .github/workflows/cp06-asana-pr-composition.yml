@@ -1,0 +1,89 @@
+name: CP06 Exact Asana 613 scoped fix plus 606 611
+on:
+  push:
+    branches:
+      - test/cp06-asana-parser-606-611-20261011
+
+permissions:
+  contents: read
+concurrency:
+  group: cp06-integration-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  isolated-composition:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout pinned test branch with no persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Verify baselines and secret isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          git merge-base --is-ancestor "53e9efd69bcbfecabe0cfcc2b15bfd7936647da6" HEAD
+          for key in ASANA_CLIENT_SECRET ASANA_ACCESS_TOKEN ASANA_REFRESH_TOKEN DATABASE_URL SUPABASE_SERVICE_ROLE_KEY RENDER_API_KEY OPENAI_API_KEY; do
+            if [[ -n "${!key:-}" ]]; then echo "::error::CP06 runtime credentials present"; exit 1; fi
+          done
+          node scripts/verify-supply-chain-workflows.cjs
+      - name: Merge only pinned #606 #611 in disposable checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          readonly P606="01d5ce1cd4cd0692b73a5c0cd0cc3b9df20f835a"
+          readonly P611="4ac63a999bc1bea3e04f5fc344cab8e9cecd0ae8"
+          readonly CANDIDATE="53e9efd69bcbfecabe0cfcc2b15bfd7936647da6"
+          git fetch --no-tags origin refs/pull/606/head refs/pull/611/head
+          for entry in "606:$P606" "611:$P611"; do
+            n="${entry%%:*}"; sha="${entry#*:}"
+            test "$(git ls-remote origin "refs/pull/$n/head" | cut -f1)" = "$sha"
+            git cat-file -e "${sha}^{commit}"
+            git merge-base --is-ancestor "cc17653dfe79c44dd83ba1ced8cb065383b11ca9" "$sha"
+          done
+          git config user.name "CP06 Disposable CI"
+          git config user.email "ci-only@local.invalid"
+          for sha in "$P606" "$P611"; do
+            if ! git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$sha"; then
+              echo "::error::CP06 merge conflict (stop, no auto ours/theirs)"
+              git diff --name-only --diff-filter=U
+              exit 1
+            fi
+          done
+          for sha in "$CANDIDATE" "$P606" "$P611"; do
+            git merge-base --is-ancestor "$sha" HEAD
+          done
+          git diff --quiet && git diff --cached --quiet
+          git diff --check cc17653dfe79c44dd83ba1ced8cb065383b11ca9 HEAD
+          echo "CP06_TEMP_INTEGRATED_SHA=$(git rev-parse HEAD)"
+      - name: Install dependencies for material integration
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Typecheck combined code
+        run: npm run typecheck
+      - name: Run only Asana newly affected paths
+        run: |
+          npm exec -- vitest run \
+            src/app/api/integrations/asana/_lib.test.ts \
+            src/infrastructure/integrations/asana-transient-refresh.test.ts \
+            src/infrastructure/integrations/asana-refresh-token-preservation.test.ts \
+            src/app/api/integrations/asana/status/route.test.ts \
+            src/app/api/integrations/asana/tasks/route.test.ts \
+            src/app/api/integrations/asana/projects/route.test.ts
+      - name: Report transient-only state
+        if: always()
+        run: |
+          echo "CP06 ephemeral integration only: NO pushes, deployments, migrations or provider credentials."
+          git status --short
