@@ -20,9 +20,12 @@ export default function Error({ error, reset }: ErrorProps) {
   }, [error])
 
   return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button onClick={() => reset()}>Try again</button>
+    <div className="aa-page" role="alert" aria-labelledby="route-error-title">
+      <h2 id="route-error-title">Não foi possível carregar a página</h2>
+      <p>Ocorreu um erro inesperado. Tente novamente para continuar.</p>
+      <button className="aa-button aa-button-primary" type="button" onClick={() => reset()}>
+        Tentar novamente
+      </button>
     </div>
   )
 }
