@@ -67,28 +67,32 @@ jobs:
           const pr606 = sh("show", "01d5ce1cd4cd0692b73a5c0cd0cc3b9df20f835a:" + file);
           const candidate = sh("show", "HEAD:" + file);
           const before = "  return { subjectId: credentials.subjectId, ...normalizeTokenSet(await response.json()) };";
-          const sixohsix = `  const refreshed = normalizeTokenSet(await response.json());
-            // A successful refresh can return only a new access token. Keep the
-            // original long-lived refresh token unless Asana explicitly rotates it.
-            // Otherwise the status route persists a cookie that cannot renew again.
-            return {
-              subjectId: credentials.subjectId,
-              ...refreshed,
-              refreshToken: refreshed.refreshToken ?? credentials.refreshToken,
-            };`.split("\n").map((s,i)=> i===0 ? s : s.slice(10)).join("\n");
+          const sixohsix = [
+            "  const refreshed = normalizeTokenSet(await response.json());",
+            "  // A successful refresh can return only a new access token. Keep the",
+            "  // original long-lived refresh token unless Asana explicitly rotates it.",
+            "  // Otherwise the status route persists a cookie that cannot renew again.",
+            "  return {",
+            "    subjectId: credentials.subjectId,",
+            "    ...refreshed,",
+            "    refreshToken: refreshed.refreshToken ?? credentials.refreshToken,",
+            "  };",
+          ].join("\n");
           if (main.split(before).length !== 2 || main.replace(before,sixohsix) !== pr606) {
             throw new Error("CP06 STOP: #606 changes extend beyond verified token-retention hunk");
           }
           const anchor = "  return { subjectId: credentials.subjectId, ...normalizeTokenSet(payload) };";
-          const integrated = `  const refreshed = normalizeTokenSet(payload);
-            // A successful refresh can return only a new access token. Keep the
-            // original long-lived refresh token unless Asana explicitly rotates it.
-            // Otherwise the status route persists a cookie that cannot renew again.
-            return {
-              subjectId: credentials.subjectId,
-              ...refreshed,
-              refreshToken: refreshed.refreshToken ?? credentials.refreshToken,
-            };`.split("\n").map((s,i)=> i===0 ? s : s.slice(10)).join("\n");
+          const integrated = [
+            "  const refreshed = normalizeTokenSet(payload);",
+            "  // A successful refresh can return only a new access token. Keep the",
+            "  // original long-lived refresh token unless Asana explicitly rotates it.",
+            "  // Otherwise the status route persists a cookie that cannot renew again.",
+            "  return {",
+            "    subjectId: credentials.subjectId,",
+            "    ...refreshed,",
+            "    refreshToken: refreshed.refreshToken ?? credentials.refreshToken,",
+            "  };",
+          ].join("\n");
           if (candidate.split(anchor).length !== 2 ||
               !candidate.includes("if (error instanceof SyntaxError)") ||
               !candidate.includes("payload = await response.json()")) {
