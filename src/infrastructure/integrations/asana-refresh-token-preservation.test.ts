@@ -52,7 +52,7 @@ describe("Asana long-lived refresh token preservation", () => {
         body: expect.any(URLSearchParams),
       }),
     );
-    const request = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
+    const request = (fetchMock.mock.calls as unknown as Array<[string, RequestInit]>)[0]?.[1];
     const body = request?.body as URLSearchParams;
     expect(body.get("grant_type")).toBe("refresh_token");
     expect(body.get("refresh_token")).toBe("synthetic-original-refresh");
