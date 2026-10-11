@@ -29,6 +29,27 @@ async function login(page) {
       blockedHosts.push({ host: requestUrl.hostname, path: requestUrl.pathname });
       return route.abort("blockedbyclient");
     }
+    if (requestUrl.origin === supabase) {
+      // Only the disposable local Auth API is permitted: preserve the original
+      // payload and status, adapt CORS response headers strictly in Playwright.
+      // No changes to Supabase service, the application or production policy.
+      const cors = {
+        "access-control-allow-origin": frontend,
+        "access-control-allow-credentials": "true",
+        "access-control-allow-methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+        "access-control-allow-private-network": "true",
+        "vary": "Origin",
+      };
+      if (route.request().method() === "OPTIONS") {
+        const wanted = route.request().headers()["access-control-request-headers"];
+        return route.fulfill({ status: 204, headers: {
+          ...cors,
+          "access-control-allow-headers": wanted || "authorization, apikey, content-type, x-client-info",
+        } });
+      }
+      const response = await route.fetch();
+      return route.fulfill({ response, headers: { ...response.headers(), ...cors } });
+    }
     if (route.request().isNavigationRequest() && requestUrl.origin === frontend) {
       const response = await route.fetch();
       const headers = response.headers();
