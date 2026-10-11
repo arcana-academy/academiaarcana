@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AuthenticatedShell } from "./AuthenticatedShell";
@@ -51,7 +51,8 @@ describe("AuthenticatedShell", () => {
     expect(sidebar?.querySelectorAll(".aa-sidebar-icon svg")).toHaveLength(15);
     expect(sidebar?.querySelectorAll(".aa-sidebar-link-copy")).toHaveLength(15);
 
-    const settingsLink = screen.getByRole("link", { name: "Configurações" });
+    const sidebarNavigation = within(sidebar as HTMLElement);
+    const settingsLink = sidebarNavigation.getByRole("link", { name: "Configurações" });
     expect(settingsLink).toHaveAttribute("href", "/configuracoes");
     expect(settingsLink).toHaveAttribute("aria-label", "Configurações");
     expect(settingsLink).toHaveAttribute("title", "Configurações");
@@ -59,7 +60,7 @@ describe("AuthenticatedShell", () => {
     expect(settingsLink.querySelector(".aa-sidebar-link-copy")).toHaveTextContent(
       "Preferências da conta",
     );
-    expect(screen.getByRole("link", { name: "Santuário" })).not.toHaveAttribute("aria-current");
+    expect(sidebarNavigation.getByRole("link", { name: "Santuário" })).not.toHaveAttribute("aria-current");
   });
 
   it("reflects the current area in the topbar context", () => {
