@@ -262,7 +262,9 @@ export async function refreshAsanaCredentials(credentials: AsanaCredentials): Pr
     throw new AsanaConnectionError("A autorização do Asana não possui refresh token. Reconecte a conta.", "reauthorization_required");
   }
 
-  const response = await fetch(ASANA_OAUTH_TOKEN_URL, {
+  let response: Response;
+  try {
+    response = await fetch(ASANA_OAUTH_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
     cache: "no-store",
@@ -273,8 +275,15 @@ export async function refreshAsanaCredentials(credentials: AsanaCredentials): Pr
       refresh_token: credentials.refreshToken,
     }),
   });
+  } catch {
+    throw new AsanaConnectionError("Falha temporária na renovação Asana.", "request_failed");
+  }
 
   if (!response.ok) {
+    // Do not conflate an upstream outage with an actual OAuth grant rejection.
+    if (response.status === 408 || response.status === 429 || response.status >= 500) {
+      throw new AsanaConnectionError("Renovação Asana temporariamente indisponível.", "request_failed");
+    }
     throw new AsanaConnectionError("A autorização do Asana expirou ou foi revogada. Reconecte a conta.", "reauthorization_required");
   }
 
