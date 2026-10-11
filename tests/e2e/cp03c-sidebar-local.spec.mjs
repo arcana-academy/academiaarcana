@@ -18,15 +18,32 @@ const small = [
 ];
 
 async function login(page) {
-  const { frontend } = validateCp03cIsolation(process.env, { requireUser: true });
-  // Route before navigation: reject every off-machine document, image, script, XHR, etc.
-  await page.route("**/*", (route) => {
+  const { frontend, supabase } = validateCp03cIsolation(process.env, { requireUser: true });
+  // Test-only CSP adaptation: production allows HTTPS cross-origin Auth, while
+  // Supabase CLI intentionally serves HTTP on another loopback port.
+  // Preserve the nonce, strict script policy and all other directives.
+  // Neither src/lib/security/csp.ts nor the actual server response is changed.
+  await page.route("**/*", async (route) => {
     const requestUrl = new URL(route.request().url());
-    if (requestUrl.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(requestUrl.hostname)) {
-      return route.continue();
+    if (!(requestUrl.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(requestUrl.hostname))) {
+      blockedHosts.push({ host: requestUrl.hostname, path: requestUrl.pathname });
+      return route.abort("blockedbyclient");
     }
-    blockedHosts.push({ host: requestUrl.hostname, path: requestUrl.pathname });
-    return route.abort("blockedbyclient");
+    if (route.request().isNavigationRequest() && requestUrl.origin === frontend) {
+      const response = await route.fetch();
+      const headers = response.headers();
+      const original = headers["content-security-policy"] ?? "";
+      const connectSrc = "connect-src 'self' https: wss:";
+      if (!original.includes(connectSrc) || !original.includes("upgrade-insecure-requests") ||
+          !original.includes("'strict-dynamic'") || !original.includes("'nonce-")) {
+        throw new Error("CP03C BLOCKED: unexpected production CSP, refusing test-only adaptation");
+      }
+      const localPolicy = original
+        .replace(connectSrc, `${connectSrc} ${supabase}`)
+        .replace(/;\s*upgrade-insecure-requests\b/, "");
+      return route.fulfill({ response, headers: { ...headers, "content-security-policy": localPolicy } });
+    }
+    return route.continue();
   });
   const localAuth = [];
   const blockedHosts = [];
