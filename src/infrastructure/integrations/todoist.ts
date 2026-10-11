@@ -84,7 +84,11 @@ export type TodoistConnectionVerification = {
 };
 
 export class TodoistConnectionError extends Error {
-  constructor(message = "Todoist não está configurado ou autorizado.") {
+  constructor(
+    message = "Todoist não está configurado ou autorizado.",
+    readonly httpStatus?: number,
+    readonly oauthError?: "invalid_grant",
+  ) {
     super(message);
     this.name = "TodoistConnectionError";
   }
@@ -367,8 +371,20 @@ export async function refreshTodoistCredentials(
   });
 
   if (!response.ok) {
+    // A revoked refresh token is identified by invalid_grant, not by a
+    // generic HTTP 400. Discard all other upstream response diagnostics.
+    let oauthError: "invalid_grant" | undefined;
+    if (response.status === 400) {
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: unknown }
+        | null;
+      if (payload?.error === "invalid_grant") oauthError = "invalid_grant";
+    }
+
     throw new TodoistConnectionError(
       "Não foi possível renovar a autorização do Todoist.",
+      response.status,
+      oauthError,
     );
   }
 

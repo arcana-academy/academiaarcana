@@ -11,6 +11,7 @@ import {
   refreshTodoistCredentials,
   shouldRefreshTodoistCredentials,
   TODOIST_CREDENTIALS_COOKIE,
+  TodoistConnectionError,
 } from "@/infrastructure/integrations/todoist";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
@@ -46,12 +47,23 @@ async function getCredentialsOrUnauthorized() {
           secure: true,
         },
       );
-    } catch {
-      cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
+    } catch (error) {
+      // Network and upstream outages do not prove a token was revoked.
+      // Keep the owner-bound encrypted credential so recovery remains possible.
+      const authorizationRejected =
+        error instanceof TodoistConnectionError &&
+        (error.httpStatus === 401 ||
+          error.httpStatus === 403 ||
+          error.oauthError === "invalid_grant");
+      if (authorizationRejected) {
+        cookieStore.delete(TODOIST_CREDENTIALS_COOKIE);
+      }
       return {
         credentials: null,
         cookieStore,
-        status: "reauthorization_required" as const,
+        status: authorizationRejected
+          ? ("reauthorization_required" as const)
+          : ("request_failed" as const),
       };
     }
   }
@@ -65,7 +77,10 @@ export async function GET() {
   if (!credentials) {
     return NextResponse.json(
       { status },
-      { status: 200, headers: { "Cache-Control": "private, no-store" } },
+      {
+        status: status === "request_failed" ? 502 : 200,
+        headers: { "Cache-Control": "private, no-store" },
+      },
     );
   }
 
@@ -93,7 +108,7 @@ export async function POST(request: Request) {
   if (!credentials) {
     return NextResponse.json(
       { error: status },
-      { status: status === "reauthorization_required" ? 401 : 409 },
+      { status: status === "request_failed" ? 502 : status === "reauthorization_required" ? 401 : 409 },
     );
   }
 
@@ -132,7 +147,7 @@ export async function PATCH(request: Request) {
   if (!credentials) {
     return NextResponse.json(
       { error: status },
-      { status: status === "reauthorization_required" ? 401 : 409 },
+      { status: status === "request_failed" ? 502 : status === "reauthorization_required" ? 401 : 409 },
     );
   }
 
