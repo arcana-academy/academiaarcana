@@ -8,7 +8,7 @@ export async function GET() {
   const { credentials, status } = await getAsanaCredentialsContext();
   if (!credentials) {
     return NextResponse.json({ providerId: "asana", status, projects: [] }, {
-      status: 200, headers: { "Cache-Control": "private, no-store" },
+      status: status === "request_failed" ? 502 : 200, headers: { "Cache-Control": "private, no-store" },
     });
   }
 
