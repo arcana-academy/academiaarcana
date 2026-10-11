@@ -53,13 +53,64 @@ jobs:
           done
           git config user.name "CP06 Disposable CI"
           git config user.email "ci-only@local.invalid"
-          for sha in "$P606" "$P611"; do
-            if ! git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$sha"; then
-              echo "::error::CP06 merge conflict (stop, no auto ours/theirs)"
-              git diff --name-only --diff-filter=U
-              exit 1
-            fi
-          done
+          if ! git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$P606"; then
+            # The ONLY permitted resolution is the exact independently reviewed
+            # token-retention return hunk from #606, combined with CP06's
+            # explicit OAuth JSON parser classification.
+            test "$(git diff --name-only --diff-filter=U)" = "src/infrastructure/integrations/asana.ts"
+            node --input-type=module <<'JS'
+          import { execFileSync } from "node:child_process";
+          import { writeFileSync } from "node:fs";
+          const file = "src/infrastructure/integrations/asana.ts";
+          const sh = (...args) => execFileSync("git", args, { encoding:"utf8" });
+          const main = sh("show", "cc17653dfe79c44dd83ba1ced8cb065383b11ca9:" + file);
+          const pr606 = sh("show", "01d5ce1cd4cd0692b73a5c0cd0cc3b9df20f835a:" + file);
+          const candidate = sh("show", "HEAD:" + file);
+          const before = "  return { subjectId: credentials.subjectId, ...normalizeTokenSet(await response.json()) };";
+          const sixohsix = `  const refreshed = normalizeTokenSet(await response.json());
+            // A successful refresh can return only a new access token. Keep the
+            // original long-lived refresh token unless Asana explicitly rotates it.
+            // Otherwise the status route persists a cookie that cannot renew again.
+            return {
+              subjectId: credentials.subjectId,
+              ...refreshed,
+              refreshToken: refreshed.refreshToken ?? credentials.refreshToken,
+            };`.split("\n").map((s,i)=> i===0 ? s : s.slice(10)).join("\n");
+          if (main.split(before).length !== 2 || main.replace(before,sixohsix) !== pr606) {
+            throw new Error("CP06 STOP: #606 changes extend beyond verified token-retention hunk");
+          }
+          const anchor = "  return { subjectId: credentials.subjectId, ...normalizeTokenSet(payload) };";
+          const integrated = `  const refreshed = normalizeTokenSet(payload);
+            // A successful refresh can return only a new access token. Keep the
+            // original long-lived refresh token unless Asana explicitly rotates it.
+            // Otherwise the status route persists a cookie that cannot renew again.
+            return {
+              subjectId: credentials.subjectId,
+              ...refreshed,
+              refreshToken: refreshed.refreshToken ?? credentials.refreshToken,
+            };`.split("\n").map((s,i)=> i===0 ? s : s.slice(10)).join("\n");
+          if (candidate.split(anchor).length !== 2 ||
+              !candidate.includes("if (error instanceof SyntaxError)") ||
+              !candidate.includes("payload = await response.json()")) {
+            throw new Error("CP06 STOP: candidate parser boundary differs from reviewed code");
+          }
+          const combined = candidate.replace(anchor,integrated);
+          if (!combined.includes("refreshToken: refreshed.refreshToken ?? credentials.refreshToken")) {
+            throw new Error("CP06 STOP: long-lived token retention missing");
+          }
+          writeFileSync(file,combined);
+          console.log("CP06_MANUAL_RESOLUTION_VERIFIED: reviewed parser boundary + exact #606 token-retention hunk");
+          JS
+            git add src/infrastructure/integrations/asana.ts
+            test -z "$(git diff --name-only --diff-filter=U)"
+            git diff --cached --check
+            git -c core.hooksPath=/dev/null commit -m "test(cp06): manually reconcile parser boundary with #606 (disposable runner)"
+          fi
+          if ! git -c core.hooksPath=/dev/null merge --no-ff --no-edit "$P611"; then
+            echo "::error::CP06 unreviewed conflict with #611"
+            git diff --name-only --diff-filter=U
+            exit 1
+          fi
           for sha in "$CANDIDATE" "$P606" "$P611"; do
             git merge-base --is-ancestor "$sha" HEAD
           done
