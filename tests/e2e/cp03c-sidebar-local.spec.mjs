@@ -50,7 +50,20 @@ async function login(page) {
   const browserErrors = [];
   page.on("pageerror", error => browserErrors.push({ source: "pageerror", type: error.name }));
   page.on("console", event => {
-    if (event.type() === "error") browserErrors.push({ source: "console", type: "error" });
+    if (event.type() !== "error") return;
+    const message = event.text().toLowerCase();
+    const category = message.includes("cors") || message.includes("access-control-allow")
+      ? "cors"
+      : message.includes("content security policy") || message.includes("connect-src") || message.includes("refused to connect")
+        ? "csp"
+        : message.includes("private network access")
+          ? "private-network-access"
+          : message.includes("mixed content") || message.includes("upgrade-insecure-requests")
+            ? "mixed-content"
+            : message.includes("err_failed")
+              ? "network-err-failed"
+              : "other";
+    browserErrors.push({ source: "console", type: category });
   });
   await page.addInitScript(() => {
     window.__cp03cFetchTargets = [];
