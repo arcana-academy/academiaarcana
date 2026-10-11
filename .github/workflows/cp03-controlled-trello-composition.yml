@@ -34,7 +34,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse refs/heads/main)" = "cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
+          git fetch --no-tags origin refs/heads/main
+          test "$(git rev-parse FETCH_HEAD)" = "cc17653dfe79c44dd83ba1ced8cb065383b11ca9"
           for key in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_SERVICE_ROLE_KEY DATABASE_URL OPENAI_API_KEY PARALLEL_API_KEY EXA_API_KEY RENDER_API_KEY TRELLO_CLIENT_SECRET TRELLO_ACCESS_TOKEN TRELLO_REFRESH_TOKEN; do
             if [[ -n "${!key:-}" ]]; then
               echo "::error::CP03 blocked: runtime credential variable is present: $key"
