@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
+import { createFeedbackSubmitGate } from "@/lib/ui/feedback-submit-gate";
 import { MessageSquareText, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,12 @@ export default function FeedbackPage() {
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const submitGate = useRef(createFeedbackSubmitGate());
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // A state update alone cannot stop two submits in the same render.
+    if (!submitGate.current.enter()) return;
     setStatus("");
     setError("");
     setLoading(true);
@@ -26,10 +30,14 @@ export default function FeedbackPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, feedback }),
       });
-      const payload = (await response.json()) as { error?: string };
-
       if (!response.ok) {
-        setError(payload.error ?? "Não foi possível salvar o feedback.");
+        setError(
+          response.status === 400
+            ? "Revise o e-mail e a mensagem antes de enviar."
+            : response.status === 401
+              ? "Faça login novamente antes de enviar feedback."
+              : "Não foi possível confirmar o envio. Confira antes de reenviar.",
+        );
         return;
       }
 
@@ -38,8 +46,9 @@ export default function FeedbackPage() {
       setFeedback("");
       setStatus("Feedback enviado com sucesso.");
     } catch {
-      setError("Não foi possível conectar ao serviço de feedback.");
+      setError("Não foi possível confirmar o envio. Confira antes de reenviar.");
     } finally {
+      submitGate.current.leave();
       setLoading(false);
     }
   }

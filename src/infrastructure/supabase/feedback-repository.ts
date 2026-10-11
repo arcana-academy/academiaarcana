@@ -1,6 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import type { FeedbackInput, FeedbackRecord } from "@/domains/trust";
 
+/** Identifies a missing or unverified session without exposing provider details. */
+export class FeedbackAuthenticationError extends Error {
+  constructor() {
+    super("Sessão não autenticada.");
+    this.name = "FeedbackAuthenticationError";
+  }
+}
+
 export async function createFeedback(input: FeedbackInput): Promise<FeedbackRecord> {
   const supabase = await createClient();
   const {
@@ -9,11 +17,11 @@ export async function createFeedback(input: FeedbackInput): Promise<FeedbackReco
   } = await supabase.auth.getUser();
 
   if (userError) {
-    throw new Error("Não foi possível validar a sessão.");
+    throw new FeedbackAuthenticationError();
   }
 
   if (!user) {
-    throw new Error("É necessário estar autenticado para enviar feedback.");
+    throw new FeedbackAuthenticationError();
   }
 
   const { data, error } = await supabase

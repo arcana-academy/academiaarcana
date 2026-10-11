@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createFeedback } from "@/infrastructure/supabase/feedback-repository";
+import { createFeedback, FeedbackAuthenticationError } from "@/infrastructure/supabase/feedback-repository";
 
 const FeedbackSchema = z.object({
   name: z.string().trim().max(120).transform((value) => value || null),
@@ -19,14 +19,20 @@ export async function POST(request: Request) {
       { status: 201, headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
-    const message =
-      error instanceof z.ZodError
-        ? "Revise os campos do formulário."
-        : error instanceof Error
-          ? error.message
-          : "Não foi possível salvar o feedback.";
-
-    const status = message.includes("autentic") || message.includes("sessão") ? 401 : 400;
-    return NextResponse.json({ error: message }, { status });
+    // Never serialize unknown error.message or storage/provider diagnostics.
+    const status = error instanceof z.ZodError
+      ? 400
+      : error instanceof FeedbackAuthenticationError
+        ? 401
+        : 500;
+    const message = status === 400
+      ? "Revise os campos do formulário."
+      : status === 401
+        ? "Faça login novamente antes de enviar feedback."
+        : "Não foi possível processar o feedback. O envio não está confirmado.";
+    return NextResponse.json(
+      { error: message },
+      { status, headers: { "Cache-Control": "no-store" } },
+    );
   }
 }
