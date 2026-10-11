@@ -32,7 +32,11 @@ vi.mock("@/lib/auth/require-authenticated-user", () => ({
 }));
 vi.mock("@/infrastructure/integrations/todoist", () => {
   class TodoistConnectionError extends Error {
-    constructor(message: string, readonly httpStatus?: number) {
+    constructor(
+      message: string,
+      readonly httpStatus?: number,
+      readonly oauthError?: "invalid_grant",
+    ) {
       super(message);
       this.name = "TodoistConnectionError";
     }
@@ -101,6 +105,24 @@ describe("Todoist tasks: preserve credentials on transient refresh failures", ()
     expect(cookieStore.delete).not.toHaveBeenCalled();
     expect(cookieStore.set).not.toHaveBeenCalled();
     expect(mockTasks).not.toHaveBeenCalled();
+  });
+
+  it("GET preserves the cookie on HTTP 400 without proven invalid_grant", async () => {
+    mockRefresh.mockRejectedValueOnce(new TodoistConnectionError("generic 400", 400));
+    const response = await GET();
+    expect(response.status).toBe(502);
+    expect((await response.json()).status).toBe("request_failed");
+    expect(cookieStore.delete).not.toHaveBeenCalled();
+  });
+
+  it("GET requires reauthorization after an explicit 400 invalid_grant", async () => {
+    mockRefresh.mockRejectedValueOnce(
+      new TodoistConnectionError("revoked refresh token", 400, "invalid_grant"),
+    );
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect((await response.json()).status).toBe("reauthorization_required");
+    expect(cookieStore.delete).toHaveBeenCalledWith("__Host-aa-todoist-credentials");
   });
 
   it("GET preserves the cookie on network failure without HTTP response", async () => {
