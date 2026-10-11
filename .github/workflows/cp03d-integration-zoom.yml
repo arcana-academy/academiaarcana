@@ -1,0 +1,93 @@
+name: CP03D Compose Draft PRs and Local Zoom QA
+
+on:
+  push:
+    branches:
+      - test/cp03d-integration-zoom-20261010
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cp03d-integration-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  local-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      CP03C_LOCAL_AUTH_ENABLED: "1"
+      CP03C_FRONTEND_URL: http://127.0.0.1:3000
+      SUPABASE_EXPERIMENTAL_STACK: "0"
+
+    steps:
+      - name: Checkout isolated branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Pin npm
+        run: npm install --global npm@11.19.1 --ignore-scripts
+
+      - name: Compose exact PR576 and PR583 heads in disposable checkout
+        run: bash scripts/cp03d-compose-draft-prs.sh
+
+      - name: Verify safety contract and dependency boundary
+        run: |
+          node scripts/verify-supply-chain-workflows.cjs
+          node scripts/verify-dependency-lifecycle-scripts.cjs
+          node --test scripts/cp03c-local-boundary.test.mjs
+
+      - name: Install reviewed project dependencies
+        run: |
+          npm ci --ignore-scripts
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
+        with:
+          version: 2.119.0
+
+      - name: Start disposable loopback Supabase stack
+        run: |
+          supabase --version
+          supabase start
+
+      - name: Seed local user, build isolated frontend, run authenticated browser
+        shell: bash
+        timeout-minutes: 18
+        run: |
+          set -euo pipefail
+          status_file="${RUNNER_TEMP}/cp03c-local-status.env"
+          chmod 700 "${RUNNER_TEMP}"
+          supabase status -o env > "${status_file}"
+          chmod 600 "${status_file}"
+          set -a
+          source "${status_file}"
+          set +a
+          export NEXT_PUBLIC_SUPABASE_URL="${API_URL:?Local API_URL missing}"
+          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="${PUBLISHABLE_KEY:-${ANON_KEY:-}}"
+          export CP03C_EPHEMERAL_SUPABASE_ADMIN_KEY="${SECRET_KEY:-${SERVICE_ROLE_KEY:-}}"
+          export E2E_EMAIL="cp03c@local.invalid"
+          export E2E_PASSWORD="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          node scripts/cp03c-local-boundary.mjs
+          node scripts/cp03c-local-user.mjs
+          # Use the test-only Next command: npm prebuild intentionally enforces hosted production URL.
+          # No production validation is modified or bypassed outside this isolated CI job.
+          npm exec -- next build --webpack
+          npm exec -- playwright install --with-deps chromium
+          npm exec -- playwright test tests/e2e/cp03c-sidebar-local.spec.mjs --workers=1 --retries=0
+
+      - name: Destroy disposable local stack
+        if: always()
+        shell: bash
+        run: |
+          supabase stop --no-backup || true
+          docker ps --format '{{.Names}}' | grep -E '^supabase_' || true
