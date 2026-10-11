@@ -134,6 +134,15 @@ describe("Asana subject-bound credentials and refresh", () => {
     expect(jar.set).not.toHaveBeenCalled();
   });
 
+  it("fails closed on SyntaxError outside the OAuth response parser", async () => {
+    mockShouldRefresh.mockReturnValueOnce(true);
+    mockEncrypt.mockRejectedValueOnce(new SyntaxError("synthetic cookie encoding error"));
+    const context = await getAsanaCredentialsContext();
+    expect(context).toEqual({ credentials: null, status: "reauthorization_required" });
+    expect(jar.delete).toHaveBeenCalledWith("__Host-aa-asana-credentials");
+    expect(jar.set).not.toHaveBeenCalled();
+  });
+
   it("rejects a rotated credential claiming a different owner", async () => {
     mockShouldRefresh.mockReturnValueOnce(true);
     mockRefresh.mockResolvedValueOnce({ ...renewed, subjectId: "synthetic-other-user" });
