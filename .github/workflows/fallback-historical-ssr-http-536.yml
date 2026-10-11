@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: p0-536-supplemental-ssr-${{ github.sha }}
+  group: p0-536-supplemental-ssr-${{ github.event.pull_request.head.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -31,10 +31,10 @@ jobs:
           path: historical
           persist-credentials: false
 
-      - name: Checkout review harness at validation commit
+      - name: Checkout review harness at exact PR HEAD
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           path: harness
           persist-credentials: false
 
@@ -49,18 +49,23 @@ jobs:
           version: 2.118.0
 
       - name: Check strictly historical source and reviewed test provenance
+        env:
+          EXPECTED_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
         shell: bash
         run: |
           set -euo pipefail
           test "$(git -C historical rev-parse HEAD)" = "17fb81477fbd3eed14b93103641004a766eb9ac1"
-          test "$(git -C harness rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$PR_HEAD_REPOSITORY" = "$GITHUB_REPOSITORY"
+          test "$EXPECTED_PR_HEAD" = "$(git -C harness rev-parse HEAD)"
+          test "$EXPECTED_PR_HEAD" != "$GITHUB_SHA" || echo "PR HEAD and test-merge revision coincide"
           test "$(find historical/supabase/migrations -maxdepth 1 -name '*.sql' -type f | wc -l | tr -d ' ')" = "24"
           test -z "${SUPABASE_ACCESS_TOKEN:-}"
           test -z "${DATABASE_URL:-}"
           test -z "${SUPABASE_URL:-}"
           test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
           test -f harness/scripts/security/test-historical-supabase-http-536.mjs
-          echo "Pinned historical LIVE source, branch harness and local-only environment: PASS"
+          echo "Pinned historical LIVE source, exact PR HEAD harness and local-only environment: PASS"
 
       - name: Install only historical lockfile dependencies without scripts
         working-directory: historical
