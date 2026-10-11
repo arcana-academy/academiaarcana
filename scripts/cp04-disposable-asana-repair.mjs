@@ -32,7 +32,7 @@ writeFileSync(adapter, original.slice(0, start) + fragment + original.slice(end)
 console.log(`CP04 EPHEMERAL REPAIR: ${adapter}`);
 
 rewrite("src/app/api/integrations/asana/_lib.ts", [
-  ["  ASANA_CREDENTIALS_COOKIE,\n", "  ASANA_CREDENTIALS_COOKIE,\n  AsanaConnectionError,\n"],
+  ["  ASANA_CREDENTIALS_COOKIE,\n  decryptAsanaCredentials,", "  ASANA_CREDENTIALS_COOKIE,\n  AsanaConnectionError,\n  decryptAsanaCredentials,"],
   [
     '    } catch {\n      cookieStore.delete(ASANA_CREDENTIALS_COOKIE);\n      return { credentials: null, status: "reauthorization_required" as const };\n    }',
     '    } catch (error) {\n      if (error instanceof AsanaConnectionError &&\n          (error.code === "request_failed" || error.code === "rate_limited")) {\n        return { credentials: null, status: "request_failed" as const };\n      }\n      cookieStore.delete(ASANA_CREDENTIALS_COOKIE);\n      return { credentials: null, status: "reauthorization_required" as const };\n    }',
