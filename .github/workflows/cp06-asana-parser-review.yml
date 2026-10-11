@@ -1,0 +1,49 @@
+name: CP06 Asana OAuth Parser Boundary Review
+on:
+  push:
+    branches:
+      - fix/cp06-asana-parser-boundary-review-20261011
+permissions:
+  contents: read
+concurrency:
+  group: cp06-asana-parser-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  scope-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout isolated draft with no persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Enforce immutable PR613 ancestry and no runtime secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor c2bad944c27b35bc1fa1e69614d22301af71beb2 HEAD
+          for k in ASANA_CLIENT_SECRET ASANA_ACCESS_TOKEN ASANA_REFRESH_TOKEN DATABASE_URL SUPABASE_SERVICE_ROLE_KEY RENDER_API_KEY OPENAI_API_KEY; do
+            if [[ -n "${!k:-}" ]]; then echo "::error::CP06 credential unexpectedly present"; exit 1; fi
+          done
+          node scripts/verify-supply-chain-workflows.cjs
+          echo "CP06_EXACT_SHA=$(git rev-parse HEAD)"
+      - name: Install local regression dependencies
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Test changed parser vs cookie failure boundaries only
+        run: |
+          npm exec -- vitest run \
+            src/app/api/integrations/asana/_lib.test.ts \
+            src/infrastructure/integrations/asana-transient-refresh.test.ts
+      - name: Confirm no provider traffic or mutations
+        if: always()
+        run: git status --short
