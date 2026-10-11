@@ -119,8 +119,13 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Unexpected archive members")
     cfg_path = "blobs/sha256/" + cfg["digest"][7:]
     config = object_json(metadata.get(cfg_path, b""), "config")
-    user = config.get("config", {}).get("User")
-    if config.get("os") != "linux" or config.get("architecture") != "amd64" or user in ("", None, "0", "root"):
+    runtime_config = config.get("config")
+    user = runtime_config.get("User") if isinstance(runtime_config, dict) else None
+    # Docker Config.User can be "user[:group]" or "uid[:gid]".
+    # Checking only "root" / "0" misses UID 0 with an explicit group.
+    principal = user.split(":", 1)[0].strip() if isinstance(user, str) else ""
+    root_identity = not principal or principal.lower() == "root" or re.fullmatch(r"[+-]?0+", principal)
+    if config.get("os") != "linux" or config.get("architecture") != "amd64" or root_identity:
         raise IntegrityError("Unexpected platform or root runtime")
     return {"result": "PASS", "manifest": digest, "archiveSha256": actual_archive,
             "archiveBytes": path.stat().st_size, "objectsVerified": len(descs) + 1,
