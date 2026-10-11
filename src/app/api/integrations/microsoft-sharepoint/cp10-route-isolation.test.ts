@@ -88,15 +88,24 @@ describe("CP10 SharePoint JWT-sub cross-account route barriers", () => {
     expect(mockCreateClient).not.toHaveBeenCalled();
   });
 
-  it("binds a successful source-content request to the authenticated subject, not the URL", async () => {
+  it("returns successful content only for the matching JWT owner", async () => {
     mockUser.mockResolvedValueOnce({ sub: "synthetic-student-a" });
-    mockDocument.mockRejectedValueOnce(new Error("microsoft_sharepoint_source_not_found"));
+    const output = {
+      source: { id: "synthetic-source-a", providerId: "microsoft-sharepoint" },
+      content: "# Synthetic authorized text",
+      truncated: false,
+      currentDocument: { name: "notes.md", mimeType: "text/markdown" },
+    };
+    mockDocument.mockResolvedValueOnce(output);
     const response = await sourceContentGET(
-      new Request(url + "/sources/synthetic-source-b/content"), documentParams,
+      new Request(url + "/sources/synthetic-source-a/content"),
+      { params: Promise.resolve({ sourceId: "synthetic-source-a" }) },
     );
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({ document: output });
     expect(mockDocument).toHaveBeenCalledWith(
-      "synthetic-source-b",
+      "synthetic-source-a",
       expect.objectContaining({
         ownerId: "synthetic-student-a",
         credentials: creds,
@@ -107,6 +116,21 @@ describe("CP10 SharePoint JWT-sub cross-account route barriers", () => {
     expect(mockDrives).not.toHaveBeenCalled();
     expect(mockSearch).not.toHaveBeenCalled();
     expect(mockMetadata).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 without exposing a source missing from the authenticated owner's query", async () => {
+    mockUser.mockResolvedValueOnce({ sub: "synthetic-student-a" });
+    mockDocument.mockRejectedValueOnce(new Error("microsoft_sharepoint_source_not_found"));
+    const response = await sourceContentGET(
+      new Request(url + "/sources/synthetic-source-b/content"), documentParams,
+    );
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({ error: "microsoft_sharepoint_source_not_found" });
+    expect(mockDocument).toHaveBeenCalledWith(
+      "synthetic-source-b",
+      expect.objectContaining({ ownerId: "synthetic-student-a", credentials: creds }),
+    );
+    expect(mockCreateClient).toHaveBeenCalledOnce();
   });
 
   it("does not allow a failed authentication check to reach SharePoint or the database", async () => {
