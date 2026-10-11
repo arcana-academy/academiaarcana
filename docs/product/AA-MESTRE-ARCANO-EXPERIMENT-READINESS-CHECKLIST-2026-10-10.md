@@ -204,6 +204,8 @@ No HEAD validado do PR #586, passaram:
 Ainda faltam testes para:
 
 - assignment estável por estudante;
+- critério de elegibilidade e momento zero pré-exposição, sem seleção pós-tratamento; população ITT e denominador por braço congelados antes da observação de outcomes;
+- para EVAL-002, separar o pedido inicial que dispara o nudge dos pedidos subsequentes; pré-especificar numerador, denominador e janela da medida secundária de offloading;
 - ausência de troca silenciosa de braço;
 - versionamento de política/model/tools/UI;
 - exclusão de assistência no outcome primário;
