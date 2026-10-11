@@ -22,8 +22,13 @@ export default function Error({ error, reset }: GlobalErrorProps) {
   return (
     <html lang="pt-BR">
       <body>
-        <h2>Something went wrong!</h2>
-        <button onClick={() => reset()}>Try again</button>
+        <main className="aa-page" role="alert" aria-labelledby="global-error-title">
+          <h1 id="global-error-title">Não foi possível carregar a Academia Arcana</h1>
+          <p>Ocorreu um erro inesperado. Tente novamente para continuar.</p>
+          <button className="aa-button aa-button-primary" type="button" onClick={() => reset()}>
+            Tentar novamente
+          </button>
+        </main>
       </body>
     </html>
   )
