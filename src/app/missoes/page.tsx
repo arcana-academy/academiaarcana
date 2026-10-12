@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sparkles, Target } from "lucide-react";
 
+import type { Mission } from "@/domains/gamification";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
@@ -19,10 +20,17 @@ const missionDocument = "/assets/missions/aa-mission-document.svg";
 export default async function MissoesPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
-  const missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
-    claims.sub,
-    todayUtc(),
-  );
+  let missions: Mission[] = [];
+  let loadError = false;
+
+  try {
+    missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
+      claims.sub,
+      todayUtc(),
+    );
+  } catch {
+    loadError = true;
+  }
   const completed = missions.filter((mission) => mission.status === "completed").length;
 
   return (
@@ -33,7 +41,18 @@ export default async function MissoesPage() {
         description="Objetivos derivados de eventos reais de estudo, sem pressão artificial ou dados fictícios."
         actions={[{ href: "/cronograma", label: "Abrir cronograma", variant: "secondary" }]}
       >
-        <ArcanaFeatureGrid>
+        {loadError ? (
+          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="missoes-load-error-title">
+            <h2 id="missoes-load-error-title">Não foi possível carregar as missões</h2>
+            <p>As missões não foram atualizadas. Tente carregar novamente.</p>
+            <form action="/missoes" method="get">
+              <button className="aa-button aa-button-secondary" type="submit">
+                Tentar novamente
+              </button>
+            </form>
+          </section>
+        ) : (
+          <ArcanaFeatureGrid>
           <FeatureCard
             title="Hoje"
             description="Missões registradas para o dia atual."
@@ -81,7 +100,8 @@ export default async function MissoesPage() {
               </p>
             </FeatureCard>
           ) : null}
-        </ArcanaFeatureGrid>
+          </ArcanaFeatureGrid>
+        )}
       </ArcanaPage>
     </AuthenticatedShell>
   );
