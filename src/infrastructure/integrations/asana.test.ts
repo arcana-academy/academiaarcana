@@ -9,10 +9,14 @@ import {
   decryptAsanaCredentials,
   encryptAsanaCredentials,
   shouldRefreshAsanaCredentials,
+  refreshAsanaCredentials,
+  AsanaConnectionError,
 } from "./asana";
 
 describe("Asana integration adapter", () => {
   afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
 
@@ -92,4 +96,78 @@ describe("Asana integration adapter", () => {
       }, now),
     ).toBe(false);
   });
+  it("retains the previous refresh token when a successful OAuth refresh omits a replacement", async () => {
+    vi.stubEnv("ASANA_CLIENT_ID", "synthetic-client");
+    vi.stubEnv("ASANA_CLIENT_SECRET", "synthetic-secret");
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ access_token: "renewed-access", expires_in: 3600 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    const previous = {
+      subjectId: "user-1",
+      accessToken: "expired-access",
+      refreshToken: "existing-refresh",
+      accessTokenExpiresAt: 0,
+    };
+
+    const result = await refreshAsanaCredentials(previous);
+
+    expect(result.subjectId).toBe("user-1");
+    expect(result.accessToken).toBe("renewed-access");
+    expect(result.refreshToken).toBe("existing-refresh");
+    expect(result.accessTokenExpiresAt).toBeGreaterThan(Date.now());
+    expect(previous.refreshToken).toBe("existing-refresh");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, options] = fetchMock.mock.calls[0];
+    expect((options?.body as URLSearchParams).get("refresh_token")).toBe("existing-refresh");
+  });
+
+  it("replaces the previous refresh token when OAuth explicitly rotates it", async () => {
+    vi.stubEnv("ASANA_CLIENT_ID", "synthetic-client");
+    vi.stubEnv("ASANA_CLIENT_SECRET", "synthetic-secret");
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          access_token: "rotated-access",
+          refresh_token: "rotated-refresh",
+          expires_in: 1800,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    const result = await refreshAsanaCredentials({
+      subjectId: "user-1",
+      accessToken: "expired-access",
+      refreshToken: "previous-refresh",
+      accessTokenExpiresAt: 0,
+    });
+    expect(result).toMatchObject({
+      subjectId: "user-1",
+      accessToken: "rotated-access",
+      refreshToken: "rotated-refresh",
+    });
+  });
+
+  it("does not accept a refresh response without a valid access token", async () => {
+    vi.stubEnv("ASANA_CLIENT_ID", "synthetic-client");
+    vi.stubEnv("ASANA_CLIENT_SECRET", "synthetic-secret");
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(JSON.stringify({ expires_in: 3600 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    await expect(
+      refreshAsanaCredentials({
+        subjectId: "user-1",
+        accessToken: "expired-access",
+        refreshToken: "previous-refresh",
+        accessTokenExpiresAt: 0,
+      }),
+    ).rejects.toBeInstanceOf(AsanaConnectionError);
+  });
+
 });
