@@ -50,6 +50,35 @@ describe("GrimoriosPage", () => {
     expect(listByOwner).toHaveBeenCalledWith("user-1");
   });
 
+  it("names each grimoire link uniquely while preserving its visible action", async () => {
+    listByOwner.mockResolvedValue([
+      {
+        id: "grimoire-1",
+        ownerId: "user-1",
+        title: "Fisiologia",
+        description: null,
+        createdAt: "2026-01-01",
+        updatedAt: "2026-01-01",
+      },
+      {
+        id: "grimoire-2",
+        ownerId: "user-1",
+        title: "Anatomia",
+        description: null,
+        createdAt: "2026-01-01",
+        updatedAt: "2026-01-01",
+      },
+    ]);
+
+    const html = renderToStaticMarkup(await GrimoriosPage());
+
+    expect(html).toContain('aria-label="Abrir grimório: Fisiologia"');
+    expect(html).toContain('aria-label="Abrir grimório: Anatomia"');
+    expect(html.match(/>Abrir grimório<\/a>/g)).toHaveLength(2);
+    expect(html).toContain('href="/workspace?view=tree&amp;grimoire=grimoire-1#current"');
+    expect(html).toContain('href="/workspace?view=tree&amp;grimoire=grimoire-2#current"');
+  });
+
   it("encodes the authenticated grimoire id in the canonical Workspace handoff", async () => {
     listByOwner.mockResolvedValue([
       {
