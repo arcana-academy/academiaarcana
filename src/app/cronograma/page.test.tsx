@@ -65,7 +65,7 @@ describe("CronogramaPage", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(listUpcomingMock).toHaveBeenCalledWith(
       "user-1",
-      expect.stringMatching(/^\\d{4}-\\d{2}-\\d{2}T/),
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
     );
   });
 
