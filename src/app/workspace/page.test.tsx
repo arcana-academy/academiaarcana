@@ -87,7 +87,7 @@ const params = {
 };
 
 beforeEach(() => {
-  vi.resetAllMocks();
+  vi.clearAllMocks();
   mocks.auth.mockResolvedValue({ sub: "user-1" });
   mocks.client.mockResolvedValue({});
   mocks.listByOwner.mockResolvedValue([
