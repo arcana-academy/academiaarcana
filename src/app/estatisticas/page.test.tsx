@@ -1,15 +1,18 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { buildEducationalOverview } from "@/application/education/p1";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const repositoryMocks = vi.hoisted(() => ({
   listPages: vi.fn(),
   listPracticeItems: vi.fn(),
   listPracticeAttempts: vi.fn(),
+  getProfile: vi.fn(),
+  listDailyMissions: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
-  requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+  requireAuthenticatedUser: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -34,36 +37,11 @@ vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   return { SupabaseEducationalPracticeRepository: MockSupabaseEducationalPracticeRepository };
 });
 
-vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => {
-  class MockSupabaseGamificationRepository {
-    getProfile() {
-      return {
-        ownerId: "user-1",
-        xp: 900,
-        streakDays: 7,
-        lastActiveOn: "2026-09-29",
-        updatedAt: "2026-09-29T10:00:00.000Z",
-      };
-    }
-
-    listDailyMissions() {
-      return [
-        {
-          id: "m1",
-          ownerId: "user-1",
-          code: "a",
-          title: "A",
-          rewardXp: 10,
-          targetDate: "2026-09-29",
-          status: "completed",
-          completedAt: "2026-09-29T09:00:00.000Z",
-        },
-      ];
-    }
-  }
-
-  return { SupabaseGamificationRepository: MockSupabaseGamificationRepository };
-});
+vi.mock("@/infrastructure/supabase/gamification/gamification-repository", () => ({
+  SupabaseGamificationRepository: vi.fn(function SupabaseGamificationRepository() {
+    return { getProfile: repositoryMocks.getProfile, listDailyMissions: repositoryMocks.listDailyMissions };
+  }),
+}));
 
 vi.mock("@/components/layout/AuthenticatedShell", () => ({
   AuthenticatedShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -147,9 +125,42 @@ const objectiveAttempt = {
 describe("EstatisticasPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(requireAuthenticatedUser).mockResolvedValue({ sub: "user-1" } as Awaited<ReturnType<typeof requireAuthenticatedUser>>);
+    repositoryMocks.getProfile.mockResolvedValue({ ownerId: "user-1", xp: 900, streakDays: 7, lastActiveOn: "2026-09-29", updatedAt: "2026-09-29T10:00:00.000Z" });
+    repositoryMocks.listDailyMissions.mockResolvedValue([{ id: "m1", ownerId: "user-1", code: "a", title: "A", rewardXp: 10, targetDate: "2026-09-29", status: "completed", completedAt: "2026-09-29T09:00:00.000Z" }]);
     repositoryMocks.listPages.mockResolvedValue([]);
     repositoryMocks.listPracticeItems.mockResolvedValue([]);
     repositoryMocks.listPracticeAttempts.mockResolvedValue([]);
+  });
+
+  it.each(["profile", "missions", "educational"] as const)(
+    "shows recoverable statistics outage without inventing progress when %s read fails",
+    async (source) => {
+      const secret = new Error("private-upstream-details");
+      if (source === "profile") repositoryMocks.getProfile.mockRejectedValueOnce(secret);
+      if (source === "missions") repositoryMocks.listDailyMissions.mockRejectedValueOnce(secret);
+      if (source === "educational") repositoryMocks.listPages.mockRejectedValueOnce(secret);
+
+      const html = renderToStaticMarkup(await EstatisticasPage());
+      expect(html).toContain('role="alert"');
+      expect(html).toContain('aria-labelledby="statistics-unavailable-title"');
+      expect(html).toContain("Não foi possível carregar suas estatísticas");
+      expect(html).toContain('action="/estatisticas"');
+      expect(html).toContain('method="get"');
+      expect(html).toContain("Tentar novamente");
+      expect(html).not.toContain("private-upstream-details");
+      expect(html).not.toContain("900 XP");
+      expect(html).not.toContain("Nível 4");
+      expect(repositoryMocks.getProfile).toHaveBeenCalledWith("user-1");
+      expect(repositoryMocks.listDailyMissions).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
+    },
+  );
+
+  it("keeps authentication failures outside the recoverable read boundary", async () => {
+    vi.mocked(requireAuthenticatedUser).mockRejectedValueOnce(new Error("authentication required"));
+    await expect(EstatisticasPage()).rejects.toThrow("authentication required");
+    expect(repositoryMocks.getProfile).not.toHaveBeenCalled();
+    expect(repositoryMocks.listDailyMissions).not.toHaveBeenCalled();
   });
 
   it("renders metrics derived from persisted gamification state", async () => {
