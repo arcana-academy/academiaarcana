@@ -152,7 +152,7 @@ describe("EstatisticasPage", () => {
       expect(html).not.toContain("900 XP");
       expect(html).not.toContain("Nível 4");
       expect(repositoryMocks.getProfile).toHaveBeenCalledWith("user-1");
-      expect(repositoryMocks.listDailyMissions).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\\d{4}-\\d{2}-\\d{2}$/));
+      expect(repositoryMocks.listDailyMissions).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
     },
   );
 
