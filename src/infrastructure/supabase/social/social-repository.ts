@@ -54,17 +54,25 @@ export class SupabaseSocialRepository implements SocialRepository {
     connectionId: string,
     status: Exclude<FriendConnectionStatus, "pending">,
   ): Promise<void> {
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from("friend_connections")
       .update({
         status,
         updated_at: new Date().toISOString(),
       })
       .eq("id", connectionId)
-      .eq("recipient_id", recipientId);
+      .eq("recipient_id", recipientId)
+      // A recipient may accept only an outstanding invitation. In particular,
+      // a blocked or revoked connection must never be reactivated this way.
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
 
     if (error) {
       throw new Error(error.message);
+    }
+    if (!data) {
+      throw new Error("A solicitação não está mais disponível para aceitação.");
     }
   }
 
