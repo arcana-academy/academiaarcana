@@ -16,7 +16,7 @@ function createSupabase(data: unknown = { id: "session-1" }, error: unknown = nu
   };
 
   return {
-    from: vi.fn(() => builder),
+    from: vi.fn((_table: string) => builder),
   };
 }
 
