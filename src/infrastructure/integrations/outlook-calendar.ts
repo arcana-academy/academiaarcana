@@ -181,6 +181,7 @@ export class OutlookCalendarClient {
         return this.availabilityViewToSlots(
           schedule.availabilityView,
           start,
+          end,
           durationMinutes,
         );
       }
@@ -200,33 +201,30 @@ export class OutlookCalendarClient {
   private availabilityViewToSlots(
     availabilityView: string,
     start: string,
+    end: string,
     durationMinutes: number,
   ): OutlookAvailableSlot[] {
-    const slots: OutlookAvailableSlot[] = [];
+    const windowStart = new Date(start).getTime();
+    const windowEnd = new Date(end).getTime();
+    if (!Number.isFinite(windowStart) || !Number.isFinite(windowEnd) || windowEnd <= windowStart) {
+      throw new OutlookCalendarError("A janela de disponibilidade é inválida.");
+    }
 
+    const slots: OutlookAvailableSlot[] = [];
+    const durationMs = durationMinutes * 60_000;
+
+    // Each availabilityView character represents one interval of durationMinutes.
+    // Include every free interval that fits inside the requested window, not
+    // just the first interval of a contiguous free run.
     for (let index = 0; index < availabilityView.length; index += 1) {
       if (availabilityView[index] !== "0") continue;
-
-      let endIndex = index + 1;
-      while (
-        endIndex < availabilityView.length &&
-        availabilityView[endIndex] === "0"
-      ) {
-        endIndex += 1;
-      }
-
-      if ((endIndex - index) * durationMinutes < durationMinutes) continue;
-
-      const slotStart = new Date(start);
-      slotStart.setUTCMinutes(
-        slotStart.getUTCMinutes() + index * durationMinutes,
-      );
+      const slotStart = windowStart + index * durationMs;
+      const slotEnd = slotStart + durationMs;
+      if (slotEnd > windowEnd) break;
 
       slots.push({
-        start_datetime: slotStart.toISOString(),
-        end_datetime: new Date(
-          slotStart.getTime() + durationMinutes * 60_000,
-        ).toISOString(),
+        start_datetime: new Date(slotStart).toISOString(),
+        end_datetime: new Date(slotEnd).toISOString(),
         duration_minutes: durationMinutes,
       });
     }
@@ -273,30 +271,29 @@ export class OutlookCalendarClient {
     const slots: OutlookAvailableSlot[] = [];
     let cursor = windowStart;
 
+    const appendAvailableSlots = (freeUntil: number) => {
+      // Offer every nonoverlapping candidate within each free interval.
+      // Never produce a slot overlapping a busy event or past the window end.
+      for (let time = cursor; time + durationMs <= freeUntil; time += durationMs) {
+        slots.push({
+          start_datetime: new Date(time).toISOString(),
+          end_datetime: new Date(time + durationMs).toISOString(),
+          duration_minutes: durationMinutes,
+        });
+      }
+    };
+
     for (const event of busy) {
       const eventStart = Math.max(event.start, windowStart);
       const eventEnd = Math.min(event.end, windowEnd);
 
       if (eventEnd <= windowStart || eventStart >= windowEnd) continue;
 
-      if (eventStart - cursor >= durationMs) {
-        slots.push({
-          start_datetime: new Date(cursor).toISOString(),
-          end_datetime: new Date(cursor + durationMs).toISOString(),
-          duration_minutes: durationMinutes,
-        });
-      }
-
+      appendAvailableSlots(eventStart);
       cursor = Math.max(cursor, eventEnd);
     }
 
-    if (windowEnd - cursor >= durationMs) {
-      slots.push({
-        start_datetime: new Date(cursor).toISOString(),
-        end_datetime: new Date(cursor + durationMs).toISOString(),
-        duration_minutes: durationMinutes,
-      });
-    }
+    appendAvailableSlots(windowEnd);
 
     return slots;
   }
