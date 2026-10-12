@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 
 const { repositoryMocks, redirect } = vi.hoisted(() => ({
   repositoryMocks: {
@@ -117,6 +118,9 @@ const objectiveTwo = {
 describe("PraticaPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(requireAuthenticatedUser).mockResolvedValue({
+      sub: "user-1",
+    } as Awaited<ReturnType<typeof requireAuthenticatedUser>>);
     repositoryMocks.listPages.mockResolvedValue([pageOne, pageTwo]);
     repositoryMocks.listPracticeItems.mockResolvedValue([
       itemOne,
@@ -355,5 +359,51 @@ describe("PraticaPage", () => {
     expect(html).toContain('href="/workspace"');
     expect(html).not.toContain("/workspace?view=tree&amp;page=");
     expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "listPages",
+    "listPracticeItems",
+    "listPracticeAttempts",
+  ] as const)("renders a safe accessible retry if %s fails", async (method) => {
+    repositoryMocks[method].mockRejectedValue(new Error("private-db-error-must-stay-hidden"));
+
+    const html = renderToStaticMarkup(
+      await PraticaPage({
+        searchParams: Promise.resolve({
+          pagina: "page-1",
+          item: "item-1",
+        }),
+      }),
+    );
+
+    expect(html).toContain('id="practice-title"');
+    expect(html).toContain('role="alert"');
+    expect(html).toContain('aria-labelledby="practice-load-error-title"');
+    expect(html).toContain("Não foi possível carregar suas atividades de prática");
+    expect(html).toContain('action="/pratica"');
+    expect(html).toContain('method="get"');
+    expect(html).toContain("Tentar novamente");
+    expect(html).toContain('href="/workspace"');
+    expect(html).toContain('href="/academia"');
+    expect(html).not.toContain("private-db-error-must-stay-hidden");
+    expect(html).not.toContain("Crie um conteúdo para começar");
+    expect(html).not.toContain('id="practice-session-title"');
+    expect(html).not.toContain('id="objective-session-title"');
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("does not hide authentication failures behind a practice retry", async () => {
+    vi.mocked(requireAuthenticatedUser).mockRejectedValueOnce(
+      new Error("authentication required"),
+    );
+
+    await expect(
+      PraticaPage({ searchParams: Promise.resolve({}) }),
+    ).rejects.toThrow("authentication required");
+
+    expect(repositoryMocks.listPages).not.toHaveBeenCalled();
+    expect(repositoryMocks.listPracticeItems).not.toHaveBeenCalled();
+    expect(repositoryMocks.listPracticeAttempts).not.toHaveBeenCalled();
   });
 });
