@@ -35,6 +35,17 @@ describe("AuthForm", () => {
     updateUser.mockResolvedValue({ error: null });
   });
 
+  it("links from login to the existing password recovery flow only in login mode", () => {
+    const { rerender } = render(<AuthForm mode="login" />);
+    expect(screen.getByRole("link", { name: "Esqueci minha senha" })).toHaveAttribute(
+      "href",
+      "/recuperar-senha",
+    );
+
+    rerender(<AuthForm mode="signup" />);
+    expect(screen.queryByRole("link", { name: "Esqueci minha senha" })).not.toBeInTheDocument();
+  });
+
   it("submits login credentials and redirects to the sanctuary after success", async () => {
     render(<AuthForm mode="login" />);
 
