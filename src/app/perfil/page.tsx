@@ -65,7 +65,7 @@ export default async function PerfilPage() {
               <p className="aa-state-copy">Conta: {email ?? "E-mail não informado"}</p>
               {createdAt ? <p className="aa-state-copy">Conta criada em {createdAt}.</p> : null}
             </FeatureCard>
-          )
+          )}
           <FeatureCard title="Jornada" description="A aprendizagem continua pertencendo ao domínio Learning." icon={<BookOpen size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/grimorios">Abrir grimórios</Link>
           </FeatureCard>
