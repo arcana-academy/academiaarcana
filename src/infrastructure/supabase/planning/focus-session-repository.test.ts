@@ -16,7 +16,11 @@ function createSupabase(data: unknown = { id: "session-1" }, error: unknown = nu
   };
 
   return {
-    from: vi.fn((_table: string) => builder),
+    from: vi.fn((table: string) => {
+      if (table !== "focus_sessions") throw new Error("Unexpected table");
+      return builder;
+    }),
+    builder,
   };
 }
 
@@ -75,8 +79,7 @@ describe("SupabaseFocusSessionRepository", () => {
 
   it("rejects a missing or foreign session when no row was updated", async () => {
     const supabase = createSupabase();
-    const builder = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0]?.value
-      ?? supabase.from("focus_sessions");
+    const builder = supabase.builder;
     builder.maybeSingle
       .mockResolvedValueOnce({ data: null, error: null })
       .mockResolvedValueOnce({ data: null, error: null });
@@ -95,7 +98,7 @@ describe("SupabaseFocusSessionRepository", () => {
 
   it("accepts a safe retry when the same owner's session was already completed", async () => {
     const supabase = createSupabase();
-    const builder = supabase.from("focus_sessions");
+    const builder = supabase.builder;
     builder.maybeSingle
       .mockResolvedValueOnce({ data: null, error: null })
       .mockResolvedValueOnce({
@@ -113,7 +116,7 @@ describe("SupabaseFocusSessionRepository", () => {
 
   it("rejects a zero-row completion when the owner-scoped row remains open", async () => {
     const supabase = createSupabase();
-    const builder = supabase.from("focus_sessions");
+    const builder = supabase.builder;
     builder.maybeSingle
       .mockResolvedValueOnce({ data: null, error: null })
       .mockResolvedValueOnce({ data: { completed_at: null }, error: null });
@@ -125,7 +128,7 @@ describe("SupabaseFocusSessionRepository", () => {
 
   it("propagates an update error without attempting to verify another session", async () => {
     const supabase = createSupabase();
-    const builder = supabase.from("focus_sessions");
+    const builder = supabase.builder;
     builder.maybeSingle.mockResolvedValueOnce({
       data: null,
       error: { message: "update error" },
@@ -139,7 +142,7 @@ describe("SupabaseFocusSessionRepository", () => {
 
   it("rejects a failed owner-scoped verification instead of claiming success", async () => {
     const supabase = createSupabase();
-    const builder = supabase.from("focus_sessions");
+    const builder = supabase.builder;
     builder.maybeSingle
       .mockResolvedValueOnce({ data: null, error: null })
       .mockResolvedValueOnce({
