@@ -122,23 +122,23 @@ export default async function WorkspacePage({
 
   try {
     tree = await loadWorkspaceTree(
-    grimoireRepository,
-    notebookRepository,
-    chapterRepository,
-    pageRepository,
-    claims.sub,
-  );
+      grimoireRepository,
+      notebookRepository,
+      chapterRepository,
+      pageRepository,
+      claims.sub,
+    );
 
     const allPageIds = tree.flatMap((grimoire) =>
-    grimoire.notebooks.flatMap((notebook) =>
-      notebook.chapters.flatMap((chapter) => chapter.pages.map((page) => page.id)),
-    ),
-  );
+      grimoire.notebooks.flatMap((notebook) =>
+        notebook.chapters.flatMap((chapter) => chapter.pages.map((page) => page.id)),
+      ),
+    );
     const pageProgressRepository = new SupabasePageProgressRepository(supabase);
     const pageProgressRows = await pageProgressRepository.listByPages(claims.sub, allPageIds);
     initialPageProgress = Object.fromEntries(
-    pageProgressRows.map((item) => [item.pageId, item.status]),
-  );
+      pageProgressRows.map((item) => [item.pageId, item.status]),
+    );
   } catch {
     return (
       <AuthenticatedShell currentPath="/workspace">
@@ -163,10 +163,18 @@ export default async function WorkspacePage({
             </p>
             <form action="/workspace" method="get">
               <input type="hidden" name="view" value="tree" />
-              {params.grimoire ? <input type="hidden" name="grimoire" value={params.grimoire} /> : null}
-              {params.notebook ? <input type="hidden" name="notebook" value={params.notebook} /> : null}
-              {params.chapter ? <input type="hidden" name="chapter" value={params.chapter} /> : null}
-              {params.page ? <input type="hidden" name="page" value={params.page} /> : null}
+              {params.grimoire ? (
+                <input type="hidden" name="grimoire" value={params.grimoire} />
+              ) : null}
+              {params.notebook ? (
+                <input type="hidden" name="notebook" value={params.notebook} />
+              ) : null}
+              {params.chapter ? (
+                <input type="hidden" name="chapter" value={params.chapter} />
+              ) : null}
+              {params.page ? (
+                <input type="hidden" name="page" value={params.page} />
+              ) : null}
               <button className="aa-button aa-button-secondary" type="submit">
                 Tentar novamente
               </button>
