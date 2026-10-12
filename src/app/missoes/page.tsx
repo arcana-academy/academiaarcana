@@ -53,53 +53,53 @@ export default async function MissoesPage() {
           </section>
         ) : (
           <ArcanaFeatureGrid>
-          <FeatureCard
-            title="Hoje"
-            description="Missões registradas para o dia atual."
-            icon={<Image src={missionDocument} alt="" width={22} height={22} />}
-          >
-            <p className="aa-state-copy" aria-live="polite">
-              {missions.length
-                ? `${completed}/${missions.length} concluídas`
-                : "Nenhuma missão registrada hoje."}
-            </p>
-            {!missions.length ? (
-              <p className="aa-card-actions">
-                <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">
-                  Planejar um estudo
-                </Link>
+            <FeatureCard
+              title="Hoje"
+              description="Missões registradas para o dia atual."
+              icon={<Image src={missionDocument} alt="" width={22} height={22} />}
+            >
+              <p className="aa-state-copy" aria-live="polite">
+                {missions.length
+                  ? `${completed}/${missions.length} concluídas`
+                  : "Nenhuma missão registrada hoje."}
               </p>
+              {!missions.length ? (
+                <p className="aa-card-actions">
+                  <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">
+                    Planejar um estudo
+                  </Link>
+                </p>
+              ) : null}
+            </FeatureCard>
+            {missions.length ? (
+              <FeatureCard
+                title="Objetivos"
+                description="Metas de estudo que nasceram de eventos persistidos."
+                icon={<Target size={20} />}
+              >
+                <ul className="aa-list" aria-label="Missões de hoje">
+                  {missions.map((mission) => (
+                    <li className="aa-list-item aa-surface" key={mission.id}>
+                      <div>
+                        <strong>{mission.title}</strong>
+                        <p>{mission.rewardXp} XP · {mission.status === "completed" ? "concluída" : "em aberto"}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </FeatureCard>
             ) : null}
-          </FeatureCard>
-          {missions.length ? (
-            <FeatureCard
-              title="Objetivos"
-              description="Metas de estudo que nasceram de eventos persistidos."
-              icon={<Target size={20} />}
-            >
-              <ul className="aa-list" aria-label="Missões de hoje">
-                {missions.map((mission) => (
-                  <li className="aa-list-item aa-surface" key={mission.id}>
-                    <div>
-                      <strong>{mission.title}</strong>
-                      <p>{mission.rewardXp} XP · {mission.status === "completed" ? "concluída" : "em aberto"}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </FeatureCard>
-          ) : null}
-          {missions.length ? (
-            <FeatureCard
-              title="Progresso significativo"
-              description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial."
-              icon={<Sparkles size={20} />}
-            >
-              <p className="aa-state-copy">
-                As recompensas são calculadas pela operação atômica de conclusão de tarefa.
-              </p>
-            </FeatureCard>
-          ) : null}
+            {missions.length ? (
+              <FeatureCard
+                title="Progresso significativo"
+                description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial."
+                icon={<Sparkles size={20} />}
+              >
+                <p className="aa-state-copy">
+                  As recompensas são calculadas pela operação atômica de conclusão de tarefa.
+                </p>
+              </FeatureCard>
+            ) : null}
           </ArcanaFeatureGrid>
         )}
       </ArcanaPage>
