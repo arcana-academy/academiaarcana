@@ -160,9 +160,22 @@ async function refreshAccessToken(ownerId: string, refreshToken: string) {
   );
 
   if (!response.ok) {
-    await clearOutlookTokens(ownerId);
+    // Only an explicit invalid_grant response establishes that the stored
+    // refresh token was revoked or expired. Rate limits, server outages and
+    // unrelated OAuth errors must not destroy recoverable credentials.
+    const errorPayload = (await response.json().catch(() => null)) as
+      | { error?: unknown }
+      | null;
+    if (response.status === 400 && errorPayload?.error === "invalid_grant") {
+      await clearOutlookTokens(ownerId);
+      throw new OutlookCalendarError(
+        "A autorização do Outlook expirou. Conecte novamente sua conta.",
+        response.status,
+      );
+    }
+
     throw new OutlookCalendarError(
-      "A autorização do Outlook expirou. Conecte novamente sua conta.",
+      "Não foi possível renovar a conexão do Outlook. Tente novamente.",
       response.status,
     );
   }
