@@ -47,6 +47,36 @@ describe("StudyTaskBoard", () => {
     expect(document.querySelector('img[src="/assets/icons/aa-cronograma.svg"]')).toBeInTheDocument();
   });
 
+  it("distinguishes unavailable Outlook events from an empty calendar while preserving study tasks", () => {
+    const { rerender } = render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        outlookEvents={[]}
+        outlookEventsUnavailable
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Não foi possível carregar os eventos do Outlook agora.");
+    expect(screen.queryByText("Nenhum evento encontrado no Outlook neste período.")).not.toBeInTheDocument();
+    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
+
+    rerender(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        outlookEvents={[]}
+        outlookEventsUnavailable={false}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+    expect(screen.getByText("Nenhum evento encontrado no Outlook neste período.")).toBeInTheDocument();
+    expect(screen.queryByText("Não foi possível carregar os eventos do Outlook agora.")).not.toBeInTheDocument();
+  });
+
   it("offers a direct route to the task form when the schedule is empty", () => {
     render(
       <StudyTaskBoard
