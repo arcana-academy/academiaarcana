@@ -26,6 +26,7 @@ export default async function CronogramaPage() {
   );
 
   const outlookConnected = await isOutlookCalendarConnected();
+  let outlookEventsUnavailable = false;
   let outlookEvents: Awaited<
     ReturnType<OutlookCalendarClient["listEvents"]>
   > = [];
@@ -43,6 +44,7 @@ export default async function CronogramaPage() {
         );
       }
     } catch {
+      outlookEventsUnavailable = true;
       outlookEvents = [];
     }
   }
@@ -53,6 +55,7 @@ export default async function CronogramaPage() {
         tasks={tasks}
         outlookConnected={outlookConnected}
         outlookEvents={outlookEvents}
+        outlookEventsUnavailable={outlookEventsUnavailable}
         onCreate={createStudyTask}
         onComplete={completeStudyTaskAction}
         onScheduleInOutlook={createOutlookEventForTask}
