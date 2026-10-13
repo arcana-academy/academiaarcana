@@ -17,6 +17,7 @@ import { createNotebookRepository } from "@/infrastructure/supabase/workspace/no
 import { createPageRepository } from "@/infrastructure/supabase/workspace/page-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
+import { revalidateLearningViews } from "@/lib/learning/revalidate-learning-views";
 
 type UpdatePageInput = {
   id: string;
@@ -73,11 +74,13 @@ export async function updateWorkspacePage(input: UpdatePageInput): Promise<Page>
     throw new Error("O título da página é obrigatório.");
   }
 
-  return repository.update(input.id, {
+  const updated = await repository.update(input.id, {
     title,
     content: input.content,
     updatedAt: new Date().toISOString(),
   });
+  revalidateLearningViews("page-content-changed");
+  return updated;
 }
 
 /** Create an authenticated Workspace page at the end of its chapter. */
@@ -103,7 +106,7 @@ export async function createWorkspacePage(
       : Math.max(...existingPages.map((page) => page.position)) + 1;
   const now = new Date().toISOString();
 
-  return repository.create({
+  const created = await repository.create({
     id: globalThis.crypto.randomUUID(),
     chapterId: input.chapterId,
     title,
@@ -115,6 +118,8 @@ export async function createWorkspacePage(
     createdAt: now,
     updatedAt: now,
   });
+  revalidateLearningViews("learning-hierarchy-changed");
+  return created;
 }
 
 /** Delete an authenticated Workspace page through the learning repository. */
@@ -127,6 +132,7 @@ export async function deleteWorkspacePage(id: string): Promise<void> {
   );
 
   await repository.delete(id);
+  revalidateLearningViews("learning-hierarchy-changed");
 }
 
 /** Create an authenticated Workspace chapter at the end of its notebook. */
@@ -239,6 +245,7 @@ export async function setWorkspacePageProgress(input: {
     input.status,
     input.status === "completed" ? new Date().toISOString() : null,
   );
+  revalidateLearningViews("page-progress-changed");
 }
 
 /** Move an authenticated Workspace page one position within its chapter. */
