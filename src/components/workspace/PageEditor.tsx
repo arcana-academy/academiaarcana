@@ -367,7 +367,7 @@ export function PageEditor({
             não de abrir a página.
           </p>
         </nav>
-      )
+      )}
       {progressError ? <p role="alert">{progressError}</p> : null}
 
       <PageMoveControls
