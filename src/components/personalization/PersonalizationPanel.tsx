@@ -14,6 +14,12 @@ const motionOptions = [
 export function PersonalizationPanel() {
   const { theme, setTheme } = useTheme();
   const { state, setMotionPreference } = useAccessibilityPreferencesContext();
+  const selectedMotionLabel = state
+    ? motionOptions.find((option) => option.value === state.configuredMotionPreference)?.label ?? "Indisponível"
+    : "Carregando preferências";
+  const appliedMotionLabel = state
+    ? state.effectiveMotionPreference === "reduced" ? "Reduzido" : "Normal"
+    : "Carregando preferências";
 
   return (
     <main className="aa-page aa-page-narrow aa-personalization" aria-labelledby="personalizar-title">
@@ -44,11 +50,15 @@ export function PersonalizationPanel() {
               <select
                 id="motion-select"
                 value={state?.configuredMotionPreference ?? "system"}
+                aria-describedby={state?.error ? "motion-description motion-error" : "motion-description"}
                 onChange={(event) => { void setMotionPreference(event.target.value as "system" | "normal" | "reduced"); }}
               >
                 {motionOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </label>
+            <p id="motion-description" className="aa-field-description">
+              Ao seguir o sistema, o movimento respeita a preferência do seu dispositivo.
+            </p>
           </div>
         </div>
       </section>
@@ -59,11 +69,12 @@ export function PersonalizationPanel() {
         </div>
         <div className="aa-stat-grid">
           <div className="aa-stat"><span className="aa-stat-label">Tema atual</span><div className="aa-stat-value">{themePresets[theme].name}</div></div>
-          <div className="aa-stat"><span className="aa-stat-label">Movimento</span><div className="aa-stat-value">{motionOptions.find((option) => option.value === (state?.configuredMotionPreference ?? "system"))?.label}</div></div>
+          <div className="aa-stat"><span className="aa-stat-label">Movimento escolhido</span><div className="aa-stat-value">{selectedMotionLabel}</div></div>
+          <div className="aa-stat"><span className="aa-stat-label">Movimento aplicado</span><div className="aa-stat-value">{appliedMotionLabel}</div></div>
           <div className="aa-stat"><span className="aa-stat-label">Princípio</span><div className="aa-stat-value">Clareza</div><div className="aa-stat-meta">A estética serve ao estudo.</div></div>
         </div>
-        {state?.error ? <p role="alert" className="aa-field-error">Não foi possível persistir a preferência de movimento.</p> : null}
-        <p role="status" aria-live="polite" className="aa-field-description">Tema atual: {themePresets[theme].name}.</p>
+        {state?.error ? <p id="motion-error" role="alert" className="aa-field-error">Não foi possível persistir a preferência de movimento.</p> : null}
+        <p role="status" aria-live="polite" className="aa-field-description">Tema atual: {themePresets[theme].name}. Movimento aplicado: {appliedMotionLabel.toLowerCase()}.</p>
       </section>
     </main>
   );
