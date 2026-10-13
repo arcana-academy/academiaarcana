@@ -259,4 +259,193 @@ describe("PageEditor", () => {
       await screen.findByText("Não foi possível excluir a página."),
     ).toBeTruthy();
   });
+
+  test("blocks practice and mission navigation while changes are unsaved, then restores it after save", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({
+      ...page,
+      title: input.title,
+      content: input.content,
+    }));
+
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Praticar este conteúdo" })).toHaveAttribute(
+      "href",
+      "/pratica?pagina=p1",
+    );
+    expect(screen.getByRole("link", { name: "Planejar uma tarefa de estudo" })).toHaveAttribute(
+      "href",
+      "/cronograma",
+    );
+    expect(screen.getByRole("link", { name: "Ver minhas missões" })).toHaveAttribute("href", "/missoes");
+    expect(screen.getByText(/não de abrir a página/)).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Revisão prática" },
+    });
+    expect(screen.queryByRole("link", { name: "Praticar este conteúdo" })).toBeNull();
+    expect(screen.getByText(/Salve as alterações desta página/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Praticar este conteúdo" })).toBeTruthy();
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ title: "Revisão prática" }));
+
+    fireEvent.change(screen.getByLabelText("Bloco 1"), {
+      target: { value: "Segunda edição ainda não salva" },
+    });
+
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Ver minhas missões" })).toBeNull();
+    expect(screen.getByText(/Salve as alterações desta página/)).toBeTruthy();
+  });
+
+  test("keeps the learning exits unavailable when a save fails", async () => {
+    const onSave = vi.fn(async () => {
+      throw new Error("isolated failure");
+    });
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar bloco" }));
+    expect(screen.queryByRole("link", { name: "Praticar este conteúdo" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Não foi possível salvar a página.")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Praticar este conteúdo" })).toBeNull();
+    expect(screen.getByText(/Salve as alterações desta página/)).toBeTruthy();
+  });
+
+  test("encodes persisted page ids used by the practice destination", () => {
+    render(
+      <PageEditor
+        {...movementProps}
+        page={{ ...page, id: "id/?#%" }}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={vi.fn(async () => page)}
+      />,
+    );
+    expect(screen.getByRole("link", { name: "Praticar este conteúdo" })).toHaveAttribute(
+      "href",
+      "/pratica?pagina=id%2F%3F%23%25",
+    );
+  });
+
+  test("opens guided reading only from saved text and returns to the editor", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({
+      ...page,
+      title: input.title,
+      content: input.content,
+    }));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar leitura guiada" }));
+    expect(screen.getByRole("heading", { name: "Modo de leitura guiada" })).toBeInTheDocument();
+    expect(screen.getByText("Conteúdo inicial.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Salvar página" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+
+    fireEvent.change(screen.getByLabelText("Bloco 1"), {
+      target: { value: "Texto novo agora salvo." },
+    });
+    expect(screen.getByRole("button", { name: "Iniciar leitura guiada" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Iniciar leitura guiada" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar leitura guiada" }));
+    expect(screen.getByText("Texto novo agora salvo.")).toBeInTheDocument();
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  test("disables guided reading for an empty or whitespace-only page", () => {
+    render(
+      <PageEditor
+        {...movementProps}
+        page={{ ...page, content: { type: "document", blocks: [
+          { type: "paragraph", content: "   " },
+        ] } }}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={vi.fn(async () => page)}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Iniciar leitura guiada" })).toBeDisabled();
+    expect(screen.getByText(/Adicione conteúdo a esta página e salve/)).toBeInTheDocument();
+  });
+
+});
+
+describe("saved block checklist integration", () => {
+  test("only opens for saved text and returns without persisting markings", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({ ...page, content: input.content, title: input.title }));
+    render(<PageEditor {...movementProps} page={page} onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", { name: "Organizar estudo por trechos" }));
+    expect(screen.getByRole("heading", { name: "Lista de estudo por trechos" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Trecho 1" }));
+    expect(screen.getByText("1 de 1 trechos marcados nesta tela.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Organizar estudo por trechos" }));
+    expect(screen.getByText("0 de 1 trechos marcados nesta tela.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    fireEvent.change(screen.getByLabelText("Bloco 1"), { target: { value: "Texto não salvo." } });
+    expect(screen.getByRole("button", { name: "Organizar estudo por trechos" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Organizar estudo por trechos" })).toBeEnabled();
+  });
+});
+
+describe("temporary glossary integration", () => {
+  test("requires saved nonempty content and discards entries upon return", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({ ...page, title: input.title, content: input.content }));
+    render(<PageEditor {...movementProps} page={page} onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", { name: "Criar glossário temporário" }));
+    expect(screen.getByRole("heading", { name: "Glossário pessoal temporário" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Termo"), { target: { value: "Átomo" } });
+    fireEvent.change(screen.getByLabelText("Definição com suas palavras"), { target: { value: "Unidade química" } });
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar conceito" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Criar glossário temporário" }));
+    expect(screen.getByText("0 conceito(s) nesta tela.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    fireEvent.change(screen.getByLabelText("Bloco 1"), { target: { value: "Não salvo" } });
+    expect(screen.getByRole("button", { name: "Criar glossário temporário" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Criar glossário temporário" })).toBeEnabled();
+  });
+});
+
+describe("study strategy integration", () => {
+  test("opens study guidance without saving and returns to the editor", () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({ ...page, title: input.title, content: input.content }));
+    render(<PageEditor {...movementProps} page={page} onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", { name: "Explorar estratégias de estudo" }));
+    expect(screen.getByRole("heading", { name: "Estratégias para compreender o conteúdo" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: "Explicar com suas palavras" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Explorar estratégias de estudo" }));
+    expect(screen.getByText("Selecione uma estratégia para ver as orientações.")).toBeInTheDocument();
+  });
 });
