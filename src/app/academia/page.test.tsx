@@ -1,8 +1,32 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+const testDoubles = vi.hoisted(() => ({
+  getSanctuary: vi.fn(async () => ({
+    continueLearning: { status: "empty", data: null },
+    progress: { status: "empty", data: null },
+    missions: { status: "empty", data: null },
+    schedule: { status: "empty", data: null },
+  })),
+  createClient: vi.fn(async () => ({})),
+}));
+
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
   requireAuthenticatedUser: vi.fn(async () => ({ sub: "user-1" })),
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: testDoubles.createClient,
+}));
+
+vi.mock("@/infrastructure/sanctuary/supabase-sanctuary-repository", () => ({
+  SupabaseSanctuaryRepository: class {
+    readonly isRepository = true;
+  },
+}));
+
+vi.mock("@/application/sanctuary/get-sanctuary", () => ({
+  getSanctuary: testDoubles.getSanctuary,
 }));
 
 vi.mock("@/components/layout/AuthenticatedShell", () => ({
@@ -22,11 +46,18 @@ vi.mock("@/components/layout/AuthenticatedShell", () => ({
 import AcademiaPage from "./page";
 
 describe("AcademiaPage", () => {
-  it("requires authentication and groups real learning routes by study step", async () => {
+  it("loads its integrated journey with the authenticated user and real module destinations", async () => {
     const html = renderToStaticMarkup(await AcademiaPage());
 
+    expect(testDoubles.createClient).toHaveBeenCalled();
+    expect(testDoubles.getSanctuary).toHaveBeenCalledWith(
+      expect.objectContaining({ isRepository: true }),
+      { user: { id: "user-1" } },
+    );
     expect(html).toContain('data-current-path="/academia"');
     expect(html).toContain('id="academia-title"');
+    expect(html).toContain('id="academy-journey-title"');
+    expect(html).toContain("Criar primeiro grimório");
     expect(html).toContain("Organize o conhecimento");
     expect(html).toContain("Planeje e avance");
     expect(html).toContain("Estude e pratique");

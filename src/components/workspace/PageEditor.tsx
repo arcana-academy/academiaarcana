@@ -73,10 +73,11 @@ type PageBlocksProps = {
   blocks: PageContent["blocks"];
   blockKeys: string[];
   onChange: (index: number, content: string) => void;
+  disabled?: boolean;
 };
 
 /** Render page blocks while keeping block editing separate from PageEditor orchestration. */
-function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
+function PageBlocks({ blocks, blockKeys, onChange, disabled = false }: PageBlocksProps) {
   return (
     <div aria-label="Blocos da página">
       {blocks.length === 0 ? (
@@ -90,6 +91,7 @@ function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
             <textarea
               id={`workspace-page-block-${index}`}
               value={block.content}
+              disabled={disabled}
               onChange={(event) => onChange(index, event.target.value)}
             />
           </div>
@@ -205,6 +207,7 @@ export function PageEditor({
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -239,6 +242,8 @@ export function PageEditor({
       content: blockContent,
     };
     setContent({ ...content, blocks: nextBlocks });
+    setHasUnsavedChanges(true);
+    setStatus("idle");
   };
 
   /** Persist the learning progress state for the selected page. */
@@ -270,6 +275,7 @@ export function PageEditor({
 
       setTitle(saved.title);
       setContent(saved.content);
+      setHasUnsavedChanges(false);
       setStatus("saved");
     } catch {
       setStatus("error");
@@ -286,6 +292,8 @@ export function PageEditor({
       ...current,
       `${page.id}:block:${current.length}`,
     ]);
+    setHasUnsavedChanges(true);
+    setStatus("idle");
   };
 
   return (
@@ -294,16 +302,22 @@ export function PageEditor({
       <input
         id="workspace-page-title"
         value={title}
-        onChange={(event) => setTitle(event.target.value)}
+        disabled={status === "saving"}
+        onChange={(event) => {
+          setTitle(event.target.value);
+          setHasUnsavedChanges(true);
+          setStatus("idle");
+        }}
       />
 
       <PageBlocks
         blocks={content.blocks}
         blockKeys={blockKeys}
         onChange={updateBlock}
+        disabled={status === "saving"}
       />
 
-      <button type="button" onClick={addBlock}>
+      <button type="button" onClick={addBlock} disabled={status === "saving"}>
         Adicionar bloco
       </button>
 
@@ -329,9 +343,31 @@ export function PageEditor({
             ? "Página em andamento."
             : "Página ainda não iniciada."}
       </p>
-      <a href={`/pratica?pagina=${encodeURIComponent(page.id)}`}>
-        Praticar este conteúdo
-      </a>
+      {hasUnsavedChanges || status === "saving" ? (
+        <p role="status">
+          Salve as alterações desta página antes de abrir a Prática ou planejar uma missão.
+        </p>
+      ) : (
+        <nav aria-label="Continuar jornada de estudo">
+          <ul className="aa-list">
+            <li>
+              <a href={`/pratica?pagina=${encodeURIComponent(page.id)}`}>
+                Praticar este conteúdo
+              </a>
+            </li>
+            <li>
+              <a href="/cronograma">Planejar uma tarefa de estudo</a>
+            </li>
+            <li>
+              <a href="/missoes">Ver minhas missões</a>
+            </li>
+          </ul>
+          <p className="aa-state-copy">
+            As missões e o XP dependem de eventos de estudo realmente registrados,
+            não de abrir a página.
+          </p>
+        </nav>
+      )}
       {progressError ? <p role="alert">{progressError}</p> : null}
 
       <PageMoveControls
