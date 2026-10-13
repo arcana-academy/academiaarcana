@@ -45,7 +45,9 @@ export function validateSupabaseProductionConfiguration(
     );
   }
 
-  const isSupabaseProjectHostname = /^[a-z0-9]{20}\.supabase\.co$/.test(\n    parsedUrl.hostname,\n  );
+  const isSupabaseProjectHostname = /^[a-z0-9]{20}\.supabase\.co$/.test(
+    parsedUrl.hostname,
+  );
 
   if (
     parsedUrl.protocol !== "https:" ||
