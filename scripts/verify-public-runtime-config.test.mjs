@@ -60,6 +60,16 @@ describe("verify-public-runtime-config", () => {
     ).toThrow(/valid HTTPS Supabase project URL/);
   });
 
+  it.each([
+    "https://abcdefghijklmnopqrst",
+    "https://abcdefghijklmnopqrst.example.com",
+    "https://abcdefghijklmnopqrst.supabase.co.example.com",
+  ])("rejects non-Supabase hostname %s", (url) => {
+    expect(() => validateSupabaseProductionConfiguration(url, validKey)).toThrow(
+      /valid HTTPS Supabase project URL/,
+    );
+  });
+
   it("rejects a non-production-length project reference", () => {
     expect(() =>
       validateSupabaseProductionConfiguration(
