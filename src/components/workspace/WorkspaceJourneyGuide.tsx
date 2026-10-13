@@ -32,14 +32,14 @@ export function WorkspaceJourneyGuide({ state }: WorkspaceJourneyGuideProps) {
       aria-labelledby="workspace-journey-heading"
       data-journey-step={steps[selectedStep]}
     >
-      <header className="academy-path-group-header">
+      <div className="academy-path-group-header">
         <p className="aa-eyebrow">Jornada de aprendizagem</p>
         <h3 id="workspace-journey-heading">Construa seu caminho de estudo</h3>
         <p>
           Cada etapa usa o conteúdo que você criou. As missões e o progresso são
           registrados por ações reais, sem recompensas inventadas.
         </p>
-      </header>
+      </div>
       <ol className="aa-list" aria-label="Etapas da criação do conteúdo">
         {steps.map((step, index) => (
           <li
