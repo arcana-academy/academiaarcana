@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Check, Clock3, Pause, Play, RotateCcw, ScrollText, Sparkles } from "lucide-react";
 
@@ -16,6 +16,40 @@ import {
 import styles from "./ArcanaExperience.module.css";
 
 const FOCUS_DURATION = 5 * 60;
+const STORE_EVENT = "academia-arcana-demo-state-updated";
+let fallbackInMemory: string | null = null;
+
+function subscribeToDemoStore(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(STORE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(STORE_EVENT, onChange);
+  };
+}
+
+function getBrowserDemoSnapshot(): string | null {
+  try {
+    return window.localStorage.getItem(DEMO_STORAGE_KEY);
+  } catch {
+    return fallbackInMemory;
+  }
+}
+
+function getServerDemoSnapshot(): null {
+  return null;
+}
+
+function writeDemoSnapshot(missions: DemoMission[], focusSessions: number) {
+  const raw = JSON.stringify({ missions, focusSessions });
+  try {
+    window.localStorage.setItem(DEMO_STORAGE_KEY, raw);
+  } catch {
+    fallbackInMemory = raw;
+  }
+  window.dispatchEvent(new Event(STORE_EVENT));
+}
+
 
 function timeLabel(seconds: number) {
   const mins = Math.floor(seconds / 60);
@@ -28,34 +62,12 @@ function timeLabel(seconds: number) {
  * privileged server action is reachable from this component.
  */
 export function ArcanaExperience() {
-  const [missions, setMissions] = useState<DemoMission[]>(() => INITIAL_MISSIONS.map((m) => ({ ...m })));
+  const storedRaw = useSyncExternalStore(subscribeToDemoStore, getBrowserDemoSnapshot, getServerDemoSnapshot);
+  const { missions, focusSessions } = readDemoSnapshot(storedRaw);
   const [title, setTitle] = useState("");
-  const [focusSessions, setFocusSessions] = useState(0);
   const [seconds, setSeconds] = useState(FOCUS_DURATION);
   const [running, setRunning] = useState(false);
-  const [storageReady, setStorageReady] = useState(false);
   const [notice, setNotice] = useState("");
-
-  useEffect(() => {
-    try {
-      const snapshot = readDemoSnapshot(window.localStorage.getItem(DEMO_STORAGE_KEY));
-      setMissions(snapshot.missions);
-      setFocusSessions(snapshot.focusSessions);
-    } catch {
-      // Private browsing can deny localStorage. Keep the session usable.
-    } finally {
-      setStorageReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!storageReady) return;
-    try {
-      window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify({ missions, focusSessions }));
-    } catch {
-      // Degrade to in-memory interaction; no network fallback.
-    }
-  }, [missions, focusSessions, storageReady]);
 
   useEffect(() => {
     if (!running || seconds === 0) return;
@@ -71,28 +83,27 @@ export function ArcanaExperience() {
     const id = "mission-" + Date.now().toString(36) + "-" + missions.length.toString(36);
     const next = addDemoMission(missions, title, id);
     if (next === missions) return;
-    setMissions(next);
+    writeDemoSnapshot(next, focusSessions);
     setTitle("");
     setNotice("Missão adicionada ao seu Grimório de demonstração.");
   }
 
   function toggleMission(id: string) {
     const selected = missions.find((mission) => mission.id === id);
-    setMissions((current) => toggleDemoMission(current, id));
+    writeDemoSnapshot(toggleDemoMission(missions, id), focusSessions);
     setNotice(selected?.done ? "Missão reaberta. Você pode retomar no seu ritmo." : "Missão concluída! Seu progresso foi atualizado.");
   }
 
   function recordFocus() {
     if (seconds === FOCUS_DURATION) return;
-    setFocusSessions((total) => total + 1);
+    writeDemoSnapshot(missions, focusSessions + 1);
     setRunning(false);
     setSeconds(FOCUS_DURATION);
     setNotice("Sessão registrada. Cada passo conta, mesmo que tenha sido breve.");
   }
 
   function resetDemo() {
-    setMissions(INITIAL_MISSIONS.map((mission) => ({ ...mission })));
-    setFocusSessions(0);
+    writeDemoSnapshot(INITIAL_MISSIONS.map((mission) => ({ ...mission })), 0);
     setTitle("");
     setSeconds(FOCUS_DURATION);
     setRunning(false);
