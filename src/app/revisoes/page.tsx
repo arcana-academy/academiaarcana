@@ -115,6 +115,9 @@ export default async function RevisoesPage() {
         )}
 
         <nav aria-label="Continuar estudando" className="aa-action-row">
+          <Link className="aa-button aa-button-primary" href="/sessao-revisao">
+            Iniciar revisão guiada
+          </Link>
           <Link className="aa-button aa-button-primary" href="/pratica">
             Ir para Prática
           </Link>
