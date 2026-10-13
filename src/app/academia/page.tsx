@@ -57,6 +57,11 @@ const learningPaths = [
         title: "Prática",
         description: "Acesse suas atividades de prática.",
       },
+      {
+        href: "/roteiro-estudo",
+        title: "Roteiro de estudo",
+        description: "Organize até cinco páginas salvas em uma sequência temporária.",
+      },
     ],
   },
   {
