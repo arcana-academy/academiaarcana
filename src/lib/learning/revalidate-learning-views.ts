@@ -35,6 +35,13 @@ export const LEARNING_VIEW_PATHS = {
     "/estatisticas",
   ],
   "study-task-created": ["/cronograma", "/santuario", "/academia"],
+  "practice-review-planned": [
+    "/pratica",
+    "/cronograma",
+    "/santuario",
+    "/academia",
+    "/estatisticas",
+  ],
   "study-task-completed": [
     "/cronograma",
     "/missoes",
