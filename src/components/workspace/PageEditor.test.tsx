@@ -259,4 +259,88 @@ describe("PageEditor", () => {
       await screen.findByText("Não foi possível excluir a página."),
     ).toBeTruthy();
   });
+
+  test("blocks practice and mission navigation while changes are unsaved, then restores it after save", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({
+      ...page,
+      title: input.title,
+      content: input.content,
+    }));
+
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Praticar este conteúdo" })).toHaveAttribute(
+      "href",
+      "/pratica?pagina=p1",
+    );
+    expect(screen.getByRole("link", { name: "Planejar uma tarefa de estudo" })).toHaveAttribute(
+      "href",
+      "/cronograma",
+    );
+    expect(screen.getByRole("link", { name: "Ver minhas missões" })).toHaveAttribute("href", "/missoes");
+    expect(screen.getByText(/não de abrir a página/)).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Revisão prática" },
+    });
+    expect(screen.queryByRole("link", { name: "Praticar este conteúdo" })).toBeNull();
+    expect(screen.getByText(/Salve as alterações desta página/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Praticar este conteúdo" })).toBeTruthy();
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ title: "Revisão prática" }));
+
+    fireEvent.change(screen.getByLabelText("Bloco 1"), {
+      target: { value: "Segunda edição ainda não salva" },
+    });
+
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Ver minhas missões" })).toBeNull();
+    expect(screen.getByText(/Salve as alterações desta página/)).toBeTruthy();
+  });
+
+  test("keeps the learning exits unavailable when a save fails", async () => {
+    const onSave = vi.fn(async () => {
+      throw new Error("isolated failure");
+    });
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar bloco" }));
+    expect(screen.queryByRole("link", { name: "Praticar este conteúdo" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Não foi possível salvar a página.")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Praticar este conteúdo" })).toBeNull();
+    expect(screen.getByText(/Salve as alterações desta página/)).toBeTruthy();
+  });
+
+  test("encodes persisted page ids used by the practice destination", () => {
+    render(
+      <PageEditor
+        {...movementProps}
+        page={{ ...page, id: "id/?#%" }}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={vi.fn(async () => page)}
+      />,
+    );
+    expect(screen.getByRole("link", { name: "Praticar este conteúdo" })).toHaveAttribute(
+      "href",
+      "/pratica?pagina=id%2F%3F%23%25",
+    );
+  });
+
 });
