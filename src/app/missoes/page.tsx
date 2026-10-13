@@ -19,10 +19,18 @@ const missionDocument = "/assets/missions/aa-mission-document.svg";
 export default async function MissoesPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
-  const missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
-    claims.sub,
-    todayUtc(),
-  );
+  let missions: Awaited<ReturnType<SupabaseGamificationRepository["listDailyMissions"]>> = [];
+  let loadError = false;
+
+  try {
+    missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
+      claims.sub,
+      todayUtc(),
+    );
+  } catch {
+    loadError = true;
+  }
+
   const completed = missions.filter((mission) => mission.status === "completed").length;
 
   return (
@@ -33,6 +41,17 @@ export default async function MissoesPage() {
         description="Objetivos derivados de eventos reais de estudo, sem pressão artificial ou dados fictícios."
         actions={[{ href: "/cronograma", label: "Abrir cronograma", variant: "secondary" }]}
       >
+        {loadError ? (
+          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="missions-error-title">
+            <h2 id="missions-error-title">Não foi possível carregar as missões</h2>
+            <p>Seu progresso não foi alterado. Tente carregar novamente.</p>
+            <form action="/missoes" method="get">
+              <button className="aa-button aa-button-secondary" type="submit">
+                Tentar novamente
+              </button>
+            </form>
+          </section>
+        ) : (
         <ArcanaFeatureGrid>
           <FeatureCard
             title="Hoje"
@@ -82,6 +101,7 @@ export default async function MissoesPage() {
             </FeatureCard>
           ) : null}
         </ArcanaFeatureGrid>
+        )}
       </ArcanaPage>
     </AuthenticatedShell>
   );
