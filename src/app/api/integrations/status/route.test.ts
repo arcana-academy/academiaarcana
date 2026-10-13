@@ -42,4 +42,18 @@ describe("integration status route", () => {
     expect(body.entries[0].status).toBe("connected");
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
+
+  it("returns a recoverable non-sensitive outage instead of throwing if catalog generation fails", async () => {
+    const canary = "SYNTHETIC_RUNTIME_CREDENTIAL_DETAILS_MUST_NOT_LEAK";
+    getIntegrationStatusSnapshot.mockRejectedValueOnce(new Error(canary));
+
+    const response = await GET();
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload).toEqual({ status: "unavailable" });
+    expect(JSON.stringify(payload)).not.toContain(canary);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(getIntegrationStatusSnapshot).toHaveBeenCalledOnce();
+  });
 });
