@@ -9,7 +9,7 @@ import {
   buildLearnerReviewQueue,
   type ReviewQueueEntry,
   type LearnerReviewQueue,
-} from "./review-queue";
+} from "@/application/education/review-queue";
 
 function formatReviewDate(isoDate: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
