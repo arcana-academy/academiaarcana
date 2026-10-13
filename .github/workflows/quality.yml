@@ -3,11 +3,12 @@ name: Academia Arcana Quality Gate
 on:
   workflow_dispatch:
 
+  # Branch PRs are validated by pull_request; running push on feat/chore
+  # would duplicate the full Quality Gate for one HEAD. Preserve push for main:
+  # image-release and production-smoke provenance depend on this event.
   push:
     branches:
       - main
-      - 'feat/**'
-      - 'chore/**'
 
   pull_request:
     branches:
