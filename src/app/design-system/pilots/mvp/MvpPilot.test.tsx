@@ -18,7 +18,7 @@ describe("MVP synthetic journey pilot", () => {
     fireEvent.click(screen.getByRole("button", { name: "Grimórios" }));
     expect(screen.getByRole("heading", { name: "Seus grimórios" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Explorar capítulos" }));
-    expect(screen.getByRole("heading", { name: "Capítulos" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Capítulos" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Como organizar seu estudo/ }));
     expect(screen.getByRole("heading", { name: "Como organizar seu estudo" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: /Suas anotações/ })).toBeInTheDocument();
