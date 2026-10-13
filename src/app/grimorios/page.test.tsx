@@ -120,4 +120,84 @@ describe("GrimoriosPage", () => {
     expect(html).not.toContain("Abrir grimório");
     expect(html).not.toContain("&amp;grimoire=");
   });
+  it("filters owned grimoires by title, ignoring case and accents", async () => {
+    listByOwner.mockResolvedValue([
+      { id: "g-1", title: "Bioquímica", description: "Metabolismo" },
+      { id: "g-2", title: "Fisiologia", description: "Sistemas do corpo" },
+    ]);
+
+    const html = renderToStaticMarkup(await GrimoriosPage({
+      searchParams: Promise.resolve({ q: "  BIOQUIMICA  " }),
+    }));
+
+    expect(html).toContain("Bioquímica");
+    expect(html).not.toContain("Fisiologia");
+    expect(html).toContain("1 resultado de 2 grimórios");
+    expect(html).toContain('role="search"');
+    expect(html).toContain('name="q"');
+    expect(html).toContain('href="/grimorios"');
+    expect(listByOwner).toHaveBeenCalledWith("user-1");
+  });
+
+  it("also searches descriptions without creating a second data source", async () => {
+    listByOwner.mockResolvedValue([
+      { id: "g-1", title: "Anatomia", description: "Sistema nervoso" },
+      { id: "g-2", title: "História", description: null },
+    ]);
+
+    const html = renderToStaticMarkup(await GrimoriosPage({
+      searchParams: Promise.resolve({ q: "NERVOso" }),
+    }));
+
+    expect(html).toContain("Anatomia");
+    expect(html).not.toContain("História");
+    expect(html).toContain("1 resultado de 2 grimórios");
+  });
+
+  it("distinguishes no matching results from an empty library", async () => {
+    listByOwner.mockResolvedValue([{ id: "g-1", title: "Física", description: null }]);
+
+    const html = renderToStaticMarkup(await GrimoriosPage({
+      searchParams: Promise.resolve({ q: "química" }),
+    }));
+
+    expect(html).toContain("Nenhum grimório corresponde à busca");
+    expect(html).toContain("0 resultados de 1 grimório");
+    expect(html).not.toContain("Nenhum grimório ainda");
+    expect(html).not.toContain("Abrir grimório");
+    expect(html).toContain("Limpar busca");
+  });
+
+  it("ignores malformed multi-value queries and trims whitespace-only queries", async () => {
+    listByOwner.mockResolvedValue([
+      { id: "g-1", title: "Primeiro", description: null },
+      { id: "g-2", title: "Segundo", description: null },
+    ]);
+
+    const multi = renderToStaticMarkup(await GrimoriosPage({
+      searchParams: Promise.resolve({ q: ["Primeiro", "Segundo"] }),
+    }));
+    const blank = renderToStaticMarkup(await GrimoriosPage({
+      searchParams: Promise.resolve({ q: "   " }),
+    }));
+
+    for (const html of [multi, blank]) {
+      expect(html).toContain("Primeiro");
+      expect(html).toContain("Segundo");
+      expect(html).not.toContain("Limpar busca");
+    }
+  });
+
+  it("does not turn an owner read error into a false search-empty state", async () => {
+    listByOwner.mockRejectedValue(new Error("sensitive database exception"));
+
+    const html = renderToStaticMarkup(await GrimoriosPage({
+      searchParams: Promise.resolve({ q: "estudo" }),
+    }));
+
+    expect(html).toContain("Não foi possível carregar os grimórios");
+    expect(html).not.toContain("Nenhum grimório corresponde");
+    expect(html).not.toContain("sensitive database exception");
+  });
+
 });
