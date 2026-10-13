@@ -36,16 +36,14 @@ export function createIdentityResolver({
           identity,
           error: null,
         };
-      } catch (error) {
+      } catch {
         return {
           status: "error",
           identity: null,
           error: {
             code: "IDENTITY_RESOLUTION_FAILED",
-            message:
-              error instanceof Error
-                ? error.message
-                : "Falha ao resolver identidade.",
+            // Never expose upstream identity-provider diagnostics to consumers.
+            message: "Falha ao resolver identidade.",
           },
         };
       }
