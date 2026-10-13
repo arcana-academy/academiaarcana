@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { GuidedPageReading } from "@/components/education/GuidedPageReading";
 import { SavedBlockStudyChecklist } from "@/components/education/SavedBlockStudyChecklist";
+import { TemporaryStudyGlossary } from "@/components/education/TemporaryStudyGlossary";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -219,6 +220,7 @@ export function PageEditor({
   const [progressError, setProgressError] = useState<string | null>(null);
   const [isReading, setIsReading] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -300,6 +302,10 @@ export function PageEditor({
     setStatus("idle");
   };
 
+  if (isGlossaryOpen) {
+    return <TemporaryStudyGlossary title={title} onClose={() => setIsGlossaryOpen(false)} />;
+  }
+
   if (isChecklistOpen) {
     return <SavedBlockStudyChecklist title={title} blocks={content.blocks} onClose={() => setIsChecklistOpen(false)} />;
   }
@@ -357,6 +363,14 @@ export function PageEditor({
         onClick={() => setIsChecklistOpen(true)}
       >
         Organizar estudo por trechos
+      </button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        onClick={() => setIsGlossaryOpen(true)}
+      >
+        Criar glossário temporário
       </button>
       {!content.blocks.some((block) => block.content.trim()) ? (
         <p className="aa-state-copy">Adicione conteúdo a esta página e salve antes de iniciar a leitura.</p>
