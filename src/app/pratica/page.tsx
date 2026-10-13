@@ -453,6 +453,9 @@ export default async function PraticaPage({
             <Link className="aa-button aa-button-secondary" href={workspaceHref}>
               Voltar ao Workspace
             </Link>
+            <Link className="aa-button aa-button-secondary" href="/revisoes">
+              Minhas revisões
+            </Link>
             <Link className="aa-button aa-button-secondary" href="/estatisticas">
               Ver estatísticas educacionais
             </Link>
