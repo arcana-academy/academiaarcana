@@ -89,12 +89,14 @@ export async function GET(request: Request) {
         "Cache-Control": "private, no-store",
       },
     });
-  } catch (error) {
-    console.error("Relewise product search failed", error);
+  } catch {
+    // Never record raw provider exceptions: they may contain request metadata
+    // or other untrusted diagnostics that are inappropriate for server logs.
+    console.error("Relewise product search failed");
 
     return NextResponse.json(
       { error: "Não foi possível realizar a busca agora." },
-      { status: 502 },
+      { status: 502, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 }
