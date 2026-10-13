@@ -252,8 +252,9 @@ export function PageEditor({
     setStatus("idle");
   };
 
-  /** Persist the learning progress state for the selected page. */
+  /** Only persist progress for saved page content, never for an uncommitted draft. */
   const updateProgress = async () => {
+    if (hasUnsavedChanges || status === "saving" || isUpdatingProgress) return;
     setIsUpdatingProgress(true);
     setProgressError(null);
 
@@ -378,7 +379,7 @@ export function PageEditor({
 
       <button
         type="button"
-        disabled={isUpdatingProgress}
+        disabled={isUpdatingProgress || hasUnsavedChanges || status === "saving"}
         onClick={updateProgress}
       >
         {isUpdatingProgress
@@ -419,6 +420,9 @@ export function PageEditor({
           </p>
         </nav>
       )}
+      {hasUnsavedChanges || status === "saving" ? (
+        <p className="aa-state-copy">Salve a página antes de atualizar o progresso de estudo.</p>
+      ) : null}
       {progressError ? <p role="alert">{progressError}</p> : null}
 
       <PageMoveControls
