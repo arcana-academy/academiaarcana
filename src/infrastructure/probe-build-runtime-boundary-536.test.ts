@@ -13,7 +13,7 @@ function probe(phase: 'build' | 'runtime', env: Record<string, string> = {}, nam
   // Deliberately do NOT inherit ambient CI variables or any real credentials.
   const result = spawnSync(process.execPath, [script, phase, '--names=' + names, '--secret-dir=' + dir], {
     encoding: 'utf8',
-    env: { PATH: process.env.PATH ?? '', ...env },
+    env: { NODE_ENV: 'test', PATH: process.env.PATH ?? '', ...env },
   });
   return {
     status: result.status,
