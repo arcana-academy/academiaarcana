@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { LoaderCircle, Search } from "lucide-react";
 
 type SearchResult = {
@@ -17,6 +17,20 @@ export function RelewiseSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submittedTerm, setSubmittedTerm] = useState<string | null>(null);
+  const requestVersion = useRef(0);
+  const pendingController = useRef<AbortController | null>(null);
+
+  function onTermChange(value: string) {
+    requestVersion.current += 1;
+    pendingController.current?.abort();
+    pendingController.current = null;
+    setTerm(value);
+    setResults([]);
+    setSubmittedTerm(null);
+    setError(null);
+    setLoading(false);
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,20 +38,30 @@ export function RelewiseSearch() {
 
     if (!query) {
       setResults([]);
+      setSubmittedTerm(null);
       setError("Digite algo para pesquisar.");
       return;
     }
 
+    const currentRequest = ++requestVersion.current;
+    pendingController.current?.abort();
+    const controller = new AbortController();
+    pendingController.current = controller;
     setLoading(true);
+    setResults([]);
+    setSubmittedTerm(null);
     setError(null);
 
     try {
       const response = await fetch(
         `/api/search/relewise?q=${encodeURIComponent(query)}`,
+        { signal: controller.signal },
       );
       const data = (await response.json()) as
         | RelewiseResponse
         | { error?: string };
+
+      if (currentRequest !== requestVersion.current) return;
 
       if (!response.ok) {
         throw new Error(
@@ -46,13 +70,18 @@ export function RelewiseSearch() {
       }
 
       setResults("results" in data ? data.results ?? [] : []);
+      setSubmittedTerm(query);
     } catch (searchError) {
+      if (currentRequest !== requestVersion.current || controller.signal.aborted) return;
       setResults([]);
       setError(
         searchError instanceof Error ? searchError.message : "Falha na busca.",
       );
     } finally {
-      setLoading(false);
+      if (currentRequest === requestVersion.current) {
+        pendingController.current = null;
+        setLoading(false);
+      }
     }
   }
 
@@ -72,7 +101,7 @@ export function RelewiseSearch() {
           id="relewise-search"
           className="aa-input"
           value={term}
-          onChange={(event) => setTerm(event.target.value)}
+          onChange={(event) => onTermChange(event.target.value)}
           placeholder="Pesquisar..."
           autoComplete="off"
         />
@@ -96,7 +125,7 @@ export function RelewiseSearch() {
         </p>
       ) : null}
 
-      {!loading && !error && term.trim() && results.length === 0 ? (
+      {!loading && !error && submittedTerm !== null && results.length === 0 ? (
         <p className="mt-4" role="status">
           Nenhum resultado encontrado.
         </p>
