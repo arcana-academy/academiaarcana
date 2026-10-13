@@ -21,8 +21,17 @@ export type Achievement = {
   };
 };
 
+/**
+ * Defensive read-side boundary for integer counters persisted by gamification.
+ * Invalid values must never create a level, achievement or non-finite UI progress.
+ * This function does not change the stored counter or grant any reward.
+ */
+function safePersistedCounter(value: number): number {
+  return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+}
+
 export function getLevelForXp(xp: number): number {
-  const safeXp = Math.max(0, Math.floor(xp));
+  const safeXp = safePersistedCounter(xp);
   return Math.floor(Math.sqrt(safeXp / 100)) + 1;
 }
 
@@ -30,7 +39,7 @@ export function getProgression(
   profile: GamificationProfile | null,
   missions: readonly Mission[],
 ): GamificationProgression {
-  const totalXp = Math.max(0, profile?.xp ?? 0);
+  const totalXp = safePersistedCounter(profile?.xp ?? 0);
   const level = getLevelForXp(totalXp);
   const currentLevelBaseXp = (level - 1) ** 2 * 100;
   const nextLevelXp = level ** 2 * 100;
@@ -40,7 +49,7 @@ export function getProgression(
     levelProgressXp: totalXp - currentLevelBaseXp,
     nextLevelXp,
     totalXp,
-    streakDays: Math.max(0, profile?.streakDays ?? 0),
+    streakDays: safePersistedCounter(profile?.streakDays ?? 0),
     completedMissionCount: missions.filter((mission) => mission.status === "completed").length,
   };
 }
