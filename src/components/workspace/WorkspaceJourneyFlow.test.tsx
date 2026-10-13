@@ -199,6 +199,6 @@ describe("Workspace journey with synthetic persisted-action fixtures", () => {
       "href",
       "/missoes",
     );
-    expect(screen.getByText(/abrir a página não gera XP/)).toBeTruthy();
+    expect(screen.getByText(/abrir esta página não gera XP/)).toBeTruthy();
   });
 });
