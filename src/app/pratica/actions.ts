@@ -179,6 +179,5 @@ export async function planPracticeReviewAction(formData: FormData) {
     dueAt: new Date(dueAtRaw).toISOString(),
   });
 
-  revalidateLearningViews("study-task-created");
-  revalidateLearningViews("practice-item-created");
+  revalidateLearningViews("practice-review-planned");
 };
