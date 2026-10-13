@@ -29,6 +29,7 @@ export const LEARNING_VIEW_PATHS = {
   "practice-item-created": ["/pratica", "/estatisticas"],
   "practice-evidence-recorded": [
     "/pratica",
+    "/revisoes",
     "/workspace",
     "/santuario",
     "/academia",

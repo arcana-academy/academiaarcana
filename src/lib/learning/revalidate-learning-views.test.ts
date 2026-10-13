@@ -44,6 +44,15 @@ describe("learning journey route refresh contract", () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/academia");
   });
 
+  it("refreshes the authenticated review queue after persisted practice evidence", () => {
+    revalidateLearningViews("practice-evidence-recorded");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/revisoes");
+
+    mocks.revalidatePath.mockReset();
+    revalidateLearningViews("study-task-created");
+    expect(mocks.revalidatePath).not.toHaveBeenCalledWith("/revisoes");
+  });
+
   it("does not invent missions when recording educational evidence", () => {
     revalidateLearningViews("practice-evidence-recorded");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/workspace");
