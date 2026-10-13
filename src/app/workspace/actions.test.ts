@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
   createNotebookRepository: vi.fn(),
   createChapterRepository: vi.fn(),
   createPageRepository: vi.fn(),
+  revalidateLearningViews: vi.fn(),
+  setPageProgressStatus: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
@@ -40,6 +42,16 @@ vi.mock("@/infrastructure/supabase/workspace/page-repository", () => ({
   createPageRepository: mocks.createPageRepository,
 }));
 
+vi.mock("@/lib/learning/revalidate-learning-views", () => ({
+  revalidateLearningViews: mocks.revalidateLearningViews,
+}));
+
+vi.mock("@/infrastructure/supabase/learning/page-progress-repository", () => ({
+  SupabasePageProgressRepository: class {
+    setStatus = mocks.setPageProgressStatus;
+  },
+}));
+
 import {
   createWorkspaceChapter,
   createWorkspaceGrimoire,
@@ -51,6 +63,7 @@ import {
   renameWorkspaceGrimoire,
   renameWorkspaceNotebook,
   updateWorkspacePage,
+  setWorkspacePageProgress,
 } from "./actions";
 
 const supabaseClient = {};
@@ -456,4 +469,68 @@ describe("Workspace Server Actions", () => {
     expect(pageRepository.move).toHaveBeenCalledOnce();
     expect(pageRepository.reorder).not.toHaveBeenCalled();
   });
+
+  it("refreshes chapter navigation after a page is persisted", async () => {
+    pageRepository.listByChapter.mockResolvedValueOnce([]);
+    pageRepository.create.mockResolvedValueOnce(page);
+
+    await createWorkspacePage({ chapterId: "chapter-1", title: "Página" });
+
+    expect(mocks.revalidateLearningViews).toHaveBeenCalledExactlyOnceWith(
+      "learning-hierarchy-changed",
+    );
+  });
+
+  it("refreshes the Sanctuary and Academia after a successful page update", async () => {
+    pageRepository.update.mockResolvedValueOnce(page);
+
+    await updateWorkspacePage({
+      id: "page-1",
+      title: "Página",
+      content: page.content,
+    });
+
+    expect(mocks.revalidateLearningViews).toHaveBeenCalledWith("page-content-changed");
+  });
+
+  it("refreshes progress views only after status persistence succeeds", async () => {
+    mocks.setPageProgressStatus.mockResolvedValueOnce(undefined);
+
+    await setWorkspacePageProgress({
+      pageId: "page-1",
+      status: "completed",
+    });
+
+    expect(mocks.setPageProgressStatus).toHaveBeenCalledWith(
+      "user-1",
+      "page-1",
+      "completed",
+      expect.any(String),
+    );
+    expect(mocks.revalidateLearningViews).toHaveBeenCalledWith("page-progress-changed");
+  });
+
+  it("does not refresh progress when the repository rejects the write", async () => {
+    mocks.setPageProgressStatus.mockRejectedValueOnce(new Error("progress not saved"));
+
+    await expect(setWorkspacePageProgress({
+      pageId: "page-1",
+      status: "completed",
+    })).rejects.toThrow("progress not saved");
+
+    expect(mocks.revalidateLearningViews).not.toHaveBeenCalled();
+  });
+
+  it("does not refresh an unchanged page when update persistence fails", async () => {
+    pageRepository.update.mockRejectedValueOnce(new Error("page not saved"));
+
+    await expect(updateWorkspacePage({
+      id: "page-1",
+      title: "Página",
+      content: page.content,
+    })).rejects.toThrow("page not saved");
+
+    expect(mocks.revalidateLearningViews).not.toHaveBeenCalled();
+  });
+
 });
