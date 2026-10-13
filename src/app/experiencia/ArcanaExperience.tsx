@@ -80,7 +80,9 @@ export function ArcanaExperience() {
 
   function createMission(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const id = "mission-" + Date.now().toString(36) + "-" + missions.length.toString(36);
+    let sequence = 1;
+    while (missions.some((mission) => mission.id === "custom-" + sequence)) sequence += 1;
+    const id = "custom-" + sequence;
     const next = addDemoMission(missions, title, id);
     if (next === missions) return;
     writeDemoSnapshot(next, focusSessions);
