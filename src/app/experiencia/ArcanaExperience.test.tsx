@@ -27,7 +27,7 @@ describe("public synthetic Arcana MVP", () => {
     fireEvent.click(mission);
     expect(mission).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText("35 XP")).toBeInTheDocument();
-    expect(screen.getByText("33%")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Missões concluídas" })).toHaveAttribute("value", "1");
     fireEvent.click(mission);
     expect(mission).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByText("0 XP")).toBeInTheDocument();
