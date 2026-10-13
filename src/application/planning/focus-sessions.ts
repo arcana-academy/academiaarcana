@@ -12,6 +12,10 @@ export class FocusSessionService {
   constructor(private readonly repository: FocusSessionRepository) {}
 
   async start(input: StartFocusSessionInput): Promise<string> {
+    if (!input.ownerId.trim()) {
+      throw new Error("Proprietário da sessão de foco inválido.");
+    }
+
     if (
       !Number.isInteger(input.durationSeconds) ||
       input.durationSeconds < MIN_DURATION_SECONDS ||
@@ -34,6 +38,10 @@ export class FocusSessionService {
   }
 
   async complete(ownerId: string, sessionId: string): Promise<void> {
+    if (!ownerId.trim()) {
+      throw new Error("Proprietário da sessão de foco inválido.");
+    }
+
     if (!sessionId.trim()) {
       throw new Error("Sessão de foco inválida.");
     }
