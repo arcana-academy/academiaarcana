@@ -1,7 +1,11 @@
 import Link from "next/link";
 
+import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
+import { AcademyJourney } from "@/components/academy/AcademyJourney";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
+import { SupabaseSanctuaryRepository } from "@/infrastructure/sanctuary/supabase-sanctuary-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { createClient } from "@/lib/supabase/server";
 
 const learningPaths = [
   {
@@ -75,7 +79,11 @@ const learningPaths = [
 ] as const;
 
 export default async function AcademiaPage() {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
+  const supabase = await createClient();
+  const journey = await getSanctuary(new SupabaseSanctuaryRepository(supabase), {
+    user: { id: claims.sub },
+  });
 
   return (
     <AuthenticatedShell currentPath="/academia">
@@ -89,6 +97,8 @@ export default async function AcademiaPage() {
             </p>
           </div>
         </header>
+
+        <AcademyJourney journey={journey} />
 
         <section className="academy-paths" aria-labelledby="academia-paths-title">
           <header className="academy-paths-header">
