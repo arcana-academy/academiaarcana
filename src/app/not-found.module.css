@@ -1,0 +1,45 @@
+.page {
+  display: grid;
+  min-height: 70vh;
+  place-items: center;
+  padding-block: clamp(2rem, 7vw, 5rem);
+}
+
+.card {
+  display: flex;
+  width: min(100%, 40rem);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--aa-spacing-md);
+}
+
+.seal {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  object-fit: contain;
+}
+
+.card h1,
+.card p {
+  margin: 0;
+}
+
+.card h1 {
+  font-family: var(--aa-typography-heading);
+  font-size: clamp(var(--aa-type-scale-2xl), 4vw, var(--aa-type-scale-4xl));
+  line-height: var(--aa-line-height-tight);
+}
+
+.description {
+  max-width: 52ch;
+  color: var(--aa-text-secondary);
+  line-height: var(--aa-line-height-relaxed);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--aa-spacing-sm);
+  margin-top: var(--aa-spacing-sm);
+}
