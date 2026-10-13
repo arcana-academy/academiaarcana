@@ -40,7 +40,7 @@ describe("GrimoriosPage", () => {
       },
     ]);
 
-    const html = renderToStaticMarkup(await GrimoriosPage());
+    const html = renderToStaticMarkup(await GrimoriosPage({}));
 
     expect(html).toContain('data-current-path="/grimorios"');
     expect(html).toContain("Fisiologia");
@@ -62,7 +62,7 @@ describe("GrimoriosPage", () => {
       },
     ]);
 
-    const html = renderToStaticMarkup(await GrimoriosPage());
+    const html = renderToStaticMarkup(await GrimoriosPage({}));
 
     expect(html).toContain(
       'href="/workspace?view=tree&amp;grimoire=grimoire%2Fwith%20space#current"',
@@ -73,7 +73,7 @@ describe("GrimoriosPage", () => {
   it("shows a focused empty state with one clear creation action", async () => {
     listByOwner.mockResolvedValue([]);
 
-    const html = renderToStaticMarkup(await GrimoriosPage());
+    const html = renderToStaticMarkup(await GrimoriosPage({}));
 
     expect(html).toContain("Nenhum grimório ainda");
     expect(html).toContain("Criar primeiro grimório");
@@ -98,7 +98,7 @@ describe("GrimoriosPage", () => {
       },
     ]);
 
-    const html = renderToStaticMarkup(await GrimoriosPage());
+    const html = renderToStaticMarkup(await GrimoriosPage({}));
 
     expect(html).toContain("Sua biblioteca");
     expect(html).toContain(">1 grimório<");
@@ -109,7 +109,7 @@ describe("GrimoriosPage", () => {
   it("does not show an empty count when loading fails and offers a retry", async () => {
     listByOwner.mockRejectedValue(new Error("database unavailable"));
 
-    const html = renderToStaticMarkup(await GrimoriosPage());
+    const html = renderToStaticMarkup(await GrimoriosPage({}));
 
     expect(html).toContain("Não foi possível carregar os grimórios");
     expect(html).toContain("Tentar novamente");
