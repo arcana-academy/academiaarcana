@@ -63,6 +63,7 @@ export default async function CronogramaPage() {
   }
 
   const outlookConnected = await isOutlookCalendarConnected();
+  let outlookEventsUnavailable = false;
   let outlookEvents: Awaited<
     ReturnType<OutlookCalendarClient["listEvents"]>
   > = [];
@@ -80,6 +81,7 @@ export default async function CronogramaPage() {
         );
       }
     } catch {
+      outlookEventsUnavailable = true;
       outlookEvents = [];
     }
   }
