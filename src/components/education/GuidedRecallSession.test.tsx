@@ -27,7 +27,7 @@ describe("GuidedRecallSession", () => {
     expect(screen.getByText(/não foi registrada no histórico/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Próxima pergunta" }));
     expect(screen.getByRole("heading", { name: "O que é ligação química?" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Próxima pergunta" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Próxima pergunta" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Anterior" }));
     expect(screen.getByLabelText("Preciso revisar e tentar novamente")).toBeChecked();
     fireEvent.click(screen.getByRole("button", { name: "Próxima pergunta" }));
