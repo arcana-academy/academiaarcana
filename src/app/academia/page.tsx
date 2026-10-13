@@ -62,6 +62,11 @@ const learningPaths = [
         title: "Roteiro de estudo",
         description: "Organize até cinco páginas salvas em uma sequência temporária.",
       },
+      {
+        href: "/comparar-conceitos",
+        title: "Comparação de conceitos",
+        description: "Construa relações entre duas páginas salvas em uma reflexão temporária.",
+      },
     ],
   },
   {
