@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BookOpen, CalendarDays, CheckCircle2, Compass, GraduationCap, LibraryBig, ListChecks, ScrollText, UserRound, RotateCcw } from "lucide-react";
 
-import { addDemoTask, completeDemoTask, DEMO_PAGES, DEMO_STORAGE_KEY, demoProgress, initialDemoState, parseDemoState, saveDemoNote, toggleDemoPage, type DemoState } from "./mvp-model";
+import { addDemoTask, completeDemoTask, DEMO_PAGES, demoProgress, initialDemoState, saveDemoNote, toggleDemoPage, type DemoState } from "./mvp-model";
 import styles from "./MvpPilot.module.css";
 
 type Section = "santuario" | "academia" | "grimorios" | "capitulos" | "paginas" | "missoes" | "cronograma" | "perfil";
@@ -22,18 +22,8 @@ const SECTIONS: Array<{ id: Section; label: string; realHref: string; icon: type
 export function MvpPilot() {
   const [section, setSection] = useState<Section>("santuario");
   const [state, setState] = useState<DemoState>(initialDemoState);
-  const [loaded, setLoaded] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [selectedPageId, setSelectedPageId] = useState<string>(DEMO_PAGES[0].id);
-
-  useEffect(() => {
-    try { setState(parseDemoState(window.localStorage.getItem(DEMO_STORAGE_KEY))); } catch { /* storage disabled: memory-only sample */ }
-    setLoaded(true);
-  }, []);
-  useEffect(() => {
-    if (!loaded) return;
-    try { window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state)); } catch { /* memory-only fallback */ }
-  }, [state, loaded]);
 
   const progress = demoProgress(state);
   const active = SECTIONS.find((item) => item.id === section) ?? SECTIONS[0];
@@ -88,7 +78,7 @@ export function MvpPilot() {
             </div>
             <div className={styles.heroMark} aria-hidden="true">✦</div>
           </section>
-          <div className={styles.status} role="status">Este é um piloto interativo com dados fictícios armazenados apenas neste navegador. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</div>
+          <div className={styles.status} role="status">Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</div>
 
           {section === "santuario" && <>
             <div className={styles.metrics}>
