@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AIRTABLE_INTEGRATION_DEFINITION,
   AirtableConnectionError,
+  createAirtableRecords,
   getAirtableApiKey,
   getAirtableBaseId,
   verifyAirtableConnection,
@@ -43,4 +44,39 @@ describe("Airtable integration", () => {
     const headers = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
     expect(headers.get("Authorization")).toBe("Bearer pat_test");
   });
+  it.each([
+    ["missing records", {}],
+    ["empty records", { records: [] }],
+    ["unidentified record", { records: [{ id: "", fields: { Title: "Study" } }] }],
+  ])("rejects an unconfirmed Airtable write with %s", async (_scenario, response) => {
+    vi.stubEnv("AIRTABLE_PERSONAL_ACCESS_TOKEN", "synthetic-token");
+    vi.stubEnv("AIRTABLE_BASE_ID", "app_synthetic");
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(response), { status: 200 }),
+    );
+
+    await expect(
+      createAirtableRecords("tbl_synthetic", [{ fields: { Title: "Study" } }]),
+    ).rejects.toThrow("Airtable não confirmou os registros criados.");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns confirmed created records for a valid response", async () => {
+    vi.stubEnv("AIRTABLE_PERSONAL_ACCESS_TOKEN", "synthetic-token");
+    vi.stubEnv("AIRTABLE_BASE_ID", "app_synthetic");
+    const created = { id: "rec_synthetic", fields: { Title: "Study" } };
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ records: [created] }), { status: 200 }),
+    );
+
+    await expect(
+      createAirtableRecords("tbl_synthetic", [{ fields: { Title: "Study" } }]),
+    ).resolves.toEqual({
+      providerId: "airtable",
+      tool: "create_records",
+      output: [created],
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
 });
