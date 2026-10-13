@@ -160,8 +160,7 @@ describe("Practice to page progress and scheduling contracts", () => {
       title: "Revisar esta página",
       dueAt: "2026-10-15T10:00:00.000Z",
     });
-    expect(mocks.revalidateLearningViews).toHaveBeenCalledWith("study-task-created");
-    expect(mocks.revalidateLearningViews).toHaveBeenCalledWith("practice-item-created");
+    expect(mocks.revalidateLearningViews).toHaveBeenCalledWith("practice-review-planned");
   });
 
   it("does not refresh a nonexistent review task", async () => {
