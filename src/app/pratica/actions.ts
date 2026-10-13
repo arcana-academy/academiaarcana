@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidateLearningViews } from "@/lib/learning/revalidate-learning-views";
 
 import {
   buildAttemptInput,
@@ -51,8 +51,7 @@ export async function createPracticeItemAction(formData: FormData) {
     difficulty: difficultyField(formData),
   });
 
-  revalidatePath("/pratica");
-  revalidatePath("/estatisticas");
+  revalidateLearningViews("practice-item-created");
   redirect(`/pratica?pagina=${encodeURIComponent(pageId)}&item=${encodeURIComponent(item.id)}`);
 }
 
@@ -81,8 +80,7 @@ export async function createObjectiveAssessmentAction(formData: FormData) {
     minimumEvidence,
   });
 
-  revalidatePath("/pratica");
-  revalidatePath("/estatisticas");
+  revalidateLearningViews("practice-item-created");
   redirect(
     "/pratica?pagina=" +
       encodeURIComponent(pageId) +
@@ -105,10 +103,7 @@ export async function submitObjectiveAssessmentAction(formData: FormData) {
     answer,
   });
 
-  revalidatePath("/pratica");
-  revalidatePath("/estatisticas");
-  revalidatePath("/workspace");
-  revalidatePath("/santuario");
+  revalidateLearningViews("practice-evidence-recorded");
   const item = (await repository.listPracticeItems(claims.sub)).find(
     (candidate) => candidate.id === practiceItemId,
   );
@@ -152,10 +147,7 @@ export async function submitPracticeAttemptAction(formData: FormData) {
     ...attempt,
   });
 
-  revalidatePath("/pratica");
-  revalidatePath("/estatisticas");
-  revalidatePath("/workspace");
-  revalidatePath("/santuario");
+  revalidateLearningViews("practice-evidence-recorded");
   redirect(
     `/pratica?pagina=${encodeURIComponent(item.pageId)}&item=${encodeURIComponent(item.id)}`,
   );
@@ -187,8 +179,6 @@ export async function planPracticeReviewAction(formData: FormData) {
     dueAt: new Date(dueAtRaw).toISOString(),
   });
 
-  revalidatePath("/pratica");
-  revalidatePath("/cronograma");
-  revalidatePath("/santuario");
-  revalidatePath("/estatisticas");
+  revalidateLearningViews("study-task-created");
+  revalidateLearningViews("practice-item-created");
 };
