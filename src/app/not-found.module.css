@@ -3,6 +3,7 @@
   min-height: 70vh;
   place-items: center;
   padding-block: clamp(2rem, 7vw, 5rem);
+  padding-inline: clamp(var(--aa-spacing-md), 4vw, var(--aa-spacing-xl));
 }
 
 .card {
