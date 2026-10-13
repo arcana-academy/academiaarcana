@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { GuidedPageReading } from "@/components/education/GuidedPageReading";
+import { SavedBlockStudyChecklist } from "@/components/education/SavedBlockStudyChecklist";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -217,6 +218,7 @@ export function PageEditor({
   const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
   const [isReading, setIsReading] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -298,6 +300,10 @@ export function PageEditor({
     setStatus("idle");
   };
 
+  if (isChecklistOpen) {
+    return <SavedBlockStudyChecklist title={title} blocks={content.blocks} onClose={() => setIsChecklistOpen(false)} />;
+  }
+
   if (isReading) {
     return (
       <GuidedPageReading
@@ -343,6 +349,14 @@ export function PageEditor({
         onClick={() => setIsReading(true)}
       >
         Iniciar leitura guiada
+      </button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        onClick={() => setIsChecklistOpen(true)}
+      >
+        Organizar estudo por trechos
       </button>
       {!content.blocks.some((block) => block.content.trim()) ? (
         <p className="aa-state-copy">Adicione conteúdo a esta página e salve antes de iniciar a leitura.</p>
