@@ -92,6 +92,7 @@ export default async function CronogramaPage() {
         tasks={tasks}
         outlookConnected={outlookConnected}
         outlookEvents={outlookEvents}
+        outlookEventsUnavailable={outlookEventsUnavailable}
         onCreate={createStudyTask}
         onComplete={completeStudyTaskAction}
         onScheduleInOutlook={createOutlookEventForTask}
