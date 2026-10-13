@@ -115,17 +115,16 @@ describe("AcademyJourney", () => {
   });
 
   it("escapes titles from persisted records instead of injecting markup", () => {
+    if (ready.continueLearning.status !== "ready") {
+      throw new Error("Expected the ready fixture");
+    }
+
     const html = render({
       ...ready,
       continueLearning: {
         status: "ready",
         data: {
-          ...ready.continueLearning.status === "ready" ? ready.continueLearning.data : {
-            intent: "resume" as const,
-            grimoireId: "g1",
-            grimoireTitle: "Fallback",
-            href: "/workspace",
-          },
+          ...ready.continueLearning.data,
           grimoireTitle: "<script>alert(1)</script>",
         },
       },
