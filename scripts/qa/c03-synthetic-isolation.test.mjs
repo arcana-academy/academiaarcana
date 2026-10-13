@@ -9,9 +9,11 @@ const baseline = () => ({
     NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
     E2E_EMAIL: 'learner-qa@example.test',
     E2E_PASSWORD: 'Synthetic-Sandbox-Only-2026!',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'local-synthetic-publishable',
   },
   currentHead: SHA,
   localSupabaseApi: 'http://127.0.0.1:54321',
+  localSupabaseAnonKey: 'local-synthetic-publishable',
 });
 
 function blockedWith(edit, fragment) {
@@ -62,11 +64,35 @@ test('rejects absent Supabase CLI status', () => {
 test('CLI evaluator parses quoted local status without contacting networks', () => {
   const result = assessCliInputs({
     env: baseline().env, readGitHead: () => `${SHA}\n`,
-    readSupabaseStatus: () => 'API_URL="http://127.0.0.1:54321"\nOTHER_KEY=redacted\n',
+    readSupabaseStatus: () => 'API_URL="http://127.0.0.1:54321"\nANON_KEY="local-synthetic-publishable"\nOTHER_KEY=redacted\n',
   });
   assert.equal(result.ok, true);
 });
 test('CLI evaluator fails closed on missing binary', () => {
   const result = assessCliInputs({env: baseline().env,readGitHead: () => SHA,readSupabaseStatus: () => {throw Error('missing binary');}});
+  assert.equal(result.ok, false);
+});
+
+// Regression: a local URL alone must not imply that authentication uses the same local project.
+test('rejects missing application public Supabase key', () => {
+  const input = baseline();
+  delete input.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  assert.equal(assessSyntheticIsolation(input).ok, false);
+});
+test('rejects a public key from another Supabase instance without printing it', () => {
+  const input = baseline();
+  input.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'external-public-key-not-for-local';
+  input.localSupabaseAnonKey = 'local-synthetic-publishable';
+  const result = assessSyntheticIsolation(input);
+  assert.equal(result.ok, false);
+  assert.ok(!result.reasons.join(' ').includes('external-public-key-not-for-local'));
+});
+test('CLI preflight rejects absent ANON_KEY in otherwise valid local status', () => {
+  const input = baseline();
+  input.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'local-synthetic-publishable';
+  const result = assessCliInputs({
+    env: input.env, readGitHead: () => `${SHA}\n`,
+    readSupabaseStatus: () => 'API_URL="http://127.0.0.1:54321"\n',
+  });
   assert.equal(result.ok, false);
 });
