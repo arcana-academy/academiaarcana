@@ -65,7 +65,7 @@ describe("AcademyJourney", () => {
     const html = render(ready);
 
     expect(html).toContain("1 de 2 páginas concluídas");
-    expect(html).toContain('value="50"');
+    expect(html).toContain('aria-valuenow="50"');
     expect(html).toContain("1 de 2 missões concluídas hoje");
     expect(html).toContain("1 tarefa de estudo disponível");
   });
@@ -83,7 +83,7 @@ describe("AcademyJourney", () => {
     expect(html).toContain("Nenhuma missão registrada hoje");
     expect(html).toContain("Nenhuma tarefa futura");
     expect(html).not.toContain("missões concluídas hoje");
-    expect(html).not.toContain('value="0"');
+    expect(html).not.toContain('aria-valuenow="0"');
   });
 
   it("does not call a repository failure an empty library or zero progress", () => {
