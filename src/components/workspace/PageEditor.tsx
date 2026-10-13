@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GuidedPageReading } from "@/components/education/GuidedPageReading";
 import { SavedBlockStudyChecklist } from "@/components/education/SavedBlockStudyChecklist";
 import { TemporaryStudyGlossary } from "@/components/education/TemporaryStudyGlossary";
+import { StudyStrategies } from "@/components/education/StudyStrategies";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -221,6 +222,7 @@ export function PageEditor({
   const [isReading, setIsReading] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
+  const [areStrategiesOpen, setAreStrategiesOpen] = useState(false);
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -302,6 +304,10 @@ export function PageEditor({
     setStatus("idle");
   };
 
+  if (areStrategiesOpen) {
+    return <StudyStrategies onClose={() => setAreStrategiesOpen(false)} />;
+  }
+
   if (isGlossaryOpen) {
     return <TemporaryStudyGlossary title={title} onClose={() => setIsGlossaryOpen(false)} />;
   }
@@ -371,6 +377,9 @@ export function PageEditor({
         onClick={() => setIsGlossaryOpen(true)}
       >
         Criar glossário temporário
+      </button>
+      <button type="button" className="aa-button aa-button-secondary" onClick={() => setAreStrategiesOpen(true)}>
+        Explorar estratégias de estudo
       </button>
       {!content.blocks.some((block) => block.content.trim()) ? (
         <p className="aa-state-copy">Adicione conteúdo a esta página e salve antes de iniciar a leitura.</p>
