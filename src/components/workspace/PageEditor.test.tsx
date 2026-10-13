@@ -435,3 +435,17 @@ describe("temporary glossary integration", () => {
     expect(screen.getByRole("button", { name: "Criar glossário temporário" })).toBeEnabled();
   });
 });
+
+describe("study strategy integration", () => {
+  test("opens study guidance without saving and returns to the editor", () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({ ...page, title: input.title, content: input.content }));
+    render(<PageEditor {...movementProps} page={page} onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", { name: "Explorar estratégias de estudo" }));
+    expect(screen.getByRole("heading", { name: "Estratégias para compreender o conteúdo" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: "Explicar com suas palavras" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Explorar estratégias de estudo" }));
+    expect(screen.getByText("Selecione uma estratégia para ver as orientações.")).toBeInTheDocument();
+  });
+});
