@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
+import { Progress } from "@/components/ui/progress";
 
 export type AcademyJourneyProjection = Pick<
   SanctuaryViewModel,
@@ -105,13 +106,10 @@ export function AcademyJourney({ journey }: AcademyJourneyProps) {
           {progress.status === "ready" ? (
             <>
               <p>{progress.data.label}</p>
-              <progress
+              <Progress
                 value={progress.data.percentage}
-                max={100}
-                aria-label="Progresso de páginas concluídas"
-              >
-                {progress.data.percentage}%
-              </progress>
+                label="Progresso de páginas concluídas"
+              />
               <p className="aa-state-copy">{progress.data.percentage}% das páginas concluídas</p>
             </>
           ) : (
