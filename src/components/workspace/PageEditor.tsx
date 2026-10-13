@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { GuidedPageReading } from "@/components/education/GuidedPageReading";
+import { SavedBlockStudyChecklist } from "@/components/education/SavedBlockStudyChecklist";
+import { TemporaryStudyGlossary } from "@/components/education/TemporaryStudyGlossary";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -73,10 +76,11 @@ type PageBlocksProps = {
   blocks: PageContent["blocks"];
   blockKeys: string[];
   onChange: (index: number, content: string) => void;
+  disabled?: boolean;
 };
 
 /** Render page blocks while keeping block editing separate from PageEditor orchestration. */
-function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
+function PageBlocks({ blocks, blockKeys, onChange, disabled = false }: PageBlocksProps) {
   return (
     <div aria-label="Blocos da página">
       {blocks.length === 0 ? (
@@ -90,6 +94,7 @@ function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
             <textarea
               id={`workspace-page-block-${index}`}
               value={block.content}
+              disabled={disabled}
               onChange={(event) => onChange(index, event.target.value)}
             />
           </div>
@@ -205,6 +210,7 @@ export function PageEditor({
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -212,6 +218,9 @@ export function PageEditor({
   const [moveError, setMoveError] = useState<string | null>(null);
   const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [isReading, setIsReading] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -239,10 +248,13 @@ export function PageEditor({
       content: blockContent,
     };
     setContent({ ...content, blocks: nextBlocks });
+    setHasUnsavedChanges(true);
+    setStatus("idle");
   };
 
-  /** Persist the learning progress state for the selected page. */
+  /** Only persist progress for saved page content, never for an uncommitted draft. */
   const updateProgress = async () => {
+    if (hasUnsavedChanges || status === "saving" || isUpdatingProgress) return;
     setIsUpdatingProgress(true);
     setProgressError(null);
 
@@ -270,6 +282,7 @@ export function PageEditor({
 
       setTitle(saved.title);
       setContent(saved.content);
+      setHasUnsavedChanges(false);
       setStatus("saved");
     } catch {
       setStatus("error");
@@ -286,7 +299,27 @@ export function PageEditor({
       ...current,
       `${page.id}:block:${current.length}`,
     ]);
+    setHasUnsavedChanges(true);
+    setStatus("idle");
   };
+
+  if (isGlossaryOpen) {
+    return <TemporaryStudyGlossary title={title} onClose={() => setIsGlossaryOpen(false)} />;
+  }
+
+  if (isChecklistOpen) {
+    return <SavedBlockStudyChecklist title={title} blocks={content.blocks} onClose={() => setIsChecklistOpen(false)} />;
+  }
+
+  if (isReading) {
+    return (
+      <GuidedPageReading
+        title={title}
+        blocks={content.blocks}
+        onClose={() => setIsReading(false)}
+      />
+    );
+  }
 
   return (
     <article aria-label="Editor da página">
@@ -294,26 +327,59 @@ export function PageEditor({
       <input
         id="workspace-page-title"
         value={title}
-        onChange={(event) => setTitle(event.target.value)}
+        disabled={status === "saving"}
+        onChange={(event) => {
+          setTitle(event.target.value);
+          setHasUnsavedChanges(true);
+          setStatus("idle");
+        }}
       />
 
       <PageBlocks
         blocks={content.blocks}
         blockKeys={blockKeys}
         onChange={updateBlock}
+        disabled={status === "saving"}
       />
 
-      <button type="button" onClick={addBlock}>
+      <button type="button" onClick={addBlock} disabled={status === "saving"}>
         Adicionar bloco
       </button>
 
       <button type="button" disabled={status === "saving"} onClick={save}>
         {getSaveLabel(status)}
       </button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        onClick={() => setIsReading(true)}
+      >
+        Iniciar leitura guiada
+      </button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        onClick={() => setIsChecklistOpen(true)}
+      >
+        Organizar estudo por trechos
+      </button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        onClick={() => setIsGlossaryOpen(true)}
+      >
+        Criar glossário temporário
+      </button>
+      {!content.blocks.some((block) => block.content.trim()) ? (
+        <p className="aa-state-copy">Adicione conteúdo a esta página e salve antes de iniciar a leitura.</p>
+      ) : null}
 
       <button
         type="button"
-        disabled={isUpdatingProgress}
+        disabled={isUpdatingProgress || hasUnsavedChanges || status === "saving"}
         onClick={updateProgress}
       >
         {isUpdatingProgress
@@ -329,9 +395,34 @@ export function PageEditor({
             ? "Página em andamento."
             : "Página ainda não iniciada."}
       </p>
-      <a href={`/pratica?pagina=${encodeURIComponent(page.id)}`}>
-        Praticar este conteúdo
-      </a>
+      {hasUnsavedChanges || status === "saving" ? (
+        <p role="status">
+          Salve as alterações desta página antes de abrir a Prática ou planejar uma missão.
+        </p>
+      ) : (
+        <nav aria-label="Continuar jornada de estudo">
+          <ul className="aa-list">
+            <li>
+              <a href={`/pratica?pagina=${encodeURIComponent(page.id)}`}>
+                Praticar este conteúdo
+              </a>
+            </li>
+            <li>
+              <a href="/cronograma">Planejar uma tarefa de estudo</a>
+            </li>
+            <li>
+              <a href="/missoes">Ver minhas missões</a>
+            </li>
+          </ul>
+          <p className="aa-state-copy">
+            As missões e o XP dependem de eventos de estudo realmente registrados,
+            não de abrir a página.
+          </p>
+        </nav>
+      )}
+      {hasUnsavedChanges || status === "saving" ? (
+        <p className="aa-state-copy">Salve a página antes de atualizar o progresso de estudo.</p>
+      ) : null}
       {progressError ? <p role="alert">{progressError}</p> : null}
 
       <PageMoveControls
