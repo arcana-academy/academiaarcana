@@ -57,6 +57,9 @@ const service = new WorkspaceService({
 describe("workspace application service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(notebookRepository.listByGrimoire).mockResolvedValue([]);
+    vi.mocked(chapterRepository.listByNotebook).mockResolvedValue([]);
+    vi.mocked(pageRepository.listByChapter).mockResolvedValue([]);
   });
 
   it("creates a notebook only when its grimoire exists", async () => {
@@ -578,4 +581,72 @@ describe("workspace application service", () => {
       persistenceError,
     );
   });
+  it("appends a new notebook after the highest sibling, including gaps", async () => {
+    vi.mocked(grimoireRepository.getById).mockResolvedValue({
+      id: "grimoire-1", ownerId: "user-1", title: "Anatomia",
+      createdAt: "", updatedAt: "",
+    });
+    vi.mocked(notebookRepository.listByGrimoire).mockResolvedValue([
+      { id: "n-1", grimoireId: "grimoire-1", title: "Primeiro", position: 0, createdAt: "", updatedAt: "" },
+      { id: "n-2", grimoireId: "grimoire-1", title: "Segundo", position: 4, createdAt: "", updatedAt: "" },
+    ]);
+    vi.mocked(notebookRepository.create).mockImplementation(async (notebook) => notebook);
+    await service.createNotebook({ grimoireId: "grimoire-1", title: "Terceiro" });
+    expect(notebookRepository.listByGrimoire).toHaveBeenCalledWith("grimoire-1");
+    expect(notebookRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ grimoireId: "grimoire-1", position: 5 }),
+    );
+  });
+
+  it("appends a chapter after its highest sibling position", async () => {
+    vi.mocked(notebookRepository.getById).mockResolvedValue({
+      id: "notebook-1", grimoireId: "grimoire-1", title: "Caderno",
+      position: 0, createdAt: "", updatedAt: "",
+    });
+    vi.mocked(chapterRepository.listByNotebook).mockResolvedValue([
+      { id: "c-1", notebookId: "notebook-1", title: "Parte 1", position: 1, createdAt: "", updatedAt: "" },
+      { id: "c-2", notebookId: "notebook-1", title: "Parte 2", position: 3, createdAt: "", updatedAt: "" },
+    ]);
+    vi.mocked(chapterRepository.create).mockImplementation(async (chapter) => chapter);
+    await service.createChapter({ notebookId: "notebook-1", title: "Novo capítulo" });
+    expect(chapterRepository.listByNotebook).toHaveBeenCalledWith("notebook-1");
+    expect(chapterRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ notebookId: "notebook-1", position: 4 }),
+    );
+  });
+
+  it("appends a page after the highest page position", async () => {
+    vi.mocked(chapterRepository.getById).mockResolvedValue({
+      id: "chapter-1", notebookId: "notebook-1", title: "Capítulo",
+      position: 0, createdAt: "", updatedAt: "",
+    });
+    vi.mocked(pageRepository.listByChapter).mockResolvedValue([
+      { id: "p-1", chapterId: "chapter-1", title: "Página 1", content: { type: "document", blocks: [] }, position: 2, createdAt: "", updatedAt: "" },
+      { id: "p-2", chapterId: "chapter-1", title: "Página 2", content: { type: "document", blocks: [] }, position: 7, createdAt: "", updatedAt: "" },
+    ]);
+    vi.mocked(pageRepository.create).mockImplementation(async (page) => page);
+    await service.createPage({
+      chapterId: "chapter-1", title: "Nova página",
+      content: { type: "document", blocks: [] },
+    });
+    expect(pageRepository.listByChapter).toHaveBeenCalledWith("chapter-1");
+    expect(pageRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ chapterId: "chapter-1", position: 8 }),
+    );
+  });
+
+  it("does not create a child when listing its siblings fails", async () => {
+    vi.mocked(grimoireRepository.getById).mockResolvedValue({
+      id: "grimoire-1", ownerId: "user-1", title: "Anatomia",
+      createdAt: "", updatedAt: "",
+    });
+    vi.mocked(notebookRepository.listByGrimoire).mockRejectedValueOnce(
+      new Error("synthetic read failure"),
+    );
+    await expect(service.createNotebook({
+      grimoireId: "grimoire-1", title: "Novo caderno",
+    })).rejects.toThrow("synthetic read failure");
+    expect(notebookRepository.create).not.toHaveBeenCalled();
+  });
+
 });
