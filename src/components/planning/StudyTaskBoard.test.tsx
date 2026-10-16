@@ -84,6 +84,29 @@ describe("StudyTaskBoard", () => {
     expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
     expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
   });
+  it("keeps an overdue task visible and allows completing it", async () => {
+    const overdue = {
+      ...task,
+      id: "task-overdue",
+      title: "Revisão pendente vencida",
+      dueAt: "2020-01-01T10:00:00.000Z",
+    };
+    const onComplete = vi.fn().mockResolvedValue({ ...overdue, status: "completed" });
+
+    render(
+      <StudyTaskBoard
+        tasks={[overdue]}
+        onCreate={vi.fn()}
+        onComplete={onComplete}
+      />,
+    );
+
+    expect(screen.getByText("Revisão pendente vencida")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(onComplete).toHaveBeenCalledWith("task-overdue"));
+    expect(screen.queryByText("Revisão pendente vencida")).not.toBeInTheDocument();
+  });
+
   it("shows Outlook scheduling for tasks with a due time and calls the server action", async () => {
     const onScheduleInOutlook = vi.fn().mockResolvedValue({
       webLink: null,
