@@ -649,4 +649,53 @@ describe("workspace application service", () => {
     expect(notebookRepository.create).not.toHaveBeenCalled();
   });
 
+
+  it.each([
+    ["notebook", notebookRepository],
+    ["chapter", chapterRepository],
+    ["page", pageRepository],
+  ] as const)("rejects invalid %s reorder positions before repository I/O", async (kind, repository) => {
+    const invalid = [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1];
+    const invoke = {
+      notebook: (position: number) => service.reorderNotebook("synthetic-id", position),
+      chapter: (position: number) => service.reorderChapter("synthetic-id", position),
+      page: (position: number) => service.reorderPage("synthetic-id", position),
+    }[kind];
+    for (const position of invalid) {
+      await expect(invoke(position)).rejects.toThrow("Posição inválida.");
+    }
+    expect(repository.getById).not.toHaveBeenCalled();
+    expect(repository.reorder).not.toHaveBeenCalled();
+  });
+
+  it.each(["notebook", "chapter", "page"] as const)(
+    "rejects invalid sibling positions during %s append before persistence",
+    async (kind) => {
+      vi.mocked(grimoireRepository.getById).mockResolvedValue({ id: "synthetic-grimoire" } as never);
+      vi.mocked(notebookRepository.getById).mockResolvedValue({ id: "synthetic-notebook" } as never);
+      vi.mocked(chapterRepository.getById).mockResolvedValue({ id: "synthetic-chapter" } as never);
+      const create = {
+        notebook: () => service.createNotebook({ grimoireId: "synthetic-grimoire", title: "New" }),
+        chapter: () => service.createChapter({ notebookId: "synthetic-notebook", title: "New" }),
+        page: () => service.createPage({ chapterId: "synthetic-chapter", title: "New", content: { type: "document", blocks: [] } }),
+      }[kind];
+      for (const position of [Number.MAX_SAFE_INTEGER, Number.NaN, -1, 1.5]) {
+        if (kind === "notebook") {
+          vi.mocked(notebookRepository.listByGrimoire).mockResolvedValueOnce([{ position }] as never);
+        } else if (kind === "chapter") {
+          vi.mocked(chapterRepository.listByNotebook).mockResolvedValueOnce([{ position }] as never);
+        } else {
+          vi.mocked(pageRepository.listByChapter).mockResolvedValueOnce([{ position }] as never);
+        }
+        await expect(create()).rejects.toThrow("Posição inválida.");
+      }
+      const repository = {
+        notebook: notebookRepository,
+        chapter: chapterRepository,
+        page: pageRepository,
+      }[kind];
+      expect(repository.create).not.toHaveBeenCalled();
+    },
+  );
+
 });
