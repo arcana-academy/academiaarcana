@@ -7,6 +7,7 @@ import type {
   GrimoireRepository,
   Notebook,
   NotebookRepository,
+  Page,
   PageRepository,
 } from "@/domains/learning";
 
@@ -671,9 +672,43 @@ describe("workspace application service", () => {
   it.each(["notebook", "chapter", "page"] as const)(
     "rejects invalid sibling positions during %s append before persistence",
     async (kind) => {
-      vi.mocked(grimoireRepository.getById).mockResolvedValue({ id: "synthetic-grimoire" } as never);
-      vi.mocked(notebookRepository.getById).mockResolvedValue({ id: "synthetic-notebook" } as never);
-      vi.mocked(chapterRepository.getById).mockResolvedValue({ id: "synthetic-chapter" } as never);
+      const timestamp = "2026-09-14T00:00:00.000Z";
+      const grimoire: Grimoire = {
+        id: "synthetic-grimoire",
+        ownerId: "synthetic-owner",
+        title: "Grimoire",
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const notebook: Notebook = {
+        id: "synthetic-notebook",
+        grimoireId: grimoire.id,
+        title: "Notebook",
+        position: 0,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const chapter: Chapter = {
+        id: "synthetic-chapter",
+        notebookId: notebook.id,
+        title: "Chapter",
+        position: 0,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const page: Page = {
+        id: "synthetic-page",
+        chapterId: chapter.id,
+        title: "Page",
+        content: { type: "document", blocks: [] },
+        position: 0,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      vi.mocked(grimoireRepository.getById).mockResolvedValue(grimoire);
+      vi.mocked(notebookRepository.getById).mockResolvedValue(notebook);
+      vi.mocked(chapterRepository.getById).mockResolvedValue(chapter);
       const create = {
         notebook: () => service.createNotebook({ grimoireId: "synthetic-grimoire", title: "New" }),
         chapter: () => service.createChapter({ notebookId: "synthetic-notebook", title: "New" }),
@@ -681,11 +716,11 @@ describe("workspace application service", () => {
       }[kind];
       for (const position of [Number.MAX_SAFE_INTEGER, Number.NaN, -1, 1.5]) {
         if (kind === "notebook") {
-          vi.mocked(notebookRepository.listByGrimoire).mockResolvedValueOnce([{ position }] as never);
+          vi.mocked(notebookRepository.listByGrimoire).mockResolvedValueOnce([{ ...notebook, position }]);
         } else if (kind === "chapter") {
-          vi.mocked(chapterRepository.listByNotebook).mockResolvedValueOnce([{ position }] as never);
+          vi.mocked(chapterRepository.listByNotebook).mockResolvedValueOnce([{ ...chapter, position }]);
         } else {
-          vi.mocked(pageRepository.listByChapter).mockResolvedValueOnce([{ position }] as never);
+          vi.mocked(pageRepository.listByChapter).mockResolvedValueOnce([{ ...page, position }]);
         }
         await expect(create()).rejects.toThrow("Posição inválida.");
       }
