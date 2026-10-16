@@ -17,6 +17,7 @@ type OutlookEvent = {
 type StudyTaskBoardProps = {
   tasks: StudyTask[];
   outlookConnected?: boolean;
+  outlookConnectionUnavailable?: boolean;
   outlookEvents?: OutlookEvent[];
   outlookEventsUnavailable?: boolean;
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
@@ -32,6 +33,7 @@ function formatDueAt(value: string | null): string {
 export function StudyTaskBoard({
   tasks,
   outlookConnected = false,
+  outlookConnectionUnavailable = false,
   outlookEvents = [],
   outlookEventsUnavailable = false,
   onCreate,
@@ -188,15 +190,21 @@ export function StudyTaskBoard({
             <h2 id="outlook-title">Outlook Calendar</h2>
           </div>
           <span className="aa-badge aa-badge-neutral">
-            {outlookConnected ? "Conectado" : "Não conectado"}
+            {outlookConnectionUnavailable ? "Indisponível" : outlookConnected ? "Conectado" : "Não conectado"}
           </span>
         </div>
         <p>
-          {outlookConnected
-            ? "Tarefas com horário podem ser transformadas em eventos no seu calendário."
-            : "Conecte seu calendário para transformar tarefas do Cronograma em eventos reais."}
+          {outlookConnectionUnavailable
+            ? "Não foi possível verificar a conexão do Outlook agora."
+            : outlookConnected
+              ? "Tarefas com horário podem ser transformadas em eventos no seu calendário."
+              : "Conecte seu calendário para transformar tarefas do Cronograma em eventos reais."}
         </p>
-        {outlookConnected ? (
+        {outlookConnectionUnavailable ? (
+          <p className="aa-state-copy" role="status">
+            O estado da conexão está temporariamente indisponível. Suas tarefas continuam disponíveis.
+          </p>
+        ) : outlookConnected ? (
           <form action="/api/integrations/outlook/disconnect" method="post">
             <button
               className="aa-button aa-button-secondary aa-button-sm"
