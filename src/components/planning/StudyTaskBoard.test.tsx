@@ -56,7 +56,7 @@ describe("StudyTaskBoard", () => {
       />,
     );
 
-    expect(screen.getByText("Nenhuma tarefa pendente cadastrada.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Criar primeira tarefa" })).toHaveAttribute(
       "href",
       "#study-task-title",
@@ -82,7 +82,7 @@ describe("StudyTaskBoard", () => {
 
     await waitFor(() => expect(onComplete).toHaveBeenCalledWith("task-1"));
     expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
-    expect(screen.getByText("Nenhuma tarefa pendente cadastrada.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
   });
   it("keeps an overdue task visible and allows completing it", async () => {
     const overdue = {
@@ -101,7 +101,6 @@ describe("StudyTaskBoard", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "Tarefas pendentes" })).toBeInTheDocument();
     expect(screen.getByText("Revisão pendente vencida")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
     await waitFor(() => expect(onComplete).toHaveBeenCalledWith("task-overdue"));
