@@ -62,7 +62,14 @@ export default async function CronogramaPage() {
     );
   }
 
-  const outlookConnected = await isOutlookCalendarConnected();
+  // A credentials-store outage must not take down already-loaded study tasks.
+  let outlookConnected = false;
+  let outlookConnectionUnavailable = false;
+  try {
+    outlookConnected = await isOutlookCalendarConnected();
+  } catch {
+    outlookConnectionUnavailable = true;
+  }
   let outlookEventsUnavailable = false;
   let outlookEvents: Awaited<
     ReturnType<OutlookCalendarClient["listEvents"]>
@@ -91,6 +98,7 @@ export default async function CronogramaPage() {
       <StudyTaskBoard
         tasks={tasks}
         outlookConnected={outlookConnected}
+        outlookConnectionUnavailable={outlookConnectionUnavailable}
         outlookEvents={outlookEvents}
         outlookEventsUnavailable={outlookEventsUnavailable}
         onCreate={createStudyTask}
