@@ -55,7 +55,11 @@ export function StudyTaskBoard({
   const [sendingKeys, setSendingKeys] = useState<Set<string>>(() => new Set());
   const [sentIds, setSentIds] = useState<Set<string>>(() => new Set());
   const [asanaSentIds, setAsanaSentIds] = useState<Set<string>>(() => new Set());
-  const [schedulingId, setSchedulingId] = useState<string | null>(null);
+  // Protect each Outlook task synchronously, even before React rerenders.
+  const activeSchedules = useRef(new Set<string>());
+  const completedSchedules = useRef(new Set<string>());
+  const [schedulingIds, setSchedulingIds] = useState<Set<string>>(() => new Set());
+  const [scheduledIds, setScheduledIds] = useState<Set<string>>(() => new Set());
 
   const submit = async () => {
     if (createPending.current || !title.trim()) return;
@@ -165,12 +169,19 @@ export function StudyTaskBoard({
   };
 
   const scheduleInOutlook = async (id: string) => {
-    if (!onScheduleInOutlook) return;
+    if (
+      !onScheduleInOutlook ||
+      activeSchedules.current.has(id) ||
+      completedSchedules.current.has(id)
+    ) return;
 
+    activeSchedules.current.add(id);
+    setSchedulingIds((current) => new Set([...current, id]));
     setError(null);
-    setSchedulingId(id);
     try {
       const event = await onScheduleInOutlook(id);
+      completedSchedules.current.add(id);
+      setScheduledIds((current) => new Set([...current, id]));
       if (event.webLink) window.open(event.webLink, "_blank", "noopener,noreferrer");
     } catch (cause) {
       setError(
@@ -179,7 +190,12 @@ export function StudyTaskBoard({
           : "Não foi possível criar o evento no Outlook.",
       );
     } finally {
-      setSchedulingId(null);
+      activeSchedules.current.delete(id);
+      setSchedulingIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -385,11 +401,15 @@ export function StudyTaskBoard({
                       className="aa-button aa-button-secondary aa-button-sm"
                       type="button"
                       onClick={() => void scheduleInOutlook(task.id)}
-                      disabled={schedulingId === task.id}
+                      disabled={schedulingIds.has(task.id) || scheduledIds.has(task.id)}
                       title="Criar um evento no Outlook para este horário"
                     >
                       <CalendarDays size={16} aria-hidden="true" />
-                      {schedulingId === task.id ? "Enviando…" : "Agendar no Outlook"}
+                      {schedulingIds.has(task.id)
+                        ? "Agendando…"
+                        : scheduledIds.has(task.id)
+                          ? "Agendado no Outlook"
+                          : "Agendar no Outlook"}
                     </button>
                   ) : null}
                   <button
