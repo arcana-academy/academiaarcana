@@ -43,6 +43,11 @@ export function StudyTaskBoard({
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Guard immediately before React updates the disabled submit button.
+  const createPending = useRef(false);
+  // Complete actions have separate pending locks for each task.
+  const completingPending = useRef(new Set<string>());
+  const [completingIds, setCompletingIds] = useState<Set<string>>(() => new Set());
   // Synchronous guard prevents duplicate provider POSTs before React rerenders.
   // Each provider/task pair remains independent while the request is pending.
   const activeSends = useRef(new Set<string>());
@@ -53,8 +58,9 @@ export function StudyTaskBoard({
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
 
   const submit = async () => {
+    if (createPending.current || !title.trim()) return;
+    createPending.current = true;
     setError(null);
-    if (!title.trim()) return;
     setIsSubmitting(true);
     try {
       const created = await onCreate({ title, dueAt: dueAt ? new Date(dueAt).toISOString() : null });
@@ -64,6 +70,7 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível criar a tarefa.");
     } finally {
+      createPending.current = false;
       setIsSubmitting(false);
     }
   };
@@ -177,12 +184,22 @@ export function StudyTaskBoard({
   };
 
   const complete = async (id: string) => {
+    if (completingPending.current.has(id)) return;
+    completingPending.current.add(id);
+    setCompletingIds((current) => new Set([...current, id]));
     setError(null);
     try {
       await onComplete(id);
       setItems((current) => current.filter((item) => item.id !== id));
     } catch {
       setError("Não foi possível concluir a tarefa.");
+    } finally {
+      completingPending.current.delete(id);
+      setCompletingIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -375,7 +392,14 @@ export function StudyTaskBoard({
                       {schedulingId === task.id ? "Enviando…" : "Agendar no Outlook"}
                     </button>
                   ) : null}
-                  <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void complete(task.id)}>Concluir</button>
+                  <button
+                    className="aa-button aa-button-secondary aa-button-sm"
+                    type="button"
+                    onClick={() => void complete(task.id)}
+                    disabled={completingIds.has(task.id)}
+                  >
+                    {completingIds.has(task.id) ? "Concluindo…" : "Concluir"}
+                  </button>
                 </div>
               </li>
             ))}
