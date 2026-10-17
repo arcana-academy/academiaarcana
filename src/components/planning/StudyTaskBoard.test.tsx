@@ -47,6 +47,82 @@ describe("StudyTaskBoard", () => {
     expect(document.querySelector('img[src="/assets/icons/aa-cronograma.svg"]')).toBeInTheDocument();
   });
 
+
+  it("prevents duplicate creation when the same task form is submitted twice while pending", async () => {
+    let finish!: (value: StudyTask) => void;
+    const onCreate = vi.fn(() => new Promise<StudyTask>((resolve) => {
+      finish = resolve;
+    }));
+    render(
+      <StudyTaskBoard
+        tasks={[]}
+        onCreate={onCreate}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Tarefa"), {
+      target: { value: "Nova revisão" },
+    });
+    const form = screen.getByRole("form", { name: "Adicionar tarefa de estudo" });
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Criando…" })).toBeDisabled();
+    finish({ ...task, title: "Nova revisão" });
+    expect(await screen.findByText("Nova revisão")).toBeInTheDocument();
+    expect(screen.getAllByText("Nova revisão")).toHaveLength(1);
+  });
+
+  it("allows retry after an unsuccessful creation and does not create duplicate rows", async () => {
+    const onCreate = vi.fn()
+      .mockRejectedValueOnce(new Error("synthetic unavailable"))
+      .mockResolvedValueOnce({ ...task, title: "Sessão recuperada" });
+    render(
+      <StudyTaskBoard
+        tasks={[]}
+        onCreate={onCreate}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Tarefa"), {
+      target: { value: "Sessão recuperada" },
+    });
+    const form = screen.getByRole("form", { name: "Adicionar tarefa de estudo" });
+    fireEvent.submit(form);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível criar a tarefa.");
+    expect(screen.getByRole("button", { name: "Criar tarefa" })).toBeEnabled();
+    fireEvent.submit(form);
+    expect(await screen.findByText("Sessão recuperada")).toBeInTheDocument();
+    expect(onCreate).toHaveBeenCalledTimes(2);
+  });
+
+  it("permits a different task after an earlier creation succeeds", async () => {
+    const onCreate = vi.fn()
+      .mockResolvedValueOnce({ ...task, title: "Primeira revisão" })
+      .mockResolvedValueOnce({ ...task, id: "task-2", title: "Segunda revisão" });
+    render(
+      <StudyTaskBoard
+        tasks={[]}
+        onCreate={onCreate}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+    const form = screen.getByRole("form", { name: "Adicionar tarefa de estudo" });
+    fireEvent.change(screen.getByLabelText("Tarefa"), {
+      target: { value: "Primeira revisão" },
+    });
+    fireEvent.submit(form);
+    expect(await screen.findByText("Primeira revisão")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Tarefa"), {
+      target: { value: "Segunda revisão" },
+    });
+    fireEvent.submit(form);
+    expect(await screen.findByText("Segunda revisão")).toBeInTheDocument();
+    expect(onCreate).toHaveBeenCalledTimes(2);
+  });
+
   it("distinguishes unavailable Outlook events from an empty calendar while preserving study tasks", () => {
     const { rerender } = render(
       <StudyTaskBoard
