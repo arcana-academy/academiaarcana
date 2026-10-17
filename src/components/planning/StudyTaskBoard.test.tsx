@@ -394,4 +394,85 @@ describe("StudyTaskBoard", () => {
     expect(onCreate).toHaveBeenCalledTimes(2);
   });
 
+  it("prevents repeated Outlook scheduling while a task request is pending", async () => {
+    let resolveSchedule!: (event: { webLink?: string | null }) => void;
+    const onScheduleInOutlook = vi.fn(() => new Promise<{ webLink?: string | null }>((resolve) => {
+      resolveSchedule = resolve;
+    }));
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+        onScheduleInOutlook={onScheduleInOutlook}
+      />,
+    );
+    const button = screen.getByRole("button", { name: "Agendar no Outlook" });
+    fireEvent.click(button);
+    fireEvent.click(screen.getByRole("button", { name: "Agendando…" }));
+    expect(onScheduleInOutlook).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Agendando…" })).toBeDisabled();
+
+    resolveSchedule({ webLink: null });
+    expect(await screen.findByRole("button", { name: "Agendado no Outlook" })).toBeDisabled();
+    expect(onScheduleInOutlook).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps separate Outlook tasks independently schedulable while requests are pending", async () => {
+    const pending = new Map<string, (event: { webLink?: string | null }) => void>();
+    const onScheduleInOutlook = vi.fn((id: string) =>
+      new Promise<{ webLink?: string | null }>((resolve) => {
+        pending.set(id, resolve);
+      }),
+    );
+    render(
+      <StudyTaskBoard
+        tasks={[task, { ...task, id: "task-2", title: "Preparar lição" }]}
+        outlookConnected
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+        onScheduleInOutlook={onScheduleInOutlook}
+      />,
+    );
+    const first = within(screen.getByText("Revisar capítulo").closest("li")!);
+    const second = within(screen.getByText("Preparar lição").closest("li")!);
+    fireEvent.click(first.getByRole("button", { name: "Agendar no Outlook" }));
+    fireEvent.click(second.getByRole("button", { name: "Agendar no Outlook" }));
+    expect(onScheduleInOutlook).toHaveBeenCalledTimes(2);
+    expect(first.getByRole("button", { name: "Agendando…" })).toBeDisabled();
+    expect(second.getByRole("button", { name: "Agendando…" })).toBeDisabled();
+    pending.get("task-2")!({ webLink: null });
+    await waitFor(() => expect(second.getByRole("button", { name: "Agendado no Outlook" })).toBeDisabled());
+    expect(first.getByRole("button", { name: "Agendando…" })).toBeDisabled();
+    pending.get("task-1")!({ webLink: null });
+    await waitFor(() => expect(first.getByRole("button", { name: "Agendado no Outlook" })).toBeDisabled());
+  });
+
+  it("unlocks Outlook scheduling after a failed request and permits retry", async () => {
+    let rejectSchedule!: (error: Error) => void;
+    const onScheduleInOutlook = vi.fn()
+      .mockImplementationOnce(() => new Promise<{ webLink?: string | null }>((_, reject) => {
+        rejectSchedule = reject;
+      }))
+      .mockResolvedValueOnce({ webLink: null });
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+        onScheduleInOutlook={onScheduleInOutlook}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Agendar no Outlook" }));
+    expect(screen.getByRole("button", { name: "Agendando…" })).toBeDisabled();
+    rejectSchedule(new Error("synthetic Outlook timeout"));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Agendar no Outlook" })).toBeEnabled());
+    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível criar o evento no Outlook.");
+    fireEvent.click(screen.getByRole("button", { name: "Agendar no Outlook" }));
+    expect(await screen.findByRole("button", { name: "Agendado no Outlook" })).toBeDisabled();
+    expect(onScheduleInOutlook).toHaveBeenCalledTimes(2);
+  });
+
 });
