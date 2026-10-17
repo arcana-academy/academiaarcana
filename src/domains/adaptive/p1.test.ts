@@ -103,4 +103,34 @@ describe("adaptive P1 signals", () => {
       confidence: "insufficient",
     });
   });
+
+  it("ignores malformed attempt dates while retaining a valid earlier review", () => {
+    const valid = attempt("valid", 0.6, "partial", "20");
+    const malformed = {
+      ...attempt("bad", 1, "strong", "21"),
+      createdAt: "not-a-date",
+    };
+
+    expect(
+      buildReviewRecommendation(
+        item,
+        [valid, malformed],
+        new Date("2026-09-24T00:00:00.000Z"),
+      ),
+    ).toMatchObject({
+      due: true,
+      nextReviewAt: "2026-09-23T00:00:00.000Z",
+    });
+  });
+
+  it("does not crash or schedule a review when all dates are invalid", () => {
+    const malformed = {
+      ...attempt("bad", 1, "strong", "21"),
+      createdAt: "not-a-date",
+    };
+
+    const review = buildReviewRecommendation(item, [malformed]);
+    expect(review.due).toBe(false);
+    expect(review.nextReviewAt).toBeNull();
+  });
 });
