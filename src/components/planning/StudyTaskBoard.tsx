@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
@@ -18,6 +18,7 @@ type StudyTaskBoardProps = {
   tasks: StudyTask[];
   outlookConnected?: boolean;
   outlookEvents?: OutlookEvent[];
+  outlookEventsUnavailable?: boolean;
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
   onComplete: (id: string) => Promise<StudyTask>;
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
@@ -32,6 +33,7 @@ export function StudyTaskBoard({
   tasks,
   outlookConnected = false,
   outlookEvents = [],
+  outlookEventsUnavailable = false,
   onCreate,
   onComplete,
   onScheduleInOutlook,
@@ -41,14 +43,28 @@ export function StudyTaskBoard({
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sendingId, setSendingId] = useState<string | null>(null);
+  // Guard immediately before React updates the disabled submit button.
+  const createPending = useRef(false);
+  // Complete actions have separate pending locks for each task.
+  const completingPending = useRef(new Set<string>());
+  const [completingIds, setCompletingIds] = useState<Set<string>>(() => new Set());
+  // Synchronous guard prevents duplicate provider POSTs before React rerenders.
+  // Each provider/task pair remains independent while the request is pending.
+  const activeSends = useRef(new Set<string>());
+  const successfulSends = useRef(new Set<string>());
+  const [sendingKeys, setSendingKeys] = useState<Set<string>>(() => new Set());
   const [sentIds, setSentIds] = useState<Set<string>>(() => new Set());
   const [asanaSentIds, setAsanaSentIds] = useState<Set<string>>(() => new Set());
-  const [schedulingId, setSchedulingId] = useState<string | null>(null);
+  // Protect each Outlook task synchronously, even before React rerenders.
+  const activeSchedules = useRef(new Set<string>());
+  const completedSchedules = useRef(new Set<string>());
+  const [schedulingIds, setSchedulingIds] = useState<Set<string>>(() => new Set());
+  const [scheduledIds, setScheduledIds] = useState<Set<string>>(() => new Set());
 
   const submit = async () => {
+    if (createPending.current || !title.trim()) return;
+    createPending.current = true;
     setError(null);
-    if (!title.trim()) return;
     setIsSubmitting(true);
     try {
       const created = await onCreate({ title, dueAt: dueAt ? new Date(dueAt).toISOString() : null });
@@ -58,13 +74,32 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível criar a tarefa.");
     } finally {
+      createPending.current = false;
       setIsSubmitting(false);
     }
   };
 
+  const beginSend = (provider: "todoist" | "asana", id: string) => {
+    const key = `${provider}:${id}`;
+    if (activeSends.current.has(key) || successfulSends.current.has(key)) return null;
+    activeSends.current.add(key);
+    setSendingKeys((current) => new Set([...current, key]));
+    return key;
+  };
+
+  const endSend = (key: string) => {
+    activeSends.current.delete(key);
+    setSendingKeys((current) => {
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
+  };
+
   const sendToTodoist = async (task: StudyTask) => {
+    const key = beginSend("todoist", task.id);
+    if (!key) return;
     setError(null);
-    setSendingId(task.id);
 
     try {
       const response = await fetch("/api/integrations/todoist/tasks", {
@@ -84,6 +119,7 @@ export function StudyTaskBoard({
 
       if (!response.ok) throw new Error();
 
+      successfulSends.current.add(key);
       setSentIds((current) => {
         const next = new Set(current);
         next.add(task.id);
@@ -92,13 +128,14 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível enviar a tarefa para o Todoist.");
     } finally {
-      setSendingId(null);
+      endSend(key);
     }
   };
 
   const sendToAsana = async (task: StudyTask) => {
+    const key = beginSend("asana", task.id);
+    if (!key) return;
     setError(null);
-    setSendingId(task.id);
 
     try {
       const response = await fetch("/api/integrations/asana/tasks", {
@@ -118,6 +155,7 @@ export function StudyTaskBoard({
 
       if (!response.ok) throw new Error();
 
+      successfulSends.current.add(key);
       setAsanaSentIds((current) => {
         const next = new Set(current);
         next.add(task.id);
@@ -126,17 +164,24 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível enviar a tarefa para o Asana.");
     } finally {
-      setSendingId(null);
+      endSend(key);
     }
   };
 
   const scheduleInOutlook = async (id: string) => {
-    if (!onScheduleInOutlook) return;
+    if (
+      !onScheduleInOutlook ||
+      activeSchedules.current.has(id) ||
+      completedSchedules.current.has(id)
+    ) return;
 
+    activeSchedules.current.add(id);
+    setSchedulingIds((current) => new Set([...current, id]));
     setError(null);
-    setSchedulingId(id);
     try {
       const event = await onScheduleInOutlook(id);
+      completedSchedules.current.add(id);
+      setScheduledIds((current) => new Set([...current, id]));
       if (event.webLink) window.open(event.webLink, "_blank", "noopener,noreferrer");
     } catch (cause) {
       setError(
@@ -145,17 +190,32 @@ export function StudyTaskBoard({
           : "Não foi possível criar o evento no Outlook.",
       );
     } finally {
-      setSchedulingId(null);
+      activeSchedules.current.delete(id);
+      setSchedulingIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
   const complete = async (id: string) => {
+    if (completingPending.current.has(id)) return;
+    completingPending.current.add(id);
+    setCompletingIds((current) => new Set([...current, id]));
     setError(null);
     try {
       await onComplete(id);
       setItems((current) => current.filter((item) => item.id !== id));
     } catch {
       setError("Não foi possível concluir a tarefa.");
+    } finally {
+      completingPending.current.delete(id);
+      setCompletingIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -225,7 +285,12 @@ export function StudyTaskBoard({
             </div>
             <span className="aa-badge aa-badge-neutral">{outlookEvents.length}</span>
           </div>
-          {outlookEvents.length === 0 ? (
+          {outlookEventsUnavailable ? (
+            <div className="aa-empty" role="status">
+              <p>Não foi possível carregar os eventos do Outlook agora.</p>
+              <p>Suas tarefas de estudo continuam disponíveis. Tente atualizar a página mais tarde.</p>
+            </div>
+          ) : outlookEvents.length === 0 ? (
             <div className="aa-empty">
               <p>Nenhum evento encontrado no Outlook neste período.</p>
             </div>
@@ -307,17 +372,17 @@ export function StudyTaskBoard({
                     className="aa-button aa-button-secondary aa-button-sm"
                     type="button"
                     onClick={() => void sendToTodoist(task)}
-                    disabled={sendingId === task.id || sentIds.has(task.id)}
+                    disabled={sendingKeys.has(`todoist:${task.id}`) || sentIds.has(task.id)}
                     title={sentIds.has(task.id) ? "Tarefa já enviada para o Todoist nesta sessão" : "Enviar uma cópia para o Todoist"}
                   >
                     <Send size={16} aria-hidden="true" />
-                    {sendingId === task.id ? "Enviando…" : sentIds.has(task.id) ? "Enviado" : "Enviar ao Todoist"}
+                    {sendingKeys.has(`todoist:${task.id}`) ? "Enviando…" : sentIds.has(task.id) ? "Enviado" : "Enviar ao Todoist"}
                   </button>
                   <button
                     className="aa-button aa-button-secondary aa-button-sm"
                     type="button"
                     onClick={() => void sendToAsana(task)}
-                    disabled={sendingId === task.id || asanaSentIds.has(task.id)}
+                    disabled={sendingKeys.has(`asana:${task.id}`) || asanaSentIds.has(task.id)}
                     title={
                       asanaSentIds.has(task.id)
                         ? "Tarefa já enviada para o Asana nesta sessão"
@@ -325,7 +390,7 @@ export function StudyTaskBoard({
                     }
                   >
                     <Send size={16} aria-hidden="true" />
-                    {sendingId === task.id
+                    {sendingKeys.has(`asana:${task.id}`)
                       ? "Enviando…"
                       : asanaSentIds.has(task.id)
                         ? "Enviado ao Asana"
@@ -336,14 +401,25 @@ export function StudyTaskBoard({
                       className="aa-button aa-button-secondary aa-button-sm"
                       type="button"
                       onClick={() => void scheduleInOutlook(task.id)}
-                      disabled={schedulingId === task.id}
+                      disabled={schedulingIds.has(task.id) || scheduledIds.has(task.id)}
                       title="Criar um evento no Outlook para este horário"
                     >
                       <CalendarDays size={16} aria-hidden="true" />
-                      {schedulingId === task.id ? "Enviando…" : "Agendar no Outlook"}
+                      {schedulingIds.has(task.id)
+                        ? "Agendando…"
+                        : scheduledIds.has(task.id)
+                          ? "Agendado no Outlook"
+                          : "Agendar no Outlook"}
                     </button>
                   ) : null}
-                  <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void complete(task.id)}>Concluir</button>
+                  <button
+                    className="aa-button aa-button-secondary aa-button-sm"
+                    type="button"
+                    onClick={() => void complete(task.id)}
+                    disabled={completingIds.has(task.id)}
+                  >
+                    {completingIds.has(task.id) ? "Concluindo…" : "Concluir"}
+                  </button>
                 </div>
               </li>
             ))}
