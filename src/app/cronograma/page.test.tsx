@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import {
+  getOutlookAccessToken,
+  isOutlookCalendarConnected,
+} from "@/infrastructure/integrations/outlook-calendar-session";
 import CronogramaPage from "./page";
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
@@ -101,6 +105,32 @@ describe("CronogramaPage", () => {
     expect(screen.queryByText("Nenhuma tarefa futura cadastrada.")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Criar tarefa" })).not.toBeInTheDocument();
     expect(screen.queryByText(/private-database-host-and-credentials/)).not.toBeInTheDocument();
+  });
+
+  it("reports a missing Outlook token as unavailable without hiding study tasks", async () => {
+    listUpcomingMock.mockResolvedValue([
+      {
+        id: "task-1",
+        ownerId: "user-1",
+        title: "Revisar capítulo",
+        dueAt: "2026-10-20T14:00:00.000Z",
+        status: "pending",
+        completedAt: null,
+        createdAt: "2026-10-10T10:00:00.000Z",
+        updatedAt: "2026-10-10T10:00:00.000Z",
+      },
+    ]);
+    vi.mocked(isOutlookCalendarConnected).mockResolvedValueOnce(true);
+    vi.mocked(getOutlookAccessToken).mockResolvedValueOnce(null);
+
+    render(await CronogramaPage());
+
+    expect(getOutlookAccessToken).toHaveBeenCalledWith({ refresh: true });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Não foi possível carregar os eventos do Outlook agora.",
+    );
+    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum evento encontrado no Outlook neste período.")).not.toBeInTheDocument();
   });
 
   it("does not treat authentication failures as recoverable task read errors", async () => {
