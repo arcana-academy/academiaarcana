@@ -215,6 +215,52 @@ describe("Outlook Calendar credential session", () => {
     }
   });
 
+  it.each([
+    {
+      caseName: "blank access token",
+      payload: { access_token: " ", expires_in: 3600 },
+    },
+    {
+      caseName: "missing access token",
+      payload: { expires_in: 3600 },
+    },
+    {
+      caseName: "zero expiration",
+      payload: { access_token: "synthetic-access", expires_in: 0 },
+    },
+    {
+      caseName: "string expiration",
+      payload: { access_token: "synthetic-access", expires_in: "3600" },
+    },
+    {
+      caseName: "malformed rotated refresh token",
+      payload: { access_token: "synthetic-access", expires_in: 3600, refresh_token: 42 },
+    },
+    {
+      caseName: "blank rotated refresh token",
+      payload: { access_token: "synthetic-access", expires_in: 3600, refresh_token: "" },
+    },
+  ])("rejects invalid successful OAuth refresh payloads: $caseName", async ({ payload }) => {
+    try {
+      const store = await setupExpiredCredential();
+      const previous = store.readStored();
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(
+        JSON.stringify(payload),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ));
+
+      await expect(getOutlookAccessToken({ refresh: true })).rejects.toThrow(
+        "Não foi possível renovar a conexão do Outlook. Tente novamente.",
+      );
+      expect(store.readStored()).toEqual(previous);
+      expect(store.upsert).toHaveBeenCalledTimes(1);
+      expect(store.remove).not.toHaveBeenCalled();
+    } finally {
+      vi.restoreAllMocks();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("preserves credentials when a failed OAuth response is not JSON", async () => {
     try {
       const store = await setupExpiredCredential();
