@@ -17,7 +17,7 @@ type AsanaStatus =
   | { status: "reauthorization_required" };
 
 export function AsanaConnectionPanel() {
-  const [status, setStatus] = useState<AsanaStatus>({ status: "disconnected" });
+  const [status, setStatus] = useState<AsanaStatus | null>(null);
   const [tasks, setTasks] = useState<AsanaTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -42,6 +42,8 @@ export function AsanaConnectionPanel() {
         setTasks([]);
       }
     } catch {
+      setStatus(null);
+      setTasks([]);
       setError("Não foi possível consultar o estado do Asana.");
     } finally {
       setLoading(false);
@@ -76,6 +78,8 @@ export function AsanaConnectionPanel() {
         }
       } catch {
         if (!controller.signal.aborted) {
+          setStatus(null);
+          setTasks([]);
           setError("Não foi possível consultar o estado do Asana.");
         }
       } finally {
@@ -145,6 +149,26 @@ export function AsanaConnectionPanel() {
 
   if (loading) {
     return <section className="aa-surface" aria-busy="true"><p>Consultando conexão do Asana…</p></section>;
+  }
+
+  if (!status) {
+    return (
+      <section className="aa-surface" aria-labelledby="asana-connection-title">
+        <h2 id="asana-connection-title">Asana</h2>
+        <div className="aa-empty">
+          <h3>Verificação do Asana indisponível</h3>
+          <p role="alert">{error ?? "Não foi possível verificar a conexão do Asana."}</p>
+          <button
+            type="button"
+            className="aa-button aa-button-secondary"
+            onClick={() => void load()}
+            disabled={busy}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </section>
+    );
   }
 
   return (

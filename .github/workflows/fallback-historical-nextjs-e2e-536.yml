@@ -1,0 +1,139 @@
+name: Academia Arcana P0 536 Historical Next.js Browser E2E
+
+on:
+  push:
+    branches:
+      - chore/536-fallback-validation-20261009
+      - integration/p0-536-release-train-20261009
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0-536-nextjs-browser-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  historical-nextjs-browser:
+    name: Browser test historical Next.js against disposable local Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sandbox test controls
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: validation
+          persist-credentials: false
+
+      - name: Checkout immutable last-LIVE source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 17fb81477fbd3eed14b93103641004a766eb9ac1
+          path: historical
+          persist-credentials: false
+
+      - name: Verify historical pin and overlay only sandbox test
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C historical rev-parse HEAD)" = "17fb81477fbd3eed14b93103641004a766eb9ac1"
+          test "$(find historical/supabase/migrations -maxdepth 1 -name '*.sql' -type f | wc -l | tr -d ' ')" = "24"
+          test ! -f historical/scripts/security/test-local-nextjs-browser-e2e-536.mjs
+          cp validation/scripts/security/test-local-nextjs-browser-e2e-536.mjs historical/scripts/security/
+          cmp validation/scripts/security/test-local-nextjs-browser-e2e-536.mjs historical/scripts/security/test-local-nextjs-browser-e2e-536.mjs
+          test -z "$(git -C historical diff --name-only)"
+          node --check historical/scripts/security/test-local-nextjs-browser-e2e-536.mjs
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Setup pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Assert remote credentials unavailable
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(printenv SUPABASE_ACCESS_TOKEN || true)"
+          test -z "$(printenv DATABASE_URL || true)"
+          test -z "$(printenv SUPABASE_SERVICE_ROLE_KEY || true)"
+          test -z "$(printenv SUPABASE_SECRET_KEY || true)"
+          test -z "$(printenv RENDER_API_KEY || true)"
+          echo "Local-only credentials boundary: PASS"
+
+      - name: Install historical dependencies
+        working-directory: historical
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+
+      - name: Install Chromium
+        working-directory: historical
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: Start disposable Supabase stack
+        working-directory: historical
+        run: supabase start
+
+      - name: Configure localhost Supabase API and public test key
+        working-directory: historical
+        shell: bash
+        run: |
+          node --input-type=module -e '
+            import {execFileSync} from "node:child_process";
+            import {appendFileSync} from "node:fs";
+            import assert from "node:assert/strict";
+            const raw=execFileSync("supabase",["status","-o","env"],{encoding:"utf8",timeout:20000});
+            const e=Object.fromEntries(raw.split(/\r?\n/).flatMap(l=>{
+              const m=l.match(/^([A-Z][A-Z0-9_]*)=(.*)$/);
+              return m?[[m[1],m[2].replace(/^["\x27]|["\x27]$/g,"")]]:[];
+            }));
+            const u=new URL(e.API_URL);
+            assert.equal(u.protocol,"http:");
+            assert.equal(u.hostname,"127.0.0.1");
+            assert.equal(u.port,"54321");
+            assert.ok(e.ANON_KEY&&!/[\r\n]/.test(e.ANON_KEY));
+            appendFileSync(process.env.GITHUB_ENV,"NEXT_PUBLIC_SUPABASE_URL="+u.toString()+"\n");
+            appendFileSync(process.env.GITHUB_ENV,"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="+e.ANON_KEY+"\n");
+            console.log("Ephemeral localhost public test configuration: PASS");
+          '
+
+      - name: Build historical Next.js directly with local-only backend
+        working-directory: historical
+        run: |
+          set -euo pipefail
+          # Bypasses production prebuild HTTPS/public-key guard ONLY because
+          # this isolated browser test uses HTTP localhost and a local anon key.
+          # Production quality checks independently enforce the original guard.
+          ./node_modules/.bin/next build --webpack
+
+      - name: Run Chromium HTTP auth, cookies, SSR RLS and Storage test
+        working-directory: historical
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/next start --hostname 127.0.0.1 --port 3100 > "$RUNNER_TEMP/nextjs-p0-536.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 90); do
+            if curl --silent --fail http://127.0.0.1:3100/api/health > /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" = "1"
+          node scripts/security/test-local-nextjs-browser-e2e-536.mjs
+
+      - name: Stop and discard local Supabase
+        if: always()
+        working-directory: historical
+        run: supabase stop --no-backup
