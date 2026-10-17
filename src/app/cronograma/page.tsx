@@ -79,6 +79,10 @@ export default async function CronogramaPage() {
           start.toISOString(),
           end.toISOString(),
         );
+      } else {
+        // A connection may disappear between the status check and token lookup.
+        // No token means no calendar query occurred, not an empty calendar.
+        outlookEventsUnavailable = true;
       }
     } catch {
       outlookEventsUnavailable = true;
