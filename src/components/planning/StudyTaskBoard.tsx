@@ -24,9 +24,20 @@ type StudyTaskBoardProps = {
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
 };
 
-function formatDueAt(value: string | null): string {
+function formatDueAt(value: string | null, timeZone?: string): string {
   if (!value) return "Sem prazo";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  // Microsoft Graph returns offset-less dateTime values when requesting UTC.
+  // Parse them as UTC rather than the browser's local time zone.
+  const normalized =
+    timeZone === "UTC" && !/(?:[zZ]|[+-]\\d{2}:\\d{2})$/.test(value)
+      ? `${value}Z`
+      : value;
+  const date = new Date(normalized);
+  if (!Number.isFinite(date.getTime())) return "Data indisponível";
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 export function StudyTaskBoard({
@@ -334,7 +345,7 @@ export function StudyTaskBoard({
                   <div>
                     <strong>{event.subject || "Evento sem título"}</strong>
                     <small>
-                      {formatDueAt(event.start.dateTime)} · até {formatDueAt(event.end.dateTime)}
+                      {formatDueAt(event.start.dateTime, event.start.timeZone)} · até {formatDueAt(event.end.dateTime, event.end.timeZone)}
                     </small>
                   </div>
                   {event.webLink ? (
