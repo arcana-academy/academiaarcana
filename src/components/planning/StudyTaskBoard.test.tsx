@@ -298,4 +298,100 @@ describe("StudyTaskBoard", () => {
     }
   });
 
+  it("prevents duplicate task creation while the first submission is pending", async () => {
+    let resolveCreate!: (value: StudyTask) => void;
+    const onCreate = vi.fn(() => new Promise<StudyTask>((resolve) => {
+      resolveCreate = resolve;
+    }));
+    render(
+      <StudyTaskBoard tasks={[]} onCreate={onCreate} onComplete={vi.fn()} />,
+    );
+    fireEvent.change(screen.getByLabelText("Tarefa"), {
+      target: { value: "Estudar novas runas" },
+    });
+    const form = screen.getByRole("form", { name: "Adicionar tarefa de estudo" });
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Criando…" })).toBeDisabled();
+
+    resolveCreate({ ...task, id: "task-new", title: "Estudar novas runas" });
+    expect(await screen.findByText("Estudar novas runas")).toBeInTheDocument();
+    expect(onCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks a repeated completion while keeping another task independently actionable", async () => {
+    const resolvers = new Map<string, (value: StudyTask) => void>();
+    const onComplete = vi.fn((id: string) => new Promise<StudyTask>((resolve) => {
+      resolvers.set(id, resolve);
+    }));
+    render(
+      <StudyTaskBoard
+        tasks={[task, { ...task, id: "task-2", title: "Revisar poções" }]}
+        onCreate={vi.fn()}
+        onComplete={onComplete}
+      />,
+    );
+    const first = within(screen.getByText("Revisar capítulo").closest("li")!);
+    const second = within(screen.getByText("Revisar poções").closest("li")!);
+
+    fireEvent.click(first.getByRole("button", { name: "Concluir" }));
+    fireEvent.click(first.getByRole("button", { name: "Concluindo…" }));
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(first.getByRole("button", { name: "Concluindo…" })).toBeDisabled();
+    expect(second.getByRole("button", { name: "Concluir" })).toBeEnabled();
+
+    fireEvent.click(second.getByRole("button", { name: "Concluir" }));
+    expect(onComplete).toHaveBeenCalledTimes(2);
+    resolvers.get("task-2")!({ ...task, id: "task-2", status: "completed" });
+    await waitFor(() => expect(screen.queryByText("Revisar poções")).not.toBeInTheDocument());
+    expect(first.getByRole("button", { name: "Concluindo…" })).toBeDisabled();
+
+    resolvers.get("task-1")!({ ...task, status: "completed" });
+    await waitFor(() => expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument());
+    expect(onComplete).toHaveBeenCalledTimes(2);
+  });
+
+  it("re-enables a task completion after a rejected request so it can be retried", async () => {
+    let rejectComplete!: (reason: Error) => void;
+    const onComplete = vi.fn()
+      .mockImplementationOnce(() => new Promise<StudyTask>((_, reject) => {
+        rejectComplete = reject;
+      }))
+      .mockResolvedValueOnce({ ...task, status: "completed" });
+    render(
+      <StudyTaskBoard tasks={[task]} onCreate={vi.fn()} onComplete={onComplete} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    expect(screen.getByRole("button", { name: "Concluindo…" })).toBeDisabled();
+    rejectComplete(new Error("synthetic network outage"));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled());
+    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível concluir a tarefa.");
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
+  });
+
+  it("restores the create form after a failed submission so a retry creates only one task", async () => {
+    let rejectCreate!: (reason: Error) => void;
+    const onCreate = vi.fn()
+      .mockImplementationOnce(() => new Promise<StudyTask>((_, reject) => {
+        rejectCreate = reject;
+      }))
+      .mockResolvedValueOnce({ ...task, id: "new-task", title: "Preparar aula" });
+    render(
+      <StudyTaskBoard tasks={[]} onCreate={onCreate} onComplete={vi.fn()} />,
+    );
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: "Preparar aula" } });
+    const form = screen.getByRole("form", { name: "Adicionar tarefa de estudo" });
+    fireEvent.submit(form);
+    expect(screen.getByRole("button", { name: "Criando…" })).toBeDisabled();
+    rejectCreate(new Error("synthetic request failure"));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Criar tarefa" })).toBeEnabled());
+    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível criar a tarefa.");
+    fireEvent.submit(form);
+    expect(await screen.findByText("Preparar aula")).toBeInTheDocument();
+    expect(onCreate).toHaveBeenCalledTimes(2);
+  });
+
 });
