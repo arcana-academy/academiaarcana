@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
@@ -42,14 +42,21 @@ export function StudyTaskBoard({
   // creates/completions during a partial refresh of the Cronograma page.
   const [locallyCreated, setLocallyCreated] = useState<StudyTask[]>([]);
   const [locallyCompleted, setLocallyCompleted] = useState<Set<string>>(() => new Set());
-  const acknowledgedCreates = useRef(new Set<string>());
-
-  useEffect(() => {
+  // Track acknowledgments as React state, not a ref read during render.
+  // Guarded adjustment handles a new server snapshot without an effect loop.
+  const [acknowledgment, setAcknowledgment] = useState(() => ({
+    serverTasks: tasks,
+    localCreates: locallyCreated,
+    ids: new Set<string>(),
+  }));
+  if (acknowledgment.serverTasks !== tasks || acknowledgment.localCreates !== locallyCreated) {
     const serverIds = new Set(tasks.map((task) => task.id));
+    const ids = new Set(acknowledgment.ids);
     for (const created of locallyCreated) {
-      if (serverIds.has(created.id)) acknowledgedCreates.current.add(created.id);
+      if (serverIds.has(created.id)) ids.add(created.id);
     }
-  }, [tasks, locallyCreated]);
+    setAcknowledgment({ serverTasks: tasks, localCreates: locallyCreated, ids });
+  }
 
   const items = useMemo(() => {
     const serverIds = new Set(tasks.map((task) => task.id));
@@ -58,11 +65,11 @@ export function StudyTaskBoard({
       ...locallyCreated.filter(
         (task) =>
           !serverIds.has(task.id) &&
-          !acknowledgedCreates.current.has(task.id) &&
+          !acknowledgment.ids.has(task.id) &&
           !locallyCompleted.has(task.id),
       ),
     ];
-  }, [tasks, locallyCreated, locallyCompleted]);
+  }, [tasks, locallyCreated, locallyCompleted, acknowledgment.ids]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
