@@ -8,5 +8,5 @@ export const DEPLOYMENT_CONTRACT = {
   buildCommand: "npm ci && npm run build",
   startCommand: "npm start",
   healthCheckPath: "/api/health",
-  autoDeployTrigger: "checksPass",
+  autoDeployTrigger: "off",
 } as const;
