@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
@@ -43,7 +43,11 @@ export function StudyTaskBoard({
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sendingId, setSendingId] = useState<string | null>(null);
+  // Synchronous guard prevents duplicate provider POSTs before React rerenders.
+  // Each provider/task pair remains independent while the request is pending.
+  const activeSends = useRef(new Set<string>());
+  const successfulSends = useRef(new Set<string>());
+  const [sendingKeys, setSendingKeys] = useState<Set<string>>(() => new Set());
   const [sentIds, setSentIds] = useState<Set<string>>(() => new Set());
   const [asanaSentIds, setAsanaSentIds] = useState<Set<string>>(() => new Set());
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
@@ -64,9 +68,27 @@ export function StudyTaskBoard({
     }
   };
 
+  const beginSend = (provider: "todoist" | "asana", id: string) => {
+    const key = `${provider}:${id}`;
+    if (activeSends.current.has(key) || successfulSends.current.has(key)) return null;
+    activeSends.current.add(key);
+    setSendingKeys((current) => new Set([...current, key]));
+    return key;
+  };
+
+  const endSend = (key: string) => {
+    activeSends.current.delete(key);
+    setSendingKeys((current) => {
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
+  };
+
   const sendToTodoist = async (task: StudyTask) => {
+    const key = beginSend("todoist", task.id);
+    if (!key) return;
     setError(null);
-    setSendingId(task.id);
 
     try {
       const response = await fetch("/api/integrations/todoist/tasks", {
@@ -86,6 +108,7 @@ export function StudyTaskBoard({
 
       if (!response.ok) throw new Error();
 
+      successfulSends.current.add(key);
       setSentIds((current) => {
         const next = new Set(current);
         next.add(task.id);
@@ -94,13 +117,14 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível enviar a tarefa para o Todoist.");
     } finally {
-      setSendingId(null);
+      endSend(key);
     }
   };
 
   const sendToAsana = async (task: StudyTask) => {
+    const key = beginSend("asana", task.id);
+    if (!key) return;
     setError(null);
-    setSendingId(task.id);
 
     try {
       const response = await fetch("/api/integrations/asana/tasks", {
@@ -120,6 +144,7 @@ export function StudyTaskBoard({
 
       if (!response.ok) throw new Error();
 
+      successfulSends.current.add(key);
       setAsanaSentIds((current) => {
         const next = new Set(current);
         next.add(task.id);
@@ -128,7 +153,7 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível enviar a tarefa para o Asana.");
     } finally {
-      setSendingId(null);
+      endSend(key);
     }
   };
 
@@ -314,17 +339,17 @@ export function StudyTaskBoard({
                     className="aa-button aa-button-secondary aa-button-sm"
                     type="button"
                     onClick={() => void sendToTodoist(task)}
-                    disabled={sendingId === task.id || sentIds.has(task.id)}
+                    disabled={sendingKeys.has(`todoist:${task.id}`) || sentIds.has(task.id)}
                     title={sentIds.has(task.id) ? "Tarefa já enviada para o Todoist nesta sessão" : "Enviar uma cópia para o Todoist"}
                   >
                     <Send size={16} aria-hidden="true" />
-                    {sendingId === task.id ? "Enviando…" : sentIds.has(task.id) ? "Enviado" : "Enviar ao Todoist"}
+                    {sendingKeys.has(`todoist:${task.id}`) ? "Enviando…" : sentIds.has(task.id) ? "Enviado" : "Enviar ao Todoist"}
                   </button>
                   <button
                     className="aa-button aa-button-secondary aa-button-sm"
                     type="button"
                     onClick={() => void sendToAsana(task)}
-                    disabled={sendingId === task.id || asanaSentIds.has(task.id)}
+                    disabled={sendingKeys.has(`asana:${task.id}`) || asanaSentIds.has(task.id)}
                     title={
                       asanaSentIds.has(task.id)
                         ? "Tarefa já enviada para o Asana nesta sessão"
@@ -332,7 +357,7 @@ export function StudyTaskBoard({
                     }
                   >
                     <Send size={16} aria-hidden="true" />
-                    {sendingId === task.id
+                    {sendingKeys.has(`asana:${task.id}`)
                       ? "Enviando…"
                       : asanaSentIds.has(task.id)
                         ? "Enviado ao Asana"
