@@ -29,7 +29,7 @@ function formatDueAt(value: string | null, timeZone?: string): string {
   // Microsoft Graph returns offset-less dateTime values when requesting UTC.
   // Parse them as UTC rather than the browser's local time zone.
   const normalized =
-    timeZone === "UTC" && !/(?:[zZ]|[+-]\\d{2}:\\d{2})$/.test(value)
+    timeZone === "UTC" && !/(?:[zZ]|[+-][0-9]{2}:[0-9]{2})$/.test(value)
       ? `${value}Z`
       : value;
   const date = new Date(normalized);
