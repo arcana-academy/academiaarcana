@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { StudyTask } from "@/domains/planning";
@@ -199,4 +199,103 @@ describe("StudyTaskBoard", () => {
 
     vi.unstubAllGlobals();
   });
+  it("keeps Todoist and Asana sends independent on the same task", async () => {
+    const releases: Array<(response: Response) => void> = [];
+    const fetchMock = vi.fn(() => new Promise<Response>((resolve) => {
+      releases.push(resolve);
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      render(
+        <StudyTaskBoard
+          tasks={[task]}
+          onCreate={vi.fn()}
+          onComplete={vi.fn().mockResolvedValue(task)}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Enviar ao Todoist" }));
+      fireEvent.click(screen.getByRole("button", { name: "Enviar ao Asana" }));
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/integrations/todoist/tasks", expect.objectContaining({ method: "POST" }),
+      );
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/integrations/asana/tasks", expect.objectContaining({ method: "POST" }),
+      );
+      expect(screen.getAllByRole("button", { name: "Enviando…" })).toHaveLength(2);
+      for (const release of releases) release(new Response("{}", { status: 201 }));
+      expect(await screen.findByRole("button", { name: "Enviado" })).toBeDisabled();
+      expect(await screen.findByRole("button", { name: "Enviado ao Asana" })).toBeDisabled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("keeps each task locked until its own Todoist request finishes", async () => {
+    const releases: Array<(response: Response) => void> = [];
+    const fetchMock = vi.fn(() => new Promise<Response>((resolve) => {
+      releases.push(resolve);
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      render(
+        <StudyTaskBoard
+          tasks={[task, { ...task, id: "task-2", title: "Revisar página 2" }]}
+          onCreate={vi.fn()}
+          onComplete={vi.fn().mockResolvedValue(task)}
+        />,
+      );
+      const first = within(screen.getByText("Revisar capítulo").closest("li")!);
+      const second = within(screen.getByText("Revisar página 2").closest("li")!);
+      fireEvent.click(first.getByRole("button", { name: "Enviar ao Todoist" }));
+      fireEvent.click(second.getByRole("button", { name: "Enviar ao Todoist" }));
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(first.getByRole("button", { name: "Enviando…" })).toBeDisabled();
+      expect(second.getByRole("button", { name: "Enviando…" })).toBeDisabled();
+      releases[1](new Response("{}", { status: 201 }));
+      await waitFor(() => expect(second.getByRole("button", { name: "Enviado" })).toBeDisabled());
+      expect(first.getByRole("button", { name: "Enviando…" })).toBeDisabled();
+      releases[0](new Response("{}", { status: 201 }));
+      await waitFor(() => expect(first.getByRole("button", { name: "Enviado" })).toBeDisabled());
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it.each([
+    { provider: "Todoist", endpoint: "/api/integrations/todoist/tasks", done: "Enviado" },
+    { provider: "Asana", endpoint: "/api/integrations/asana/tasks", done: "Enviado ao Asana" },
+  ])("retries $provider after failed send without duplicate pending POST", async ({ provider, endpoint, done }) => {
+    let release: ((response: Response) => void) | undefined;
+    const pending = new Promise<Response>((resolve) => { release = resolve; });
+    const fetchMock = vi.fn()
+      .mockReturnValueOnce(pending)
+      .mockResolvedValueOnce(new Response("{}", { status: 201 }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      render(
+        <StudyTaskBoard
+          tasks={[task]}
+          onCreate={vi.fn()}
+          onComplete={vi.fn().mockResolvedValue(task)}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+      const sending = screen.getByRole("button", { name: "Enviando…" });
+      expect(sending).toBeDisabled();
+      fireEvent.click(sending);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      release!(new Response("{}", { status: 502 }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(`Não foi possível enviar a tarefa para o ${provider}.`);
+      fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+      expect(await screen.findByRole("button", { name: done })).toBeDisabled();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenCalledWith(endpoint, expect.objectContaining({ method: "POST" }));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
 });
