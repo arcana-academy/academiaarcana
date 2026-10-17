@@ -43,6 +43,8 @@ export function StudyTaskBoard({
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // UI disabled state updates after rendering; a ref acquires the lock immediately.
+  const creatingTask = useRef(false);
   // Synchronous guard prevents duplicate provider POSTs before React rerenders.
   // Each provider/task pair remains independent while the request is pending.
   const activeSends = useRef(new Set<string>());
@@ -53,8 +55,9 @@ export function StudyTaskBoard({
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
 
   const submit = async () => {
+    if (creatingTask.current || !title.trim()) return;
+    creatingTask.current = true;
     setError(null);
-    if (!title.trim()) return;
     setIsSubmitting(true);
     try {
       const created = await onCreate({ title, dueAt: dueAt ? new Date(dueAt).toISOString() : null });
@@ -64,6 +67,7 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível criar a tarefa.");
     } finally {
+      creatingTask.current = false;
       setIsSubmitting(false);
     }
   };
