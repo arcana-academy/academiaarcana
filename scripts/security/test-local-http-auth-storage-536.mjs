@@ -151,7 +151,18 @@ async function main() {
     .update({ title: "Illegal cross-user edit" }).eq("id", rowA.id)
     .select("id"), "B tries modifying A grimoire");
   assert.equal(invisibleUpdate.length, 0);
-  console.log("PASS: PostgREST HTTP anonymous denial, two-account SELECT and cross-owner INSERT/UPDATE");
+  // RLS DELETE may fail explicitly or affect zero rows. In either case,
+  // verify the other owner's persistent record remains readable.
+  const forbiddenGrimoireDelete = await b.from("grimoires")
+    .delete().eq("id", rowA.id).select("id");
+  assert.ok(forbiddenGrimoireDelete.error ||
+    (forbiddenGrimoireDelete.data ?? []).length === 0,
+    "B must not delete A grimoire");
+  const grimoireAfterDeniedDelete = ok(await a.from("grimoires")
+    .select("id").eq("id", rowA.id), "A verifies grimoire after B DELETE");
+  assert.deepEqual(grimoireAfterDeniedDelete.map(row => row.id), [rowA.id],
+    "Cross-owner DELETE must not remove A grimoire");
+  console.log("PASS: PostgREST HTTP anonymous denial, two-account SELECT, cross-owner INSERT/UPDATE/DELETE");
 
   // Keep this coverage aligned with the independent historical PR #585: Feedback
   // is personally owned and must not leak across synthetic user sessions.
@@ -172,7 +183,16 @@ async function main() {
     .select("id").eq("id", feedbackA.id);
   assert.ok(feedbackGuest.error || (feedbackGuest.data ?? []).length === 0,
     "Anonymous cannot read private Feedback");
-  console.log("PASS: Feedback owner SELECT/INSERT and cross-owner/anonymous denial");
+  const forbiddenFeedbackDelete = await b.from("feedback_responses")
+    .delete().eq("id", feedbackA.id).select("id");
+  assert.ok(forbiddenFeedbackDelete.error ||
+    (forbiddenFeedbackDelete.data ?? []).length === 0,
+    "B must not delete A feedback");
+  const feedbackAfterDeniedDelete = ok(await a.from("feedback_responses")
+    .select("id").eq("id", feedbackA.id), "A verifies feedback after B DELETE");
+  assert.deepEqual(feedbackAfterDeniedDelete.map(row => row.id), [feedbackA.id],
+    "Cross-owner DELETE must not remove A feedback");
+  console.log("PASS: Feedback owner SELECT/INSERT, cross-owner DELETE and anonymous denial");
 
   // The tracked bucket only permits images. No real photos, accounts or files.
   const png = Buffer.from(
