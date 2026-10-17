@@ -50,7 +50,7 @@ const requiredRenderDirectives = [
   "type: web",
   "runtime: node",
   "branch: main",
-  "autoDeployTrigger: checksPass",
+  "autoDeployTrigger: off",
   "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
   "startCommand: npm start",
   "healthCheckPath: /api/health",
