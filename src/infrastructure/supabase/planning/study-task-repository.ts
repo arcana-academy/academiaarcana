@@ -49,9 +49,13 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     return toDomain(data as StudyTaskRow);
   }
 
+  /**
+   * Keep every pending task actionable, including overdue and undated tasks.
+   * The second argument is retained for existing callers of listUpcoming.
+   */
   async listUpcoming(
     ownerId: string,
-    now: string,
+    _now: string,
     limit = 10,
   ): Promise<StudyTask[]> {
     const { data, error } = await this.supabase
@@ -59,7 +63,6 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
       .select("*")
       .eq("owner_id", ownerId)
       .eq("status", "pending")
-      .or(`due_at.gte.${now},due_at.is.null`)
       .order("due_at", { ascending: true, nullsFirst: false })
       .limit(limit);
 
