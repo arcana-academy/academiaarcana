@@ -1,0 +1,25 @@
+name: Academia Arcana P0 536 Offline OCI Recovery Verification
+
+on:
+  pull_request:
+    paths:
+      - "scripts/security/oci_recovery_536.py"
+      - "scripts/security/test_oci_recovery_536.py"
+      - ".github/workflows/oci-recovery-check-536.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  offline-oci-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Unprivileged checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify tampering and content-addressed OCI checks
+        run: python3 -m unittest discover -s scripts/security -p 'test_oci_recovery_536.py' -v
