@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
@@ -38,7 +38,31 @@ export function StudyTaskBoard({
   onComplete,
   onScheduleInOutlook,
 }: StudyTaskBoardProps) {
-  const [items, setItems] = useState(tasks);
+  // Server snapshots are authoritative, but can lag behind locally confirmed
+  // creates/completions during a partial refresh of the Cronograma page.
+  const [locallyCreated, setLocallyCreated] = useState<StudyTask[]>([]);
+  const [locallyCompleted, setLocallyCompleted] = useState<Set<string>>(() => new Set());
+  const acknowledgedCreates = useRef(new Set<string>());
+
+  useEffect(() => {
+    const serverIds = new Set(tasks.map((task) => task.id));
+    for (const created of locallyCreated) {
+      if (serverIds.has(created.id)) acknowledgedCreates.current.add(created.id);
+    }
+  }, [tasks, locallyCreated]);
+
+  const items = useMemo(() => {
+    const serverIds = new Set(tasks.map((task) => task.id));
+    return [
+      ...tasks.filter((task) => !locallyCompleted.has(task.id)),
+      ...locallyCreated.filter(
+        (task) =>
+          !serverIds.has(task.id) &&
+          !acknowledgedCreates.current.has(task.id) &&
+          !locallyCompleted.has(task.id),
+      ),
+    ];
+  }, [tasks, locallyCreated, locallyCompleted]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +92,9 @@ export function StudyTaskBoard({
     setIsSubmitting(true);
     try {
       const created = await onCreate({ title, dueAt: dueAt ? new Date(dueAt).toISOString() : null });
-      setItems((current) => [...current, created]);
+      setLocallyCreated((current) =>
+        current.some((task) => task.id === created.id) ? current : [...current, created],
+      );
       setTitle("");
       setDueAt("");
     } catch {
@@ -206,7 +232,7 @@ export function StudyTaskBoard({
     setError(null);
     try {
       await onComplete(id);
-      setItems((current) => current.filter((item) => item.id !== id));
+      setLocallyCompleted((current) => new Set([...current, id]));
     } catch {
       setError("Não foi possível concluir a tarefa.");
     } finally {
