@@ -545,4 +545,40 @@ describe("StudyTaskBoard", () => {
     expect(await screen.findByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
   });
 
+  it("shows a reopened task after its absence was acknowledged and permits completion again", async () => {
+    const onCreate = vi.fn();
+    const onComplete = vi.fn().mockResolvedValue({ ...task, status: "completed" });
+    const { rerender } = render(
+      <StudyTaskBoard tasks={[task]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument());
+
+    // A newer server response can still be stale: do not resurrect it yet.
+    rerender(
+      <StudyTaskBoard tasks={[{ ...task }]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
+
+    // An authoritative server snapshot without the task acknowledges completion.
+    rerender(
+      <StudyTaskBoard tasks={[]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
+
+    // A later fresh server response may legitimately reopen that same task ID.
+    rerender(
+      <StudyTaskBoard
+        tasks={[{ ...task, title: "Retomar capítulo", updatedAt: "2026-10-17T10:00:00.000Z" }]}
+        onCreate={onCreate}
+        onComplete={onComplete}
+      />,
+    );
+    expect(await screen.findByText("Retomar capítulo")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(screen.queryByText("Retomar capítulo")).not.toBeInTheDocument());
+    expect(onComplete).toHaveBeenCalledTimes(2);
+  });
+
 });
