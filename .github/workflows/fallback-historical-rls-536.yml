@@ -1,0 +1,89 @@
+name: Academia Arcana P0 536 Historical Auth and RLS Contracts
+
+on:
+  push:
+    branches:
+      - chore/536-fallback-validation-20261009
+      - integration/p0-536-release-train-20261009
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0-536-historical-auth-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  historical-auth-rls:
+    name: Validate LIVE historical migrations, auth and RLS in disposable local Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout immutable historical last-LIVE source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 17fb81477fbd3eed14b93103641004a766eb9ac1
+          path: historical
+          persist-credentials: false
+
+      - name: Assert historical source and checked-in migration provenance
+        working-directory: historical
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "17fb81477fbd3eed14b93103641004a766eb9ac1"
+          test "$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l | tr -d ' ')" = "24"
+          test -f supabase/tests/database/authorization_rls_p0.test.sql
+          test -f supabase/tests/database/educational_objective_evidence_p15_rls.test.sql
+          echo "Historical source pin, 24 migrations and critical RLS tests: PASS"
+
+      - name: Setup pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Start fully isolated local historical Supabase
+        working-directory: historical
+        run: supabase db start
+
+      - name: Apply original historical migrations to disposable Supabase
+        working-directory: historical
+        run: supabase migration up --local --include-all
+
+      - name: Assert strictly local database test target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${DATABASE_URL:-}"
+          echo "No hosted Supabase credentials supplied; only local 127.0.0.1:54322 is used"
+
+      - name: Run historical auth/RLS and domain database test suite
+        working-directory: historical
+        shell: bash
+        run: |
+          set -euo pipefail
+          db='postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres'
+          for test_file in \
+            authorization_rls_p0.test.sql \
+            gamification_atomic.test.sql \
+            move_workspace_page_test.sql \
+            focus_social_privileges.test.sql \
+            feedback_hub_privileges.test.sql \
+            integration_credentials_security.test.sql \
+            external_document_sources_privileges.test.sql \
+            educational_core_p1_privileges.test.sql \
+            educational_core_p1_rls.test.sql \
+            educational_objective_evidence_p15_privileges.test.sql \
+            educational_objective_evidence_p15_rls.test.sql; do
+            echo "Checking historical local test: $test_file"
+            supabase test db --db-url "$db" "supabase/tests/database/$test_file"
+          done
+          echo "Eleven historical local Database Tests: PASS"
+
+      - name: Stop disposable historical Supabase
+        if: always()
+        working-directory: historical
+        run: supabase stop
