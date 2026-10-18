@@ -18,8 +18,15 @@ export function buildReviewRecommendation(
   attempts: PracticeAttempt[],
   now = new Date(),
 ): ReviewRecommendation {
-  const latest = [...attempts].sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
+  // A malformed persisted timestamp must never crash the learner's overview.
+  // Do not infer a review schedule from a timestamp or outcome we cannot trust.
+  const validAttempts = attempts.filter(
+    (attempt) =>
+      Number.isFinite(Date.parse(attempt.createdAt)) &&
+      Number.isFinite(REVIEW_DAYS[attempt.outcome]),
+  );
+  const latest = validAttempts.sort(
+    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
   )[0];
 
   if (!latest) {
@@ -28,7 +35,9 @@ export function buildReviewRecommendation(
       pageId: item.pageId,
       due: false,
       nextReviewAt: null,
-      reason: "Ainda não há evidência para programar uma revisão.",
+      reason: attempts.length
+        ? "Não foi possível programar a revisão porque as datas das tentativas são inválidas."
+        : "Ainda não há evidência para programar uma revisão.",
     };
   }
 
