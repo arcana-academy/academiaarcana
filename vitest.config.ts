@@ -25,6 +25,8 @@ export default defineConfig({
       // testDir "./tests/e2e"). Anchored with "**/" so no copy of the tree can
       // smuggle a spec file back into the Vitest run.
       "**/tests/e2e/**",
+      // Run native node:test canaries only with the dedicated isolated workflow.
+      "**/scripts/security/test-build-secret-isolation-536.test.cjs",
     ],
   },
 });
