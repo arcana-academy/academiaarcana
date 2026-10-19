@@ -135,7 +135,9 @@ def verify(path, digest, archive_digest=None):
     user = settings.get("User") if isinstance(settings, dict) else None
     identity = user.split(":", 1)[0] if isinstance(user, str) else ""
     root_runtime = (not isinstance(user, str) or not user or user != user.strip()
-                    or not identity or identity.casefold() == "root"
+                    or not identity or identity != identity.strip()
+                    or identity.casefold() == "root"
+                    or bool(re.fullmatch(r"[+-]?0+", identity))
                     or (identity.isdecimal() and int(identity) == 0))
     if config.get("os") != "linux" or config.get("architecture") != "amd64" or root_runtime:
         raise IntegrityError("Unexpected platform or root runtime")
