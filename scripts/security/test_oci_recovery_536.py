@@ -76,6 +76,37 @@ class OciOfflineTests(unittest.TestCase):
         with self.assertRaises(verify.IntegrityError):
             verify.verify(self.path, digest)
 
+    def test_rejects_duplicate_structural_directories(self):
+        digest = fixture(self.path, directories=True)
+        with tarfile.open(self.path, "a") as tar:
+            duplicate = tarfile.TarInfo("blobs")
+            duplicate.type = tarfile.DIRTYPE
+            tar.addfile(duplicate)
+        with self.assertRaises(verify.IntegrityError):
+            verify.verify(self.path, digest)
+
+    def test_rejects_symlink_hardlink_and_fifo_at_structural_paths(self):
+        for kind in (tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.FIFOTYPE):
+            with self.subTest(kind=kind):
+                digest = fixture(self.path)
+                with tarfile.open(self.path, "a") as tar:
+                    member = tarfile.TarInfo("blobs/")
+                    member.type = kind
+                    member.linkname = "../outside"
+                    tar.addfile(member)
+                with self.assertRaises(verify.IntegrityError):
+                    verify.verify(self.path, digest)
+
+    def test_rejects_nonempty_structural_directory(self):
+        digest = fixture(self.path)
+        with tarfile.open(self.path, "a") as tar:
+            member = tarfile.TarInfo("blobs/")
+            member.type = tarfile.DIRTYPE
+            member.size = 3
+            tar.addfile(member, io.BytesIO(b"bad"))
+        with self.assertRaises(verify.IntegrityError):
+            verify.verify(self.path, digest)
+
     def test_corruption(self):
         digest = fixture(self.path, corrupt=True)
         with self.assertRaises(verify.IntegrityError):
@@ -102,7 +133,7 @@ class OciOfflineTests(unittest.TestCase):
             verify.verify(self.path, digest)
 
     def test_requires_non_root(self):
-        for user in ("root", "0", "root:root", "0:0", "000:1000", "", ":staff", None, 0, " root "):
+        for user in ("root", "0", "root:root", "0:0", "000:1000", "+0:1000", "-0:staff", "+000:staff", "0 :staff", "ROOT:node", "", ":staff", None, 0, " root "):
             with self.subTest(user=user):
                 digest = fixture(self.path, user=user)
                 with self.assertRaises(verify.IntegrityError):
