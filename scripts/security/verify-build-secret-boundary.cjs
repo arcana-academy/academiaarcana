@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+ 
 "use strict";
 
 // Fail closed before any dependency/build code runs. Examine only env NAMES,
