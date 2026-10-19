@@ -299,7 +299,7 @@ export function StudyTaskBoard({
             <h2 id="outlook-title">Outlook Calendar</h2>
           </div>
           <span className="aa-badge aa-badge-neutral">
-            {outlookConnected ? "Conectado" : "Não conectado"}
+            {outlookConnected ? "Conectado" : outlookEventsUnavailable ? "Indisponível" : "Não conectado"}
           </span>
         </div>
         <p>
@@ -307,7 +307,9 @@ export function StudyTaskBoard({
             ? "Tarefas com horário podem ser transformadas em eventos no seu calendário."
             : "Conecte seu calendário para transformar tarefas do Cronograma em eventos reais."}
         </p>
-        {outlookConnected ? (
+        {outlookEventsUnavailable && !outlookConnected ? (
+          <p role="status">Não foi possível verificar a conexão do Outlook agora. Suas tarefas de estudo continuam disponíveis.</p>
+        ) : outlookConnected ? (
           <form action="/api/integrations/outlook/disconnect" method="post">
             <button
               className="aa-button aa-button-secondary aa-button-sm"
