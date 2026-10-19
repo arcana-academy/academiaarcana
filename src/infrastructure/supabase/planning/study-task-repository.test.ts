@@ -79,6 +79,38 @@ describe("SupabaseStudyTaskRepository", () => {
     });
   });
 
+  it("breaks equal due-date ties by ID before applying each query limit", async () => {
+    const sameOverdue = "2026-10-18T10:00:00.000Z";
+    const sameFuture = "2026-10-20T10:00:00.000Z";
+    const overdue = query([row("overdue-a", sameOverdue), row("overdue-b", sameOverdue)]);
+    const upcoming = query([row("future-a", sameFuture), row("future-b", sameFuture)]);
+    const from = vi.fn().mockReturnValueOnce(overdue).mockReturnValueOnce(upcoming);
+    const repository = new SupabaseStudyTaskRepository({ from } as never);
+
+    await repository.listPendingForBoard("owner-synthetic", now, 2);
+    expect(overdue.order.mock.calls).toEqual([
+      ["due_at", { ascending: false }],
+      ["id", { ascending: true }],
+    ]);
+    expect(upcoming.order.mock.calls).toEqual([
+      ["due_at", { ascending: true, nullsFirst: false }],
+      ["id", { ascending: true }],
+    ]);
+    expect(overdue.limit).toHaveBeenCalledWith(2);
+    expect(upcoming.limit).toHaveBeenCalledWith(2);
+
+    const sanctuary = query([row("future-a", sameFuture), row("future-b", sameFuture)]);
+    const upcomingRepository = new SupabaseStudyTaskRepository({
+      from: vi.fn().mockReturnValue(sanctuary),
+    } as never);
+    await upcomingRepository.listUpcoming("owner-synthetic", now, 2);
+    expect(sanctuary.order.mock.calls).toEqual([
+      ["due_at", { ascending: true, nullsFirst: false }],
+      ["id", { ascending: true }],
+    ]);
+    expect(sanctuary.limit).toHaveBeenCalledWith(2);
+  });
+
   it.each([0, 1])("propagates pending-query errors from window %i", async (failedIndex) => {
     const good = query([]);
     const bad = query(null, { message: "synthetic database read failure" });

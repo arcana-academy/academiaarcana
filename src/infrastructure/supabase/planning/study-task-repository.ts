@@ -62,13 +62,14 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
       .eq("status", "pending")
       .or(`due_at.gte.${now},due_at.is.null`)
       .order("due_at", { ascending: true, nullsFirst: false })
+      .order("id", { ascending: true })
       .limit(limit);
 
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => toDomain(row as StudyTaskRow));
   }
 
-  /** Fetch independent overdue and upcoming windows for the Cronograma board. */
+  /** Fetch bounded overdue and upcoming windows, breaking equal-date ties by task ID. */
   async listPendingForBoard(
     ownerId: string,
     now: string,
@@ -83,9 +84,11 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     const [overdue, upcoming] = await Promise.all([
       pending().lt("due_at", now)
         .order("due_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(limit),
       pending().or(`due_at.gte.${now},due_at.is.null`)
         .order("due_at", { ascending: true, nullsFirst: false })
+        .order("id", { ascending: true })
         .limit(limit),
     ]);
 
