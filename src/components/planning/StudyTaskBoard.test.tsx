@@ -246,6 +246,26 @@ describe("StudyTaskBoard", () => {
     const expected = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value + "Z"));
     expect(container.textContent).toContain(expected);
   });
+  it("keeps study tasks accessible when Outlook omits an event timezone", () => {
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        outlookEvents={[{
+          id: "event-without-timezone",
+          subject: "Revisão externa",
+          start: { dateTime: "2026-10-17T13:45:00", timeZone: null },
+          end: { dateTime: "2026-10-17T14:45:00", timeZone: "UTC" },
+        }]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+    expect(screen.getByText(/Data indisponível/)).toBeInTheDocument();
+    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+  });
+
   it("distinguishes unavailable Outlook events from an empty calendar without hiding tasks", () => {
     render(
       <StudyTaskBoard
