@@ -195,9 +195,14 @@ describe("delivery infrastructure contract", () => {
     expect(preflight).toContain('if [ "$RELEASE_REF" != "refs/heads/main" ]; then');
     expect(preflight).toContain('gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}"');
     expect(preflight).toContain("UPSTREAM_WORKFLOW_PATH: ${{ github.event.workflow_run.path }}");
-    expect(preflight).toContain('[ "$UPSTREAM_WORKFLOW_PATH" != ".github/workflows/quality.yml" ]');
-    expect(preflight).toContain('.path == ".github/workflows/quality.yml"');
-    expect(preflight).toContain('.name == "Academia Arcana Quality Gate"');
+    const automatic = preflight?.split('if [ "$RELEASE_EVENT" = "workflow_run" ]; then')[1]?.split(
+      'elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then',
+    )[0];
+    const manual = preflight?.split('elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then')[1];
+    // Same-name workflows must never be accepted as the canonical Quality Gate.
+    expect(automatic).toContain('[ "$UPSTREAM_WORKFLOW_PATH" != ".github/workflows/quality.yml" ]');
+    expect(manual).toContain('.path == ".github/workflows/quality.yml"');
+    expect(manual).toContain('.name == "Academia Arcana Quality Gate"');
     expect(preflight).toContain('.event == "push"');
     expect(preflight).toContain('.head_branch == "main"');
     expect(preflight).toContain('.head_sha == $revision');
