@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
+import { mkdtempSync, rmSync } from "node:fs";
+import { connect } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
-// Fail closed: this CI scenario may never run with a hosted Supabase or
-// repository/production credentials. The runner is ephemeral and PR-scoped.
+// Fail closed: this scenario is limited to a synthetic PR runner and a
+// loopback-only Supabase instance. No hosted project or real credentials.
 assert.equal(process.env.GITHUB_ACTIONS, "true");
 assert.equal(process.env.GITHUB_EVENT_NAME, "pull_request");
 assert.equal(process.env.AA_LOCAL_SUPABASE_E2E, "1");
@@ -15,29 +19,26 @@ const raw = execFileSync("supabase", ["status", "-o", "env"], {
 });
 const variables = Object.fromEntries(raw.split(/\r?\n/).flatMap((line) => {
   const match = line.match(/^([A-Z][A-Z0-9_]*)=(.*)$/);
-  return match ? [[match[1], match[2].replace(/^[\"']|[\"']$/g, "")]] : [];
+  return match ? [[match[1], match[2].replace(/^["']|["']$/g, "")]] : [];
 }));
-
 const api = new URL(variables.API_URL);
-assert.equal(api.protocol, "http:", "Hosted HTTPS backends are not permitted");
+assert.equal(api.protocol, "http:", "Supabase must be local HTTP before TLS proxying");
 assert.ok(["127.0.0.1", "localhost", "[::1]"].includes(api.hostname));
 assert.equal(api.pathname, "/");
 assert.equal(api.search, "");
 assert.equal(api.hash, "");
 assert.equal(api.username, "");
 assert.equal(api.password, "");
-assert.ok(variables.ANON_KEY, "Local Supabase anon key was not returned");
+assert.ok(variables.ANON_KEY);
 for (const name of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL"]) {
   if (process.env[name]) {
     assert.equal(new URL(process.env[name]).origin, api.origin,
-      `Refusing to override non-local ${name}`);
+      "Refusing to override an existing non-local " + name);
   }
 }
 
-// Credentials belong to a disposable account and are passed to the browser
-// test process only; they are never committed, printed or uploaded as an artifact.
-const email = `c26-${randomUUID()}@example.test`;
-const password = `LocalC26-${randomBytes(20).toString("hex")}!`;
+const email = "c26-" + randomUUID() + "@example.test";
+const password = "LocalC26-" + randomBytes(20).toString("hex") + "!";
 const client = createClient(api.toString(), variables.ANON_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
@@ -46,41 +47,86 @@ const { data: account, error: signupError } = await client.auth.signUp({
   email,
   password,
 });
-if (signupError) throw new Error(`Local synthetic account creation failed: ${signupError.message}`);
-assert.ok(account.user?.id && account.session?.access_token,
-  "Local Auth must create an immediately authenticated synthetic identity");
+if (signupError) throw new Error("Synthetic signup failed: " + signupError.message);
+assert.ok(account.user?.id && account.session?.access_token);
 
 const { data: grimoire, error: seedError } = await client
   .from("grimoires")
-  .insert({
-    owner_id: account.user.id,
-    title: "Grimório sintético C26",
-  })
+  .insert({ owner_id: account.user.id, title: "Grimório sintético C26" })
   .select("id")
   .single();
-if (seedError) throw new Error(`Local fixture creation failed: ${seedError.message}`);
+if (seedError) throw new Error("Synthetic grimoire seed failed: " + seedError.message);
 assert.ok(grimoire?.id);
 console.log("PASS: ephemeral local-only Auth identity and owned grimoire seeded");
 
-const result = spawnSync("npm", [
-  "exec", "--", "playwright", "test",
-  "tests/e2e/grimoires-workspace.spec.ts",
-  "tests/e2e/practice.spec.ts",
-  "tests/e2e/sanctuary.spec.ts",
-  "--config=playwright.local-auth.config.ts",
-], {
-  stdio: "inherit",
-  timeout: 11 * 60_000,
-  env: {
-    ...process.env,
-    NEXT_PUBLIC_SUPABASE_URL: api.toString(),
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: variables.ANON_KEY,
-    E2E_EMAIL: email,
-    E2E_PASSWORD: password,
-  },
-});
+// The production CSP requires HTTPS for cross-origin Supabase requests.
+// Use a disposable TLS bridge instead of weakening CSP or disabling checks.
+// Only locally generated TLS files are trusted by the test process.
+const dir = mkdtempSync(join(tmpdir(), "aa-c26-local-tls-"));
+const keyFile = join(dir, "localhost.key");
+const certFile = join(dir, "localhost.crt");
+let proxy;
+const proxyPort = 54443;
 
-if (result.error) throw result.error;
-assert.equal(result.signal, null, "Local authenticated Next.js E2E was interrupted");
-assert.equal(result.status, 0, "Local authenticated Next.js E2E failed");
-console.log("PASS: authenticated Grimórios, Prática and Santuário Next.js journeys on disposable local Supabase");
+function isProxyListening() {
+  return new Promise((resolve) => {
+    const socket = connect({ host: "127.0.0.1", port: proxyPort });
+    socket.once("connect", () => { socket.destroy(); resolve(true); });
+    socket.once("error", () => { socket.destroy(); resolve(false); });
+  });
+}
+
+try {
+  execFileSync("openssl", [
+    "req", "-x509", "-newkey", "rsa:2048", "-sha256", "-nodes",
+    "-days", "1", "-keyout", keyFile, "-out", certFile,
+    "-subj", "/CN=localhost",
+    "-addext", "subjectAltName=DNS:localhost,IP:127.0.0.1",
+  ], { stdio: "ignore", timeout: 20_000 });
+
+  proxy = spawn(process.execPath, [
+    "scripts/security/local-supabase-https-proxy.mjs",
+  ], {
+    stdio: ["ignore", "inherit", "inherit"],
+    env: {
+      ...process.env,
+      AA_LOCAL_SUPABASE_ORIGIN: api.origin,
+      AA_LOCAL_TLS_KEY_FILE: keyFile,
+      AA_LOCAL_TLS_CERT_FILE: certFile,
+      AA_LOCAL_TLS_PORT: String(proxyPort),
+    },
+  });
+  let ready = false;
+  for (let retry = 0; retry < 30; retry += 1) {
+    if (proxy.exitCode !== null) break;
+    if (await isProxyListening()) { ready = true; break; }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  assert.ok(ready, "Loopback HTTPS test gateway failed to start");
+
+  const result = spawnSync("npm", [
+    "exec", "--", "playwright", "test",
+    "tests/e2e/grimoires-workspace.spec.ts",
+    "tests/e2e/practice.spec.ts",
+    "tests/e2e/sanctuary.spec.ts",
+    "--config=playwright.local-auth.config.ts",
+  ], {
+    stdio: "inherit",
+    timeout: 11 * 60_000,
+    env: {
+      ...process.env,
+      NODE_EXTRA_CA_CERTS: certFile,
+      NEXT_PUBLIC_SUPABASE_URL: "https://127.0.0.1:" + proxyPort + "/",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: variables.ANON_KEY,
+      E2E_EMAIL: email,
+      E2E_PASSWORD: password,
+    },
+  });
+  if (result.error) throw result.error;
+  assert.equal(result.signal, null, "Authenticated Next.js E2E was interrupted");
+  assert.equal(result.status, 0, "Authenticated Next.js E2E failed");
+  console.log("PASS: authenticated Next.js journeys with unchanged CSP and local-only HTTPS");
+} finally {
+  if (proxy && proxy.exitCode === null) proxy.kill();
+  rmSync(dir, { recursive: true, force: true });
+}

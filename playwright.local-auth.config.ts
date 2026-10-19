@@ -10,6 +10,12 @@ if (process.env.AA_LOCAL_SUPABASE_E2E !== "1") {
 
 export default defineConfig({
   ...baseConfig,
+  use: {
+    ...baseConfig.use,
+    // Trust only the disposable localhost certificate in this test context.
+    // The app's Content-Security-Policy remains enforced.
+    ignoreHTTPSErrors: true,
+  },
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --webpack",
     url: "http://127.0.0.1:3000/login",
