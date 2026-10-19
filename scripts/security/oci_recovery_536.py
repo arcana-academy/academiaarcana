@@ -53,9 +53,19 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Tar SHA mismatch")
     checked = {}
     metadata = {}
+    seen_directories = set()
     with tarfile.open(path, "r|*") as tar:
         for member in tar:
             name = member.name
+            if member.isdir():
+                # Accept only OCI layout scaffolding; never extract directories.
+                # Normalize a trailing slash to reject alternate duplicate spellings.
+                structural = name.rstrip("/")
+                if (structural not in (".", "blobs", "blobs/sha256") or
+                        member.size != 0 or structural in seen_directories):
+                    raise IntegrityError("Unexpected/duplicate OCI directory")
+                seen_directories.add(structural)
+                continue
             if name in checked or not member.isfile():
                 raise IntegrityError("Duplicate/nonregular member")
             if name not in ("oci-layout", "index.json") and not BLOB.fullmatch(name):
