@@ -84,6 +84,29 @@ describe("StudyTaskBoard", () => {
     expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
     expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
   });
+  it("keeps an overdue task visible and allows completing it", async () => {
+    const overdue = {
+      ...task,
+      id: "task-overdue",
+      title: "Revisão pendente vencida",
+      dueAt: "2020-01-01T10:00:00.000Z",
+    };
+    const onComplete = vi.fn().mockResolvedValue({ ...overdue, status: "completed" });
+
+    render(
+      <StudyTaskBoard
+        tasks={[overdue]}
+        onCreate={vi.fn()}
+        onComplete={onComplete}
+      />,
+    );
+
+    expect(screen.getByText("Revisão pendente vencida")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(onComplete).toHaveBeenCalledWith("task-overdue"));
+    expect(screen.queryByText("Revisão pendente vencida")).not.toBeInTheDocument();
+  });
+
   it("shows Outlook scheduling for tasks with a due time and calls the server action", async () => {
     const onScheduleInOutlook = vi.fn().mockResolvedValue({
       webLink: null,
@@ -145,5 +168,60 @@ describe("StudyTaskBoard", () => {
     expect(screen.getByRole("button", { name: "Enviado ao Asana" })).toBeInTheDocument();
 
     vi.unstubAllGlobals();
+  });
+
+  it("keeps study tasks usable when an Outlook event contains an invalid date", async () => {
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        outlookEvents={[{
+          id: "event-invalid",
+          subject: "Reunião externa",
+          start: { dateTime: "invalid-date", timeZone: "UTC" },
+          end: { dateTime: "2026-10-17T18:00:00", timeZone: "UTC" },
+        }]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue({ ...task, status: "completed" })}
+      />,
+    );
+
+    expect(screen.getByText("Data indisponível", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument());
+  });
+
+  it("renders a malformed task deadline without hiding its completion action", async () => {
+    render(
+      <StudyTaskBoard
+        tasks={[{ ...task, dueAt: "invalid-date" }]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue({ ...task, status: "completed" })}
+      />,
+    );
+
+    expect(screen.getByText("Data indisponível")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+  });
+
+  it("treats an offset-free UTC Outlook event as UTC, not as browser-local time", () => {
+    const value = "2026-10-17T13:45:00";
+    const { container } = render(
+      <StudyTaskBoard
+        tasks={[]}
+        outlookConnected
+        outlookEvents={[{
+          id: "event-utc",
+          subject: "Revisão externa",
+          start: { dateTime: value, timeZone: "UTC" },
+          end: { dateTime: "2026-10-17T14:45:00", timeZone: "UTC" },
+        }]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+      />,
+    );
+    const expected = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value + "Z"));
+    expect(container.textContent).toContain(expected);
   });
 });

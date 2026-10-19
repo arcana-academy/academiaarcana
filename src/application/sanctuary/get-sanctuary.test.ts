@@ -339,6 +339,43 @@ describe("getSanctuary", () => {
     });
   });
 
+  it("counts only distinct completed pages in the current hierarchy", async () => {
+    const getPageProgress = vi.fn().mockResolvedValue([
+      { pageId: "page-1", status: "completed" },
+      { pageId: "page-1", status: "completed" },
+      { pageId: "orphan-page", status: "completed" },
+    ]);
+    const repository: SanctuaryRepository = {
+      ...createRepository([grimoire]),
+      getPageProgress,
+    };
+
+    const result = await getSanctuary(repository, sessionContext);
+
+    expect(getPageProgress).toHaveBeenCalledWith("user-1", ["page-1"]);
+    expect(result.progress).toEqual({
+      status: "ready",
+      data: { percentage: 100, label: "1 de 1 páginas concluídas" },
+    });
+  });
+
+  it("does not award progress from completed records outside the hierarchy", async () => {
+    const repository: SanctuaryRepository = {
+      ...createRepository([grimoire]),
+      getPageProgress: vi.fn().mockResolvedValue([
+        { pageId: "orphan-page", status: "completed" },
+        { pageId: "page-1", status: "in-progress" },
+      ]),
+    };
+
+    const result = await getSanctuary(repository, sessionContext);
+
+    expect(result.progress).toEqual({
+      status: "ready",
+      data: { percentage: 0, label: "0 de 1 páginas concluídas" },
+    });
+  });
+
   it("does not mutate the authenticated session context", async () => {
     const repository = createRepository([grimoire]);
 

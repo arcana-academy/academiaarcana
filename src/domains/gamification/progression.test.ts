@@ -17,6 +17,46 @@ describe("gamification progression", () => {
     expect(getLevelForXp(900)).toBe(4);
   });
 
+  it("rejects non-finite XP before computing levels", () => {
+    expect(getLevelForXp(Number.NaN)).toBe(1);
+    expect(getLevelForXp(Number.POSITIVE_INFINITY)).toBe(1);
+    expect(getLevelForXp(Number.NEGATIVE_INFINITY)).toBe(1);
+    expect(getLevelForXp(-100)).toBe(1);
+  });
+
+  it("keeps corrupted persisted counters out of statistics", () => {
+    expect(getProgression({ ...profile, xp: Number.NaN, streakDays: Number.POSITIVE_INFINITY }, [])).toMatchObject({
+      level: 1,
+      totalXp: 0,
+      levelProgressXp: 0,
+      nextLevelXp: 100,
+      streakDays: 0,
+      completedMissionCount: 0,
+    });
+  });
+
+  it("does not fabricate achievements from non-finite XP or streaks", () => {
+    const achievements = getAchievements(
+      { ...profile, xp: Number.POSITIVE_INFINITY, streakDays: Number.NaN },
+      [],
+    );
+    expect(achievements.every((item) => !item.unlocked)).toBe(true);
+    expect(achievements.map((item) => item.progress.current)).toEqual([0, 0, 0, 0]);
+  });
+
+  it("normalizes fractional and out-of-range counters to safe whole values", () => {
+    expect(getProgression({ ...profile, xp: 150.9, streakDays: 2.8 }, [])).toMatchObject({
+      level: 2,
+      totalXp: 150,
+      levelProgressXp: 50,
+      streakDays: 2,
+    });
+
+    const huge = getProgression({ ...profile, xp: Number.MAX_VALUE }, []);
+    expect(huge.totalXp).toBe(Number.MAX_SAFE_INTEGER);
+    expect(Number.isFinite(huge.nextLevelXp)).toBe(true);
+  });
+
   it("derives progression without inventing state", () => {
     const result = getProgression(profile, [
       { id: "m1", ownerId: "user-1", code: "a", title: "A", rewardXp: 10, targetDate: "2026-09-29", status: "completed", completedAt: "2026-09-29T09:00:00.000Z" },
