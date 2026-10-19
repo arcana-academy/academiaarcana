@@ -266,6 +266,22 @@ describe("StudyTaskBoard", () => {
     expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
   });
 
+  it("shows an Outlook connection outage without hiding native study tasks", () => {
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookEventsUnavailable
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Não foi possível verificar a conexão do Outlook agora.",
+    );
+    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+  });
+
   it("distinguishes unavailable Outlook events from an empty calendar without hiding tasks", () => {
     render(
       <StudyTaskBoard
