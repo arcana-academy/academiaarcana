@@ -18,7 +18,7 @@ def sha(data):
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
-def fixture(path, corrupt=False, extra=None, user="node"):
+def fixture(path, corrupt=False, extra=None, user="node", directories=False):
     config = json.dumps({"os": "linux", "architecture": "amd64", "config": {"User": user}}).encode()
     layer = b"only-synthetic-fixture-layer"
     manifest = json.dumps({
@@ -38,6 +38,12 @@ def fixture(path, corrupt=False, extra=None, user="node"):
     if extra:
         blobs[extra] = b"unexpected"
     with tarfile.open(path, "w") as tar:
+        if directories:
+            for name in ("./", "blobs/", "blobs/sha256/"):
+                directory = tarfile.TarInfo(name)
+                directory.type = tarfile.DIRTYPE
+                directory.mode = 0o755
+                tar.addfile(directory)
         for name, content in sorted(blobs.items()):
             info = tarfile.TarInfo(name)
             info.size = len(content)
@@ -55,6 +61,20 @@ class OciOfflineTests(unittest.TestCase):
         digest = fixture(self.path)
         result = verify.verify(self.path, digest, verify.file_sha(self.path))
         self.assertEqual(result["objectsVerified"], 3)
+
+    def test_valid_oci_with_structural_directories(self):
+        digest = fixture(self.path, directories=True)
+        result = verify.verify(self.path, digest)
+        self.assertEqual(result["objectsVerified"], 3)
+
+    def test_rejects_unexpected_directory(self):
+        digest = fixture(self.path)
+        with tarfile.open(self.path, "a") as tar:
+            member = tarfile.TarInfo("blobs/unexpected/")
+            member.type = tarfile.DIRTYPE
+            tar.addfile(member)
+        with self.assertRaises(verify.IntegrityError):
+            verify.verify(self.path, digest)
 
     def test_corruption(self):
         digest = fixture(self.path, corrupt=True)
@@ -82,9 +102,17 @@ class OciOfflineTests(unittest.TestCase):
             verify.verify(self.path, digest)
 
     def test_requires_non_root(self):
-        digest = fixture(self.path, user="root")
-        with self.assertRaises(verify.IntegrityError):
-            verify.verify(self.path, digest)
+        for user in ("root", "0", "root:root", "0:0", "000:1000", "", ":staff", None, 0, " root "):
+            with self.subTest(user=user):
+                digest = fixture(self.path, user=user)
+                with self.assertRaises(verify.IntegrityError):
+                    verify.verify(self.path, digest)
+
+    def test_accepts_non_root_user_and_group(self):
+        for user in ("node", "node:root", "1000:1000"):
+            with self.subTest(user=user):
+                digest = fixture(self.path, user=user)
+                self.assertEqual(verify.verify(self.path, digest)["user"], user)
 
     def test_rejects_mutable_tags(self):
         with self.assertRaises(verify.IntegrityError):
