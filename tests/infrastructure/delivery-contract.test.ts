@@ -194,6 +194,9 @@ describe("delivery infrastructure contract", () => {
     expect(preflight).toContain('elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then');
     expect(preflight).toContain('if [ "$RELEASE_REF" != "refs/heads/main" ]; then');
     expect(preflight).toContain('gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}"');
+    expect(preflight).toContain("UPSTREAM_WORKFLOW_PATH: ${{ github.event.workflow_run.path }}");
+    expect(preflight).toContain('[ "$UPSTREAM_WORKFLOW_PATH" != ".github/workflows/quality.yml" ]');
+    expect(preflight).toContain('.path == ".github/workflows/quality.yml"');
     expect(preflight).toContain('.name == "Academia Arcana Quality Gate"');
     expect(preflight).toContain('.event == "push"');
     expect(preflight).toContain('.head_branch == "main"');
