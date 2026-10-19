@@ -69,7 +69,7 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     return (data ?? []).map((row) => toDomain(row as StudyTaskRow));
   }
 
-  /** Fetch independent overdue and upcoming windows for the Cronograma board. */
+  /** Fetch bounded overdue and upcoming windows, breaking equal-date ties by task ID. */
   async listPendingForBoard(
     ownerId: string,
     now: string,
