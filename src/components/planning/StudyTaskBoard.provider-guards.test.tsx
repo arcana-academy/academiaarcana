@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StudyTask } from "@/domains/planning";
 import { StudyTaskBoard } from "./StudyTaskBoard";
@@ -27,6 +27,63 @@ const renderBoard = (schedule?: (id: string) => Promise<{webLink?: string | null
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("provider sends: synchronous duplicate guards", () => {
+  describe.each([
+    { provider: "Todoist", sentLabel: "Enviado", endpoint: "todoist" },
+    { provider: "Asana", sentLabel: "Enviado ao Asana", endpoint: "asana" },
+  ])("$provider retry boundaries", ({ provider, sentLabel, endpoint }) => {
+    it.each([401, 409, 500, "network"])("releases the guard after %s and permits a successful retry", async (failure) => {
+      const send = vi.fn();
+      if (failure === "network") send.mockRejectedValueOnce(new Error("network failed"));
+      else send.mockResolvedValueOnce({ ok: false, status: failure });
+      send.mockResolvedValueOnce({ ok: true, status: 201 });
+      vi.stubGlobal("fetch", send);
+      renderBoard();
+      const label = `Enviar ao ${provider}`;
+      fireEvent.click(screen.getByRole("button", { name: label }));
+      const error = await screen.findByRole("alert");
+      expect(error).toHaveTextContent(failure === 401 || failure === 409 ? `Conecte o ${provider}` : `Não foi possível enviar a tarefa para o ${provider}.`);
+      expect(screen.getByRole("button", { name: label })).toBeEnabled();
+      fireEvent.click(screen.getByRole("button", { name: label }));
+      expect(await screen.findByRole("button", { name: sentLabel })).toBeDisabled();
+      expect(send).toHaveBeenCalledTimes(2);
+      expect(send).toHaveBeenLastCalledWith(`/api/integrations/${endpoint}/tasks`, expect.objectContaining({ method: "POST" }));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(screen.getByText(task.title)).toBeInTheDocument();
+    });
+  });
+
+  it("tracks simultaneous Todoist sends by task even when responses arrive out of order", async () => {
+    const first = deferred<Reply>();
+    const second = deferred<Reply>();
+    const send = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    vi.stubGlobal("fetch", send);
+    const other = { ...task, id: "other-task", title: "Revisar poções" };
+    render(<StudyTaskBoard tasks={[task, other]} onCreate={vi.fn()} onComplete={vi.fn()} />);
+    const firstRow = screen.getByText(task.title).closest("li")!;
+    const secondRow = screen.getByText(other.title).closest("li")!;
+    fireEvent.click(within(firstRow).getByRole("button", { name: "Enviar ao Todoist" }));
+    fireEvent.click(within(secondRow).getByRole("button", { name: "Enviar ao Todoist" }));
+    await act(async () => { second.resolve({ ok: true, status: 201 }); });
+    expect(within(secondRow).getByRole("button", { name: "Enviado" })).toBeDisabled();
+    const pending = within(firstRow).getByRole("button", { name: "Enviando…" });
+    expect(pending).toBeDisabled();
+    fireEvent.click(pending);
+    expect(send).toHaveBeenCalledTimes(2);
+    await act(async () => { first.resolve({ ok: true, status: 201 }); });
+    expect(within(firstRow).getByRole("button", { name: "Enviado" })).toBeDisabled();
+  });
+
+  it("opens a successful Outlook event once with opener protection", async () => {
+    const open = vi.spyOn(window, "open").mockImplementation(() => null);
+    const schedule = vi.fn().mockResolvedValue({ webLink: "https://outlook.example.test/event/1" });
+    renderBoard(schedule);
+    fireEvent.click(screen.getByRole("button", { name: "Agendar no Outlook" }));
+    const done = await screen.findByRole("button", { name: "Agendado no Outlook" });
+    fireEvent.click(done);
+    expect(schedule).toHaveBeenCalledTimes(1);
+    expect(open).toHaveBeenCalledExactlyOnceWith("https://outlook.example.test/event/1", "_blank", "noopener,noreferrer");
+  });
+
   it("coalesces repeated Todoist clicks while pending and prevents resend after success", async () => {
     const response = deferred<Reply>();
     const send = vi.fn(() => response.promise);

@@ -5,6 +5,15 @@ import { describe, expect, it, vi } from "vitest";
 import { SupabaseStudyTaskRepository } from "./study-task-repository";
 
 describe("SupabaseStudyTaskRepository", () => {
+  it.each([null, []])("returns an empty list for a successful query with data %s and respects a custom limit", async (data) => {
+    const builder = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), limit: vi.fn().mockResolvedValue({ data, error: null }) };
+    for (const method of [builder.select, builder.eq, builder.order]) method.mockReturnValue(builder);
+    const repository = new SupabaseStudyTaskRepository({ from: vi.fn().mockReturnValue(builder) } as never);
+    expect(await repository.listUpcoming("owner-2", "2026-10-19T00:00:00Z", 3)).toEqual([]);
+    expect(builder.limit).toHaveBeenCalledWith(3);
+    expect(builder.eq.mock.calls).toEqual([["owner_id", "owner-2"], ["status", "pending"]]);
+  });
+
   it("keeps overdue, future and undated pending tasks actionable", async () => {
     const now = "2026-10-16T17:00:00.000Z";
     const builder = {

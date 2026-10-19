@@ -18,6 +18,25 @@ const task: StudyTask = {
 };
 
 describe("Cronograma server snapshot acknowledgment and reopening", () => {
+  it("retains an unacknowledged creation, then honors server edits and removal after acknowledgment", async () => {
+    const create = vi.fn().mockResolvedValue(task);
+    const complete = vi.fn();
+    const { rerender } = render(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: task.title } });
+    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
+    expect(await screen.findByText(task.title)).toBeInTheDocument();
+    // An empty snapshot received before creation acknowledgment is stale.
+    rerender(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
+    expect(screen.getAllByText(task.title)).toHaveLength(1);
+    const edited = { ...task, title: "Título confirmado pelo servidor" };
+    rerender(<StudyTaskBoard tasks={[edited]} onCreate={create} onComplete={complete} />);
+    expect(screen.getByText(edited.title)).toBeInTheDocument();
+    expect(screen.queryByText(task.title)).not.toBeInTheDocument();
+    rerender(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
+    expect(screen.queryByText(edited.title)).not.toBeInTheDocument();
+    expect(screen.queryByText(task.title)).not.toBeInTheDocument();
+  });
+
   it("shows a newly received server task without remounting the board", () => {
     const newTask = { ...task, id: "new-server-task", title: "Preparar poções" };
     const create = vi.fn();

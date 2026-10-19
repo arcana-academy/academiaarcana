@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { StudyTask } from "@/domains/planning";
 
@@ -18,7 +18,29 @@ const task: StudyTask = {
   updatedAt: "2026-09-24T10:00:00.000Z",
 };
 
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
 describe("StudyTaskBoard", () => {
+  it.each([
+    ["2026-10-17T13:45:00", "utc", "2026-10-17T13:45:00Z"],
+    ["2026-10-17T13:45:00Z", "UTC", "2026-10-17T13:45:00Z"],
+    ["2026-10-17T13:45:00-03:00", "UTC", "2026-10-17T16:45:00Z"],
+    ["2026-10-17T13:45:00+02:00", "UTC", "2026-10-17T11:45:00Z"],
+  ])("formats Outlook time %s (%s) in a non-UTC browser zone", (dateTime, timeZone, instant) => {
+    const DateTimeFormat = Intl.DateTimeFormat;
+    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(function (locales, options) {
+      return new DateTimeFormat(locales, { ...options, timeZone: "America/Sao_Paulo" });
+    });
+    render(<StudyTaskBoard tasks={[]} outlookConnected outlookEvents={[{
+      id: "event-offset", subject: "Evento externo",
+      start: { dateTime, timeZone }, end: { dateTime, timeZone },
+    }]} onCreate={vi.fn()} onComplete={vi.fn()} />);
+    const expected = new DateTimeFormat("pt-BR", {
+      dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo",
+    }).format(new Date(instant));
+    expect(screen.getByText(`${expected} · até ${expected}`)).toBeInTheDocument();
+  });
+
   it("creates a task and adds it to the visible schedule through the labeled form", async () => {
     const created = { ...task, id: "task-2", title: "Nova revisão" };
     const onCreate = vi.fn().mockResolvedValue(created);

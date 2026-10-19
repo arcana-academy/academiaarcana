@@ -10,6 +10,48 @@ const profile = {
 };
 
 describe("gamification progression", () => {
+  it.each([
+    [-0.5, 0, 1, 0],
+    [99.999, 99, 1, 99],
+    [100.999, 100, 2, 0],
+    [399.999, 399, 2, 299],
+    [400.999, 400, 3, 0],
+  ])("normalizes XP %s at level boundaries", (xp, totalXp, level, levelProgressXp) => {
+    expect(getLevelForXp(xp)).toBe(level);
+    expect(getProgression({ ...profile, xp }, [])).toMatchObject({ totalXp, level, levelProgressXp });
+  });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, -7, -0.5])(
+    "does not unlock streak achievements for invalid streak %s",
+    (streakDays) => {
+      const current = { ...profile, xp: 0, streakDays };
+      expect(getProgression(current, []).streakDays).toBe(0);
+      expect(getAchievements(current, []).find((entry) => entry.code === "streak-7"))
+        .toMatchObject({ unlocked: false, progress: { current: 0 } });
+    },
+  );
+
+  it("caps both counters at the largest safe integer while keeping level progress finite", () => {
+    const capped = getProgression({ ...profile, xp: Number.MAX_SAFE_INTEGER, streakDays: Number.MAX_SAFE_INTEGER }, []);
+    const overflowing = getProgression({ ...profile, xp: Number.MAX_VALUE, streakDays: Number.MAX_VALUE }, []);
+    expect(overflowing).toEqual(capped);
+    expect(overflowing.streakDays).toBe(Number.MAX_SAFE_INTEGER);
+    expect(overflowing.levelProgressXp).toBeGreaterThanOrEqual(0);
+    expect(overflowing.levelProgressXp).toBeLessThan(overflowing.nextLevelXp - (overflowing.level - 1) ** 2 * 100);
+  });
+
+  it("does not round fractional counters up to an achievement threshold or mutate the profile", () => {
+    const current = { ...profile, xp: 9.999, streakDays: 6.999 };
+    const original = { ...current };
+    expect(getAchievements(current, [])).toMatchObject([
+      { code: "first-xp", unlocked: false, progress: { current: 9 } },
+      { code: "level-3", unlocked: false, progress: { current: 9 } },
+      { code: "streak-7", unlocked: false, progress: { current: 6 } },
+      { code: "mission-3", unlocked: false, progress: { current: 0 } },
+    ]);
+    expect(current).toEqual(original);
+  });
+
   it("derives deterministic levels from persisted XP", () => {
     expect(getLevelForXp(0)).toBe(1);
     expect(getLevelForXp(100)).toBe(2);
