@@ -20,12 +20,14 @@ export function resolveContinueLearning(grimoires: SanctuaryGrimoire[]): Continu
 
   let selected: ContinueLearningContext | null = null;
   let selectedDepth = 0;
+  /** Keep the first candidate at the greatest depth: grimoire 1 through page 4. */
   const consider = (candidate: ContinueLearningContext, depth: number) => {
     if (depth > selectedDepth) {
       selected = candidate;
       selectedDepth = depth;
     }
   };
+  /** Order siblings by ascending position, breaking ties by ID. */
   const byPositionThenId = <T extends { position: number; id: string }>(a: T, b: T) =>
     a.position - b.position || a.id.localeCompare(b.id);
 
