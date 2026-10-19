@@ -18,6 +18,7 @@ type StudyTaskBoardProps = {
   tasks: StudyTask[];
   outlookConnected?: boolean;
   outlookEvents?: OutlookEvent[];
+  outlookEventsUnavailable?: boolean;
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
   onComplete: (id: string) => Promise<StudyTask>;
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
@@ -43,6 +44,7 @@ export function StudyTaskBoard({
   tasks,
   outlookConnected = false,
   outlookEvents = [],
+  outlookEventsUnavailable = false,
   onCreate,
   onComplete,
   onScheduleInOutlook,
@@ -335,7 +337,12 @@ export function StudyTaskBoard({
             </div>
             <span className="aa-badge aa-badge-neutral">{outlookEvents.length}</span>
           </div>
-          {outlookEvents.length === 0 ? (
+          {outlookEventsUnavailable ? (
+            <div className="aa-empty" role="status">
+              <p>Não foi possível carregar os eventos do Outlook agora.</p>
+              <p>Suas tarefas de estudo continuam disponíveis. Tente atualizar a página mais tarde.</p>
+            </div>
+          ) : outlookEvents.length === 0 ? (
             <div className="aa-empty">
               <p>Nenhum evento encontrado no Outlook neste período.</p>
             </div>
