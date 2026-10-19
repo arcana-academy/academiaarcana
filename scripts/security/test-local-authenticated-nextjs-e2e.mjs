@@ -104,6 +104,27 @@ try {
   }
   assert.ok(ready, "Loopback HTTPS test gateway failed to start");
 
+  // Compile a disposable LOCAL synthetic build, not a release artifact.
+  // Production "npm run build" remains subject to its hosted HTTPS guard in
+  // the separate canonical Quality Gate; no production credentials exist here.
+  const syntheticEnvironment = {
+    ...process.env,
+    NODE_EXTRA_CA_CERTS: certFile,
+    NEXT_PUBLIC_SUPABASE_URL: "https://127.0.0.1:" + proxyPort + "/",
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: variables.ANON_KEY,
+    E2E_EMAIL: email,
+    E2E_PASSWORD: password,
+  };
+  const build = spawnSync("npm", ["exec", "--", "next", "build", "--webpack"], {
+    stdio: "inherit",
+    timeout: 8 * 60_000,
+    env: syntheticEnvironment,
+  });
+  if (build.error) throw build.error;
+  assert.equal(build.signal, null, "Local Next.js build was interrupted");
+  assert.equal(build.status, 0, "Local Next.js build failed");
+  console.log("PASS: disposable local Next.js build compiled with unmodified production CSP");
+
   const result = spawnSync("npm", [
     "exec", "--", "playwright", "test",
     "tests/e2e/grimoires-workspace.spec.ts",
@@ -113,14 +134,7 @@ try {
   ], {
     stdio: "inherit",
     timeout: 11 * 60_000,
-    env: {
-      ...process.env,
-      NODE_EXTRA_CA_CERTS: certFile,
-      NEXT_PUBLIC_SUPABASE_URL: "https://127.0.0.1:" + proxyPort + "/",
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: variables.ANON_KEY,
-      E2E_EMAIL: email,
-      E2E_PASSWORD: password,
-    },
+    env: syntheticEnvironment,
   });
   if (result.error) throw result.error;
   assert.equal(result.signal, null, "Authenticated Next.js E2E was interrupted");
