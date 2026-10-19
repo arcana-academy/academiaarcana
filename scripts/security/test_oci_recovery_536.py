@@ -76,6 +76,18 @@ class OciOfflineTests(unittest.TestCase):
         with self.assertRaises(verify.IntegrityError):
             verify.verify(self.path, digest)
 
+    def test_rejects_unsafe_structural_directory_paths(self):
+        for name in ("../", "blobs/../", "/absolute/", "blobs//sha256/",
+                     "blobs/sha256/extra/", "./blobs/"):
+            with self.subTest(name=name):
+                digest = fixture(self.path)
+                with tarfile.open(self.path, "a") as tar:
+                    member = tarfile.TarInfo(name)
+                    member.type = tarfile.DIRTYPE
+                    tar.addfile(member)
+                with self.assertRaises(verify.IntegrityError):
+                    verify.verify(self.path, digest)
+
     def test_rejects_duplicate_structural_directories(self):
         digest = fixture(self.path, directories=True)
         with tarfile.open(self.path, "a") as tar:
