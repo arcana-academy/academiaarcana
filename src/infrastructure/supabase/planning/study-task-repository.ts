@@ -62,6 +62,7 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
       .eq("status", "pending")
       .or(`due_at.gte.${now},due_at.is.null`)
       .order("due_at", { ascending: true, nullsFirst: false })
+      .order("id", { ascending: true })
       .limit(limit);
 
     if (error) throw new Error(error.message);
@@ -83,9 +84,11 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     const [overdue, upcoming] = await Promise.all([
       pending().lt("due_at", now)
         .order("due_at", { ascending: false })
+        .order("id", { ascending: true })
         .limit(limit),
       pending().or(`due_at.gte.${now},due_at.is.null`)
         .order("due_at", { ascending: true, nullsFirst: false })
+        .order("id", { ascending: true })
         .limit(limit),
     ]);
 
