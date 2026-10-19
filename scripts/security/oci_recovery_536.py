@@ -59,7 +59,7 @@ def verify(path, digest, archive_digest=None):
             name = member.name
             if member.isdir():
                 # Accept only OCI layout scaffolding; never extract directories.
-                # Normalize a trailing slash to reject alternate duplicate spellings.
+                # tarfile normalizes trailing slashes; reject duplicate logical names.
                 structural = name.rstrip("/")
                 if (name not in (".", "./", "blobs", "blobs/",
                                  "blobs/sha256", "blobs/sha256/") or
