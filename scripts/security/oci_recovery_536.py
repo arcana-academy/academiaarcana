@@ -61,7 +61,8 @@ def verify(path, digest, archive_digest=None):
                 # Accept only OCI layout scaffolding; never extract directories.
                 # Normalize a trailing slash to reject alternate duplicate spellings.
                 structural = name.rstrip("/")
-                if (structural not in (".", "blobs", "blobs/sha256") or
+                if (name not in (".", "./", "blobs", "blobs/",
+                                 "blobs/sha256", "blobs/sha256/") or
                         member.size != 0 or structural in seen_directories):
                     raise IntegrityError("Unexpected/duplicate OCI directory")
                 seen_directories.add(structural)
