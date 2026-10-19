@@ -85,7 +85,7 @@ export function StudyTaskBoard({
         (task) =>
           !serverIds.has(task.id) &&
           !acknowledgment.createdSeen.has(task.id) &&
-          (!locallyCompleted.has(task.id) || acknowledgment.completedAbsent.has(task.id)),
+          !locallyCompleted.has(task.id),
       ),
     ];
   }, [tasks, locallyCreated, locallyCompleted, acknowledgment.createdSeen, acknowledgment.completedAbsent]);
