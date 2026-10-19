@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { StudyTask } from "@/domains/planning";
 import { StudyTaskBoard } from "./StudyTaskBoard";
@@ -10,6 +10,62 @@ const task: StudyTask = {
 };
 
 describe("pending task mutations", () => {
+  it("ignores whitespace-only submissions even when the form is submitted directly", () => {
+    const onCreate = vi.fn();
+    render(<StudyTaskBoard tasks={[]} onCreate={onCreate} onComplete={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: "   " } });
+    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
+    expect(onCreate).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Criar tarefa" })).toBeDisabled();
+  });
+
+  it("preserves input after creation fails and clears it after a successful retry", async () => {
+    const onCreate = vi.fn().mockRejectedValueOnce(new Error("synthetic failure"))
+      .mockResolvedValueOnce(task);
+    render(<StudyTaskBoard tasks={[]} onCreate={onCreate} onComplete={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: task.title } });
+    fireEvent.change(screen.getByLabelText("Prazo"), { target: { value: "2026-10-18T14:30" } });
+    const form = screen.getByRole("form", { name: "Adicionar tarefa de estudo" });
+    fireEvent.submit(form);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível criar a tarefa.");
+    expect(screen.getByLabelText("Tarefa")).toHaveValue(task.title);
+    expect(screen.getByLabelText("Prazo")).toHaveValue("2026-10-18T14:30");
+    expect(screen.getByRole("button", { name: "Criar tarefa" })).toBeEnabled();
+
+    fireEvent.submit(form);
+    expect(await screen.findByText(task.title)).toBeInTheDocument();
+    expect(onCreate).toHaveBeenCalledTimes(2);
+    expect(onCreate).toHaveBeenLastCalledWith({
+      title: task.title, dueAt: new Date("2026-10-18T14:30").toISOString(),
+    });
+    expect(screen.getByLabelText("Tarefa")).toHaveValue("");
+    expect(screen.getByLabelText("Prazo")).toHaveValue("");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("tracks completion independently for multiple tasks", async () => {
+    const second = { ...task, id: "second-task", title: "Revisar poções" };
+    let resolveFirst!: (value: StudyTask) => void;
+    let resolveSecond!: (value: StudyTask) => void;
+    const onComplete = vi.fn()
+      .mockImplementationOnce(() => new Promise<StudyTask>((done) => { resolveFirst = done; }))
+      .mockImplementationOnce(() => new Promise<StudyTask>((done) => { resolveSecond = done; }));
+    render(<StudyTaskBoard tasks={[task, second]} onCreate={vi.fn()} onComplete={onComplete} />);
+    const firstRow = within(screen.getByText(task.title).closest("li")!);
+    const secondRow = within(screen.getByText(second.title).closest("li")!);
+    fireEvent.click(firstRow.getByRole("button", { name: "Concluir" }));
+    expect(secondRow.getByRole("button", { name: "Concluir" })).toBeEnabled();
+    fireEvent.click(secondRow.getByRole("button", { name: "Concluir" }));
+
+    await act(async () => { resolveFirst({ ...task, status: "completed" }); });
+    expect(screen.queryByText(task.title)).not.toBeInTheDocument();
+    expect(secondRow.getByRole("button", { name: "Concluindo…" })).toBeDisabled();
+    await act(async () => { resolveSecond({ ...second, status: "completed" }); });
+    expect(screen.queryByText(second.title)).not.toBeInTheDocument();
+    expect(onComplete.mock.calls).toEqual([[task.id], [second.id]]);
+  });
+
   it("coalesces repeated form submissions while creation is pending", async () => {
     let resolve!: (value: StudyTask) => void;
     const onCreate = vi.fn(() => new Promise<StudyTask>((done) => { resolve = done; }));

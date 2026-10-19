@@ -11,6 +11,41 @@ const grimoire = (id: string, notebooks = [] as ReturnType<typeof notebook>[]): 
   ({ id, ownerId: "synthetic-owner", title: id, notebooks });
 
 describe("continueLearning deepest available hierarchy", () => {
+  it("prefers a later grimoire's chapter over an earlier grimoire's notebook when no pages exist", () => {
+    const entries = [
+      grimoire("g-a", [notebook("n-a")]),
+      grimoire("g-z", [notebook("n-z", 1, [chapter("c-z")])]),
+    ];
+    expect(resolveContinueLearning(entries)).toEqual({
+      intent: "explore", grimoireId: "g-z", grimoireTitle: "g-z",
+      notebookId: "n-z", notebookTitle: "n-z", chapterId: "c-z", chapterTitle: "c-z",
+    });
+  });
+
+  it("prefers a later grimoire's notebook over an empty root when no chapters exist", () => {
+    expect(resolveContinueLearning([
+      grimoire("g-a"), grimoire("g-z", [notebook("n-z")]),
+    ])).toEqual({
+      intent: "explore", grimoireId: "g-z", grimoireTitle: "g-z",
+      notebookId: "n-z", notebookTitle: "n-z",
+    });
+  });
+
+  it("uses ancestor traversal order before comparing positions of pages in different branches", () => {
+    const entries = [grimoire("g-a", [
+      notebook("n-b", 1, [chapter("c-b", 0, [page("p-b", 0)])]),
+      notebook("n-a", 1, [
+        chapter("c-z", 2, [page("p-z", 0)]),
+        chapter("c-a", 1, [page("p-last", 10), page("p-first", 5)]),
+      ]),
+    ])];
+    const original = structuredClone(entries);
+    expect(resolveContinueLearning(entries)).toMatchObject({
+      notebookId: "n-a", chapterId: "c-a", pageId: "p-first",
+    });
+    expect(entries).toEqual(original);
+  });
+
   it("uses a page in another grimoire rather than an empty first grimoire", () => {
     const entries = [
       grimoire("g-a"),

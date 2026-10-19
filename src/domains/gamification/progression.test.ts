@@ -96,4 +96,40 @@ describe("gamification progression", () => {
       "streak-7",
     ]);
   });
+
+  it.each([
+    [9.99, 1, 9],
+    [99.99, 1, 99],
+    [100, 2, 0],
+    [399.99, 2, 299],
+    [400, 3, 0],
+  ])("normalizes %s XP consistently at a level boundary", (xp, level, levelProgressXp) => {
+    expect(getLevelForXp(xp)).toBe(level);
+    expect(getProgression({ ...profile, xp }, [])).toMatchObject({
+      level, totalXp: Math.floor(xp), levelProgressXp,
+    });
+  });
+
+  it.each([Number.NaN, Infinity, -Infinity, -1, -0.5])(
+    "does not unlock XP or streak achievements from invalid counter %s",
+    (value) => {
+      const corrupted = { ...profile, xp: value, streakDays: value };
+      expect(getProgression(corrupted, [])).toEqual(getProgression(null, []));
+      expect(getAchievements(corrupted, [])).toEqual(getAchievements(null, []));
+    },
+  );
+
+  it("caps huge finite counters while keeping progress within its level and achievement bounds", () => {
+    const huge = { ...profile, xp: Number.MAX_VALUE, streakDays: Number.MAX_VALUE };
+    const progression = getProgression(huge, []);
+    expect(progression).toMatchObject({
+      totalXp: Number.MAX_SAFE_INTEGER, streakDays: Number.MAX_SAFE_INTEGER,
+    });
+    expect(progression.levelProgressXp).toBeGreaterThanOrEqual(0);
+    expect(progression.levelProgressXp).toBeLessThan(
+      progression.nextLevelXp - (progression.level - 1) ** 2 * 100,
+    );
+    expect(getAchievements(huge, []).map(({ progress }) => progress.current))
+      .toEqual([10, 400, 7, 0]);
+  });
 });

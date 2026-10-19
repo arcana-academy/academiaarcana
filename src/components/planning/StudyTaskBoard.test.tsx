@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { StudyTask } from "@/domains/planning";
@@ -19,6 +19,41 @@ const task: StudyTask = {
 };
 
 describe("StudyTaskBoard", () => {
+  it.each([
+    ["2026-10-17T13:45:00", "utc"],
+    ["2026-10-17T13:45:00.0000000", "UTC"],
+    ["2026-10-17T13:45:00Z", "UTC"],
+    ["2026-10-17T10:45:00-03:00", "UTC"],
+    ["2026-10-17T15:45:00+02:00", "Europe/Paris"],
+  ])("renders equivalent Outlook timestamp %s (%s) as the same instant", (dateTime, timeZone) => {
+    render(<StudyTaskBoard tasks={[]} outlookConnected onCreate={vi.fn()} onComplete={vi.fn()}
+      outlookEvents={[{
+        id: "equivalent-event", subject: "Revisão externa",
+        start: { dateTime, timeZone },
+        end: { dateTime: "2026-10-17T14:45:00Z", timeZone: "UTC" },
+      }]} />);
+    const events = within(screen.getByRole("region", { name: "Eventos do Outlook" }));
+    const formatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" });
+    expect(events.getByText(`${formatter.format(new Date("2026-10-17T13:45:00Z"))} · até ${formatter.format(new Date("2026-10-17T14:45:00Z"))}`))
+      .toBeInTheDocument();
+  });
+
+  it("replaces an Outlook outage with recovered events on the next server snapshot", () => {
+    const props = { tasks: [task], outlookConnected: true, onCreate: vi.fn(), onComplete: vi.fn() };
+    const events = [{
+      id: "recovered-event", subject: "Revisão recuperada",
+      start: { dateTime: "2026-10-17T13:45:00Z", timeZone: "UTC" },
+      end: { dateTime: "2026-10-17T14:45:00Z", timeZone: "UTC" },
+    }];
+    const { rerender } = render(<StudyTaskBoard {...props} outlookEventsUnavailable outlookEvents={events} />);
+    expect(screen.getByRole("status")).toHaveTextContent("Não foi possível carregar");
+    expect(screen.queryByText("Revisão recuperada")).not.toBeInTheDocument();
+    rerender(<StudyTaskBoard {...props} outlookEventsUnavailable={false} outlookEvents={events} />);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByText("Revisão recuperada")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+  });
+
   it("creates a task and adds it to the visible schedule through the labeled form", async () => {
     const created = { ...task, id: "task-2", title: "Nova revisão" };
     const onCreate = vi.fn().mockResolvedValue(created);

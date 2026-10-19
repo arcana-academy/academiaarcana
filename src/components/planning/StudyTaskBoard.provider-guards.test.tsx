@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StudyTask } from "@/domains/planning";
 import { StudyTaskBoard } from "./StudyTaskBoard";
@@ -27,6 +27,65 @@ const renderBoard = (schedule?: (id: string) => Promise<{webLink?: string | null
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("provider sends: synchronous duplicate guards", () => {
+  it.each([
+    ["Todoist", "todoist"], ["Asana", "asana"],
+  ])("allows %s retries after connection errors and network failures", async (provider, slug) => {
+    const send = vi.fn().mockResolvedValueOnce({ ok: false, status: 401 })
+      .mockResolvedValueOnce({ ok: false, status: 409 })
+      .mockRejectedValueOnce(new Error("synthetic network failure"))
+      .mockResolvedValueOnce({ ok: true, status: 201 });
+    vi.stubGlobal("fetch", send);
+    renderBoard();
+
+    for (const status of [401, 409, "network"]) {
+      fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(status === "network"
+        ? `Não foi possível enviar a tarefa para o ${provider}.`
+        : `Conecte o ${provider} em Integrações antes de enviar esta tarefa.`);
+      expect(screen.getByRole("button", { name: `Enviar ao ${provider}` })).toBeEnabled();
+    }
+    fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+    const sentLabel = provider === "Todoist" ? "Enviado" : "Enviado ao Asana";
+    const sent = await screen.findByRole("button", { name: sentLabel });
+    expect(sent).toBeDisabled();
+    fireEvent.click(sent);
+    expect(send).toHaveBeenCalledTimes(4);
+    expect(send).toHaveBeenLastCalledWith(`/api/integrations/${slug}/tasks`, expect.objectContaining({ method: "POST" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText(task.title)).toBeInTheDocument();
+  });
+
+  it.each(["Todoist", "Asana", "Outlook"])(
+    "keeps a second %s action pending when the first task finishes",
+    async (provider) => {
+      const first = deferred<Reply & { webLink: null }>();
+      const second = deferred<Reply & { webLink: null }>();
+      const send = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+      vi.stubGlobal("fetch", send);
+      const other = { ...task, id: "second-provider-task", title: "Estudar poções" };
+      render(<StudyTaskBoard tasks={[task, other]} outlookConnected
+        onCreate={vi.fn()} onComplete={vi.fn()} onScheduleInOutlook={send} />);
+      const firstRow = within(screen.getByText(task.title).closest("li")!);
+      const secondRow = within(screen.getByText(other.title).closest("li")!);
+      const label = provider === "Outlook" ? "Agendar no Outlook" : `Enviar ao ${provider}`;
+      fireEvent.click(firstRow.getByRole("button", { name: label }));
+      fireEvent.click(secondRow.getByRole("button", { name: label }));
+      expect(send).toHaveBeenCalledTimes(2);
+
+      await act(async () => { first.resolve({ ok: true, status: 201, webLink: null }); });
+      const pendingLabel = provider === "Outlook" ? "Agendando…" : "Enviando…";
+      const pending = secondRow.getByRole("button", { name: pendingLabel });
+      expect(pending).toBeDisabled();
+      fireEvent.click(pending);
+      expect(send).toHaveBeenCalledTimes(2);
+      await act(async () => { second.resolve({ ok: true, status: 201, webLink: null }); });
+      const doneLabel = provider === "Outlook" ? "Agendado no Outlook"
+        : provider === "Asana" ? "Enviado ao Asana" : "Enviado";
+      expect(firstRow.getByRole("button", { name: doneLabel })).toBeDisabled();
+      expect(secondRow.getByRole("button", { name: doneLabel })).toBeDisabled();
+    },
+  );
+
   it("coalesces repeated Todoist clicks while pending and prevents resend after success", async () => {
     const response = deferred<Reply>();
     const send = vi.fn(() => response.promise);
