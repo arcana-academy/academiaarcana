@@ -18,7 +18,7 @@ def sha(data):
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
-def fixture(path, corrupt=False, extra=None, user="node"):
+def fixture(path, corrupt=False, extra=None, user="node", directories=()):
     config = json.dumps({"os": "linux", "architecture": "amd64", "config": {"User": user}}).encode()
     layer = b"only-synthetic-fixture-layer"
     manifest = json.dumps({
@@ -38,6 +38,10 @@ def fixture(path, corrupt=False, extra=None, user="node"):
     if extra:
         blobs[extra] = b"unexpected"
     with tarfile.open(path, "w") as tar:
+        for directory in directories:
+            info = tarfile.TarInfo(directory)
+            info.type = tarfile.DIRTYPE
+            tar.addfile(info)
         for name, content in sorted(blobs.items()):
             info = tarfile.TarInfo(name)
             info.size = len(content)
@@ -55,6 +59,50 @@ class OciOfflineTests(unittest.TestCase):
         digest = fixture(self.path)
         result = verify.verify(self.path, digest, verify.file_sha(self.path))
         self.assertEqual(result["objectsVerified"], 3)
+
+    def test_accepts_expected_oci_structure_directories(self):
+        for directories in (("./", "blobs/", "blobs/sha256/"),
+                            ("blobs", "blobs/sha256")):
+            with self.subTest(directories=directories):
+                digest = fixture(self.path, directories=directories)
+                result = verify.verify(self.path, digest, verify.file_sha(self.path))
+                self.assertEqual(result["result"], "PASS")
+                self.assertEqual(result["objectsVerified"], 3)
+
+    def test_rejects_unknown_or_unsafe_directories(self):
+        for directory in ("../", "/absolute/", "blobs/../", "blobs//sha256/",
+                          "blobs/sha256/extra/", "./blobs/"):
+            with self.subTest(directory=directory):
+                digest = fixture(self.path, directories=(directory,))
+                with self.assertRaises(verify.IntegrityError):
+                    verify.verify(self.path, digest)
+
+    def test_rejects_duplicate_structural_directories(self):
+        digest = fixture(self.path, directories=("blobs/", "blobs"))
+        with self.assertRaises(verify.IntegrityError):
+            verify.verify(self.path, digest)
+
+    def test_rejects_special_file_types_at_structural_paths(self):
+        for kind in (tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.FIFOTYPE):
+            with self.subTest(kind=kind):
+                digest = fixture(self.path)
+                with tarfile.open(self.path, "a") as tar:
+                    info = tarfile.TarInfo("blobs/")
+                    info.type = kind
+                    info.linkname = "../outside"
+                    tar.addfile(info)
+                with self.assertRaises(verify.IntegrityError):
+                    verify.verify(self.path, digest)
+
+    def test_rejects_structural_directories_with_payload(self):
+        digest = fixture(self.path)
+        with tarfile.open(self.path, "a") as tar:
+            info = tarfile.TarInfo("blobs/")
+            info.type = tarfile.DIRTYPE
+            info.size = 3
+            tar.addfile(info, io.BytesIO(b"bad"))
+        with self.assertRaises(verify.IntegrityError):
+            verify.verify(self.path, digest)
 
     def test_corruption(self):
         digest = fixture(self.path, corrupt=True)
