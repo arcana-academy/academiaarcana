@@ -224,4 +224,24 @@ describe("StudyTaskBoard", () => {
     const expected = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value + "Z"));
     expect(container.textContent).toContain(expected);
   });
+  it("distinguishes unavailable Outlook events from an empty calendar without hiding tasks", () => {
+    render(
+      <StudyTaskBoard
+        tasks={[task]}
+        outlookConnected
+        outlookEventsUnavailable
+        outlookEvents={[]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn().mockResolvedValue(task)}
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Não foi possível carregar os eventos do Outlook agora.",
+    );
+    expect(screen.queryByText("Nenhum evento encontrado no Outlook neste período.")).not.toBeInTheDocument();
+    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+  });
+
 });
