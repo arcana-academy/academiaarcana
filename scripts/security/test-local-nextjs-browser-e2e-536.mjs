@@ -60,6 +60,15 @@ try {
     const first = await guest.goto(app + "/login");
     assert.equal(first.status(), 200);
     assert.ok(first.headers()["content-security-policy"]?.includes("connect-src"));
+    // Check the initial HTTP response, not just a client-side URL change.
+    const guestProtected = await guestContext.request.get(app + "/academia", {
+      maxRedirects: 0,
+    });
+    assert.ok([301, 302, 303, 307, 308].includes(guestProtected.status()),
+      "Unauthenticated /academia must return an HTTP redirect, not a page or server error");
+    const destination = new URL(guestProtected.headers().location ?? "", app);
+    assert.equal(destination.origin, new URL(app).origin);
+    assert.equal(destination.pathname, "/login");
     await guest.goto(app + "/academia");
     await expect(guest).toHaveURL(/\/login(?:[?#]|$)/, { timeout: 30000 });
     console.log("PASS: Next.js public login and server-side anonymous protected-route redirect");
@@ -116,7 +125,10 @@ try {
     } });
     assert.equal(own.status(), 200);
     assert.deepEqual(Buffer.from(await own.body()), png);
-    assert.ok(!foreign.ok() && !guestRead.ok());
+    for (const [identity, result] of [["foreign", foreign], ["guest", guestRead]]) {
+      assert.ok([400, 401, 403, 404].includes(result.status()),
+        `${identity} Storage denial must be an expected HTTP 4xx, not a 5xx or other failure (got ${result.status()})`);
+    }
     assert.ifError((await a.storage.from("grimoire-covers").remove([path])).error);
     console.log("PASS: browser-context HTTP Storage isolation with synthetic local JWTs");
 
