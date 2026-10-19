@@ -5,6 +5,7 @@ on:
     branches:
       - chore/536-fallback-validation-20261009
       - integration/p0-536-release-train-20261009
+      - test/aa360-c38-refresh-revocation-20261019
 
 permissions:
   contents: read
