@@ -407,12 +407,12 @@ export function StudyTaskBoard({
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="upcoming-tasks-title">
         <div className="aa-surface-header">
-          <div><p className="aa-eyebrow">Próximos passos</p><h2 id="upcoming-tasks-title">Tarefas futuras</h2></div>
+          <div><p className="aa-eyebrow">Próximos passos</p><h2 id="upcoming-tasks-title">Tarefas pendentes</h2></div>
           <span className="aa-badge aa-badge-neutral">{items.length}</span>
         </div>
         {items.length === 0 ? (
           <div className="aa-empty">
-            <p>Nenhuma tarefa futura cadastrada.</p>
+            <p>Nenhuma tarefa pendente cadastrada.</p>
             <a className="aa-button aa-button-secondary aa-button-sm" href="#study-task-title">
               Criar primeira tarefa
             </a>

@@ -49,13 +49,10 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     return toDomain(data as StudyTaskRow);
   }
 
-  /**
-   * Keep every pending task actionable, including overdue and undated tasks.
-   * The second argument is retained for existing callers of listUpcoming.
-   */
+  /** Upcoming means future-dated or undated for Sanctuary and Mestre Arcano. */
   async listUpcoming(
     ownerId: string,
-    _now: string,
+    now: string,
     limit = 10,
   ): Promise<StudyTask[]> {
     const { data, error } = await this.supabase
@@ -63,11 +60,39 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
       .select("*")
       .eq("owner_id", ownerId)
       .eq("status", "pending")
+      .or(`due_at.gte.${now},due_at.is.null`)
       .order("due_at", { ascending: true, nullsFirst: false })
       .limit(limit);
 
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => toDomain(row as StudyTaskRow));
+  }
+
+  /** Fetch independent overdue and upcoming windows for the Cronograma board. */
+  async listPendingForBoard(
+    ownerId: string,
+    now: string,
+    limit = 10,
+  ): Promise<StudyTask[]> {
+    const pending = () => this.supabase
+      .from("study_tasks")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .eq("status", "pending");
+
+    const [overdue, upcoming] = await Promise.all([
+      pending().lt("due_at", now)
+        .order("due_at", { ascending: false })
+        .limit(limit),
+      pending().or(`due_at.gte.${now},due_at.is.null`)
+        .order("due_at", { ascending: true, nullsFirst: false })
+        .limit(limit),
+    ]);
+
+    if (overdue.error) throw new Error(overdue.error.message);
+    if (upcoming.error) throw new Error(upcoming.error.message);
+    return [...(overdue.data ?? []), ...(upcoming.data ?? [])]
+      .map((row) => toDomain(row as StudyTaskRow));
   }
 
   async getById(id: string): Promise<StudyTask | null> {

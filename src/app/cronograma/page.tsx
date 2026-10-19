@@ -20,7 +20,7 @@ export default async function CronogramaPage() {
   const supabase = await createClient();
   const repository = new SupabaseStudyTaskRepository(supabase);
 
-  const tasks = await repository.listUpcoming(
+  const tasks = await repository.listPendingForBoard(
     claims.sub,
     new Date().toISOString(),
   );

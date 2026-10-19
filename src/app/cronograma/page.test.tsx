@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getOutlookAccessToken, isOutlookCalendarConnected } from "@/infrastructure/integrations/outlook-calendar-session";
 import CronogramaPage from "./page";
 
-const listUpcomingMock = vi.fn();
+const listPendingForBoardMock = vi.fn();
 const listEventsMock = vi.fn();
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
@@ -16,7 +16,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("@/infrastructure/supabase/planning/study-task-repository", () => ({
   SupabaseStudyTaskRepository: vi.fn(function SupabaseStudyTaskRepository() {
-    return { listUpcoming: listUpcomingMock };
+    return { listPendingForBoard: listPendingForBoardMock };
   }),
 }));
 vi.mock("@/infrastructure/integrations/outlook-calendar-session", () => ({
@@ -38,7 +38,7 @@ vi.mock("./outlook-actions", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  listUpcomingMock.mockResolvedValue([]);
+  listPendingForBoardMock.mockResolvedValue([]);
   listEventsMock.mockResolvedValue([]);
   vi.mocked(isOutlookCalendarConnected).mockResolvedValue(true);
   vi.mocked(getOutlookAccessToken).mockResolvedValue("synthetic-token");
@@ -55,7 +55,7 @@ describe("CronogramaPage Outlook state", () => {
 
   it("preserves native tasks when refreshing the Outlook token fails", async () => {
     const tasks = [{ id: "native-task", title: "Revisar runas" }];
-    listUpcomingMock.mockResolvedValue(tasks);
+    listPendingForBoardMock.mockResolvedValue(tasks);
     vi.mocked(getOutlookAccessToken).mockRejectedValueOnce(new Error("refresh failed"));
     const page = await CronogramaPage();
     expect(page.props.children.props).toMatchObject({ tasks, outlookConnected: true, outlookEventsUnavailable: true, outlookEvents: [] });
@@ -72,7 +72,7 @@ describe("CronogramaPage Outlook state", () => {
 
   it("preserves study tasks when Outlook credential lookup throws", async () => {
     const tasks = [{ id: "synthetic-task", title: "Revisar runas" }];
-    listUpcomingMock.mockResolvedValue(tasks);
+    listPendingForBoardMock.mockResolvedValue(tasks);
     vi.mocked(isOutlookCalendarConnected).mockRejectedValueOnce(new Error("credential store unavailable"));
     const page = await CronogramaPage();
     expect(page.props.children.props).toMatchObject({
