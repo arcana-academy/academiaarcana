@@ -50,6 +50,7 @@ describe("Cronograma server snapshot acknowledgment and reopening", () => {
 
     expect(create).toHaveBeenCalledTimes(2);
     expect(screen.getAllByText(task.title)).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Concluir" })).toHaveLength(1);
   });
 
   it("shows a newly received server task without remounting the board", () => {
