@@ -53,9 +53,21 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Tar SHA mismatch")
     checked = {}
     metadata = {}
+    structural_directories = set()
     with tarfile.open(path, "r|*") as tar:
         for member in tar:
             name = member.name
+            if member.isdir():
+                # OCI tars may include these exact structural directory entries.
+                # Do not extract directories, links, or non-OCI members.
+                if name not in (".", "./", "blobs", "blobs/",
+                                "blobs/sha256", "blobs/sha256/") or member.size != 0:
+                    raise IntegrityError("Unexpected OCI directory")
+                canonical = name.rstrip("/")
+                if canonical in structural_directories:
+                    raise IntegrityError("Duplicate OCI directory")
+                structural_directories.add(canonical)
+                continue
             if name in checked or not member.isfile():
                 raise IntegrityError("Duplicate/nonregular member")
             if name not in ("oci-layout", "index.json") and not BLOB.fullmatch(name):
@@ -119,8 +131,13 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Unexpected archive members")
     cfg_path = "blobs/sha256/" + cfg["digest"][7:]
     config = object_json(metadata.get(cfg_path, b""), "config")
-    user = config.get("config", {}).get("User")
-    if config.get("os") != "linux" or config.get("architecture") != "amd64" or user in ("", None, "0", "root"):
+    settings = config.get("config")
+    user = settings.get("User") if isinstance(settings, dict) else None
+    identity = user.split(":", 1)[0] if isinstance(user, str) else ""
+    root_runtime = (not isinstance(user, str) or not user or user != user.strip()
+                    or not identity or identity.casefold() == "root"
+                    or (identity.isdecimal() and int(identity) == 0))
+    if config.get("os") != "linux" or config.get("architecture") != "amd64" or root_runtime:
         raise IntegrityError("Unexpected platform or root runtime")
     return {"result": "PASS", "manifest": digest, "archiveSha256": actual_archive,
             "archiveBytes": path.stat().st_size, "objectsVerified": len(descs) + 1,
