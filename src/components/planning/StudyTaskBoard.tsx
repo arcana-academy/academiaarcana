@@ -8,8 +8,8 @@ import type { StudyTask } from "@/domains/planning";
 type OutlookEvent = {
   id: string;
   subject: string | null;
-  start: { dateTime: string; timeZone: string };
-  end: { dateTime: string; timeZone: string };
+  start: { dateTime: string; timeZone?: string | null };
+  end: { dateTime: string; timeZone?: string | null };
   webLink?: string | null;
   isCancelled?: boolean | null;
 };
@@ -32,7 +32,8 @@ function formatDueAt(value: string | null): string {
 }
 
 /** Outlook Graph may provide a UTC wall time without an explicit offset. */
-function formatOutlookDateTime(value: string, timeZone: string): string {
+function formatOutlookDateTime(value: string, timeZone?: string | null): string {
+  if (typeof timeZone !== "string" || !timeZone.trim()) return "Data indisponível";
   const utcWithoutOffset =
     timeZone.toUpperCase() === "UTC" &&
     /^\d{4}-\d{2}-\d{2}T/.test(value) &&
