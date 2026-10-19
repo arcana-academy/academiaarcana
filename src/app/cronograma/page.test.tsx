@@ -70,6 +70,18 @@ describe("CronogramaPage Outlook state", () => {
     expect(page.props.children.props).toMatchObject({ outlookEvents: events, outlookEventsUnavailable: false });
   });
 
+  it("preserves study tasks when Outlook credential lookup throws", async () => {
+    const tasks = [{ id: "synthetic-task", title: "Revisar runas" }];
+    listUpcomingMock.mockResolvedValue(tasks);
+    vi.mocked(isOutlookCalendarConnected).mockRejectedValueOnce(new Error("credential store unavailable"));
+    const page = await CronogramaPage();
+    expect(page.props.children.props).toMatchObject({
+      tasks, outlookConnected: false, outlookEventsUnavailable: true, outlookEvents: [],
+    });
+    expect(getOutlookAccessToken).not.toHaveBeenCalled();
+    expect(listEventsMock).not.toHaveBeenCalled();
+  });
+
   it("marks a calendar query failure as unavailable, not empty", async () => {
     listEventsMock.mockRejectedValue(new Error("synthetic Outlook outage"));
     const page = await CronogramaPage();
