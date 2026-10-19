@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+const { assertBuildSecretIsolation } = require("./security/verify-build-secret-boundary.cjs");
+
+// The first Render buildCommand step executes this guard BEFORE npm or Next.js.
+assertBuildSecretIsolation(process.env);
+
 const fs = require("node:fs");
 const path = require("node:path");
 
