@@ -94,6 +94,23 @@ describe("Cronograma server snapshot acknowledgment and reopening", () => {
     expect(screen.queryByText(task.title)).not.toBeInTheDocument();
   });
 
+  it("does not resurrect a completed optimistic task after the server omits it", async () => {
+    const created = { ...task, id: "optimistic-completed", title: "Estudar alquimia" };
+    const create = vi.fn().mockResolvedValue(created);
+    const complete = vi.fn().mockResolvedValue({ ...created, status: "completed" });
+    const { rerender } = render(
+      <StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />,
+    );
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: created.title } });
+    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
+    expect(await screen.findByText(created.title)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(screen.queryByText(created.title)).not.toBeInTheDocument());
+    rerender(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
+    expect(screen.queryByText(created.title)).not.toBeInTheDocument();
+    expect(complete).toHaveBeenCalledTimes(1);
+  });
+
   it("does not duplicate an optimistic task once the server acknowledges creation", async () => {
     const created = { ...task, id: "created-id", title: "Criar grimório" };
     const create = vi.fn().mockResolvedValue(created);
