@@ -71,6 +71,7 @@ class OciOfflineTests(unittest.TestCase):
 
     def test_rejects_unknown_or_unsafe_directories(self):
         for directory in ("../", "/absolute/", "blobs/../", "blobs//sha256/",
+                          "blobs//", "blobs/sha256///", "././",
                           "blobs/sha256/extra/", "./blobs/"):
             with self.subTest(directory=directory):
                 digest = fixture(self.path, directories=(directory,))
