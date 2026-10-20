@@ -196,7 +196,8 @@ jobs:
       name: render-production-approval
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions: {}
+    permissions:
+      contents: read
 
     steps:
       - name: Reject stale main revision before deployment
@@ -215,6 +216,24 @@ jobs:
             exit 1
           fi
 
+      - name: Checkout approved release preflight
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.preflight.outputs.release_sha }}
+          persist-credentials: false
+
+      - name: Verify live Render image-backed service and approved target
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}
+          RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}
+          IMAGE_URL: ${{ needs.publish.outputs.image_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A secret hook alone does not establish service type. Use an
+          # authenticated GET (read-only) to reject Git-backed targets.
+          node scripts/security/verify-render-image-target-536.cjs
       - name: Request deployment of the immutable image
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
