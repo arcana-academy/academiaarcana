@@ -1,3 +1,5 @@
+import { randomBytes, randomUUID } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
 
 const e2eEmail = process.env.E2E_EMAIL;
@@ -66,18 +68,44 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
       return;
     }
 
-    // This scenario runs only under the existing ephemeral local Supabase
-    // CI executor, never against hosted users or production data.
+    // Each synthetic journey gets its own identity. The existing specs share
+    // a separate seeded account and must not see this test's new pages.
+    const apiUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    if (!apiUrl || !anonKey) throw new Error("Missing local synthetic Auth settings");
+    const api = new URL(apiUrl);
+    if (
+      process.env.GITHUB_ACTIONS !== "true" ||
+      process.env.GITHUB_EVENT_NAME !== "pull_request" ||
+      process.env.AA_LOCAL_SUPABASE_E2E !== "1" ||
+      api.protocol !== "https:" ||
+      !["127.0.0.1", "localhost", "[::1]"].includes(api.hostname)
+    ) throw new Error("Refusing non-local authenticated E2E identity creation");
+
+    const identityClient = createClient(apiUrl, anonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const isolatedEmail = "c47-" + randomUUID() + "@example.test";
+    const isolatedPassword = "LocalC47-" + randomBytes(20).toString("hex") + "!";
+    const { data: signedUp, error: signupError } = await identityClient.auth.signUp({
+      email: isolatedEmail,
+      password: isolatedPassword,
+    });
+    expect(signupError).toBeNull();
+    expect(signedUp.user?.id).toBeTruthy();
+    expect(signedUp.session?.access_token).toBeTruthy();
+
     await page.goto("/login");
-    await page.getByLabel("Email").fill(e2eEmail);
-    await page.getByLabel("Senha").fill(e2ePassword);
+    await page.getByLabel("Email").fill(isolatedEmail);
+    await page.getByLabel("Senha").fill(isolatedPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
     await expect(page).toHaveURL(/\/santuario(?:[/?#]|$)/);
 
     await page.goto("/grimorios");
     await expect(page.getByRole("heading", { name: "Grimórios" })).toBeVisible();
-    await page.getByRole("link", { name: "Abrir grimório" }).first().click();
-    await expect(page).toHaveURL(/\/workspace\?view=tree&grimoire=[^#]+#current$/);
+    await expect(page.getByRole("heading", { name: "Nenhum grimório ainda" })).toBeVisible();
+    await page.getByRole("link", { name: "Criar primeiro grimório" }).click();
+    await expect(page.getByRole("form", { name: "Criar grimório" })).toBeVisible();
 
     // Create a separate, entirely synthetic hierarchy using production UI
     // and server actions rather than inserting it directly into the database.
@@ -132,7 +160,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     // completed progress for the synthetic user's only learning page.
     await page.goto("/santuario");
     await expect(page.getByRole("heading", { name: "Seu progresso" })).toBeVisible();
-    await expect(page.getByText("1 de 1 páginas concluídas")).toBeVisible();
+    await expect(page.locator('[aria-labelledby="sanctuary-progress"]')).toContainText("1 de 1 páginas concluídas");
   });
 
 });
