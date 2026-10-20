@@ -77,7 +77,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await page.goto("/grimorios");
     await expect(page.getByRole("heading", { name: "Grimórios" })).toBeVisible();
     await page.getByRole("link", { name: "Abrir grimório" }).first().click();
-    await expect(page).toHaveURL(/\/workspace\\?view=tree&grimoire=[^#]+#current$/);
+    await expect(page).toHaveURL(/\/workspace\?view=tree&grimoire=[^#]+#current$/);
 
     // Create a separate, entirely synthetic hierarchy using production UI
     // and server actions rather than inserting it directly into the database.
@@ -116,7 +116,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await expect(editor.getByText("Página salva.")).toBeVisible();
 
     const selectedUrl = page.url();
-    expect(selectedUrl).toMatch(/\/workspace\\?view=tree&page=[^#]+#current$/);
+    expect(selectedUrl).toMatch(/\/workspace\?view=tree&page=[^#]+#current$/);
     await page.reload();
     await expect(page).toHaveURL(selectedUrl);
     const persistedEditor = page.getByRole("article", { name: "Editor da página" });
