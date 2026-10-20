@@ -328,6 +328,8 @@ export function Workspace({
         />
 
         <section
+          id="current"
+          tabIndex={-1}
           className="workspace-editor-region"
           aria-labelledby="workspace-editor-heading"
         >
