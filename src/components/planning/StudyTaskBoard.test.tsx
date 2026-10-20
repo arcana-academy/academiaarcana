@@ -146,7 +146,7 @@ describe("StudyTaskBoard", () => {
     expect(pending).toContainElement(screen.getByText("Revisão sem prazo"));
     expect(pending).toContainElement(screen.getByText("Sem prazo"));
     expect(screen.queryByRole("heading", { name: "Tarefas futuras" })).not.toBeInTheDocument();
-    expect(pending.querySelectorAll('button[type="button"]')).toHaveLength(12);
+    expect(screen.getAllByRole("button", { name: "Concluir" })).toHaveLength(3);
   });
 
   it("keeps an overdue task visible and allows completing it", async () => {
