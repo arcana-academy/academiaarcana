@@ -160,7 +160,13 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     // completed progress for the synthetic user's only learning page.
     await page.goto("/santuario");
     await expect(page.getByRole("heading", { name: "Seu progresso" })).toBeVisible();
-    await expect(page.locator('[aria-labelledby="sanctuary-progress"]')).toContainText("1 de 1 páginas concluídas");
+    // Scope to the progress panel below its visible heading: other transient
+    // render trees can expose a second identically labelled region.
+    const progress = page.getByRole("heading", { name: "Seu progresso" })
+      .locator("..")
+      .getByRole("region", { name: "Progresso" });
+    await expect(progress).toHaveCount(1);
+    await expect(progress).toContainText("1 de 1 páginas concluídas");
   });
 
 });
