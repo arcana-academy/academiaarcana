@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { StudyTask } from "@/domains/planning";
@@ -21,6 +22,26 @@ const task: StudyTask = {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("StudyTaskBoard", () => {
+  it("renders stable SSR placeholders and formats dates in the browser after hydration", () => {
+    const element = (
+      <StudyTaskBoard
+        tasks={[task]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+      />
+    );
+    // A server in UTC and a browser in another time zone must produce the
+    // same first-hydration markup. Browser-local dates are shown afterwards.
+    const html = renderToString(element);
+    expect(html).toContain("Carregando horário local…");
+    const expected = new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(task.dueAt!));
+    render(element);
+    expect(screen.getByText(expected)).toBeInTheDocument();
+  });
+
   it.each([
     ["2026-10-17T13:45:00", "utc", "2026-10-17T13:45:00Z"],
     ["2026-10-17T13:45:00Z", "UTC", "2026-10-17T13:45:00Z"],
