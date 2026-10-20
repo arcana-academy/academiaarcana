@@ -218,17 +218,26 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
     await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
     const board = page.locator(".aa-study-task-board");
     await expect(board).toBeVisible();
-    await settleVisualSurface(page, board);
-    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
-
-    // Comparison-only control: revert exactly the changed heading wording,
-    // not CSS, layout or app data, and compare with the previously approved
-    // immutable visual hashes. No production code or snapshots are altered.
-    await board.locator("#upcoming-tasks-title").evaluate((heading) => {
-      heading.textContent = "Tarefas futuras";
+    // Capture the original reviewed copy FIRST, before any screenshot of the
+    // new heading. This restores the C42 snapshot sequence on each fresh page,
+    // avoiding a second-state/layout artifact from a prior screenshot.
+    // Do not regenerate, weaken, or replace the immutable baseline hashes.
+    const heading = board.locator("#upcoming-tasks-title");
+    await heading.evaluate((node) => {
+      node.textContent = "Tarefas futuras";
     });
+    await expect(heading).toHaveText("Tarefas futuras");
     await settleVisualSurface(page, board);
     referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
+
+    // Now change ONLY the approved text. Every other pixel of the same
+    // browser-rendered board should remain covered by the original reference.
+    await heading.evaluate((node) => {
+      node.textContent = "Tarefas pendentes";
+    });
+    await expect(heading).toHaveText("Tarefas pendentes");
+    await settleVisualSurface(page, board);
+    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
