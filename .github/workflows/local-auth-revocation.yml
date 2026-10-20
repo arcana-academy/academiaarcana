@@ -46,6 +46,16 @@ jobs:
       - name: Exercise two isolated identities and global session revocation
         run: node scripts/security/test-local-auth-revocation.mjs
 
+      - name: Install browser for isolated authenticated Next.js E2E
+        if: github.event_name == 'pull_request'
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: Run authenticated Next.js journeys against local-only Supabase
+        if: github.event_name == 'pull_request'
+        env:
+          AA_LOCAL_SUPABASE_E2E: "1"
+        run: node scripts/security/test-local-authenticated-nextjs-e2e.mjs
+
       - name: Stop ephemeral Supabase
         if: always()
         run: supabase stop --no-backup

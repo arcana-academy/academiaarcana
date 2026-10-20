@@ -20,12 +20,19 @@ export default async function CronogramaPage() {
   const supabase = await createClient();
   const repository = new SupabaseStudyTaskRepository(supabase);
 
-  const tasks = await repository.listUpcoming(
+  const tasks = await repository.listPendingForBoard(
     claims.sub,
     new Date().toISOString(),
   );
 
-  const outlookConnected = await isOutlookCalendarConnected();
+  let outlookConnected = false;
+  let outlookEventsUnavailable = false;
+  try {
+    outlookConnected = await isOutlookCalendarConnected();
+  } catch {
+    // An unavailable credential store must not hide native study tasks.
+    outlookEventsUnavailable = true;
+  }
   let outlookEvents: Awaited<
     ReturnType<OutlookCalendarClient["listEvents"]>
   > = [];
@@ -41,8 +48,12 @@ export default async function CronogramaPage() {
           start.toISOString(),
           end.toISOString(),
         );
+      } else {
+        // The connection can disappear before the token lookup completes.
+        outlookEventsUnavailable = true;
       }
     } catch {
+      outlookEventsUnavailable = true;
       outlookEvents = [];
     }
   }
@@ -53,6 +64,7 @@ export default async function CronogramaPage() {
         tasks={tasks}
         outlookConnected={outlookConnected}
         outlookEvents={outlookEvents}
+        outlookEventsUnavailable={outlookEventsUnavailable}
         onCreate={createStudyTask}
         onComplete={completeStudyTaskAction}
         onScheduleInOutlook={createOutlookEventForTask}

@@ -49,6 +49,7 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     return toDomain(data as StudyTaskRow);
   }
 
+  /** Upcoming means future-dated or undated for Sanctuary and Mestre Arcano. */
   async listUpcoming(
     ownerId: string,
     now: string,
@@ -61,10 +62,40 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
       .eq("status", "pending")
       .or(`due_at.gte.${now},due_at.is.null`)
       .order("due_at", { ascending: true, nullsFirst: false })
+      .order("id", { ascending: true })
       .limit(limit);
 
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => toDomain(row as StudyTaskRow));
+  }
+
+  /** Fetch bounded overdue and upcoming windows, breaking equal-date ties by task ID. */
+  async listPendingForBoard(
+    ownerId: string,
+    now: string,
+    limit = 10,
+  ): Promise<StudyTask[]> {
+    const pending = () => this.supabase
+      .from("study_tasks")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .eq("status", "pending");
+
+    const [overdue, upcoming] = await Promise.all([
+      pending().lt("due_at", now)
+        .order("due_at", { ascending: false })
+        .order("id", { ascending: true })
+        .limit(limit),
+      pending().or(`due_at.gte.${now},due_at.is.null`)
+        .order("due_at", { ascending: true, nullsFirst: false })
+        .order("id", { ascending: true })
+        .limit(limit),
+    ]);
+
+    if (overdue.error) throw new Error(overdue.error.message);
+    if (upcoming.error) throw new Error(upcoming.error.message);
+    return [...(overdue.data ?? []), ...(upcoming.data ?? [])]
+      .map((row) => toDomain(row as StudyTaskRow));
   }
 
   async getById(id: string): Promise<StudyTask | null> {

@@ -28,6 +28,9 @@ test.describe("authenticated P1 practice surface", () => {
     await page.getByLabel("Email").fill(e2eEmail);
     await page.getByLabel("Senha").fill(e2ePassword);
     await page.getByRole("button", { name: "Entrar" }).click();
+    // Wait for the completed auth redirect before opening another protected route.
+    // Immediate navigation here can abort the in-flight sign-in request.
+    await expect(page).toHaveURL(/\/santuario(?:[/?#]|$)/);
 
     await page.goto("/pratica");
     await expect(
