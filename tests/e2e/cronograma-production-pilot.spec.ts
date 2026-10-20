@@ -204,7 +204,7 @@ test("Cronograma pilot records performance evidence without inventing a budget",
   expect(metrics.activeAnimations).toBe(0);
 });
 
-test("Cronograma production pilot matches deterministic visual baselines", async ({ page }) => {
+test("Cronograma pilot preserves reviewed visual pixels beyond the approved pending-task heading copy", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   const actual: Baselines = {};
   const referenceCopy: Baselines = {};
@@ -233,6 +233,11 @@ test("Cronograma production pilot matches deterministic visual baselines", async
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
   console.log(`AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON=${JSON.stringify(referenceCopy)}`);
+  // Original approved baselines remain unchanged. Only the confirmed text
+  // change may alter the live pixels; restoring its prior wording must
+  // reproduce all three previously reviewed screenshots byte-for-byte.
   expect(referenceCopy).toEqual(baselines);
-  expect(actual).toEqual(baselines);
+  for (const key of Object.keys(actual)) {
+    expect(actual[key], `Visible heading copy must change: ${key}`).not.toBe(referenceCopy[key]);
+  }
 });
