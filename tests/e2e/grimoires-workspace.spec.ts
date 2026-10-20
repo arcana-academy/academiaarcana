@@ -72,12 +72,12 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await page.getByLabel("Email").fill(e2eEmail);
     await page.getByLabel("Senha").fill(e2ePassword);
     await page.getByRole("button", { name: "Entrar" }).click();
-    await expect(page).toHaveURL(/\\/santuario(?:[/?#]|$)/);
+    await expect(page).toHaveURL(/\/santuario(?:[/?#]|$)/);
 
     await page.goto("/grimorios");
     await expect(page.getByRole("heading", { name: "Grimórios" })).toBeVisible();
     await page.getByRole("link", { name: "Abrir grimório" }).first().click();
-    await expect(page).toHaveURL(/\\/workspace\\?view=tree&grimoire=[^#]+#current$/);
+    await expect(page).toHaveURL(/\/workspace\\?view=tree&grimoire=[^#]+#current$/);
 
     // Create a separate, entirely synthetic hierarchy using production UI
     // and server actions rather than inserting it directly into the database.
@@ -104,7 +104,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await expect(page.getByRole("form", { name: "Criar página" })).toBeVisible();
 
     const createPage = page.getByRole("form", { name: "Criar página" });
-    await createPage.getByRole("textbox", { name: "Novo título da página" }).fill(pageTitle);
+    await createPage.getByRole("textbox", { name: "Nova página" }).fill(pageTitle);
     await createPage.getByRole("button", { name: "Criar página" }).click();
 
     const editor = page.getByRole("article", { name: "Editor da página" });
@@ -116,7 +116,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await expect(editor.getByText("Página salva.")).toBeVisible();
 
     const selectedUrl = page.url();
-    expect(selectedUrl).toMatch(/\\/workspace\\?view=tree&page=[^#]+#current$/);
+    expect(selectedUrl).toMatch(/\/workspace\\?view=tree&page=[^#]+#current$/);
     await page.reload();
     await expect(page).toHaveURL(selectedUrl);
     const persistedEditor = page.getByRole("article", { name: "Editor da página" });
