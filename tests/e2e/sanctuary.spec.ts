@@ -93,6 +93,7 @@ test.describe("authenticated Sanctuary flow", () => {
     });
 
     if (await resumeStudy.count()) {
+      await expect(resumeStudy).toHaveAttribute("href", /#current$/);
       await resumeStudy.click();
       await expectWorkspaceContext(page);
       return;
@@ -103,6 +104,7 @@ test.describe("authenticated Sanctuary flow", () => {
     });
 
     if (await openStudy.count()) {
+      await expect(openStudy).toHaveAttribute("href", /#current$/);
       await openStudy.click();
       await expectWorkspaceContext(page);
       return;
