@@ -48,9 +48,13 @@ describe("Workspace", () => {
     expect(
       screen.getByRole("navigation", { name: "Navegação do workspace" }),
     ).toBeTruthy();
-    expect(
-      screen.getByRole("region", { name: "Área de trabalho" }),
-    ).toBeTruthy();
+    const editorRegion = screen.getByRole("region", { name: "Área de trabalho" });
+    // Every canonical deep link (including Santuário resume) uses #current.
+    // Keep its anchor attached to the actual editor, and allow keyboard focus.
+    expect(editorRegion).toHaveAttribute("id", "current");
+    expect(editorRegion).toHaveAttribute("tabindex", "-1");
+    editorRegion.focus();
+    expect(editorRegion).toHaveFocus();
     expect(
       screen.getByRole("complementary", { name: "Contexto" }),
     ).toBeTruthy();
