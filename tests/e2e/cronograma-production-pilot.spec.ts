@@ -83,6 +83,7 @@ test("Cronograma pilot renders the real StudyTaskBoard at representative viewpor
     await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-pilot-status", "validation");
     await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "default");
     await expect(page.getByRole("heading", { name: "Cronograma", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Tarefas pendentes" })).toBeVisible();
     await expect(page.getByRole("textbox", { name: "Tarefa", exact: true })).toBeVisible();
     await expect(page.getByText("Revisar capítulo de Fisiologia")).toBeVisible();
     await assertNoHorizontalOverflow(page, viewport.label);
