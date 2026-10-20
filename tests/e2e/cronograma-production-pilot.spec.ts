@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
@@ -11,8 +11,12 @@ type Baselines = Record<string, string>;
 const baselinePath = join(process.cwd(), "tests/e2e/cronograma-pilot-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
 
-async function screenshotHash(locator: Locator): Promise<string> {
+async function screenshotHash(locator: Locator, evidencePath?: string): Promise<string> {
   const bytes = await locator.screenshot({ animations: "disabled" });
+  if (evidencePath) {
+    mkdirSync(dirname(evidencePath), { recursive: true });
+    writeFileSync(evidencePath, bytes);
+  }
   return createHash("sha256").update(bytes).digest("hex");
 }
 
@@ -219,7 +223,9 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
     const board = page.locator(".aa-study-task-board");
     await expect(board).toBeVisible();
     await settleVisualSurface(page, board);
-    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
+    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(
+      board, join(process.cwd(), "test-results", "aa-cronograma-c43", `${viewport.label}-novo.png`),
+    );
 
     // Comparison-only control: revert exactly the changed heading wording,
     // not CSS, layout or app data, and compare with the previously approved
@@ -228,7 +234,9 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
       heading.textContent = "Tarefas futuras";
     });
     await settleVisualSurface(page, board);
-    referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
+    referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(
+      board, join(process.cwd(), "test-results", "aa-cronograma-c43", `${viewport.label}-referencia.png`),
+    );
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
