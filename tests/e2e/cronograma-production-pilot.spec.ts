@@ -215,35 +215,27 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
     { width: 1280, height: 900, label: "desktop" },
   ]) {
     await page.setViewportSize(viewport);
-    await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
-    const board = page.locator(".aa-study-task-board");
-    await expect(board).toBeVisible();
-    // Capture the original reviewed copy FIRST, before any screenshot of the
-    // new heading. This restores the C42 snapshot sequence on each fresh page,
-    // avoiding a second-state/layout artifact from a prior screenshot.
-    // Do not regenerate, weaken, or replace the immutable baseline hashes.
-    const heading = board.locator("#upcoming-tasks-title");
-    await heading.evaluate((node) => {
-      node.textContent = "Tarefas futuras";
-    });
-    await expect(heading).toHaveText("Tarefas futuras");
-    await settleVisualSurface(page, board);
-    referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
+    // Render both variants through the real React pilot, including SSR and
+    // hydration. Directly rewriting the DOM was not a faithful tablet control:
+    // C44's first run matched mobile/desktop but retained tablet divergence.
+    // Neither production data nor the immutable visual baselines are changed.
+    await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default&copy=legacy");
+    const reference = page.locator(".aa-study-task-board");
+    await expect(reference.locator("#upcoming-tasks-title")).toHaveText("Tarefas futuras");
+    await settleVisualSurface(page, reference);
+    referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(reference);
 
-    // Now change ONLY the approved text. Every other pixel of the same
-    // browser-rendered board should remain covered by the original reference.
-    await heading.evaluate((node) => {
-      node.textContent = "Tarefas pendentes";
-    });
-    await expect(heading).toHaveText("Tarefas pendentes");
-    await settleVisualSurface(page, board);
-    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
+    await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
+    const current = page.locator(".aa-study-task-board");
+    await expect(current.locator("#upcoming-tasks-title")).toHaveText("Tarefas pendentes");
+    await settleVisualSurface(page, current);
+    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(current);
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
   console.log(`AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON=${JSON.stringify(referenceCopy)}`);
   // Original approved baselines remain unchanged. Only the confirmed text
-  // change may alter the live pixels; restoring its prior wording must
+  // change may alter the live pixels; rendering its prior wording must
   // reproduce all three previously reviewed screenshots byte-for-byte.
   expect(referenceCopy).toEqual(baselines);
   for (const key of Object.keys(actual)) {
