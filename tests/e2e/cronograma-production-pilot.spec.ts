@@ -161,7 +161,7 @@ test("Cronograma pilot preserves keyboard focus and reduced motion", async ({ pa
 test("Cronograma pilot covers empty, error and connected Outlook states deterministically", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?scenario=empty");
   await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "empty");
-  await expect(page.getByText("Nenhuma tarefa futura cadastrada.")).toBeVisible();
+  await expect(page.getByText("Nenhuma tarefa pendente.")).toBeVisible();
 
   await page.goto("/design-system/pilots/cronograma?scenario=error");
   await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "error");
@@ -206,6 +206,7 @@ test("Cronograma pilot records performance evidence without inventing a budget",
 test("Cronograma production pilot matches deterministic visual baselines", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   const actual: Baselines = {};
+  const referenceCopy: Baselines = {};
 
   for (const viewport of [
     { width: 375, height: 812, label: "mobile" },
@@ -218,8 +219,19 @@ test("Cronograma production pilot matches deterministic visual baselines", async
     await expect(board).toBeVisible();
     await settleVisualSurface(page, board);
     actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
+
+    // Comparison-only control: revert exactly the changed heading wording,
+    // not CSS, layout or app data, and compare with the previously approved
+    // immutable visual hashes. No production code or snapshots are altered.
+    await board.locator("#upcoming-tasks-title").evaluate((heading) => {
+      heading.textContent = "Tarefas futuras";
+    });
+    await settleVisualSurface(page, board);
+    referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(board);
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
+  console.log(`AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON=${JSON.stringify(referenceCopy)}`);
+  expect(referenceCopy).toEqual(baselines);
   expect(actual).toEqual(baselines);
 });
