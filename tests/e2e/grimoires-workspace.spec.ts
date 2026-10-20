@@ -160,7 +160,10 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     // completed progress for the synthetic user's only learning page.
     await page.goto("/santuario");
     await expect(page.getByRole("heading", { name: "Seu progresso" })).toBeVisible();
-    await expect(page.locator('[aria-labelledby="sanctuary-progress"]')).toContainText("1 de 1 páginas concluídas");
+    const progressRegion = page.locator('[aria-labelledby="sanctuary-progress"]');
+    // Wait for the streamed route to settle while requiring one accessible progress region.
+    await expect(progressRegion).toHaveCount(1);
+    await expect(progressRegion).toContainText("1 de 1 páginas concluídas");
   });
 
 });
