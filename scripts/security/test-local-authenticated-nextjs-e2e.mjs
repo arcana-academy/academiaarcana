@@ -12,10 +12,10 @@ import { createClient } from "@supabase/supabase-js";
 assert.equal(process.env.GITHUB_ACTIONS, "true");
 if (process.env.GITHUB_EVENT_NAME === "workflow_dispatch") {
   assert.equal(process.env.GITHUB_REF, "refs/heads/work/aa360-c60-auth-e2e-exact-sha-dispatch-20261021");
-  assert.equal(process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA, "c13748a5122b777b221ebc0325037ea967bc6d20");
+  assert.equal(process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA, "e77bdaf8297262af73175ec8ab2090e3467fbbb3");
   assert.equal(
     execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
-    "c13748a5122b777b221ebc0325037ea967bc6d20",
+    "e77bdaf8297262af73175ec8ab2090e3467fbbb3",
     "Refusing to run the manual harness on a different application revision",
   );
 } else {
