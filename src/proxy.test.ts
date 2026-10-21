@@ -76,7 +76,8 @@ describe("proxy liveness isolation", () => {
   });
 
   it("keeps existing non-asset matcher coverage for health and protected paths", () => {
-    const matcher = new RegExp(config.matcher[0]);
+    // Next.js anchors matcher patterns to the start of the pathname.
+    const matcher = new RegExp(`^${config.matcher[0]}`);
     expect(matcher.test("/api/health")).toBe(true);
     expect(matcher.test("/santuario")).toBe(true);
     expect(matcher.test("/_next/static/chunk.js")).toBe(false);
