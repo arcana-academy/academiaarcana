@@ -91,7 +91,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: 6621977d477f65acc11f73e96697eb2e272bddec
+          ref: 6a7b1907dc5fc854ab4a5c758911a75c2e251305
 
       - name: Fetch C64-only test from exact QA workflow revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -104,13 +104,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "6621977d477f65acc11f73e96697eb2e272bddec"
+          test "$(git rev-parse HEAD)" = "6a7b1907dc5fc854ab4a5c758911a75c2e251305"
           test "$GITHUB_SHA" = "$(git -C .aa-c64-harness rev-parse HEAD)"
           git diff --quiet
           cp .aa-c64-harness/scripts/security/test-local-storage-isolation-c64.mjs scripts/security/test-local-storage-isolation-c64.mjs
           rm -rf .aa-c64-harness
           test "$(git status --porcelain --untracked-files=all)" = "?? scripts/security/test-local-storage-isolation-c64.mjs"
-          test "$(git rev-parse HEAD)" = "6621977d477f65acc11f73e96697eb2e272bddec"
+          test "$(git rev-parse HEAD)" = "6a7b1907dc5fc854ab4a5c758911a75c2e251305"
 
       - name: Setup Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
