@@ -10,7 +10,17 @@ import { createClient } from "@supabase/supabase-js";
 // Fail closed: this scenario is limited to a synthetic PR runner and a
 // loopback-only Supabase instance. No hosted project or real credentials.
 assert.equal(process.env.GITHUB_ACTIONS, "true");
-assert.equal(process.env.GITHUB_EVENT_NAME, "pull_request");
+if (process.env.GITHUB_EVENT_NAME === "workflow_dispatch") {
+  assert.equal(process.env.GITHUB_REF, "refs/heads/work/aa360-c60-auth-e2e-exact-sha-dispatch-20261021");
+  assert.equal(process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA, "c13748a5122b777b221ebc0325037ea967bc6d20");
+  assert.equal(
+    execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
+    "c13748a5122b777b221ebc0325037ea967bc6d20",
+    "Refusing to run the manual harness on a different application revision",
+  );
+} else {
+  assert.equal(process.env.GITHUB_EVENT_NAME, "pull_request");
+}
 assert.equal(process.env.AA_LOCAL_SUPABASE_E2E, "1");
 
 const raw = execFileSync("supabase", ["status", "-o", "env"], {
