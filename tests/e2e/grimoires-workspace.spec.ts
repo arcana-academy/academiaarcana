@@ -14,10 +14,10 @@ function isAuthorizedSyntheticE2eEvent() {
   if (process.env.GITHUB_EVENT_NAME !== "workflow_dispatch") return false;
   if (
     process.env.GITHUB_REPOSITORY !== "arcana-academy/academiaarcana" ||
-    process.env.GITHUB_REF !== "refs/heads/work/aa360-c60-auth-e2e-exact-sha-dispatch-20261021" ||
-    process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA !== "c13748a5122b777b221ebc0325037ea967bc6d20"
+    process.env.GITHUB_REF !== "refs/heads/work/aa360-c63-auth-e2e-c62-exact-sha-20261021" ||
+    process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA !== "6621977d477f65acc11f73e96697eb2e272bddec"
   ) return false;
-  return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() === "c13748a5122b777b221ebc0325037ea967bc6d20";
+  return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() === "6621977d477f65acc11f73e96697eb2e272bddec";
 }
 
 
@@ -53,6 +53,15 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     !e2eEmail || !e2ePassword,
     "Configure E2E_EMAIL and E2E_PASSWORD for the authenticated production-data flow.",
   );
+
+  // C63 checks the actual C62 proxy through the synthetic isolated Next.js runtime.
+  // Session-failure isolation is covered separately by C62 proxy regression tests.
+  test("keeps liveness and CSP available without authenticating a user", async ({ request }) => {
+    const health = await request.get("/api/health");
+    expect(health.status()).toBe(200);
+    expect(await health.json()).toMatchObject({ status: "ok", service: "academiaarcana" });
+    expect(health.headers()["content-security-policy"]).toContain("script-src");
+  });
 
   test("opens a real grimoire through the canonical Workspace URL and preserves it on reload", async ({
     page,
