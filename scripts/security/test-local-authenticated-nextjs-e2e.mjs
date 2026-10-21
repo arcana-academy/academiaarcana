@@ -95,7 +95,9 @@ try {
   ], { stdio: "ignore", timeout: 20_000 });
 
   proxy = spawn(process.execPath, [
-    "scripts/security/local-supabase-https-proxy.mjs",
+    process.env.GITHUB_EVENT_NAME === "workflow_dispatch"
+      ? "scripts/security/local-supabase-https-proxy-dispatch.mjs"
+      : "scripts/security/local-supabase-https-proxy.mjs",
   ], {
     stdio: ["ignore", "inherit", "inherit"],
     env: {
