@@ -11,11 +11,11 @@ import { createClient } from "@supabase/supabase-js";
 // loopback-only Supabase instance. No hosted project or real credentials.
 assert.equal(process.env.GITHUB_ACTIONS, "true");
 if (process.env.GITHUB_EVENT_NAME === "workflow_dispatch") {
-  assert.equal(process.env.GITHUB_REF, "refs/heads/work/aa360-c60-auth-e2e-exact-sha-dispatch-20261021");
-  assert.equal(process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA, "c13748a5122b777b221ebc0325037ea967bc6d20");
+  assert.equal(process.env.GITHUB_REF, "refs/heads/work/aa360-c63-auth-e2e-c62-exact-sha-20261021");
+  assert.equal(process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA, "6621977d477f65acc11f73e96697eb2e272bddec");
   assert.equal(
     execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
-    "c13748a5122b777b221ebc0325037ea967bc6d20",
+    "6621977d477f65acc11f73e96697eb2e272bddec",
     "Refusing to run the manual harness on a different application revision",
   );
 } else {
