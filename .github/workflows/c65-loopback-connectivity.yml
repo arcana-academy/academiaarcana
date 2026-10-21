@@ -1,0 +1,144 @@
+name: Academia Arcana C65 Loopback Connectivity (QA Only)
+
+on:
+  push:
+    branches:
+      - work/aa360-c65-local-network-smoke-20261021
+
+permissions:
+  contents: read
+
+jobs:
+  c65-network-smoke:
+    name: Synthetic local network connectivity, no E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Refuse unauthorized context
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "arcana-academy/academiaarcana"
+          test "$GITHUB_EVENT_NAME" = "push"
+          test "$GITHUB_REF" = "refs/heads/work/aa360-c65-local-network-smoke-20261021"
+
+      - name: Checkout pinned application only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: 6621977d477f65acc11f73e96697eb2e272bddec
+
+      - name: Verify application SHA and synthetic configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "6621977d477f65acc11f73e96697eb2e272bddec"
+          test -f supabase/config.toml
+          test "$(grep -c '^project_id = "academiaarcana"$' supabase/config.toml)" -eq 1
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Check Docker Engine version and create loopback bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker version --format 'Server Docker Engine: {{.Server.Version}}'
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import { execFileSync } from "node:child_process";
+          const version = execFileSync("docker", ["version", "--format", "{{.Server.Version}}"], {encoding:"utf8"}).trim();
+          const major = Number(version.match(/^(\d+)\./)?.[1]);
+          assert.ok(Number.isInteger(major) && major >= 28,
+            "Docker Engine <28 lacks the supported localhost port-publishing isolation guarantee");
+          console.log("PASS: Docker Engine " + version + " satisfies >=28.0.0");
+          NODE
+          docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 aa-c65-loopback
+          test "$(docker network inspect --format '{{ index .Options "com.docker.network.bridge.host_binding_ipv4" }}' aa-c65-loopback)" = "127.0.0.1"
+
+      - name: Start disposable Supabase on loopback bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start --network-id aa-c65-loopback
+
+      - name: Prove local availability and non-local host-interface denial
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import { execFileSync } from "node:child_process";
+          import { connect } from "node:net";
+
+          const network = JSON.parse(execFileSync("docker", ["network", "inspect", "aa-c65-loopback"], {encoding:"utf8"}))[0];
+          assert.equal(network.Options["com.docker.network.bridge.host_binding_ipv4"], "127.0.0.1");
+          assert.equal(network.Options["com.docker.network.bridge.gateway_mode_ipv4"] ?? "nat", "nat");
+          const ids = execFileSync("docker", ["ps", "-q", "--filter", "name=supabase_"], {encoding:"utf8"}).trim().split(/\s+/).filter(Boolean);
+          assert.ok(ids.length > 0, "No disposable Supabase containers found");
+          const ports = new Set();
+          let totalBindings = 0;
+          for (const id of ids) {
+            const [container] = JSON.parse(execFileSync("docker", ["inspect", id], {encoding:"utf8"}));
+            assert.ok(Object.hasOwn(container.NetworkSettings.Networks ?? {}, "aa-c65-loopback"),
+              "Supabase container not attached to the C65 network: " + container.Name);
+            for (const [containerPort, bindings] of Object.entries(container.NetworkSettings.Ports ?? {})) {
+              for (const binding of bindings ?? []) {
+                totalBindings++;
+                assert.ok(["127.0.0.1", "::1"].includes(binding.HostIp),
+                  "Unexpected published interface for " + container.Name + ": " + binding.HostIp);
+                if (containerPort.endsWith("/tcp") && binding.HostIp === "127.0.0.1") {
+                  ports.add(Number(binding.HostPort));
+                }
+              }
+            }
+          }
+          assert.ok(totalBindings >= 5 && ports.size >= 5,
+            "Missing previously observed five local TCP ports");
+
+          const route = execFileSync("ip", ["-4", "route", "get", "1.1.1.1"], {encoding:"utf8"});
+          const nonlocal = route.match(/\bsrc\s+(\d+\.\d+\.\d+\.\d+)/)?.[1];
+          assert.ok(nonlocal && !nonlocal.startsWith("127."), "No distinct non-loopback host IP to test");
+
+          function probe(host, port) {
+            return new Promise((resolve) => {
+              const socket = connect({host, port});
+              const timer = setTimeout(() => { socket.destroy(); resolve("timeout"); }, 1800);
+              socket.once("connect", () => { clearTimeout(timer); socket.destroy(); resolve("connected"); });
+              socket.once("error", (error) => { clearTimeout(timer); socket.destroy(); resolve(error.code || "error"); });
+            });
+          }
+          let reachable = 0, rejected = 0;
+          for (const port of ports) {
+            const local = await probe("127.0.0.1", port);
+            assert.equal(local, "connected", "Loopback connection unavailable for port " + port + ": " + local);
+            reachable++;
+            const outside = await probe(nonlocal, port);
+            assert.notEqual(outside, "connected", "Non-loopback host-interface connection unexpectedly succeeded: " + port);
+            assert.ok(["ECONNREFUSED", "EHOSTUNREACH", "ENETUNREACH", "timeout", "ETIMEDOUT"].includes(outside),
+              "Unexpected non-local probe result: " + outside);
+            rejected++;
+          }
+          const response = await fetch("http://127.0.0.1:54321/auth/v1/health", {signal:AbortSignal.timeout(5000)});
+          assert.ok(response.status >= 200 && response.status < 500, "Local HTTP endpoint did not answer");
+          console.log("PASS: " + totalBindings + " published bindings exclusively on loopback; " +
+            reachable + " local TCP connections; " + rejected +
+            " non-loopback host-interface TCP connections refused/unreachable/timed out; API HTTP responded");
+          console.log("LIMIT: host-interface denial is not a remote network/ingress firewall test");
+          NODE
+
+      - name: Stop disposable Supabase
+        if: always()
+        shell: bash
+        run: supabase stop --no-backup
+
+      - name: Remove disposable bridge
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if docker network inspect aa-c65-loopback >/dev/null 2>&1; then
+            docker network rm aa-c65-loopback
+          fi
