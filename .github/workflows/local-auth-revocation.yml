@@ -51,6 +51,7 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "c13748a5122b777b221ebc0325037ea967bc6d20"
           cp .aa-dispatch-e2e-harness/scripts/security/test-local-authenticated-nextjs-e2e.mjs scripts/security/test-local-authenticated-nextjs-e2e-dispatch.mjs
+          cp .aa-dispatch-e2e-harness/scripts/security/local-supabase-https-proxy-dispatch.mjs scripts/security/local-supabase-https-proxy-dispatch.mjs
           rm -rf .aa-dispatch-e2e-harness
           git diff --quiet
           test "$(git rev-parse HEAD)" = "c13748a5122b777b221ebc0325037ea967bc6d20"
