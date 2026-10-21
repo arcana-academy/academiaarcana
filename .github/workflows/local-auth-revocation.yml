@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'c13748a5122b777b221ebc0325037ea967bc6d20' || github.sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'e77bdaf8297262af73175ec8ab2090e3467fbbb3' || github.sha }}
 
       - name: Checkout dispatch-only harness in a temporary directory
         if: github.event_name == 'workflow_dispatch'
@@ -49,7 +49,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "c13748a5122b777b221ebc0325037ea967bc6d20"
+          test "$(git rev-parse HEAD)" = "e77bdaf8297262af73175ec8ab2090e3467fbbb3"
           # App checkout remains exactly the verified MVP commit.
           cp .aa-dispatch-e2e-harness/scripts/security/test-local-authenticated-nextjs-e2e.mjs scripts/security/test-local-authenticated-nextjs-e2e-dispatch.mjs
           cp .aa-dispatch-e2e-harness/scripts/security/local-supabase-https-proxy-dispatch.mjs scripts/security/local-supabase-https-proxy-dispatch.mjs
@@ -58,7 +58,7 @@ jobs:
           cp .aa-dispatch-e2e-harness/tests/e2e/grimoires-workspace.spec.ts tests/e2e/grimoires-workspace.spec.ts
           rm -rf .aa-dispatch-e2e-harness
           test "$(git diff --name-only)" = "tests/e2e/grimoires-workspace.spec.ts"
-          test "$(git rev-parse HEAD)" = "c13748a5122b777b221ebc0325037ea967bc6d20"
+          test "$(git rev-parse HEAD)" = "e77bdaf8297262af73175ec8ab2090e3467fbbb3"
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -88,7 +88,7 @@ jobs:
         env:
           AA_LOCAL_SUPABASE_E2E: "1"
           AA_C54_SYNTHETIC_VISUAL: "1"
-          AA_AUTH_DISPATCH_CANDIDATE_SHA: "c13748a5122b777b221ebc0325037ea967bc6d20"
+          AA_AUTH_DISPATCH_CANDIDATE_SHA: "e77bdaf8297262af73175ec8ab2090e3467fbbb3"
         shell: bash
         run: |
           set -euo pipefail
