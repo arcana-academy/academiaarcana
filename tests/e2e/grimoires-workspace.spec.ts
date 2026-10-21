@@ -15,9 +15,9 @@ function isAuthorizedSyntheticE2eEvent() {
   if (
     process.env.GITHUB_REPOSITORY !== "arcana-academy/academiaarcana" ||
     process.env.GITHUB_REF !== "refs/heads/work/aa360-c60-auth-e2e-exact-sha-dispatch-20261021" ||
-    process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA !== "c13748a5122b777b221ebc0325037ea967bc6d20"
+    process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA !== "e77bdaf8297262af73175ec8ab2090e3467fbbb3"
   ) return false;
-  return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() === "c13748a5122b777b221ebc0325037ea967bc6d20";
+  return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() === "e77bdaf8297262af73175ec8ab2090e3467fbbb3";
 }
 
 
