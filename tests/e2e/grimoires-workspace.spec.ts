@@ -1,10 +1,25 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
 
 const e2eEmail = process.env.E2E_EMAIL;
 const e2ePassword = process.env.E2E_PASSWORD;
+
+// Allow a manual run only on the isolated C60 runner with the immutable MVP SHA.
+// Keep the original pull_request behavior and all HTTPS/loopback protections.
+function isAuthorizedSyntheticE2eEvent() {
+  if (process.env.GITHUB_EVENT_NAME === "pull_request") return true;
+  if (process.env.GITHUB_EVENT_NAME !== "workflow_dispatch") return false;
+  if (
+    process.env.GITHUB_REPOSITORY !== "arcana-academy/academiaarcana" ||
+    process.env.GITHUB_REF !== "refs/heads/work/aa360-c60-auth-e2e-exact-sha-dispatch-20261021" ||
+    process.env.AA_AUTH_DISPATCH_CANDIDATE_SHA !== "c13748a5122b777b221ebc0325037ea967bc6d20"
+  ) return false;
+  return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() === "c13748a5122b777b221ebc0325037ea967bc6d20";
+}
+
 
 // C54: screenshots of synthetic, loopback-only UI on an ephemeral PR runner.
 // Explicitly refuse real users and production Supabase configurations.
@@ -17,7 +32,7 @@ async function captureSyntheticVisualEvidence(
   const api = localUrl ? new URL(localUrl) : null;
   if (
     process.env.GITHUB_ACTIONS !== "true" ||
-    process.env.GITHUB_EVENT_NAME !== "pull_request" ||
+    !isAuthorizedSyntheticE2eEvent() ||
     process.env.AA_LOCAL_SUPABASE_E2E !== "1" ||
     !api ||
     api.protocol !== "https:" ||
@@ -104,7 +119,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     const api = new URL(apiUrl);
     if (
       process.env.GITHUB_ACTIONS !== "true" ||
-      process.env.GITHUB_EVENT_NAME !== "pull_request" ||
+      !isAuthorizedSyntheticE2eEvent() ||
       process.env.AA_LOCAL_SUPABASE_E2E !== "1" ||
       api.protocol !== "https:" ||
       !["127.0.0.1", "localhost", "[::1]"].includes(api.hostname)
