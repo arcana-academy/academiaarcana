@@ -4,7 +4,7 @@ import { randomUUID, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 // C64: only the ephemeral checkout of PR #766, never a hosted instance.
-const pinnedSha = "6621977d477f65acc11f73e96697eb2e272bddec";
+const pinnedSha = "6a7b1907dc5fc854ab4a5c758911a75c2e251305";
 const qaBranch = "refs/heads/work/aa360-c64-storage-two-account-20261021";
 assert.equal(process.env.GITHUB_ACTIONS, "true");
 assert.equal(process.env.GITHUB_EVENT_NAME, "workflow_dispatch");
