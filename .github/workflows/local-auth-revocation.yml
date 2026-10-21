@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - work/aa360-c64-loopback-binding-qa-20261021
   workflow_dispatch:
 
 permissions:
@@ -22,8 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Require isolated branch for manual authenticated QA
-        if: github.event_name == 'workflow_dispatch'
+      - name: Require isolated branch for C64 network QA
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/work/aa360-c64-loopback-binding-qa-20261021'
         shell: bash
         run: |
           set -euo pipefail
@@ -34,10 +35,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event_name == 'workflow_dispatch' && '6621977d477f65acc11f73e96697eb2e272bddec' || github.sha }}
+          ref: ${{ (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/work/aa360-c64-loopback-binding-qa-20261021') && '6621977d477f65acc11f73e96697eb2e272bddec' || github.sha }}
 
       - name: Checkout dispatch-only harness in a temporary directory
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/work/aa360-c64-loopback-binding-qa-20261021'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -45,7 +46,7 @@ jobs:
           path: .aa-dispatch-e2e-harness
 
       - name: Verify pinned candidate and stage ephemeral test harness
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/work/aa360-c64-loopback-binding-qa-20261021'
         shell: bash
         run: |
           set -euo pipefail
@@ -112,7 +113,7 @@ jobs:
           NODE
 
       - name: Exercise two isolated identities and global session revocation
-        if: github.event_name != 'workflow_dispatch' # C64 dispatch network-only; reuse C63 PASS
+        if: github.ref != 'refs/heads/work/aa360-c64-loopback-binding-qa-20261021' # C64 branch checks network only; reuse C63 PASS
         run: node scripts/security/test-local-auth-revocation.mjs
 
       - name: Install browser for isolated authenticated Next.js E2E
