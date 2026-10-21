@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = "arcana-academy/academiaarcana"
-          test "$GITHUB_REF" = "refs/heads/work/aa360-c63-auth-e2e-c62-exact-sha-20261021"
+          test "$GITHUB_REF" = "refs/heads/work/aa360-c64-loopback-binding-qa-20261021"
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -73,18 +73,54 @@ jobs:
       - name: Install test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
+      # C64: test-only bridge; default Supabase CLI host binds are all-interface.
+      - name: Create loopback-only Docker network
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 aa-c64-loopback
+          test "$(docker network inspect --format '{{ index .Options "com.docker.network.bridge.host_binding_ipv4" }}' aa-c64-loopback)" = "127.0.0.1"
+
       - name: Start ephemeral local Supabase
-        run: supabase start
+        run: supabase start --network-id aa-c64-loopback
+
+      - name: Verify Supabase published host ports are loopback-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import { execFileSync } from "node:child_process";
+          const ids = execFileSync("docker", ["ps", "-q", "--filter", "name=supabase_"], { encoding: "utf8" })
+            .trim().split(/\s+/).filter(Boolean);
+          assert.ok(ids.length > 0, "No ephemeral Supabase containers found");
+          let published = 0;
+          for (const id of ids) {
+            const [container] = JSON.parse(execFileSync("docker", ["inspect", id], { encoding: "utf8" }));
+            assert.ok(Object.hasOwn(container.NetworkSettings.Networks ?? {}, "aa-c64-loopback"),
+              "Supabase container not attached to isolated bridge: " + container.Name);
+            for (const bindings of Object.values(container.NetworkSettings.Ports ?? {})) {
+              for (const binding of bindings ?? []) {
+                published += 1;
+                assert.ok(["127.0.0.1", "::1"].includes(binding.HostIp),
+                  "Non-loopback Supabase port: " + container.Name + " " + binding.HostIp + ":" + binding.HostPort);
+              }
+            }
+          }
+          assert.ok(published > 0, "No published host ports found; cannot validate isolation");
+          console.log("PASS: " + published + " published Supabase host ports bind exclusively to loopback");
+          NODE
 
       - name: Exercise two isolated identities and global session revocation
+        if: github.event_name != 'workflow_dispatch' # C64 dispatch network-only; reuse C63 PASS
         run: node scripts/security/test-local-auth-revocation.mjs
 
       - name: Install browser for isolated authenticated Next.js E2E
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'pull_request'
         run: npm exec -- playwright install --with-deps chromium
 
       - name: Run authenticated Next.js journeys against local-only Supabase
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'pull_request'
         env:
           AA_LOCAL_SUPABASE_E2E: "1"
           AA_C54_SYNTHETIC_VISUAL: "1"
@@ -99,7 +135,7 @@ jobs:
           fi
 
       - name: Archive synthetic local visual evidence
-        if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+        if: always() && github.event_name == 'pull_request'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: academiaarcana-c54-synthetic-visual
@@ -110,3 +146,12 @@ jobs:
       - name: Stop ephemeral Supabase
         if: always()
         run: supabase stop --no-backup
+
+      - name: Remove loopback-only Docker network
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if docker network inspect aa-c64-loopback >/dev/null 2>&1; then
+            docker network rm aa-c64-loopback
+          fi
