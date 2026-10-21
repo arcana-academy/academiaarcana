@@ -1,31 +1,56 @@
+# C64 QA-only variant, isolated from main and protected candidate branches.
 name: Academia Arcana Local Auth Revocation
-
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: local-auth-revocation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: c64-storage-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   local-auth-revocation:
-    name: Isolated two-account Auth and RLS exercise
+    name: C64 two-identity private Storage isolation
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Checkout
+      - name: Guard GitHub identity and isolated dispatch branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "arcana-academy/academiaarcana"
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_REF" = "refs/heads/work/aa360-c64-local-storage-isolation-20261021"
+
+      - name: Checkout exact protected C62 application
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: 6621977d477f65acc11f73e96697eb2e272bddec
+
+      - name: Checkout synthetic QA-only harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          path: .aa-c64-harness
+
+      - name: Validate app identity and stage only the local Storage test
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "6621977d477f65acc11f73e96697eb2e272bddec"
+          git diff --quiet
+          git diff --cached --quiet
+          test ! -e scripts/security/test-local-storage-isolation.mjs
+          cp .aa-c64-harness/scripts/security/test-local-storage-isolation.mjs scripts/security/test-local-storage-isolation.mjs
+          rm -rf .aa-c64-harness
+          git diff --quiet
+          git diff --cached --quiet
+          test "$(git status --porcelain --untracked-files=all)" = "?? scripts/security/test-local-storage-isolation.mjs"
+          test "$(git rev-parse HEAD)" = "6621977d477f65acc11f73e96697eb2e272bddec"
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -37,35 +62,17 @@ jobs:
         with:
           version: 2.118.0
 
-      - name: Install test dependencies
+      - name: Install locked dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Start ephemeral local Supabase
+      - name: Start disposable Supabase including Storage
         run: supabase start
 
-      - name: Exercise two isolated identities and global session revocation
-        run: node scripts/security/test-local-auth-revocation.mjs
-
-      - name: Install browser for isolated authenticated Next.js E2E
-        if: github.event_name == 'pull_request'
-        run: npm exec -- playwright install --with-deps chromium
-
-      - name: Run authenticated Next.js journeys against local-only Supabase
-        if: github.event_name == 'pull_request'
+      - name: Exercise only C64 private Storage operations
         env:
-          AA_LOCAL_SUPABASE_E2E: "1"
-          AA_C54_SYNTHETIC_VISUAL: "1"
-        run: node scripts/security/test-local-authenticated-nextjs-e2e.mjs
+          AA_C64_LOCAL_STORAGE_QA: "1"
+        run: node scripts/security/test-local-storage-isolation.mjs
 
-      - name: Archive synthetic local visual evidence
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: academiaarcana-c54-synthetic-visual
-          path: artifacts/aa360-c54-visual/*.png
-          if-no-files-found: warn
-          retention-days: 1
-
-      - name: Stop ephemeral Supabase
+      - name: Stop and destroy disposable Supabase
         if: always()
         run: supabase stop --no-backup
