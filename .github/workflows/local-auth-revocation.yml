@@ -22,10 +22,38 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Require isolated branch for manual authenticated QA
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "arcana-academy/academiaarcana"
+          test "$GITHUB_REF" = "refs/heads/work/aa360-c60-auth-e2e-exact-sha-dispatch-20261021"
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'c13748a5122b777b221ebc0325037ea967bc6d20' || github.sha }}
+
+      - name: Checkout dispatch-only harness in a temporary directory
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          path: .aa-dispatch-e2e-harness
+
+      - name: Verify pinned candidate and stage ephemeral test harness
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "c13748a5122b777b221ebc0325037ea967bc6d20"
+          cp .aa-dispatch-e2e-harness/scripts/security/test-local-authenticated-nextjs-e2e.mjs scripts/security/test-local-authenticated-nextjs-e2e-dispatch.mjs
+          rm -rf .aa-dispatch-e2e-harness
+          git diff --quiet
+          test "$(git rev-parse HEAD)" = "c13748a5122b777b221ebc0325037ea967bc6d20"
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -47,18 +75,26 @@ jobs:
         run: node scripts/security/test-local-auth-revocation.mjs
 
       - name: Install browser for isolated authenticated Next.js E2E
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         run: npm exec -- playwright install --with-deps chromium
 
       - name: Run authenticated Next.js journeys against local-only Supabase
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         env:
           AA_LOCAL_SUPABASE_E2E: "1"
           AA_C54_SYNTHETIC_VISUAL: "1"
-        run: node scripts/security/test-local-authenticated-nextjs-e2e.mjs
+          AA_AUTH_DISPATCH_CANDIDATE_SHA: "c13748a5122b777b221ebc0325037ea967bc6d20"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            node scripts/security/test-local-authenticated-nextjs-e2e-dispatch.mjs
+          else
+            node scripts/security/test-local-authenticated-nextjs-e2e.mjs
+          fi
 
       - name: Archive synthetic local visual evidence
-        if: always() && github.event_name == 'pull_request'
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: academiaarcana-c54-synthetic-visual
