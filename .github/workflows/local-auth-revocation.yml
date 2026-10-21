@@ -1,71 +1,120 @@
-name: Academia Arcana Local Auth Revocation
+name: Academia Arcana C66 Storage Loopback QA
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - work/aa360-c66-storage-loopback-qa-20261021
 
 permissions:
   contents: read
 
 concurrency:
-  group: local-auth-revocation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: c66-storage-loopback-qa
+  cancel-in-progress: false
 
 jobs:
-  local-auth-revocation:
-    name: Isolated two-account Auth and RLS exercise
+  c66-storage:
+    name: C66 exact-tree private Storage and Docker ingress
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Checkout
+      - name: Restrict to isolated C66 push and repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "arcana-academy/academiaarcana"
+          test "$GITHUB_EVENT_NAME" = "push"
+          test "$GITHUB_REF" = "refs/heads/work/aa360-c66-storage-loopback-qa-20261021"
+
+      - name: Checkout immutable integrated C66 application
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: f769d0f4bc2d065c39480264e13c2a244a544c62
 
-      - name: Setup Node.js
+      - name: Checkout QA-only script from invoking commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          path: .aa-c66-harness
+
+      - name: Validate immutable app and add only ephemeral synthetic test
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "f769d0f4bc2d065c39480264e13c2a244a544c62"
+          test "$GITHUB_SHA" = "$(git -C .aa-c66-harness rev-parse HEAD)"
+          git diff --quiet
+          git diff --cached --quiet
+          test ! -e scripts/security/test-local-storage-isolation-c66.mjs
+          cp .aa-c66-harness/scripts/security/test-local-storage-isolation-c66.mjs scripts/security/test-local-storage-isolation-c66.mjs
+          rm -rf .aa-c66-harness
+          test "$(git status --porcelain --untracked-files=all)" = "?? scripts/security/test-local-storage-isolation-c66.mjs"
+          test "$(git rev-parse HEAD)" = "f769d0f4bc2d065c39480264e13c2a244a544c62"
+
+      - name: Setup Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
 
-      - name: Setup Supabase CLI
+      - name: Setup pinned Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: 2.118.0
 
-      - name: Install test dependencies
+      - name: Install locked dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Start ephemeral local Supabase
-        run: supabase start
+      - name: Create loopback-only Docker bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 aa-c66-loopback
+          test "$(docker network inspect --format '{{ index .Options "com.docker.network.bridge.host_binding_ipv4" }}' aa-c66-loopback)" = "127.0.0.1"
 
-      - name: Exercise two isolated identities and global session revocation
-        run: node scripts/security/test-local-auth-revocation.mjs
+      - name: Start disposable Supabase on isolated bridge
+        run: supabase start --network-id aa-c66-loopback
 
-      - name: Install browser for isolated authenticated Next.js E2E
-        if: github.event_name == 'pull_request'
-        run: npm exec -- playwright install --with-deps chromium
+      - name: Enforce loopback-only published ports before Storage testing
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import { execFileSync } from "node:child_process";
+          const ids = execFileSync("docker", ["ps", "-q", "--filter", "name=supabase_"], {encoding:"utf8"})
+            .trim().split(/\s+/).filter(Boolean);
+          assert.ok(ids.length > 0, "Supabase containers missing");
+          let ports = 0;
+          for (const id of ids) {
+            const [container] = JSON.parse(execFileSync("docker", ["inspect", id], {encoding:"utf8"}));
+            assert.ok(Object.hasOwn(container.NetworkSettings.Networks ?? {}, "aa-c66-loopback"),
+              "Supabase container not attached to isolated bridge");
+            for (const bindings of Object.values(container.NetworkSettings.Ports ?? {})) {
+              for (const binding of bindings ?? []) {
+                ports++;
+                assert.ok(["127.0.0.1", "::1"].includes(binding.HostIp),
+                  "Non-loopback published port: " + container.Name + " " + binding.HostIp);
+              }
+            }
+          }
+          assert.ok(ports > 0, "No Supabase host ports published: cannot prove binding");
+          console.log("PASS C66: " + ports + " Supabase host ports exclusively loopback");
+          NODE
 
-      - name: Run authenticated Next.js journeys against local-only Supabase
-        if: github.event_name == 'pull_request'
-        env:
-          AA_LOCAL_SUPABASE_E2E: "1"
-          AA_C54_SYNTHETIC_VISUAL: "1"
-        run: node scripts/security/test-local-authenticated-nextjs-e2e.mjs
+      - name: Verify owner namespace Storage ACL on integrated C66 tree
+        run: node scripts/security/test-local-storage-isolation-c66.mjs
 
-      - name: Archive synthetic local visual evidence
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: academiaarcana-c54-synthetic-visual
-          path: artifacts/aa360-c54-visual/*.png
-          if-no-files-found: warn
-          retention-days: 1
-
-      - name: Stop ephemeral Supabase
+      - name: Stop and delete ephemeral Supabase
         if: always()
         run: supabase stop --no-backup
+
+      - name: Remove ephemeral loopback bridge
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if docker network inspect aa-c66-loopback >/dev/null 2>&1; then
+            docker network rm aa-c66-loopback
+          fi
