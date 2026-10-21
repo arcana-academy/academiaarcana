@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
   // Liveness must not depend on an external Auth session refresh.
   // Keep the CSP/nonce flow unchanged; readiness and protected routes still validate sessions.
   const response =
-    request.nextUrl.pathname === "/api/health"
+    request.nextUrl?.pathname === "/api/health"
       ? NextResponse.next({ request: { headers: requestHeaders } })
       : await updateSession(request, requestHeaders);
   response.headers.set("Content-Security-Policy", contentSecurityPolicy);
