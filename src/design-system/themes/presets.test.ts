@@ -48,6 +48,8 @@ const requiredTokenPaths = [
   "typography.display",
   "typography.label",
   "typography.caption",
+  "typography.editorial",
+  "typography.ornament",
   "typography.code",
   "typography.numeric",
   "typeScale.xs",
@@ -189,6 +191,16 @@ describe("Academia Arcana theme presets", () => {
     }
   });
 
+
+  test("keeps approved institutional typography roles without replacing original lettering", () => {
+    for (const themeId of ["arcana-noturna", "arcana-pergaminho"] as const) {
+      const typography = themePresets[themeId].typography;
+      expect(typography.body).toContain("Literata");
+      expect(typography.heading).toContain("Grenze");
+      expect(typography.editorial).toContain("Cormorant Upright");
+      expect(typography.ornament).toContain("Smythe");
+    }
+  });
 
   test("keeps the focus indicator at or above 3:1 against every theme surface", () => {
     for (const themeId of THEME_IDS) {
