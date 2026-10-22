@@ -72,8 +72,11 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("needs: preflight");
     expect(workflow).toContain("Reject stale main revision before publishing");
     expect(workflow).toContain("Reject stale main revision before deployment");
-    expect(workflow).toContain("https://api.render.com/deploy/*");
-    expect(workflow).toContain('--proto "=https"');
+    expect(workflow).toContain("node /tmp/aa-render-image-target-guard.cjs");
+    expect(workflow).toContain("RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}");
+    expect(workflow).toContain("RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}");
+    expect(workflow).toContain("- name: Request Render image deployment");
+    expect(workflow).not.toContain("--data-urlencode");
     expect(workflow).toContain("academiaarcana-deploy-request");
     expect(workflow).toContain("packages: write");
     expect(workflow).toContain("steps.publish_image.outputs.image_url");
@@ -82,7 +85,7 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("digest: (sha256:[0-9a-f]{64})");
     expect(workflow).toContain("image_url=%s@%s");
     expect(workflow).toContain("IMAGE_URL: ${{ needs.publish.outputs.image_url }}");
-    expect(workflow).toContain("imgURL=$IMAGE_URL");
+    expect(workflow).toContain("One fail-closed operation: live service GET, validation, then hook.");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
     expect(workflow).not.toContain("docker build");
