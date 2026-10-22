@@ -28,7 +28,7 @@ export default async function ConfiguracoesPage() {
               </ul>
               <p className="aa-state-copy">Os recursos essenciais não dependem de ativação. Preferências adicionais serão oferecidas à medida que estiverem implementadas e verificadas.</p>
               <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar">
-                Ajustar tema e movimento
+                Ajustar leitura, tema e movimento
               </Link>
             </FeatureCard>
           </section>
