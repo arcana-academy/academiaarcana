@@ -41,8 +41,8 @@
   --aa-sizing-content-max: 72rem;
   --aa-sizing-page-max: 96rem;
   --aa-typography-body: "Acumin Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --aa-typography-heading: "Sanvito Pro", Georgia, serif;
-  --aa-typography-display: "Sanvito Pro", Georgia, serif;
+  --aa-typography-heading: "Grenze", "Sanvito Pro", Georgia, serif;
+  --aa-typography-display: "Grenze", "Sanvito Pro", Georgia, serif;
   --aa-typography-label: "Acumin Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --aa-typography-caption: "Acumin Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --aa-typography-code: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -2368,3 +2368,16 @@ p {
   .aa-accessibility-shortcut { min-width: 2.75rem; }
 }
 
+
+/* Brand Book 360°: optional editorial/ornamental typography.
+   These styles are never forced onto body text, controls, or the canonical logo. */
+.aa-type-editorial {
+  font-family: "Cormorant Upright", Georgia, serif;
+}
+.aa-type-ornamental {
+  font-family: "Smythe", Georgia, serif;
+}
+.aa-type-reading-literata {
+  font-family: "Literata", Georgia, serif;
+  line-height: var(--aa-line-height-relaxed);
+}
