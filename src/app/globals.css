@@ -2381,3 +2381,110 @@ p {
   font-family: "Literata", Georgia, serif;
   line-height: var(--aa-line-height-relaxed);
 }
+
+
+/* Brand Book C03: device-local, scoped reading controls. The editor's
+   authorization, save controls and page content remain unchanged. */
+.aa-reading-preferences {
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-lg);
+  background: var(--aa-surfaces-panel);
+  padding: var(--aa-spacing-md);
+}
+
+.aa-reading-preferences summary {
+  width: fit-content;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.aa-reading-preferences-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--aa-spacing-sm) var(--aa-spacing-md);
+  margin-top: var(--aa-spacing-md);
+}
+
+.aa-reading-preferences-grid label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--aa-spacing-sm);
+  min-height: 2.75rem;
+  font-weight: 500;
+}
+
+.aa-reading-preferences-grid label:has(select) {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.aa-reading-preferences-grid select {
+  min-height: 2.75rem;
+  width: 100%;
+  max-width: 22rem;
+  padding: var(--aa-spacing-sm);
+  background: var(--aa-surfaces-inset);
+  color: var(--aa-text-primary);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  font: inherit;
+}
+
+.aa-reading-preferences-grid input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--aa-accent-primary);
+}
+
+.aa-reading-editor {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  min-width: 0;
+  padding: var(--aa-spacing-sm);
+  border-radius: var(--aa-radius-lg);
+}
+
+.aa-reading-editor[data-reading-size="large"] input,
+.aa-reading-editor[data-reading-size="large"] textarea {
+  font-size: 1.25rem;
+  line-height: 1.65;
+}
+
+.aa-reading-editor[data-reading-spacing="true"] input,
+.aa-reading-editor[data-reading-spacing="true"] textarea {
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+  word-spacing: 0.12em;
+}
+
+.aa-reading-editor[data-reading-font="literata"] input,
+.aa-reading-editor[data-reading-font="literata"] textarea {
+  font-family: "Literata", Georgia, serif;
+}
+
+.aa-reading-editor[data-reading-focus="true"] {
+  max-width: 68ch;
+  margin-inline: auto;
+  width: 100%;
+  background: var(--aa-surfaces-panel);
+  outline: 1px solid var(--aa-border-default);
+}
+
+.aa-reading-editor[data-reading-contrast="true"] {
+  background: #101014;
+  color: #ffffff;
+}
+.aa-reading-editor[data-reading-contrast="true"] label {
+  color: #ffffff;
+}
+.aa-reading-editor[data-reading-contrast="true"] input,
+.aa-reading-editor[data-reading-contrast="true"] textarea {
+  color: #ffffff;
+  background: #101014;
+  border-color: #ffffff;
+}
+
+@media (max-width: 40rem) {
+  .aa-reading-preferences-grid { grid-template-columns: 1fr; }
+}
