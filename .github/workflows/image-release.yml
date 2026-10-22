@@ -23,6 +23,7 @@ permissions:
 concurrency:
   group: image-release-${{ github.event.workflow_run.head_branch || github.ref_name }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   preflight:
@@ -56,7 +57,7 @@ jobs:
           set -euo pipefail
           if [ "$RELEASE_EVENT" = "workflow_run" ]; then
             if [ "$UPSTREAM_EVENT" != "push" ] || [ "$UPSTREAM_BRANCH" != "main" ] ||
-               [ "$UPSTREAM_WORKFLOW_PATH" != ".github/workflows/quality.yml" ] ||
+               [[ ! "$UPSTREAM_WORKFLOW_PATH" =~ ^\.github/workflows/quality\.yml(@(refs/heads/)?main)?$ ]] ||
                [ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
                [ "$UPSTREAM_ATTEMPT" != "1" ] || [ "$UPSTREAM_RESULT" != "success" ]; then
               echo "Image release requires an original successful push to main in this repository." >&2
@@ -82,7 +83,9 @@ jobs:
                  --arg revision "$revision" \
                  --arg repository "$GITHUB_REPOSITORY" '
                    .name == "Academia Arcana Quality Gate" and
-                   .path == ".github/workflows/quality.yml" and
+                   (.path == ".github/workflows/quality.yml" or
+                    .path == ".github/workflows/quality.yml@main" or
+                    .path == ".github/workflows/quality.yml@refs/heads/main") and
                    .event == "push" and
                    .head_branch == "main" and
                    .head_sha == $revision and
@@ -187,8 +190,6 @@ jobs:
     if: >-
       ${{
         vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true' &&
-        vars.RENDER_DEPLOY_APPROVED_RUN_ID != '' &&
-        vars.RENDER_DEPLOY_APPROVED_RUN_ID == format('{0}', github.run_id) &&
         github.run_attempt == 1 &&
         github.event_name == 'workflow_dispatch'
       }}
@@ -199,6 +200,18 @@ jobs:
     permissions: {}
 
     steps:
+      - name: Require approved dispatch run ID after environment gate
+        env:
+          APPROVED_RUN_ID: ${{ vars.RENDER_DEPLOY_APPROVED_RUN_ID }}
+          ACTUAL_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$ACTUAL_RUN_ID" =~ ^[1-9][0-9]*$ ]] || [ "$APPROVED_RUN_ID" != "$ACTUAL_RUN_ID" ]; then
+            echo "Render deployment needs post-dispatch approval for this exact run." >&2
+            exit 1
+          fi
+
       - name: Reject stale main revision before deployment
         env:
           EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}

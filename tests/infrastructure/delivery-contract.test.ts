@@ -29,6 +29,11 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Academia Arcana Image Release'");
     expect(workflow).toContain("academiaarcana-deploy-request");
+    expect(workflow).toContain("name: Confirm image deployment really occurred");
+    expect(workflow).toContain("needs: image_deployment");
+    expect(workflow).toContain("needs.image_deployment.outputs.deployed == 'true'");
+    expect(workflow).toContain('select(.name == "Request Render image deployment" and .conclusion == "success")');
+    expect(workflow).toContain('select(.name == "academiaarcana-deploy-request" and .expired == false)');
   });
 
   it("validates workflow-derived production revisions before shell use", () => {
@@ -55,6 +60,13 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain('[ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ]');
     expect(workflow).toContain('UPSTREAM_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}');
     expect(workflow).toContain('[ "$UPSTREAM_ATTEMPT" != "1" ]');
+    expect(workflow).toContain("queue: max");
+    expect(workflow).toContain('[[ ! "$UPSTREAM_WORKFLOW_PATH" =~ ^\\.github/workflows/quality\\.yml(@(refs/heads/)?main)?$ ]]');
+    expect(workflow).toContain('.path == " .github/workflows/quality.yml@main"'.replace(" ", ""));
+    expect(workflow).toContain('.path == ".github/workflows/quality.yml@refs/heads/main"');
+    expect(workflow).toContain("name: Require approved dispatch run ID after environment gate");
+    expect(workflow).toContain("APPROVED_RUN_ID: ${{ vars.RENDER_DEPLOY_APPROVED_RUN_ID }}");
+    expect(workflow).toContain('[ "$APPROVED_RUN_ID" != "$ACTUAL_RUN_ID" ]');
     expect(workflow).toContain("vars.GHCR_PUBLISH_APPROVED_SHA != ''");
     expect(workflow).toContain("vars.GHCR_PUBLISH_APPROVED_SHA == needs.preflight.outputs.release_sha");
     expect(workflow).toContain("needs: preflight");

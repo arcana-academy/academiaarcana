@@ -66,7 +66,8 @@ async function verifyRenderImageTarget(inputs) {
   try { service = await response.json(); } catch {
     throw new Error("Render service metadata is invalid; refusing image deployment.");
   }
-  if (!service || service.id !== hookId || service.serviceDetails?.runtime !== "image") {
+  if (!service || service.id !== hookId || service.type !== "web_service" ||
+      service.serviceDetails?.runtime !== "image") {
     throw new Error("Render target is not a verified image-backed service; refusing imgURL.");
   }
   if (!registeredImageRepo(service.imagePath)) {
