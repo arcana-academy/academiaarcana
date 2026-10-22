@@ -37,14 +37,12 @@ export function ApplicationProviders({
     <ThemeProvider initialTheme="mago-classico">
       <SiteAppearanceProvider>
         <AccessibilityPreferencesProvider
-        local={local}
-        authenticated={authenticated}
-        motionEnvironment={motionEnvironment}
-        identity={identity}
-      >
-        <FlontsProvider>
-          {children}
-        </FlontsProvider>
+          local={local}
+          authenticated={authenticated}
+          motionEnvironment={motionEnvironment}
+          identity={identity}
+        >
+          <FlontsProvider>{children}</FlontsProvider>
         </AccessibilityPreferencesProvider>
       </SiteAppearanceProvider>
     </ThemeProvider>
