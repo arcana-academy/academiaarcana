@@ -8,6 +8,7 @@ import {
 import type { ApplicationIdentityState } from "@/application/identity/contracts";
 import { FlontsProvider } from "@/application/flonts/FlontsProvider";
 import { ThemeProvider } from "@/design-system/themes";
+import { SiteAppearanceProvider } from "@/application/appearance/SiteAppearanceProvider";
 
 import type {
   AuthenticatedAccessibilityPreferencesRepository,
@@ -34,7 +35,8 @@ export function ApplicationProviders({
 
   return (
     <ThemeProvider initialTheme="mago-classico">
-      <AccessibilityPreferencesProvider
+      <SiteAppearanceProvider>
+        <AccessibilityPreferencesProvider
         local={local}
         authenticated={authenticated}
         motionEnvironment={motionEnvironment}
@@ -43,7 +45,8 @@ export function ApplicationProviders({
         <FlontsProvider>
           {children}
         </FlontsProvider>
-      </AccessibilityPreferencesProvider>
+        </AccessibilityPreferencesProvider>
+      </SiteAppearanceProvider>
     </ThemeProvider>
   );
 }
