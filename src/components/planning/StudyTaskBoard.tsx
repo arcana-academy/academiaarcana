@@ -305,6 +305,35 @@ export function StudyTaskBoard({
         </div>
       </header>
 
+      <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
+        <div className="aa-surface-header">
+          <div><p className="aa-eyebrow">Novo passo</p><h2 id="new-task-title">Adicionar tarefa de estudo</h2></div>
+        </div>
+        <form
+          className="aa-planning-form"
+          aria-labelledby="new-task-title"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
+          <div className="aa-planning-form-row">
+            <div className="aa-field">
+              <label htmlFor="study-task-title">Tarefa</label>
+              <input className="aa-input" id="study-task-title" value={title} onChange={(event) => setTitle(event.target.value)} disabled={isSubmitting} placeholder="Ex.: Revisar capítulo 2" />
+            </div>
+            <div className="aa-field">
+              <label htmlFor="study-task-due">Prazo</label>
+              <input className="aa-input" id="study-task-due" type="datetime-local" lang="pt-BR" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
+            </div>
+            <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
+              {isSubmitting ? "Criando…" : "Criar tarefa"}
+            </button>
+          </div>
+          {error ? <p role="alert" className="aa-field-error">{error}</p> : null}
+        </form>
+      </section>
+
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="outlook-title">
         <div className="aa-surface-header">
           <div>
@@ -388,35 +417,6 @@ export function StudyTaskBoard({
           )}
         </section>
       ) : null}
-
-      <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
-        <div className="aa-surface-header">
-          <div><p className="aa-eyebrow">Novo passo</p><h2 id="new-task-title">Adicionar tarefa de estudo</h2></div>
-        </div>
-        <form
-          className="aa-planning-form"
-          aria-labelledby="new-task-title"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <div className="aa-planning-form-row">
-            <div className="aa-field">
-              <label htmlFor="study-task-title">Tarefa</label>
-              <input className="aa-input" id="study-task-title" value={title} onChange={(event) => setTitle(event.target.value)} disabled={isSubmitting} placeholder="Ex.: Revisar capítulo 2" />
-            </div>
-            <div className="aa-field">
-              <label htmlFor="study-task-due">Prazo</label>
-              <input className="aa-input" id="study-task-due" type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
-            </div>
-            <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
-              {isSubmitting ? "Criando…" : "Criar tarefa"}
-            </button>
-          </div>
-          {error ? <p role="alert" className="aa-field-error">{error}</p> : null}
-        </form>
-      </section>
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="upcoming-tasks-title">
         <div className="aa-surface-header">

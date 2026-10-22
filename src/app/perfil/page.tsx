@@ -24,17 +24,17 @@ export default async function PerfilPage() {
       <ArcanaPage
         eyebrow="Identidade"
         title="Perfil"
-        description="Seu espaço de identidade e preferências, separado dos dados de aprendizagem."
+        description="Acompanhe sua conta, seus estudos e suas preferências."
         actions={[{ href: "/configuracoes", label: "Configurações", variant: "secondary" }]}
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Identidade" description="Informações básicas devem vir da sessão e dos dados de perfil autorizados." icon={<UserRound size={20} />}>
+          <FeatureCard title="Identidade" description="Consulte os dados da sua conta com segurança." icon={<UserRound size={20} />}>
             <p className="aa-state-copy">Conta: {email}</p>{createdAt ? <p className="aa-state-copy">Conta criada em {createdAt}.</p> : null}
           </FeatureCard>
-          <FeatureCard title="Jornada" description="A aprendizagem continua pertencendo ao domínio Learning." icon={<BookOpen size={20} />}>
+          <FeatureCard title="Jornada" description="Acesse seus grimórios e continue sua jornada de estudos." icon={<BookOpen size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/grimorios">Abrir grimórios</Link>
           </FeatureCard>
-          <FeatureCard title="Privacidade" description="Preferências, consentimentos e permissões não são a mesma coisa." icon={<Shield size={20} />}>
+          <FeatureCard title="Privacidade" description="Consulte suas opções de privacidade nas configurações." icon={<Shield size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/configuracoes">Gerenciar configurações</Link>
           </FeatureCard>
         </ArcanaFeatureGrid>
