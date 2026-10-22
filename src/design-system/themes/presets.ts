@@ -98,7 +98,7 @@ export const themePresets: Record<ThemeId, ThemePreset> = {
     accent: { primary: "#D5C7D7", secondary: "#B99D78" },
     status: { success: "#B7E4C4", warning: "#F0D49B", danger: "#F7B8B5", info: "#B6D6EF" },
     focus: { ring: "#EDE3D9" },
-    typography: { body: '"Literata", Georgia, serif', heading: '"Grenze", Georgia, serif', display: '"Grenze", Georgia, serif', label: '"Literata", Georgia, serif', caption: '"Literata", Georgia, serif' },
+    typography: { body: 'var(--font-arcana-literata, "Literata"), Georgia, serif', heading: 'var(--font-arcana-grenze, "Grenze"), Georgia, serif', display: 'var(--font-arcana-grenze, "Grenze"), Georgia, serif', label: 'var(--font-arcana-literata, "Literata"), Georgia, serif', caption: 'var(--font-arcana-literata, "Literata"), Georgia, serif', editorial: 'var(--font-arcana-cormorant, "Cormorant Upright"), Georgia, serif', ornament: 'var(--font-arcana-smythe, "Smythe"), Georgia, serif' },
     effects: { glow: "none", texture: "none" },
   }),
   "arcana-pergaminho": createPreset("arcana-pergaminho", "Pergaminho Claro", {
@@ -108,7 +108,7 @@ export const themePresets: Record<ThemeId, ThemePreset> = {
     accent: { primary: "#604474", secondary: "#493551" },
     status: { success: "#285B3D", warning: "#69451C", danger: "#802B31", info: "#194D67" },
     focus: { ring: "#604474" },
-    typography: { body: '"Literata", Georgia, serif', heading: '"Grenze", Georgia, serif', display: '"Grenze", Georgia, serif', label: '"Literata", Georgia, serif', caption: '"Literata", Georgia, serif' },
+    typography: { body: 'var(--font-arcana-literata, "Literata"), Georgia, serif', heading: 'var(--font-arcana-grenze, "Grenze"), Georgia, serif', display: 'var(--font-arcana-grenze, "Grenze"), Georgia, serif', label: 'var(--font-arcana-literata, "Literata"), Georgia, serif', caption: 'var(--font-arcana-literata, "Literata"), Georgia, serif', editorial: 'var(--font-arcana-cormorant, "Cormorant Upright"), Georgia, serif', ornament: 'var(--font-arcana-smythe, "Smythe"), Georgia, serif' },
     effects: { glow: "none", texture: "none" },
   }),
   escuro: createPreset("escuro", "Escuro", { surfaces: { canvas: "#101016", panel: "#181820", elevated: "#22222C", inset: "#0C0C11" }, accent: { primary: "#A89CC0", secondary: "#706685" } }),
