@@ -104,6 +104,42 @@ describe("PageEditor", () => {
     window.localStorage.clear();
   });
 
+  test("announces pending save without claiming completion", async () => {
+    const pendingSave = vi.fn(() => new Promise<Page>(() => undefined));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={pendingSave}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.getByRole("status", { name: "" })).toBeInTheDocument();
+    expect(screen.getByText("Salvando página…")).toBeInTheDocument();
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(pendingSave).toHaveBeenCalledOnce();
+  });
+
+  test("clears stale saved feedback when a confirmed page is edited again", async () => {
+    const onSave = vi.fn((input: SaveInput) => Promise.resolve({
+      ...page, title: input.title, content: input.content,
+    }));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Novo título" } });
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(screen.getByLabelText("Título")).toHaveValue("Novo título");
+  });
+
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
