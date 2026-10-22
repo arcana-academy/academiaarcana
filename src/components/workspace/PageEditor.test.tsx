@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Page } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
@@ -138,6 +138,33 @@ describe("PageEditor", () => {
     fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Novo título" } });
     expect(screen.queryByText("Página salva.")).toBeNull();
     expect(screen.getByLabelText("Título")).toHaveValue("Novo título");
+  });
+
+  test("retains newer local text when an older save completes", async () => {
+    let resolveSave!: (saved: Page) => void;
+    const onSave = vi.fn(() => new Promise<Page>((resolve) => {
+      resolveSave = resolve;
+    }));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.getByText("Salvando página…")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Ideia nova ainda não salva" },
+    });
+    await act(async () => {
+      resolveSave({ ...page, title: "Dor lombar" });
+    });
+    expect(screen.getByLabelText("Título")).toHaveValue("Ideia nova ainda não salva");
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Salvar página" })).toBeEnabled();
   });
 
   test("allows adding a paragraph block", () => {
