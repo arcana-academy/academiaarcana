@@ -46,6 +46,8 @@ export const baseTokens: ThemeTokens = {
     caption: p.typography.ui,
     code: p.typography.code,
     numeric: p.typography.ui,
+    editorial: p.typography.editorial,
+    ornament: p.typography.ornament,
   },
   typeScale: { ...p.typeScale },
   lineHeight: { ...p.lineHeight },
