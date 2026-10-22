@@ -2460,3 +2460,32 @@ p {
   box-shadow: none;
 }
 /* Never hide save, progress, security or navigation controls in focus mode. */
+
+/* C04 keyboard escape hatch to the canonical Workspace editor.
+   Visible while focused; never overlays controls when unfocused. */
+.aa-workspace-skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.aa-workspace-skip-link:focus-visible {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  padding: var(--aa-spacing-sm) var(--aa-spacing-md);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-elevated);
+  color: var(--aa-text-primary);
+  outline: 3px solid var(--aa-focus-ring);
+  outline-offset: 2px;
+}
+.workspace-editor-region:focus {
+  outline: 3px solid var(--aa-focus-ring);
+  outline-offset: 2px;
+}
