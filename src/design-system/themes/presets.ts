@@ -7,6 +7,8 @@ type DeepPartial<T> = {
 
 export const THEME_IDS: readonly ThemeId[] = [
   "mago-classico",
+  "arcana-noturna",
+  "arcana-pergaminho",
   "escuro",
   "estudioso",
   "natural",
@@ -89,6 +91,26 @@ const sharedStatus = {
 
 export const themePresets: Record<ThemeId, ThemePreset> = {
   "mago-classico": createPreset("mago-classico", "Mago Clássico", {}),
+  "arcana-noturna": createPreset("arcana-noturna", "Biblioteca Noturna", {
+    surfaces: { canvas: "#251C2C", panel: "#302338", elevated: "#3C2C44", floating: "#493551", modal: "#493551", inset: "#211924" },
+    text: { primary: "#F1EADF", secondary: "#E0D3E3", muted: "#D4C4D9", inverse: "#251C2C" },
+    border: { default: "#C4B5D0", strong: "#EDE3D9" },
+    accent: { primary: "#D5C7D7", secondary: "#B99D78" },
+    status: { success: "#B7E4C4", warning: "#F0D49B", danger: "#F7B8B5", info: "#B6D6EF" },
+    focus: { ring: "#EDE3D9" },
+    typography: { body: '"Literata", Georgia, serif', heading: '"Grenze", Georgia, serif', display: '"Grenze", Georgia, serif', label: '"Literata", Georgia, serif', caption: '"Literata", Georgia, serif' },
+    effects: { glow: "none", texture: "none" },
+  }),
+  "arcana-pergaminho": createPreset("arcana-pergaminho", "Pergaminho Claro", {
+    surfaces: { canvas: "#EDE3D9", panel: "#F4EEE8", elevated: "#E4D9E4", floating: "#F6F0EA", modal: "#F6F0EA", inset: "#E1D5D6" },
+    text: { primary: "#302338", secondary: "#493551", muted: "#604474", inverse: "#F9F4EF" },
+    border: { default: "#604474", strong: "#302338" },
+    accent: { primary: "#604474", secondary: "#493551" },
+    status: { success: "#285B3D", warning: "#69451C", danger: "#802B31", info: "#194D67" },
+    focus: { ring: "#604474" },
+    typography: { body: '"Literata", Georgia, serif', heading: '"Grenze", Georgia, serif', display: '"Grenze", Georgia, serif', label: '"Literata", Georgia, serif', caption: '"Literata", Georgia, serif' },
+    effects: { glow: "none", texture: "none" },
+  }),
   escuro: createPreset("escuro", "Escuro", { surfaces: { canvas: "#101016", panel: "#181820", elevated: "#22222C", inset: "#0C0C11" }, accent: { primary: "#A89CC0", secondary: "#706685" } }),
   estudioso: createPreset("estudioso", "Estudioso", { surfaces: { canvas: "#191714", panel: "#25201A", elevated: "#302920", inset: "#14110E" }, accent: { primary: "#B69A6A", secondary: "#8D744D" }, typography: { body: "Georgia, serif", heading: "Georgia, serif" } }),
   natural: createPreset("natural", "Natural", { surfaces: { canvas: "#151B17", panel: "#1D271F", elevated: "#263329", inset: "#101510" }, accent: { primary: "#91B59A", secondary: "#64866D" } }),
