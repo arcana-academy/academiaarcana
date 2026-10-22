@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/design-system/themes";
+import { useSiteAppearance } from "@/application/appearance/SiteAppearanceProvider";
 import type { ThemeId } from "@/design-system/tokens/types";
 import { useAccessibilityPreferencesContext } from "@/application/accessibility-preferences/AccessibilityPreferencesContext";
 import { THEME_IDS, themePresets } from "@/design-system/themes/presets";
@@ -12,7 +13,8 @@ const motionOptions = [
 ];
 
 export function PersonalizationPanel() {
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
+  const { selectThemePreset } = useSiteAppearance();
   const { state, setMotionPreference } = useAccessibilityPreferencesContext();
 
   return (
@@ -33,7 +35,7 @@ export function PersonalizationPanel() {
           <div className="aa-control">
             <label htmlFor="theme-select">
               Escolha um tema
-              <select id="theme-select" value={theme} onChange={(event) => setTheme(event.target.value as ThemeId)}>
+              <select id="theme-select" value={theme} onChange={(event) => selectThemePreset(event.target.value as ThemeId)}>
                 {THEME_IDS.map((id) => <option key={id} value={id}>{themePresets[id].name}</option>)}
               </select>
             </label>
