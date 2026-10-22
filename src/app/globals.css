@@ -2331,3 +2331,40 @@ p {
   background: var(--aa-surfaces-inset);
 }
 
+
+/* Brand Book 360° — persistent, keyboard-accessible entry to the preferences hub. */
+.aa-topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--aa-spacing-sm);
+  flex-shrink: 0;
+}
+
+.aa-accessibility-shortcut {
+  white-space: nowrap;
+}
+
+.aa-accessibility-categories {
+  list-style: none;
+  padding: 0;
+  margin: var(--aa-spacing-md) 0;
+  display: grid;
+  gap: var(--aa-spacing-sm);
+}
+
+.aa-accessibility-categories li {
+  display: flex;
+  align-items: center;
+  gap: var(--aa-spacing-sm);
+  color: var(--aa-text-primary);
+}
+
+#accessibilidade {
+  scroll-margin-top: 6rem;
+}
+
+@media (max-width: 48rem) {
+  .aa-accessibility-shortcut span { display: none; }
+  .aa-accessibility-shortcut { min-width: 2.75rem; }
+}
+
