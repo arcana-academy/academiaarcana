@@ -16,9 +16,22 @@ export default async function ConfiguracoesPage() {
         description="Controle acessibilidade, aparência, segurança e outras preferências sem misturar configurações com dados de domínio."
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Acessibilidade" description="Preferências de movimento, tipografia, contraste e conforto cognitivo." icon={<Accessibility size={20} />}>
-            <p className="aa-state-copy">As preferências de acessibilidade existentes continuam sendo a fonte de verdade.</p>
-          </FeatureCard>
+          <section id="accessibilidade" aria-label="Central de Acessibilidade">
+            <FeatureCard title="Central de Acessibilidade" description="Recursos acessíveis organizados em seis categorias." icon={<Accessibility size={20} />}>
+              <ul className="aa-accessibility-categories">
+                <li><Eye size={17} aria-hidden="true" /> Visão e leitura</li>
+                <li><Ear size={17} aria-hidden="true" /> Audição e mídia</li>
+                <li><Keyboard size={17} aria-hidden="true" /> Mobilidade e controle</li>
+                <li><Brain size={17} aria-hidden="true" /> Cognição e foco</li>
+                <li><Accessibility size={17} aria-hidden="true" /> Tecnologias assistivas</li>
+                <li><BookOpenText size={17} aria-hidden="true" /> Estudo acessível</li>
+              </ul>
+              <p className="aa-state-copy">Os recursos essenciais não dependem de ativação. Preferências adicionais serão oferecidas à medida que estiverem implementadas e verificadas.</p>
+              <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar">
+                Ajustar tema e movimento
+              </Link>
+            </FeatureCard>
+          </section>
           <FeatureCard title="Aparência" description="Tema automático por dispositivo, Biblioteca Noturna e Pergaminho Claro, com escolha manual." icon={<Palette size={20} />}>
             <p className="aa-state-copy">A preferência de aparência pode ser alterada em Personalizar, sem afetar a identidade canônica.</p>
           </FeatureCard>
