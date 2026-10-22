@@ -19,7 +19,10 @@ const KEY = "academia-arcana.visual-accessibility-v1";
 const defaults: AccessibilityOptions = {
   largerText: false, contrast: false, spacing: false, focus: false,
 };
-const Context = createContext<AccessibilityOptionsContextValue | null>(null);
+const Context = createContext<AccessibilityOptionsContextValue>({
+  options: defaults,
+  toggle: () => undefined,
+});
 
 function isOptions(value: unknown): value is AccessibilityOptions {
   if (!value || typeof value !== "object") return false;
@@ -88,8 +91,7 @@ const categories = [
 function QuickControls() {
   const context = useContext(Context);
   const groupId = useId();
-  if (!context) throw new Error("VisualAccessibilityProvider is required");
-  return (
+   return (
     <div className="aa-a11y-controls" role="group" aria-label="Ajustes rápidos de acessibilidade">
       {quickSettings.map((setting) => (
         <label className="aa-a11y-choice" htmlFor={groupId + "-" + setting.key} key={setting.key}>
