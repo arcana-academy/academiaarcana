@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/design-system/themes";
+import { ReadingControls } from "@/components/accessibility/ReadingControls";
 import type { ThemeId } from "@/design-system/tokens/types";
 import { useAccessibilityPreferencesContext } from "@/application/accessibility-preferences/AccessibilityPreferencesContext";
 import { THEME_IDS, themePresets } from "@/design-system/themes/presets";
@@ -52,6 +53,12 @@ export function PersonalizationPanel() {
             </label>
           </div>
         </div>
+      </section>
+
+      <section className="aa-surface aa-sanctuary-section" aria-labelledby="reading-preferences-title">
+        <h2 id="reading-preferences-title">Leitura acessível</h2>
+        <p>Escolha como ler e editar suas páginas de grimório.</p>
+        <ReadingControls />
       </section>
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="personalization-principles">
