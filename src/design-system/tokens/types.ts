@@ -38,7 +38,9 @@ export type ThemeId =
   | "bamboo"
   | "sacred-geometry"
   | "glass"
-  | "paper-light";
+  | "paper-light"
+  | "biblioteca-noturna"
+  | "pergaminho-claro";
 
 export type SurfaceTokens = {
   canvas: string;
