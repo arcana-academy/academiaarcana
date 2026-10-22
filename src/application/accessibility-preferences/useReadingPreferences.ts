@@ -28,7 +28,10 @@ export function loadReadingPreferences(): { reading: ReadingPreferences; unavail
   }
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { reading: fallback, unavailable: false };
+    if (!stored) {
+      fallback = DEFAULT_READING;
+      return { reading: DEFAULT_READING, unavailable: false };
+    }
     const parsed: unknown = JSON.parse(stored);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return { reading: DEFAULT_READING, unavailable: false };
