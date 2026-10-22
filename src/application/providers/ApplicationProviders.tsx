@@ -33,7 +33,7 @@ export function ApplicationProviders({
     createLocalAccessibilityPreferencesRepository();
 
   return (
-    <ThemeProvider initialTheme="mago-classico">
+    <ThemeProvider followSystem>
       <AccessibilityPreferencesProvider
         local={local}
         authenticated={authenticated}
