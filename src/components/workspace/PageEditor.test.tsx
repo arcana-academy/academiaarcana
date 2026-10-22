@@ -131,6 +131,54 @@ describe("PageEditor", () => {
     });
   });
 
+  test("invalidates confirmed save after changing the title or inserting a block", async () => {
+    const onSave = vi.fn((input: SaveInput) =>
+      Promise.resolve({ ...page, title: input.title, content: input.content }),
+    );
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Atualizado após salvar" },
+    });
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar bloco" }));
+    expect(screen.queryByText("Página salva.")).toBeNull();
+  });
+
+  test("does not retain decorative-image metadata when changing block type", async () => {
+    const onSave = vi.fn((input: SaveInput) =>
+      Promise.resolve({ ...page, title: input.title, content: input.content }),
+    );
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Tipo do bloco 1"), {
+      target: { value: "image" },
+    });
+    fireEvent.click(screen.getByLabelText("Imagem decorativa (sem informação essencial)"));
+    fireEvent.change(screen.getByLabelText("Tipo do bloco 1"), {
+      target: { value: "paragraph" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].content.blocks[0].accessibility).toBeUndefined();
+  });
+
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
