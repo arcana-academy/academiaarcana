@@ -5,6 +5,7 @@ import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
+import { ReadingPreferencesControls } from "@/components/personalization/ReadingPreferencesControls";
 
 export default async function ConfiguracoesPage() {
   await requireAuthenticatedUser();
@@ -30,6 +31,7 @@ export default async function ConfiguracoesPage() {
               <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar">
                 Ajustar tema e movimento
               </Link>
+              <ReadingPreferencesControls expanded />
             </FeatureCard>
           </section>
           <FeatureCard title="Aparência" description="Tema automático por dispositivo, Biblioteca Noturna e Pergaminho Claro, com escolha manual." icon={<Palette size={20} />}>
