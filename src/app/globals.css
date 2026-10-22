@@ -2427,3 +2427,41 @@ html[data-aa-contrast="high"] {
   .aa-accessibility-sections { grid-template-columns: 1fr; }
   .aa-accessibility-trigger { padding-inline: 0.65rem; font-size: 0.875rem; }
 }
+
+/* Reading tools remain in the existing grimoire editor, not in saved page content. */
+.workspace-reading-tools {
+  display: grid;
+  justify-items: start;
+  gap: var(--aa-spacing-sm);
+  margin-bottom: var(--aa-spacing-md);
+}
+.workspace-reading-tools-controls {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  width: min(100%, 34rem);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-panel);
+  padding: var(--aa-spacing-md);
+}
+.workspace-reading-tools-controls label {
+  display: flex;
+  align-items: center;
+  gap: var(--aa-spacing-sm);
+  min-height: 2.75rem;
+}
+.workspace-reading-tools-controls input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--aa-accent-primary);
+}
+.workspace-reading-tools-controls p { margin: 0; color: var(--aa-text-secondary); }
+html[data-aa-text-scale="large"] .workspace-page-editor textarea,
+html[data-aa-text-scale="large"] .workspace-page-editor input {
+  font-size: 1.125rem;
+}
+html[data-aa-spacing="wide"] .workspace-page-editor textarea {
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+  word-spacing: 0.12em;
+}
