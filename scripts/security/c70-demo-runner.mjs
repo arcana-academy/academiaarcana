@@ -7,8 +7,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
-const SHA="ed68fffddd43deec85f0548818d532caafbbcb8a";
-const BRANCH="refs/heads/work/aa360-c70-demo-auth-routes-20261021";
+const SHA="6a7b1907dc5fc854ab4a5c758911a75c2e251305";
+const BRANCH="refs/heads/work/aa360-c70-pr767-demo-exact-20261021";
 assert.equal(process.env.GITHUB_ACTIONS,"true");
 assert.equal(process.env.GITHUB_EVENT_NAME,"push");
 assert.equal(process.env.GITHUB_REPOSITORY,"arcana-academy/academiaarcana");

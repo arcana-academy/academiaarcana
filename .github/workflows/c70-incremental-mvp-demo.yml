@@ -2,7 +2,7 @@ name: AA360 C70 Incremental MVP Demonstration (QA Only)
 on:
   push:
     branches:
-      - work/aa360-c70-demo-auth-routes-20261021
+      - work/aa360-c70-pr767-demo-exact-20261021
 
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = "arcana-academy/academiaarcana"
           test "$GITHUB_EVENT_NAME" = "push"
-          test "$GITHUB_REF" = "refs/heads/work/aa360-c70-demo-auth-routes-20261021"
+          test "$GITHUB_REF" = "refs/heads/work/aa360-c70-pr767-demo-exact-20261021"
           if env | cut -d= -f1 | grep -Eq '^(SUPABASE_ACCESS_TOKEN|SUPABASE_URL|SUPABASE_SERVICE_ROLE_KEY|DATABASE_URL|NEXT_PUBLIC_SUPABASE_URL|RENDER_API_KEY)$'; then
             echo "Refusing preconfigured hosted credentials"; exit 1
           fi
@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ed68fffddd43deec85f0548818d532caafbbcb8a
+          ref: 6a7b1907dc5fc854ab4a5c758911a75c2e251305
 
       - name: Checkout QA-only synthetic harness separately
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "ed68fffddd43deec85f0548818d532caafbbcb8a"
+          test "$(git rev-parse HEAD)" = "6a7b1907dc5fc854ab4a5c758911a75c2e251305"
           test "$(git -C .aa-c70-qa rev-parse HEAD)" = "$GITHUB_SHA"
           test ! -e scripts/security/c70-demo-runner.mjs
           test ! -e tests/e2e/c70-demo.spec.ts

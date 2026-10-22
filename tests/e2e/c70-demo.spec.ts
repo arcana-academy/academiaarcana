@@ -6,7 +6,7 @@ const B=process.env.E2E_EMAIL_B;
 const password=process.env.E2E_PASSWORD;
 const api=process.env.NEXT_PUBLIC_SUPABASE_URL;
 if(!A||!B||!password||process.env.AA_C70_QA!=="1"||process.env.AA_LOCAL_SUPABASE_E2E!=="1"||
-   process.env.GITHUB_EVENT_NAME!=="push"||process.env.GITHUB_REF!=="refs/heads/work/aa360-c70-demo-auth-routes-20261021"||
+   process.env.GITHUB_EVENT_NAME!=="push"||process.env.GITHUB_REF!=="refs/heads/work/aa360-c70-pr767-demo-exact-20261021"||
    !api||new URL(api).hostname!=="127.0.0.1"||new URL(api).protocol!=="https:"){
   throw new Error("C70 synthetic-only auth and loopback configuration required");
 }
