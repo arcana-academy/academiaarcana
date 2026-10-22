@@ -2465,3 +2465,45 @@ html[data-aa-spacing="wide"] .workspace-page-editor textarea {
   letter-spacing: 0.02em;
   word-spacing: 0.12em;
 }
+
+/* Brand Book 360 — settings reuse the same accessibility preference hooks. */
+.aa-settings-preferences {
+  display: grid;
+  gap: var(--aa-spacing-lg);
+  min-width: 0;
+}
+.aa-settings-preference-group {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  min-width: 0;
+}
+.aa-settings-preferences label,
+.aa-settings-preferences legend {
+  color: var(--aa-text-primary);
+  font-weight: 650;
+}
+.aa-settings-preferences p {
+  color: var(--aa-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+.aa-settings-reading {
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  padding: var(--aa-spacing-md);
+  min-width: 0;
+}
+.aa-settings-reading legend { padding-inline: var(--aa-spacing-xs); }
+.aa-settings-reading label {
+  display: flex;
+  align-items: center;
+  gap: var(--aa-spacing-sm);
+  min-height: 2.75rem;
+}
+.aa-settings-reading input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--aa-accent-primary);
+}
