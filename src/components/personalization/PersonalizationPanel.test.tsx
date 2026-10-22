@@ -5,13 +5,20 @@ import { describe, expect, it, vi } from "vitest";
 
 import { PersonalizationPanel } from "./PersonalizationPanel";
 
-const setTheme = vi.fn();
+const selectThemePreset = vi.fn();
 
 vi.mock("@/design-system/themes", () => ({
   useTheme: () => ({
     theme: "mago-classico",
-    setTheme,
+    setTheme: vi.fn(),
     tokens: {},
+  }),
+}));
+
+vi.mock("@/application/appearance/SiteAppearanceProvider", () => ({
+  useSiteAppearance: () => ({
+    appearance: "system",
+    selectThemePreset,
   }),
 }));
 
@@ -42,6 +49,6 @@ describe("PersonalizationPanel", () => {
     expect(select).toContainElement(screen.getByRole("option", { name: "Mago Clássico" }));
 
     fireEvent.change(select, { target: { value: "escuro" } });
-    expect(setTheme).toHaveBeenCalledWith("escuro");
+    expect(selectThemePreset).toHaveBeenCalledWith("escuro");
   });
 });
