@@ -2507,3 +2507,68 @@ html[data-aa-spacing="wide"] .workspace-page-editor textarea {
   height: 1.25rem;
   accent-color: var(--aa-accent-primary);
 }
+
+/* Four opt-in student paper styles: scoped to the selected page's editor.
+   The unselected/legacy page retains its current appearance. */
+.workspace-paper-controls {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  margin-bottom: var(--aa-spacing-md);
+  max-width: 35rem;
+}
+.workspace-paper-controls .aa-input { max-width: 100%; }
+.workspace-paper-controls p { margin: 0; }
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article {
+  padding: var(--aa-spacing-lg);
+  border-radius: var(--aa-radius-lg);
+  border: 2px solid var(--aa-paper-border);
+  background: var(--aa-paper-bg);
+  color: var(--aa-paper-text);
+}
+.workspace-page-editor[data-aa-paper-style="pergaminho-antigo"] {
+  --aa-paper-bg: #EDE3D9;
+  --aa-paper-text: #302338;
+  --aa-paper-border: #604474;
+  --aa-paper-field: #FAF5EF;
+}
+.workspace-page-editor[data-aa-paper-style="arcano-escuro"] {
+  --aa-paper-bg: #251C2C;
+  --aa-paper-text: #F4EDF5;
+  --aa-paper-border: #D5C7D7;
+  --aa-paper-field: #302338;
+}
+.workspace-page-editor[data-aa-paper-style="lilas"] {
+  --aa-paper-bg: #D5C7D7;
+  --aa-paper-text: #302338;
+  --aa-paper-border: #604474;
+  --aa-paper-field: #F4EDF4;
+}
+.workspace-page-editor[data-aa-paper-style="alquimista-antigo"] {
+  --aa-paper-bg: #E3D0B5;
+  --aa-paper-text: #302338;
+  --aa-paper-border: #604474;
+  --aa-paper-field: #F9F0E5;
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article label,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article p,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article a {
+  color: var(--aa-paper-text);
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article input,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article textarea {
+  background: var(--aa-paper-field);
+  color: var(--aa-paper-text);
+  border: 2px solid var(--aa-paper-border);
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article button {
+  border: 2px solid var(--aa-paper-border);
+  color: var(--aa-paper-text);
+  background: var(--aa-paper-field);
+}
+/* A deliberate accessibility override outranks decorative paper choices. */
+html[data-aa-contrast="high"] .workspace-page-editor[data-aa-paper-style] {
+  --aa-paper-bg: #101014;
+  --aa-paper-text: #FFFFFF;
+  --aa-paper-border: #FFFFFF;
+  --aa-paper-field: #1A1A20;
+}
