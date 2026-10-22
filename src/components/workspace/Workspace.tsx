@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
@@ -308,6 +308,24 @@ export function Workspace({
   onSetPageProgress = async () => undefined,
 }: WorkspaceProps) {
   const [isContextExpanded, setIsContextExpanded] = useMobileDisclosure();
+  const focusEditorAfterSelection = useRef(false);
+
+  // Focus moves only after an explicit page selection; initial deep links
+  // must not steal the user's keyboard or screen-reader focus.
+  useEffect(() => {
+    if (!focusEditorAfterSelection.current || !state.pageId) return;
+    document.getElementById("current")?.focus();
+    focusEditorAfterSelection.current = false;
+  }, [state.pageId]);
+
+  const selectPage = (id: string) => {
+    if (id === state.pageId) {
+      document.getElementById("current")?.focus();
+      return;
+    }
+    focusEditorAfterSelection.current = true;
+    onOpenPage(id);
+  };
 
   const focusGrimoireCreation = () => {
     document.getElementById("workspace-new-grimoire-title")?.focus();
@@ -316,6 +334,7 @@ export function Workspace({
   return (
     <div className="workspace-shell">
       <WorkspaceHeader title={title} />
+      <a className="aa-workspace-skip-link" href="#current">Ir para o editor da página</a>
 
       <div className="workspace-regions">
         <WorkspaceTree
@@ -324,7 +343,7 @@ export function Workspace({
           onOpenGrimoire={onOpenGrimoire}
           onOpenNotebook={onOpenNotebook}
           onOpenChapter={onOpenChapter}
-          onOpenPage={onOpenPage}
+          onOpenPage={selectPage}
         />
 
         <section
