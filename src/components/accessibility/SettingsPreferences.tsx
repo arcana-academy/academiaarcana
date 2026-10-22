@@ -25,8 +25,10 @@ export function SettingsPreferences() {
           <option value="system">Automático — seguir o dispositivo</option>
           <option value="dark">Biblioteca Noturna</option>
           <option value="light">Pergaminho Claro</option>
+          <option value="custom" disabled>Tema avançado — gerenciado em Personalizar</option>
         </select>
         <p>As preferências dos grimórios pessoais são independentes da identidade do site.</p>
+        <a href="/personalizar">Explorar temas de personalização</a>
       </div>
       <fieldset className="aa-settings-reading">
         <legend>Conforto de leitura</legend>
