@@ -12,7 +12,7 @@ const motionOptions = [
 ];
 
 export function PersonalizationPanel() {
-  const { theme, setTheme } = useTheme();
+  const { theme, preference, setPreference } = useTheme();
   const { state, setMotionPreference } = useAccessibilityPreferencesContext();
 
   return (
@@ -33,7 +33,8 @@ export function PersonalizationPanel() {
           <div className="aa-control">
             <label htmlFor="theme-select">
               Escolha um tema
-              <select id="theme-select" value={theme} onChange={(event) => setTheme(event.target.value as ThemeId)}>
+              <select id="theme-select" value={preference} onChange={(event) => setPreference(event.target.value as ThemeId | "system")}>
+                <option value="system">Automático (dispositivo)</option>
                 {THEME_IDS.map((id) => <option key={id} value={id}>{themePresets[id].name}</option>)}
               </select>
             </label>
@@ -58,12 +59,12 @@ export function PersonalizationPanel() {
           <div><p className="aa-eyebrow">Conforto</p><h2 id="personalization-principles">Seu ambiente, suas regras</h2></div>
         </div>
         <div className="aa-stat-grid">
-          <div className="aa-stat"><span className="aa-stat-label">Tema atual</span><div className="aa-stat-value">{themePresets[theme].name}</div></div>
+          <div className="aa-stat"><span className="aa-stat-label">Tema em uso</span><div className="aa-stat-value">{themePresets[theme].name}</div></div>
           <div className="aa-stat"><span className="aa-stat-label">Movimento</span><div className="aa-stat-value">{motionOptions.find((option) => option.value === (state?.configuredMotionPreference ?? "system"))?.label}</div></div>
           <div className="aa-stat"><span className="aa-stat-label">Princípio</span><div className="aa-stat-value">Clareza</div><div className="aa-stat-meta">A estética serve ao estudo.</div></div>
         </div>
         {state?.error ? <p role="alert" className="aa-field-error">Não foi possível persistir a preferência de movimento.</p> : null}
-        <p role="status" aria-live="polite" className="aa-field-description">Tema atual: {themePresets[theme].name}.</p>
+        <p role="status" aria-live="polite" className="aa-field-description">Preferência: {preference === "system" ? "Automático (dispositivo)" : themePresets[theme].name}.</p>
       </section>
     </main>
   );
