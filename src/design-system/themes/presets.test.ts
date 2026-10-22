@@ -131,6 +131,8 @@ const approvedThemeIds = [
   "sacred-geometry",
   "glass",
   "paper-light",
+  "biblioteca-noturna",
+  "pergaminho-claro",
 ] as const;
 
 
