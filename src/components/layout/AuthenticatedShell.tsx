@@ -40,9 +40,9 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
               <span>Acessibilidade</span>
             </Link>
             <form action={signOut}>
-            <button className="aa-button aa-button-ghost aa-button-sm" type="submit">
-              Sair
-            </button>
+              <button className="aa-button aa-button-ghost aa-button-sm" type="submit">
+                Sair
+              </button>
             </form>
           </div>
         </header>
