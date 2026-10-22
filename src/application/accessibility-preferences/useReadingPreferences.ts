@@ -21,6 +21,7 @@ export const DEFAULT_READING: ReadingPreferences = {
 };
 
 let fallback: ReadingPreferences = DEFAULT_READING;
+let fallbackOnly = false;
 
 export function loadReadingPreferences(): { reading: ReadingPreferences; unavailable: boolean } {
   if (typeof window === "undefined") {
@@ -29,6 +30,7 @@ export function loadReadingPreferences(): { reading: ReadingPreferences; unavail
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (!stored) {
+      if (fallbackOnly) return { reading: fallback, unavailable: true };
       fallback = DEFAULT_READING;
       return { reading: DEFAULT_READING, unavailable: false };
     }
@@ -69,7 +71,8 @@ export function useReadingPreferences() {
   }, [reading]);
 
   useEffect(() => {
-    const synchronize = () => {
+    const synchronize = (event: Event) => {
+      if (event.type === "storage") fallbackOnly = false;
       const current = loadReadingPreferences();
       setReading(current.reading);
       setStorageWarning(current.unavailable);
@@ -89,8 +92,10 @@ export function useReadingPreferences() {
     let unavailable = false;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      fallbackOnly = false;
     } catch {
       unavailable = true;
+      fallbackOnly = true;
     }
     setStorageWarning(unavailable);
     window.dispatchEvent(new Event(CHANGE_EVENT));
