@@ -2392,3 +2392,19 @@ p {
   color: var(--aa-text-secondary);
   font-size: var(--aa-type-scale-sm);
 }
+
+/* Keep native checkboxes usable: generic page-editor input rules use width: 100%. */
+.workspace-page-editor .workspace-block-accessibility input[type="checkbox"] {
+  width: auto;
+  min-height: 1.25rem;
+  min-width: 1.25rem;
+  flex: none;
+  accent-color: var(--aa-accent-primary);
+}
+
+.workspace-page-editor .workspace-block-accessibility select {
+  background: var(--aa-surfaces-inset);
+  color: var(--aa-text-primary);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+}
