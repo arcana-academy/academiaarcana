@@ -25,6 +25,23 @@ vi.mock("@/lib/identity/resolve-subject-id-server", () => ({
 import RootLayout from "./layout";
 
 describe("RootLayout", () => {
+  it("expõe as famílias tipográficas aprovadas sem substituir a fonte Adobe existente", async () => {
+    const element = await RootLayout({ children: <div>Exemplo</div> });
+    const htmlChildren = Array.isArray(element.props.children)
+      ? element.props.children
+      : [element.props.children];
+    const head = htmlChildren.find((child: { type?: unknown }) => child?.type === "head");
+    const links = Array.isArray(head.props.children) ? head.props.children : [head.props.children];
+    const typographyLink = links.find(
+      (child: { props?: { rel?: string; href?: string } }) =>
+        child?.props?.rel === "stylesheet" && child?.props?.href?.includes("fonts.googleapis.com/css2"),
+    );
+    expect(typographyLink.props.href).toContain("family=Grenze");
+    expect(typographyLink.props.href).toContain("family=Smythe");
+    expect(typographyLink.props.href).toContain("family=Cormorant+Upright");
+    expect(typographyLink.props.href).toContain("family=Literata");
+  });
+
   it("resolve a identidade da aplicação antes de montar os providers globais", async () => {
     const element = await RootLayout({
       children: <div>Teste</div>,
