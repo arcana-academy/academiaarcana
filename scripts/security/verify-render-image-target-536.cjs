@@ -84,7 +84,14 @@ async function verifyRenderImageTarget(inputs) {
   if (!registeredImageRepo(detailsImagePath ?? topLevelImagePath)) {
     throw new Error("Render image-backed target registry/repository is not the approved GHCR image.");
   }
-  if (service.autoDeployTrigger !== "off") {
+  // Render may return the current autoDeployTrigger or the legacy autoDeploy.
+  // A legacy-only response with "no" is safe; any enabled, missing, or
+  // contradictory value fails closed.
+  const hasTrigger = Object.prototype.hasOwnProperty.call(service, "autoDeployTrigger");
+  const hasLegacy = Object.prototype.hasOwnProperty.call(service, "autoDeploy");
+  if ((!hasTrigger && !hasLegacy) ||
+      (hasTrigger && service.autoDeployTrigger !== "off") ||
+      (hasLegacy && service.autoDeploy !== "no")) {
     throw new Error("Render target must keep automatic deployment disabled for controlled release.");
   }
   return true;

@@ -11,6 +11,14 @@ const root = process.cwd();
 
 const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
+const releaseJob = (workflow: string, name: string) => {
+  const jobs = "\n" + (workflow.replaceAll("\r\n", "\n").split("\njobs:\n")[1] ?? "");
+  return jobs.split(`\n  ${name}:\n`)[1]?.split(/\n  [a-z][\w-]*:\n/)[0] ?? "";
+};
+
+const releaseStep = (job: string, name: string) =>
+  job.split(`\n      - name: ${name}\n`)[1]?.split("\n      - name: ")[0] ?? "";
+
 describe("delivery infrastructure contract", () => {
   it("retains git-source smoke until the image deployment switch is enabled", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml").replaceAll(
@@ -85,10 +93,43 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("digest: (sha256:[0-9a-f]{64})");
     expect(workflow).toContain("image_url=%s@%s");
     expect(workflow).toContain("IMAGE_URL: ${{ needs.publish.outputs.image_url }}");
-    expect(workflow).toContain("One fail-closed operation: live service GET, validation, then hook.");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
     expect(workflow).not.toContain("docker build");
+  });
+
+  it("scopes release provenance and immutable guard checks to their actual steps", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const preflight = releaseJob(workflow, "preflight");
+    const trusted = releaseStep(preflight, "Verify trusted source for event or explicit promotion");
+    const deploy = releaseJob(workflow, "deploy");
+    const immutableGuard = releaseStep(deploy, "Fetch immutable public preflight from approved main SHA");
+
+    expect(trusted).not.toBe("");
+    expect(trusted).toContain("RELEASE_REF: ${{ github.ref }}");
+    expect(trusted).toContain('[ "$RELEASE_REF" != "refs/heads/main" ]');
+    expect(trusted).toContain(".head_sha == $revision");
+    expect(trusted).toContain(".run_attempt == 1");
+    expect(trusted).toContain('.conclusion == "success"');
+    expect(immutableGuard).not.toBe("");
+    expect(immutableGuard).toContain("--max-redirs 0");
+    expect(immutableGuard).toContain("raw.githubusercontent.com");
+    expect(immutableGuard).not.toContain("GITHUB_TOKEN:");
+    expect(immutableGuard).not.toContain("GH_TOKEN:");
+    expect(deploy).toContain("github.event_name == 'workflow_dispatch'");
+  });
+
+  it("invokes the verified Render guard only inside the deploy request step", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const deploy = releaseJob(workflow, "deploy");
+    const request = releaseStep(deploy, "Request Render image deployment");
+
+    expect(request).not.toBe("");
+    expect(request).toMatch(/^\s*node \/tmp\/aa-render-image-target-guard\.cjs\s*$/m);
+    expect(request).toContain("RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}");
+    expect(request).toContain("RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}");
+    expect(request).toContain("RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}");
+    expect(request).not.toMatch(/\bcurl\b/);
   });
 
   it("preserves the documented 30-day approved image promotion window", () => {

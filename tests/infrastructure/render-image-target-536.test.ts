@@ -6,7 +6,8 @@ type Target = {
   type: string;
   serviceDetails: { runtime: string; imagePath?: string };
   imagePath?: string;
-  autoDeployTrigger: string;
+  autoDeployTrigger?: string;
+  autoDeploy?: "yes" | "no";
 };
 
 type VerifyInput = {
@@ -48,6 +49,23 @@ const verify = (target: Target, extra: Partial<typeof inputs> = {}) =>
 describe("Render image-release target preflight", () => {
   it("accepts a matching image-backed web service with auto deploy disabled", async () => {
     await expect(verify(service)).resolves.toBe(true);
+  });
+
+  it("accepts legacy-only Render autoDeploy=no metadata", async () => {
+    const legacy: Target = { ...service };
+    delete legacy.autoDeployTrigger;
+    await expect(verify({ ...legacy, autoDeploy: "no" })).resolves.toBe(true);
+    await expect(verify({ ...service, autoDeploy: "no" })).resolves.toBe(true);
+  });
+
+  it("rejects enabled, conflicting, or missing Render auto-deploy metadata", async () => {
+    const legacy: Target = { ...service };
+    delete legacy.autoDeployTrigger;
+    await expect(verify({ ...legacy, autoDeploy: "yes" })).rejects.toThrow(/automatic deployment disabled/);
+    await expect(verify({ ...service, autoDeploy: "yes" })).rejects.toThrow(/automatic deployment disabled/);
+    await expect(verify({ ...legacy })).rejects.toThrow(/automatic deployment disabled/);
+    await expect(verify({ ...service, autoDeployTrigger: "commit", autoDeploy: "no" }))
+      .rejects.toThrow(/automatic deployment disabled/);
   });
 
   it("accepts serviceDetails.imagePath when the API response has no top-level imagePath", async () => {
