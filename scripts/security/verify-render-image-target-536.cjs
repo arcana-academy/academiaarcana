@@ -103,8 +103,10 @@ async function requestVerifiedRenderImageDeployment(inputs) {
   } catch {
     throw new Error("Render deploy hook request failed; deployment is not confirmed.");
   }
-  if (!response || response.status !== 200) {
-    throw new Error("Render deploy hook did not confirm HTTP 200.");
+  // Render accepts 200 for an immediately started deploy or 202 for a
+  // queued deploy. Both confirm the request, not a completed rollout.
+  if (!response || (response.status !== 200 && response.status !== 202)) {
+    throw new Error("Render deploy hook did not accept the request (HTTP 200/202).");
   }
   return true;
 }
