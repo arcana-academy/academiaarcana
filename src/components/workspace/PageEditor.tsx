@@ -161,7 +161,7 @@ type PageSaveStatusProps = {
 function PageSaveStatus({ status }: PageSaveStatusProps) {
   const messages: Record<PageSaveState, string> = {
     idle: "",
-    saving: "",
+    saving: "Salvando página…",
     saved: "Página salva.",
     error: "Não foi possível salvar a página.",
   };
@@ -242,6 +242,7 @@ export function PageEditor({
       content: blockContent,
     };
     setContent({ ...content, blocks: nextBlocks });
+    setStatus("idle");
   };
 
   /** Persist the learning progress state for the selected page. */
@@ -289,6 +290,7 @@ export function PageEditor({
       ...current,
       `${page.id}:block:${current.length}`,
     ]);
+    setStatus("idle");
   };
 
   return (
@@ -306,7 +308,10 @@ export function PageEditor({
       <input
         id="workspace-page-title"
         value={title}
-        onChange={(event) => setTitle(event.target.value)}
+        onChange={(event) => {
+          setTitle(event.target.value);
+          setStatus("idle");
+        }}
       />
 
       <PageBlocks
