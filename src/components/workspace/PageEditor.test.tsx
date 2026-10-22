@@ -115,7 +115,7 @@ describe("PageEditor", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
-    expect(screen.getByRole("status", { name: "" })).toBeInTheDocument();
+    expect(screen.getByText("Salvando página…").closest("[role=status]")).not.toBeNull();
     expect(screen.getByText("Salvando página…")).toBeInTheDocument();
     expect(screen.queryByText("Página salva.")).toBeNull();
     expect(pendingSave).toHaveBeenCalledOnce();
