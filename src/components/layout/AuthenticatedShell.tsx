@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Accessibility } from "lucide-react";
 import { signOut } from "@/lib/auth/actions";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -32,11 +34,17 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
             <span>{currentNavigationItem?.label ?? "Jornada de aprendizagem"}</span>
           </div>
 
-          <form action={signOut}>
+          <div className="aa-topbar-actions">
+            <Link href="/configuracoes#accessibilidade" className="aa-button aa-button-secondary aa-button-sm aa-accessibility-shortcut" aria-label="Abrir Central de Acessibilidade">
+              <Accessibility size={19} aria-hidden="true" />
+              <span>Acessibilidade</span>
+            </Link>
+            <form action={signOut}>
             <button className="aa-button aa-button-ghost aa-button-sm" type="submit">
               Sair
             </button>
-          </form>
+            </form>
+          </div>
         </header>
 
         <div className="aa-main-content">{children}</div>
