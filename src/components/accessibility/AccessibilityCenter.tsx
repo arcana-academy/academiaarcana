@@ -98,6 +98,7 @@ export function AccessibilityCenter() {
                   <option value="system">Automático — seguir o dispositivo</option>
                   <option value="dark">Biblioteca Noturna</option>
                   <option value="light">Pergaminho Claro</option>
+                  <option value="custom" disabled>Tema avançado — gerenciado em Personalizar</option>
                 </select>
                 <label><input type="checkbox" checked={reading.largeText} onChange={(event) => updateReading("largeText", event.target.checked)} /> Ampliar texto</label>
                 <label><input type="checkbox" checked={reading.extraSpacing} onChange={(event) => updateReading("extraSpacing", event.target.checked)} /> Aumentar espaçamento de leitura</label>
