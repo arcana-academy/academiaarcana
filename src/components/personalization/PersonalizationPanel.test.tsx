@@ -5,12 +5,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { PersonalizationPanel } from "./PersonalizationPanel";
 
-const setTheme = vi.fn();
+const setPreference = vi.fn();
 
 vi.mock("@/design-system/themes", () => ({
   useTheme: () => ({
-    theme: "mago-classico",
-    setTheme,
+    theme: "biblioteca-noturna",
+    preference: "system",
+    setPreference,
     tokens: {},
   }),
 }));
@@ -31,7 +32,7 @@ describe("PersonalizationPanel", () => {
     render(<PersonalizationPanel />);
 
     expect(screen.getByRole("heading", { name: "Personalizar" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Escolha um tema")).toHaveValue("mago-classico");
+    expect(screen.getByLabelText("Escolha um tema")).toHaveValue("system");
     expect(screen.getByLabelText("Preferência de movimento")).toHaveValue("system");
   });
 
@@ -42,6 +43,9 @@ describe("PersonalizationPanel", () => {
     expect(select).toContainElement(screen.getByRole("option", { name: "Mago Clássico" }));
 
     fireEvent.change(select, { target: { value: "escuro" } });
-    expect(setTheme).toHaveBeenCalledWith("escuro");
+    expect(setPreference).toHaveBeenCalledWith("escuro");
+
+    fireEvent.change(select, { target: { value: "system" } });
+    expect(setPreference).toHaveBeenCalledWith("system");
   });
 });
