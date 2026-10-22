@@ -34,6 +34,7 @@ describe("PersonalizationPanel", () => {
     expect(screen.getByRole("heading", { name: "Personalizar" })).toBeInTheDocument();
     expect(screen.getByLabelText("Escolha um tema")).toHaveValue("system");
     expect(screen.getByLabelText("Preferência de movimento")).toHaveValue("system");
+    expect(screen.getByRole("group", { name: "Ajustes de leitura" })).toBeInTheDocument();
   });
 
   it("renders selectable theme presets instead of introducing a parallel theme list", () => {
