@@ -72,6 +72,65 @@ describe("PageEditor", () => {
     expect(await screen.findByText("Página salva.")).toBeTruthy();
   });
 
+  test("persists an accessible description with a block on confirmed save", async () => {
+    const onSave = vi.fn((input: SaveInput) =>
+      Promise.resolve({ ...page, title: input.title, content: input.content }),
+    );
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Tipo do bloco 1"), {
+      target: { value: "image" },
+    });
+    fireEvent.change(screen.getByLabelText("Descrição alternativa"), {
+      target: { value: "Ciclo da água representado em três etapas." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].content.blocks[0]).toEqual({
+      type: "image",
+      content: "Conteúdo inicial.",
+      accessibility: {
+        description: "Ciclo da água representado em três etapas.",
+        decorative: false,
+      },
+    });
+    expect(await screen.findByText("Página salva.")).toBeTruthy();
+  });
+
+  test("clears obsolete alt text when an image is marked decorative", async () => {
+    const onSave = vi.fn((input: SaveInput) =>
+      Promise.resolve({ ...page, title: input.title, content: input.content }),
+    );
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Tipo do bloco 1"), {
+      target: { value: "image" },
+    });
+    fireEvent.change(screen.getByLabelText("Descrição alternativa"), {
+      target: { value: "Descrição anterior." },
+    });
+    fireEvent.click(screen.getByLabelText("Imagem decorativa (sem informação essencial)"));
+    expect(screen.queryByLabelText("Descrição alternativa")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].content.blocks[0].accessibility).toEqual({
+      description: "",
+      decorative: true,
+    });
+  });
+
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
