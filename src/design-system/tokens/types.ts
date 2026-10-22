@@ -1,5 +1,7 @@
 export type ThemeId =
   | "mago-classico"
+  | "arcana-noturna"
+  | "arcana-pergaminho"
   | "escuro"
   | "estudioso"
   | "natural"
