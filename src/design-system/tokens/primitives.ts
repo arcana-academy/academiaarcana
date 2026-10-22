@@ -63,6 +63,8 @@ export const primitiveTokens = {
     ui: '"Acumin Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     display: '"Sanvito Pro", Georgia, serif',
     code: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+    editorial: '"Cormorant Upright", Georgia, serif',
+    ornament: '"Smythe", Georgia, serif',
   },
   typeScale: {
     xs: "0.75rem",
