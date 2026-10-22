@@ -92,6 +92,8 @@ const requiredTokenPaths = [
 
 const approvedThemeIds = [
   "mago-classico",
+  "arcana-noturna",
+  "arcana-pergaminho",
   "escuro",
   "estudioso",
   "natural",
