@@ -69,14 +69,16 @@ function PageDeleteControl({
 
 type MovePageDirection = "up" | "down";
 
+type PageBlock = PageContent["blocks"][number];
 type PageBlocksProps = {
   blocks: PageContent["blocks"];
   blockKeys: string[];
-  onChange: (index: number, content: string) => void;
+  onChange: (index: number, changes: Partial<PageBlock>) => void;
+  onAccessibilityChange: (index: number, changes: NonNullable<PageBlock["accessibility"]>) => void;
 };
 
 /** Render page blocks while keeping block editing separate from PageEditor orchestration. */
-function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
+function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: PageBlocksProps) {
   return (
     <div aria-label="Blocos da página">
       {blocks.length === 0 ? (
@@ -90,8 +92,76 @@ function PageBlocks({ blocks, blockKeys, onChange }: PageBlocksProps) {
             <textarea
               id={`workspace-page-block-${index}`}
               value={block.content}
-              onChange={(event) => onChange(index, event.target.value)}
+              onChange={(event) => onChange(index, { content: event.target.value })}
             />
+            <details className="workspace-block-accessibility">
+              <summary>Acessibilidade do bloco {index + 1}</summary>
+              <label htmlFor={"workspace-block-kind-" + index}>
+                Tipo do bloco {index + 1}
+              </label>
+              <select
+                className="aa-input"
+                id={"workspace-block-kind-" + index}
+                value={block.type}
+                onChange={(event) => onChange(index, { type: event.target.value })}
+              >
+                {!["paragraph", "image", "video", "formula", "diagram"].includes(block.type) ? (
+                  <option value={block.type}>Tipo existente: {block.type}</option>
+                ) : null}
+                <option value="paragraph">Texto</option>
+                <option value="image">Imagem — referência textual</option>
+                <option value="video">Vídeo — referência textual</option>
+                <option value="formula">Fórmula</option>
+                <option value="diagram">Diagrama — referência textual</option>
+              </select>
+              {block.type === "image" ? (
+                <label htmlFor={"workspace-block-decorative-" + index}>
+                  <input
+                    id={"workspace-block-decorative-" + index}
+                    type="checkbox"
+                    checked={block.accessibility?.decorative === true}
+                    onChange={(event) =>
+                      onAccessibilityChange(index, {
+                        decorative: event.target.checked,
+                        ...(event.target.checked ? { description: "" } : {}),
+                      })
+                    }
+                  />
+                  Imagem decorativa (sem informação essencial)
+                </label>
+              ) : null}
+              {block.type === "image" && block.accessibility?.decorative ? (
+                <p>Imagens decorativas não devem comunicar informações essenciais.</p>
+              ) : (
+                <>
+                  <label htmlFor={"workspace-block-description-" + index}>
+                    {block.type === "image"
+                      ? "Descrição alternativa"
+                      : block.type === "video"
+                        ? "Transcrição ou descrição"
+                        : block.type === "formula"
+                          ? "Leitura da fórmula"
+                          : block.type === "diagram"
+                            ? "Descrição do diagrama"
+                            : "Observação acessível (opcional)"}
+                  </label>
+                  <textarea
+                    id={"workspace-block-description-" + index}
+                    value={block.accessibility?.description ?? ""}
+                    onChange={(event) =>
+                      onAccessibilityChange(index, {
+                        description: event.target.value,
+                        decorative: false,
+                      })
+                    }
+                  />
+                </>
+              )}
+              {block.type !== "paragraph" ? (
+                <p>Os blocos de mídia armazenam referências textuais e alternativas.
+                  Este editor ainda não envia nem reproduz arquivos.</p>
+              ) : null}
+            </details>
           </div>
         ))
       )}
@@ -231,14 +301,30 @@ export function PageEditor({
     }
   };
 
-  /** Update one page block while keeping the editor state local. */
-  const updateBlock = (index: number, blockContent: string) => {
-    const nextBlocks = [...content.blocks];
-    nextBlocks[index] = {
-      ...nextBlocks[index],
-      content: blockContent,
-    };
-    setContent({ ...content, blocks: nextBlocks });
+  /** Keep block edits local until the authenticated save confirms persistence. */
+  const updateBlock = (index: number, changes: Partial<PageBlock>) => {
+    setContent((current) => ({
+      ...current,
+      blocks: current.blocks.map((block, position) =>
+        position === index ? { ...block, ...changes } : block,
+      ),
+    }));
+    setStatus("idle");
+  };
+
+  const updateAccessibility = (
+    index: number,
+    changes: NonNullable<PageBlock["accessibility"]>,
+  ) => {
+    setContent((current) => ({
+      ...current,
+      blocks: current.blocks.map((block, position) =>
+        position === index
+          ? { ...block, accessibility: { ...block.accessibility, ...changes } }
+          : block,
+      ),
+    }));
+    setStatus("idle");
   };
 
   /** Persist the learning progress state for the selected page. */
@@ -301,6 +387,7 @@ export function PageEditor({
         blocks={content.blocks}
         blockKeys={blockKeys}
         onChange={updateBlock}
+        onAccessibilityChange={updateAccessibility}
       />
 
       <button type="button" onClick={addBlock}>
