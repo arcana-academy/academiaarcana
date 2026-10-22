@@ -232,6 +232,29 @@ describe("PageEditor", () => {
     expect(onDelete).not.toHaveBeenCalled();
   });
 
+  test("focuses the safe action in the alert dialog and restores focus on Escape", () => {
+    const onDelete = vi.fn(async () => undefined);
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={onDelete}
+        onSave={vi.fn()}
+      />,
+    );
+    const launch = screen.getByRole("button", { name: "Excluir página" });
+    launch.focus();
+    fireEvent.click(launch);
+    const confirmation = screen.getByRole("alertdialog", {
+      name: "Confirmar exclusão da página",
+    });
+    expect(screen.getByRole("button", { name: "Cancelar" })).toHaveFocus();
+    fireEvent.keyDown(confirmation, { key: "Escape" });
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(launch).toHaveFocus();
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
   test("confirms and deletes the selected page", async () => {
     const onDelete = vi.fn(() => Promise.resolve());
 
