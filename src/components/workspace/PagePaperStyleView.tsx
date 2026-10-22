@@ -15,6 +15,7 @@ export type PagePaperStyle = (typeof PAGE_PAPER_STYLES)[number]["id"];
 const STORE_PREFIX = "academia-arcana.page-paper.v1:";
 const CHANGE_EVENT = "academia-arcana:page-paper-changed";
 const fallback = new Map<string, PagePaperStyle>();
+const blocked = new Set<string>();
 
 export function isPagePaperStyle(value: unknown): value is PagePaperStyle {
   return PAGE_PAPER_STYLES.some((style) => style.id === value);
@@ -30,18 +31,27 @@ function readPagePaper(pageId: string): PagePaperStyle {
   try {
     const saved = window.localStorage.getItem(pagePaperStorageKey(pageId));
     if (isPagePaperStyle(saved)) return saved;
-    return cached ?? "inherit";
+    return blocked.has(pageId) ? cached ?? "inherit" : "inherit";
   } catch {
     return cached ?? "inherit";
   }
 }
 
 function subscribe(listener: () => void): () => void {
+  const storageListener = (event: StorageEvent) => {
+    // External changes to this key supersede any in-session fallback.
+    if (event.key?.startsWith(STORE_PREFIX)) {
+      const pageId = decodeURIComponent(event.key.slice(STORE_PREFIX.length));
+      fallback.delete(pageId);
+      blocked.delete(pageId);
+    }
+    listener();
+  };
   window.addEventListener(CHANGE_EVENT, listener);
-  window.addEventListener("storage", listener);
+  window.addEventListener("storage", storageListener);
   return () => {
     window.removeEventListener(CHANGE_EVENT, listener);
-    window.removeEventListener("storage", listener);
+    window.removeEventListener("storage", storageListener);
   };
 }
 
@@ -64,8 +74,10 @@ export function PagePaperStyleView({
     fallback.set(pageId, value);
     try {
       window.localStorage.setItem(pagePaperStorageKey(pageId), value);
+      blocked.delete(pageId);
       setStorageWarning(false);
     } catch {
+      blocked.add(pageId);
       setStorageWarning(true);
     }
     window.dispatchEvent(new Event(CHANGE_EVENT));
