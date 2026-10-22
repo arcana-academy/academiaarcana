@@ -132,7 +132,19 @@ describe("Render image-release target preflight", () => {
         requests.push(url);
         return { status: url.includes("/deploy/") ? 403 : 200, json: async () => service };
       },
-    })).rejects.toThrow(/hook did not confirm HTTP 200/);
+    })).rejects.toThrow(/hook did not accept the request/);
     expect(requests).toHaveLength(2);
   });
+  it("accepts Render HTTP 202 as a queued deployment request", async () => {
+    const urls: string[] = [];
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs,
+      fetchService: async (url: string) => {
+        urls.push(url);
+        return { status: url.includes("/deploy/") ? 202 : 200, json: async () => service };
+      },
+    })).resolves.toBe(true);
+    expect(urls).toHaveLength(2);
+  });
+
 });
