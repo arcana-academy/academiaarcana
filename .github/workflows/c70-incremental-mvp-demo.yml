@@ -1,0 +1,141 @@
+name: AA360 C70 Incremental MVP Demonstration (QA Only)
+on:
+  push:
+    branches:
+      - work/aa360-c70-demo-auth-routes-20261021
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aa360-c70-qa
+  cancel-in-progress: false
+
+jobs:
+  demonstrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Refuse out-of-scope repository or branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "arcana-academy/academiaarcana"
+          test "$GITHUB_EVENT_NAME" = "push"
+          test "$GITHUB_REF" = "refs/heads/work/aa360-c70-demo-auth-routes-20261021"
+          if env | cut -d= -f1 | grep -Eq '^(SUPABASE_ACCESS_TOKEN|SUPABASE_URL|SUPABASE_SERVICE_ROLE_KEY|DATABASE_URL|NEXT_PUBLIC_SUPABASE_URL|RENDER_API_KEY)$'; then
+            echo "Refusing preconfigured hosted credentials"; exit 1
+          fi
+
+      - name: Checkout exact protected application tree
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ed68fffddd43deec85f0548818d532caafbbcb8a
+
+      - name: Checkout QA-only synthetic harness separately
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          path: .aa-c70-qa
+
+      - name: Pin application and overlay only new synthetic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "ed68fffddd43deec85f0548818d532caafbbcb8a"
+          test "$(git -C .aa-c70-qa rev-parse HEAD)" = "$GITHUB_SHA"
+          test ! -e scripts/security/c70-demo-runner.mjs
+          test ! -e tests/e2e/c70-demo.spec.ts
+          cp .aa-c70-qa/scripts/security/c70-demo-runner.mjs scripts/security/c70-demo-runner.mjs
+          cp .aa-c70-qa/tests/e2e/c70-demo.spec.ts tests/e2e/c70-demo.spec.ts
+          rm -rf .aa-c70-qa
+          test "$(git status --porcelain --untracked-files=all | wc -l)" -eq 2
+          git status --porcelain --untracked-files=all | grep -Fx '?? scripts/security/c70-demo-runner.mjs'
+          git status --porcelain --untracked-files=all | grep -Fx '?? tests/e2e/c70-demo.spec.ts'
+          git diff --quiet
+          git diff --cached --quiet
+
+      - name: Setup Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Setup verified Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Install exact lockfile with lifecycle scripts disabled
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Install disposable Chromium for targeted synthetic browser test
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: Prove supported Docker Engine and loopback-only bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import {execFileSync} from "node:child_process";
+          const version=execFileSync("docker",["version","--format","{{.Server.Version}}"],{encoding:"utf8"}).trim();
+          assert.ok(Number(version.split(".")[0]) >= 28,"Docker Engine <28 forbidden for this localhost isolation exercise");
+          console.log("PASS C70 Docker Linux engine >=28: "+version);
+          NODE
+          docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 aa-c70-loopback
+          test "$(docker network inspect --format '{{ index .Options "com.docker.network.bridge.host_binding_ipv4" }}' aa-c70-loopback)" = "127.0.0.1"
+
+      - name: Start disposable local Supabase and apply local migrations
+        run: supabase start --network-id aa-c70-loopback
+
+      - name: Fail closed unless all Supabase published ports are loopback only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import {execFileSync} from "node:child_process";
+          const ids=execFileSync("docker",["ps","-q","--filter","name=supabase_"],{encoding:"utf8"}).trim().split(/\s+/).filter(Boolean);
+          assert.ok(ids.length>0,"No synthetic Supabase containers");
+          let published=0;
+          for(const id of ids){
+            const [c]=JSON.parse(execFileSync("docker",["inspect",id],{encoding:"utf8"}));
+            assert.ok(Object.hasOwn(c.NetworkSettings.Networks??{},"aa-c70-loopback"),"Container escaped QA network");
+            for(const bindings of Object.values(c.NetworkSettings.Ports??{}))
+              for(const b of bindings??[]){
+                published++;
+                assert.ok(["127.0.0.1","::1"].includes(b.HostIp),"Non-loopback binding refused: "+b.HostIp);
+              }
+          }
+          assert.ok(published>=5,"Expected >=5 locally published ports");
+          console.log("PASS C70: "+published+" Docker host ports confined to loopback");
+          NODE
+
+      - name: Demonstrate only previously missing authenticated Academy/Missions/Cronograma/Profile routes
+        env:
+          AA_C70_QA: "1"
+          AA_LOCAL_SUPABASE_E2E: "1"
+        run: node scripts/security/c70-demo-runner.mjs
+
+      - name: Archive synthetic-only screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aa360-c70-local-synthetic-demonstration
+          path: artifacts/aa360-c70-synthetic/*.png
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Stop and discard all local Supabase data
+        if: always()
+        shell: bash
+        run: |
+          if command -v supabase >/dev/null 2>&1; then supabase stop --no-backup; fi
+
+      - name: Remove disposable network
+        if: always()
+        shell: bash
+        run: |
+          if docker network inspect aa-c70-loopback >/dev/null 2>&1; then docker network rm aa-c70-loopback; fi
