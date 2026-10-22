@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 type Target = {
   id: string;
   type: string;
-  serviceDetails: { runtime: string };
-  imagePath: string;
+  serviceDetails: { runtime: string; imagePath?: string };
+  imagePath?: string;
   autoDeployTrigger: string;
 };
 
@@ -48,6 +48,55 @@ const verify = (target: Target, extra: Partial<typeof inputs> = {}) =>
 describe("Render image-release target preflight", () => {
   it("accepts a matching image-backed web service with auto deploy disabled", async () => {
     await expect(verify(service)).resolves.toBe(true);
+  });
+
+  it("accepts serviceDetails.imagePath when the API response has no top-level imagePath", async () => {
+    // Explicitly exercise the nested-only API response reported by the integration.
+    const nestedOnly: Target = {
+      id,
+      type: "web_service",
+      serviceDetails: { runtime: "image", imagePath: `${imageRepo}:reviewed-tag` },
+      autoDeployTrigger: "off",
+    };
+    await expect(verify(nestedOnly)).resolves.toBe(true);
+    await expect(verify({ ...nestedOnly, imagePath: nestedOnly.serviceDetails.imagePath })).resolves.toBe(true);
+  });
+
+  it("fails closed for unapproved or inconsistent nested image paths", async () => {
+    const nestedOnly: Target = {
+      id,
+      type: "web_service",
+      serviceDetails: { runtime: "image", imagePath: `${imageRepo}:reviewed-tag` },
+      autoDeployTrigger: "off",
+    };
+    await expect(verify({
+      ...nestedOnly,
+      serviceDetails: { runtime: "image", imagePath: "docker.io/example/unreviewed" },
+    })).rejects.toThrow(/approved GHCR/);
+    await expect(verify({ ...nestedOnly, imagePath: "docker.io/example/unreviewed" }))
+      .rejects.toThrow(/conflicting image repositories/);
+    await expect(verify({
+      ...nestedOnly,
+      serviceDetails: { runtime: "image" },
+    })).rejects.toThrow(/approved GHCR/);
+  });
+
+  it("refuses the deployment hook when a freshly read nested image path changes", async () => {
+    const urls: string[] = [];
+    const changed: Target = {
+      id,
+      type: "web_service",
+      serviceDetails: { runtime: "image", imagePath: "docker.io/example/changed" },
+      autoDeployTrigger: "off",
+    };
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs,
+      fetchService: async (url: string) => {
+        urls.push(url);
+        return { status: 200, json: async () => changed };
+      },
+    })).rejects.toThrow(/approved GHCR/);
+    expect(urls).toEqual([`https://api.render.com/v1/services/${id}`]);
   });
 
   it("rejects an unrelated background worker using the same image", async () => {

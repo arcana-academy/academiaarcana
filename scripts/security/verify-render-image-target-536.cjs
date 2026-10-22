@@ -72,7 +72,16 @@ async function verifyRenderImageTarget(inputs) {
       service.serviceDetails?.runtime !== "image") {
     throw new Error("Render target is not a verified image-backed service; refusing imgURL.");
   }
-  if (!registeredImageRepo(service.imagePath)) {
+  // Render's current API exposes imagePath at the top level; also accept
+  // serviceDetails.imagePath when that is the only configured path returned.
+  // Contradictory paths must fail closed rather than select either value.
+  const topLevelImagePath = service.imagePath;
+  const detailsImagePath = service.serviceDetails.imagePath;
+  if (topLevelImagePath !== undefined && detailsImagePath !== undefined &&
+      topLevelImagePath !== detailsImagePath) {
+    throw new Error("Render target reports conflicting image repositories; refusing image deployment.");
+  }
+  if (!registeredImageRepo(detailsImagePath ?? topLevelImagePath)) {
     throw new Error("Render image-backed target registry/repository is not the approved GHCR image.");
   }
   if (service.autoDeployTrigger !== "off") {
