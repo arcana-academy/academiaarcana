@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ReadingControls } from "@/components/accessibility/ReadingControls";
 import { useReadingPreferences } from "@/application/accessibility-preferences/reading-preferences";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
@@ -208,6 +208,7 @@ export function PageEditor({
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
+  const editRevision = useRef(0);
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -241,8 +242,9 @@ export function PageEditor({
       ...nextBlocks[index],
       content: blockContent,
     };
+    editRevision.current += 1;
     setContent({ ...content, blocks: nextBlocks });
-    setStatus("idle");
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   /** Persist the learning progress state for the selected page. */
@@ -264,6 +266,7 @@ export function PageEditor({
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
     setStatus("saving");
+    const revisionAtSave = editRevision.current;
 
     try {
       const saved = await onSave({
@@ -272,9 +275,15 @@ export function PageEditor({
         content,
       });
 
-      setTitle(saved.title);
-      setContent(saved.content);
-      setStatus("saved");
+      if (editRevision.current === revisionAtSave) {
+        setTitle(saved.title);
+        setContent(saved.content);
+        setStatus("saved");
+      } else {
+        // The user continued editing: never replace newer local text with an
+        // older server response or falsely mark the new draft as saved.
+        setStatus("idle");
+      }
     } catch {
       setStatus("error");
     }
@@ -290,7 +299,8 @@ export function PageEditor({
       ...current,
       `${page.id}:block:${current.length}`,
     ]);
-    setStatus("idle");
+    editRevision.current += 1;
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   return (
@@ -309,8 +319,9 @@ export function PageEditor({
         id="workspace-page-title"
         value={title}
         onChange={(event) => {
+          editRevision.current += 1;
           setTitle(event.target.value);
-          setStatus("idle");
+          setStatus((current) => current === "saving" ? current : "idle");
         }}
       />
 
