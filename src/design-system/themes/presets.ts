@@ -46,6 +46,8 @@ export const THEME_IDS: readonly ThemeId[] = [
   "sacred-geometry",
   "glass",
   "paper-light",
+  "biblioteca-noturna",
+  "pergaminho-claro",
 ];
 
 function createPreset(
@@ -128,4 +130,22 @@ export const themePresets: Record<ThemeId, ThemePreset> = {
   "sacred-geometry": createPreset("sacred-geometry", "Geometria Arcana", { surfaces: { canvas: "#15121A", panel: "#1E1825", elevated: "#292033", inset: "#0D0A10" }, text: { primary: "#DDD5E5", secondary: "#B9AEC4", muted: "#9D95A8", inverse: "#1E1825" }, accent: { primary: "#C0A3E5", secondary: "#8C6CB8" }, effects: { glow: "0 0 18px rgb(192 163 229 / 0.13)", texture: "geometric" } }),
   glass: createPreset("glass", "Glass", { surfaces: { canvas: "#11151A", panel: "#1B222A", elevated: "#26323D", inset: "#0A0E12" }, text: { primary: "#D5DDE4", secondary: "#AFB9C2", muted: "#909BA4", inverse: "#1B222A" }, border: { default: "#879BA6", strong: "#A9BDC6" }, accent: { primary: "#93C5D8", secondary: "#6490A5" }, effects: { glow: "0 0 20px rgb(147 197 216 / 0.12)", texture: "translucent" } }),
   "paper-light": createPreset("paper-light", "Pergaminho Escuro", { surfaces: { canvas: "#25231F", panel: "#312F29", elevated: "#3D3A32", inset: "#1B1A17" }, text: { primary: "#E2DBCC", secondary: "#C5BDAE", muted: "#ABA598", inverse: "#312F29" }, accent: { primary: "#B79763", secondary: "#886B42" }, typography: { body: "Georgia, serif", heading: "Georgia, serif" }, effects: { glow: "none", texture: "paper" }, status: { success: "#86B89A", warning: "#D0B477", danger: "#DDA0A6", info: "#B1C8D8" } }),
+  "biblioteca-noturna": createPreset("biblioteca-noturna", "Biblioteca Noturna", {
+    surfaces: { canvas: "#251C2C", panel: "#302338", elevated: "#3C2C44", floating: "#493551", modal: "#302338", inset: "#211928" },
+    text: { primary: "#EDE3D9", secondary: "#D5C7D7", muted: "#C9BCCA", inverse: "#302338" },
+    border: { default: "#D5C7D7", strong: "#EDE3D9" },
+    accent: { primary: "#D5C7D7", secondary: "#604474" },
+    status: { success: "#A8CBAE", warning: "#E0C59F", danger: "#E6A39D", info: "#B3D1EA" },
+    focus: { ring: "#EDE3D9" },
+    effects: { glow: "none", texture: "none" },
+  }),
+  "pergaminho-claro": createPreset("pergaminho-claro", "Pergaminho Claro", {
+    surfaces: { canvas: "#F9F4EB", panel: "#F1E7D8", elevated: "#E8DAC8", floating: "#F5ECE0", modal: "#F1E7D8", inset: "#F0E4D7" },
+    text: { primary: "#302338", secondary: "#4B3650", muted: "#574259", inverse: "#FDF8F0" },
+    border: { default: "#665069", strong: "#493551" },
+    accent: { primary: "#604474", secondary: "#493551" },
+    status: { success: "#276044", warning: "#76530D", danger: "#8C303D", info: "#235C80" },
+    focus: { ring: "#4A2772" },
+    effects: { glow: "none", texture: "none" },
+  }),
 };
