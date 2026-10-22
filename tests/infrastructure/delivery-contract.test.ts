@@ -99,7 +99,7 @@ describe("delivery infrastructure contract", () => {
     expect(upload).toMatch(/^\s*retention-days: 30\s*$/m);
     const instructions = readRepoFile("docs/deployment/render.md");
     expect(instructions).toContain("30-day promotion window");
-    expect(instructions).toContain("not extended retroactively");
+    expect(instructions).toContain("are **not** extended retroactively");
   });
 
   it("documents all explicit GHCR and Render manual promotion gates", () => {
