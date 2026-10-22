@@ -42,6 +42,14 @@ function formatDueAt(value: string | null, browserHydrated: boolean): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
+/** Show the native local date/time value consistently in Brazilian notation. */
+function formatDraftDueAtPtBR(value: string): string | null {
+  const match = /^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  return `${day}/${month}/${year} às ${hour}:${minute}`;
+}
+
 /** Outlook Graph may provide a UTC wall time without an explicit offset. */
 function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone?: string | null): string {
   if (typeof timeZone !== "string" || !timeZone.trim()) return "Data indisponível";
@@ -105,6 +113,7 @@ export function StudyTaskBoard({
   }, [tasks, locallyCreated, locallyCompleted, acknowledgment.createdSeen, acknowledgment.completedAbsent]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
+  const selectedDueAtPtBR = formatDraftDueAtPtBR(dueAt);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Guard the callbacks synchronously, before disabled controls rerender.
@@ -324,7 +333,12 @@ export function StudyTaskBoard({
             </div>
             <div className="aa-field">
               <label htmlFor="study-task-due">Prazo</label>
-              <input className="aa-input" id="study-task-due" type="datetime-local" lang="pt-BR" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
+              <input className="aa-input" id="study-task-due" type="datetime-local" lang="pt-BR" aria-describedby="study-task-due-preview" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
+              <p id="study-task-due-preview" className="aa-field-description" aria-live="polite">
+                {selectedDueAtPtBR
+                  ? `Prazo selecionado: ${selectedDueAtPtBR}.`
+                  : "Formato brasileiro: DD/MM/AAAA às HH:MM."}
+              </p>
             </div>
             <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
               {isSubmitting ? "Criando…" : "Criar tarefa"}

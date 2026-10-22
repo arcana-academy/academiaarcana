@@ -90,6 +90,35 @@ describe("StudyTaskBoard", () => {
     expect(document.querySelector('img[src="/assets/icons/aa-cronograma.svg"]')).toBeInTheDocument();
   });
 
+  it("previews the selected deadline in Brazilian notation without changing the saved instant", async () => {
+    const localValue = "2028-02-29T09:05";
+    const created = { ...task, id: "task-local-date", dueAt: new Date(localValue).toISOString() };
+    const onCreate = vi.fn().mockResolvedValue(created);
+
+    render(
+      <StudyTaskBoard
+        tasks={[]}
+        onCreate={onCreate}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    const deadline = screen.getByLabelText("Prazo");
+    expect(deadline).toHaveAttribute("type", "datetime-local");
+    expect(deadline).toHaveAttribute("aria-describedby", "study-task-due-preview");
+    expect(screen.getByText("Formato brasileiro: DD/MM/AAAA às HH:MM.")).toBeInTheDocument();
+
+    fireEvent.change(deadline, { target: { value: localValue } });
+    expect(screen.getByText("Prazo selecionado: 29/02/2028 às 09:05.")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: "Revisar grimório" } });
+    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
+    await waitFor(() => expect(onCreate).toHaveBeenCalledWith({
+      title: "Revisar grimório",
+      dueAt: new Date(localValue).toISOString(),
+    }));
+  });
+
   it("offers a direct route to the task form when the schedule is empty", () => {
     render(
       <StudyTaskBoard
