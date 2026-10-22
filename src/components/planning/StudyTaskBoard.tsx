@@ -44,7 +44,7 @@ function formatDueAt(value: string | null, browserHydrated: boolean): string {
 
 /** Show the native local date/time value consistently in Brazilian notation. */
 function formatDraftDueAtPtBR(value: string): string | null {
-  const match = /^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})$/.exec(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
   if (!match) return null;
   const [, year, month, day, hour, minute] = match;
   return `${day}/${month}/${year} às ${hour}:${minute}`;
