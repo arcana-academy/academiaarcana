@@ -13,7 +13,7 @@ describe("ConfiguracoesPage", () => {
     render(<ThemeProvider>{await ConfiguracoesPage()}</ThemeProvider>);
     expect(screen.getByRole("heading", { name: "Configurações", level: 1 })).toBeInTheDocument();
     expect(screen.getAllByText(/Acessibilidade/)[0]).toBeInTheDocument();
-    expect(screen.getByText(/Aparência/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Aparência/)[0]).toBeInTheDocument();
     expect(screen.getByText(/Segurança/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Gerenciar Asana" })).toHaveAttribute("href", "/integracoes/asana");
   });
