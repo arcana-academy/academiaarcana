@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ReadingControls } from "@/components/accessibility/ReadingControls";
 import { useReadingPreferences } from "@/application/accessibility-preferences/reading-preferences";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
@@ -20,6 +20,18 @@ function PageDeleteControl({
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const launchButton = useRef<HTMLButtonElement>(null);
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const openedOnce = useRef(false);
+
+  useEffect(() => {
+    if (isConfirming) {
+      openedOnce.current = true;
+      cancelButton.current?.focus();
+    } else if (openedOnce.current) {
+      launchButton.current?.focus();
+    }
+  }, [isConfirming]);
 
   /** Execute the confirmed deletion and report recoverable failures. */
   const remove = async () => {
@@ -38,6 +50,7 @@ function PageDeleteControl({
     return (
       <button
         type="button"
+        ref={launchButton}
         onClick={() => setIsConfirming(true)}
       >
         Excluir página
@@ -46,12 +59,22 @@ function PageDeleteControl({
   }
 
   return (
-    <div role="alertdialog" aria-label="Confirmar exclusão da página">
+    <div
+      role="alertdialog"
+      aria-label="Confirmar exclusão da página"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !isDeleting) {
+          event.stopPropagation();
+          setIsConfirming(false);
+        }
+      }}
+    >
       <p>
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <button
+        ref={cancelButton}
         type="button"
         disabled={isDeleting}
         onClick={() => setIsConfirming(false)}
