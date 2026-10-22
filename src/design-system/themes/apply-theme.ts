@@ -53,6 +53,16 @@ export function applyTheme(theme: ThemeId, element?: HTMLElement): ThemePreset {
     target.style.setProperty(property, value);
   }
 
+  // Preserve an explicitly requested contrast enhancement across theme changes.
+  if (target.dataset.aaContrast === "high") {
+    const light = theme === "pergaminho-claro";
+    target.style.setProperty("--aa-text-primary", light ? "#17101D" : "#FFFFFF");
+    target.style.setProperty("--aa-text-secondary", light ? "#281D30" : "#F6ECF7");
+    target.style.setProperty("--aa-text-muted", light ? "#392A42" : "#DFD3E3");
+    target.style.setProperty("--aa-border-default", light ? "#604474" : "#D9C7DF");
+    target.style.setProperty("--aa-focus-ring", light ? "#604474" : "#F4D5A5");
+  }
+
   target.dataset.theme = theme;
   target.style.colorScheme = theme === "pergaminho-claro" ? "light" : "dark";
   return preset;
