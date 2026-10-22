@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
+import { ReadingTools } from "./ReadingTools";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { WorkspaceTitleEditor } from "./WorkspaceTitleEditor";
@@ -407,6 +408,7 @@ export function Workspace({
 
           {selectedPage ? (
             <div className="workspace-page-editor">
+              <ReadingTools />
               <PageEditor
                 key={selectedPage.id}
                 page={selectedPage}
