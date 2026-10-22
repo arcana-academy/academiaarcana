@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AuthenticatedShell } from "./AuthenticatedShell";
 
+vi.mock("@/components/accessibility/AccessibilityCenter", () => ({
+  AccessibilityCenter: () => <button type="button">Acessibilidade</button>,
+}));
+
 vi.mock("@/lib/auth/actions", () => ({
   signOut: vi.fn(),
 }));
@@ -30,6 +34,7 @@ describe("AuthenticatedShell", () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sair" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Acessibilidade" })).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: "Seu Santuário de aprendizagem",
