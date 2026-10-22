@@ -118,6 +118,8 @@ export type TypographyTokens = {
   caption: string;
   code: string;
   numeric: string;
+  editorial: string;
+  ornament: string;
 };
 
 export type TypeScaleTokens = {
