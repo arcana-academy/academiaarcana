@@ -1,42 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useReadingPreferences } from "@/application/accessibility-preferences/useReadingPreferences";
 import { useSiteAppearance } from "@/application/appearance/SiteAppearanceProvider";
 import { useAccessibilityPreferencesContext } from "@/application/accessibility-preferences/AccessibilityPreferencesContext";
-
-const STORAGE_KEY = "academia-arcana.reading-preferences.v1";
-const DEFAULT_READING = {
-  largeText: false,
-  extraSpacing: false,
-  highContrast: false,
-  focusMode: false,
-};
-type ReadingPreferences = typeof DEFAULT_READING;
-type ReadingKey = keyof ReadingPreferences;
-
-function loadReadingPreferences(): { reading: ReadingPreferences; unavailable: boolean } {
-  if (typeof window === "undefined") return { reading: DEFAULT_READING, unavailable: false };
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { reading: DEFAULT_READING, unavailable: false };
-    const parsed: unknown = JSON.parse(stored);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return { reading: DEFAULT_READING, unavailable: false };
-    }
-    const values = parsed as Record<string, unknown>;
-    return {
-      reading: {
-        largeText: values.largeText === true,
-        extraSpacing: values.extraSpacing === true,
-        highContrast: values.highContrast === true,
-        focusMode: values.focusMode === true,
-      },
-      unavailable: false,
-    };
-  } catch {
-    return { reading: DEFAULT_READING, unavailable: true };
-  }
-}
 
 const sections = [
   ["vision", "Visão e leitura"],
@@ -51,21 +18,11 @@ type Section = (typeof sections)[number][0];
 export function AccessibilityCenter() {
   const [open, setOpen] = useState(false);
   const [section, setSection] = useState<Section>("vision");
-  const [loaded] = useState(loadReadingPreferences);
-  const [reading, setReading] = useState<ReadingPreferences>(loaded.reading);
-  const [storageWarning, setStorageWarning] = useState(loaded.unavailable);
+  const { reading, storageWarning, updateReading } = useReadingPreferences();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const { appearance, setAppearance } = useSiteAppearance();
   const { state: motionState, setMotionPreference } = useAccessibilityPreferencesContext();
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.aaTextScale = reading.largeText ? "large" : "normal";
-    root.dataset.aaSpacing = reading.extraSpacing ? "wide" : "normal";
-    root.dataset.aaContrast = reading.highContrast ? "high" : "normal";
-    root.dataset.aaFocusMode = reading.focusMode ? "on" : "off";
-  }, [reading]);
 
   useEffect(() => {
     if (!open) return;
@@ -80,16 +37,6 @@ export function AccessibilityCenter() {
     return () => document.removeEventListener("keydown", onEscape);
   }, [open]);
 
-  function updateReading(key: ReadingKey, checked: boolean) {
-    const next = { ...reading, [key]: checked };
-    setReading(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      setStorageWarning(false);
-    } catch {
-      setStorageWarning(true);
-    }
-  }
 
   return (
     <div className="aa-accessibility-entry">
