@@ -36,7 +36,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
 
           <div className="aa-topbar-actions">
             <Link href="/configuracoes#accessibilidade" className="aa-button aa-button-secondary aa-button-sm aa-accessibility-shortcut" aria-label="Abrir Central de Acessibilidade">
-              <Accessibility size={19} aria-hidden="true" />
+              <Accessibility size={20} aria-hidden="true" />
               <span>Acessibilidade</span>
             </Link>
             <form action={signOut}>
