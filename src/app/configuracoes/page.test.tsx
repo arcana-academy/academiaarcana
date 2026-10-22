@@ -16,7 +16,7 @@ describe("ConfiguracoesPage", () => {
     expect(screen.getByText(/Segurança/)).toBeInTheDocument();
     expect(screen.getByText("Tecnologias assistivas")).toBeInTheDocument();
     expect(screen.getByText("Cognição e foco")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ajustar tema e movimento" })).toHaveAttribute("href", "/personalizar");
+    expect(screen.getByRole("link", { name: "Ajustar leitura, tema e movimento" })).toHaveAttribute("href", "/personalizar");
     expect(screen.getByRole("link", { name: "Gerenciar Asana" })).toHaveAttribute("href", "/integracoes/asana");
   });
 });
