@@ -2,10 +2,12 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { applyTheme } from "./apply-theme";
@@ -14,6 +16,8 @@ import type { ThemeId, ThemeTokens } from "../tokens/types";
 
 export type ThemePreference = ThemeId | "system";
 const THEME_STORAGE_KEY = "academia-arcana:theme-preference";
+const PREFERENCE_EVENT = "academia-arcana:theme-change";
+const SCHEME_QUERY = "(prefers-color-scheme: light)";
 
 type ThemeContextValue = {
   theme: ThemeId;
@@ -25,8 +29,37 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function isThemePreference(value: string | null): value is ThemePreference {
-  return value === "system" || (value !== null && Object.hasOwn(themePresets, value));
+function readStoredPreference(): ThemePreference | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "system" || (stored !== null && Object.hasOwn(themePresets, stored))) {
+      return stored as ThemePreference;
+    }
+  } catch {
+    // Private browsing may deny access to storage.
+  }
+  return null;
+}
+
+function subscribePreference(notify: () => void): () => void {
+  window.addEventListener("storage", notify);
+  window.addEventListener(PREFERENCE_EVENT, notify);
+  return () => {
+    window.removeEventListener("storage", notify);
+    window.removeEventListener(PREFERENCE_EVENT, notify);
+  };
+}
+
+function readSystemLight(): boolean {
+  return typeof window !== "undefined" && Boolean(window.matchMedia?.(SCHEME_QUERY).matches);
+}
+
+function subscribeSystemLight(notify: () => void): () => void {
+  const query = window.matchMedia?.(SCHEME_QUERY);
+  if (!query) return () => undefined;
+  query.addEventListener?.("change", notify);
+  return () => query.removeEventListener?.("change", notify);
 }
 
 export function ThemeProvider({
@@ -38,41 +71,26 @@ export function ThemeProvider({
   initialTheme?: ThemeId;
   initialPreference?: ThemePreference;
 }) {
-  const [preference, setPreference] = useState<ThemePreference>(initialPreference ?? initialTheme);
-  const [prefersLight, setPrefersLight] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [manualFallback, setManualFallback] = useState<ThemePreference | null>(null);
+  const storedPreference = useSyncExternalStore(subscribePreference, readStoredPreference, () => null);
+  const prefersLight = useSyncExternalStore(subscribeSystemLight, readSystemLight, () => false);
 
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-      if (isThemePreference(stored)) setPreference(stored);
-    } catch {
-      // Storage can be disabled. In that case keep the in-memory preference.
-    }
-
-    const query = window.matchMedia?.("(prefers-color-scheme: light)");
-    if (query) {
-      setPrefersLight(query.matches);
-      const onChange = (event: MediaQueryListEvent) => setPrefersLight(event.matches);
-      query.addEventListener?.("change", onChange);
-      setLoaded(true);
-      return () => query.removeEventListener?.("change", onChange);
-    }
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, preference);
-    } catch {
-      // Continue to support in-memory preferences without storage access.
-    }
-  }, [preference, loaded]);
-
+  // Server rendering uses the initial preference; external browser state is
+  // read after hydration, without synchronous setState calls in effects.
+  const preference = manualFallback ?? storedPreference ?? initialPreference ?? initialTheme;
   const theme: ThemeId = preference === "system"
     ? (prefersLight ? "pergaminho-claro" : "biblioteca-noturna")
     : preference;
+
+  const setPreference = useCallback((next: ThemePreference) => {
+    setManualFallback(next);
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, next);
+      window.dispatchEvent(new Event(PREFERENCE_EVENT));
+    } catch {
+      // In-memory preference still works when persistent storage is blocked.
+    }
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
@@ -87,7 +105,7 @@ export function ThemeProvider({
       setPreference,
       tokens: themePresets[theme],
     }),
-    [theme, preference],
+    [theme, preference, setPreference],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
