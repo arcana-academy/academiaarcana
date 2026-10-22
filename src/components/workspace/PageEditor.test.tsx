@@ -72,6 +72,38 @@ describe("PageEditor", () => {
     expect(await screen.findByText("Página salva.")).toBeTruthy();
   });
 
+  test("adapts reading presentation without changing the page content", () => {
+    window.localStorage.clear();
+    const { container } = render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Tamanho do texto"), {
+      target: { value: "large" },
+    });
+    fireEvent.change(screen.getByLabelText("Fonte de leitura"), {
+      target: { value: "literata" },
+    });
+    fireEvent.click(screen.getByLabelText("Espaçamento confortável"));
+    fireEvent.click(screen.getByLabelText("Contraste reforçado"));
+    fireEvent.click(screen.getByLabelText("Modo Foco"));
+
+    const editor = container.querySelector(".aa-reading-editor");
+    expect(editor).toHaveAttribute("data-reading-size", "large");
+    expect(editor).toHaveAttribute("data-reading-font", "literata");
+    expect(editor).toHaveAttribute("data-reading-spacing", "true");
+    expect(editor).toHaveAttribute("data-reading-contrast", "true");
+    expect(editor).toHaveAttribute("data-reading-focus", "true");
+    expect(screen.getByLabelText("Bloco 1")).toHaveValue("Conteúdo inicial.");
+    expect(screen.getByRole("button", { name: "Salvar página" })).toBeInTheDocument();
+    window.localStorage.clear();
+  });
+
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
