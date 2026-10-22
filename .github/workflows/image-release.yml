@@ -243,41 +243,23 @@ jobs:
             --output /tmp/aa-render-image-target-guard.cjs \
             "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${EXPECTED_REVISION}/scripts/security/verify-render-image-target-536.cjs"
 
-      - name: Verify live Render image-backed service and approved target
+      - name: Request Render image deployment
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}
           RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}
           IMAGE_URL: ${{ needs.publish.outputs.image_url }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          # A secret hook alone does not establish service type. Use an
-          # authenticated GET (read-only) to reject Git-backed targets.
-          node /tmp/aa-render-image-target-guard.cjs
-      - name: Request deployment of the immutable image
-        env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           IMAGE_REVISION: ${{ needs.preflight.outputs.release_sha }}
-          IMAGE_URL: ${{ needs.publish.outputs.image_url }}
         shell: bash
         run: |
           set -euo pipefail
-          if ! [[ "$IMAGE_URL" =~ ^ghcr\.io/arcana-academy/academiaarcana@sha256:[0-9a-f]{64}$ ]]; then
-            echo "Deployment requires an immutable GHCR image digest." >&2
+          if ! [[ "$IMAGE_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Unexpected deployment revision." >&2
             exit 1
           fi
-          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
-            echo "Render image deployment is enabled but its deploy hook secret is missing."
-            exit 1
-          fi
-          if [[ "$RENDER_DEPLOY_HOOK_URL" != https://api.render.com/deploy/* ]]; then
-            echo "Render deploy hook must use HTTPS on api.render.com." >&2
-            exit 1
-          fi
-          curl --fail --silent --show-error --proto "=https" --max-redirs 0 --get \
-            --data-urlencode "imgURL=$IMAGE_URL" \
-            "$RENDER_DEPLOY_HOOK_URL" >/dev/null
+          # One fail-closed operation: live service GET, validation, then hook.
+          # Never split the guard and hook across separate workflow steps.
+          node /tmp/aa-render-image-target-guard.cjs
           printf '%s\n' "$IMAGE_REVISION" > /tmp/academiaarcana-deployed-revision.txt
 
       - name: Upload requested production revision for smoke verification
