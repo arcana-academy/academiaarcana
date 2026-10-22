@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
 import { ReadingTools } from "./ReadingTools";
+import { PagePaperStyleView } from "./PagePaperStyleView";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { WorkspaceTitleEditor } from "./WorkspaceTitleEditor";
@@ -407,7 +408,7 @@ export function Workspace({
           ) : null}
 
           {selectedPage ? (
-            <div className="workspace-page-editor">
+            <PagePaperStyleView key={selectedPage.id} pageId={selectedPage.id}>
               <ReadingTools />
               <PageEditor
                 key={selectedPage.id}
@@ -420,7 +421,7 @@ export function Workspace({
                 progressStatus={pageProgressStatus}
                 onSetProgress={onSetPageProgress}
               />
-            </div>
+            </PagePaperStyleView>
           ) : (
             <div className="workspace-empty-state" role="status">
               <strong>
