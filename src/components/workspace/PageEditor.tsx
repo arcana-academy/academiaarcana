@@ -306,7 +306,11 @@ export function PageEditor({
     setContent((current) => ({
       ...current,
       blocks: current.blocks.map((block, position) =>
-        position === index ? { ...block, ...changes } : block,
+        position === index
+          ? changes.type && changes.type !== block.type
+            ? { ...block, ...changes, accessibility: undefined }
+            : { ...block, ...changes }
+          : block,
       ),
     }));
     setStatus("idle");
@@ -364,6 +368,7 @@ export function PageEditor({
 
   /** Add a new paragraph block and generate its stable local key. */
   const addBlock = () => {
+    setStatus("idle");
     setContent({
       ...content,
       blocks: [...content.blocks, { type: "paragraph", content: "" }],
@@ -380,7 +385,10 @@ export function PageEditor({
       <input
         id="workspace-page-title"
         value={title}
-        onChange={(event) => setTitle(event.target.value)}
+        onChange={(event) => {
+          setTitle(event.target.value);
+          setStatus("idle");
+        }}
       />
 
       <PageBlocks
