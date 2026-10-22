@@ -45,11 +45,18 @@ describe("delivery infrastructure contract", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
 
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
-    expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
-    expect(workflow).toContain("github.event.workflow_run.event == 'push'");
-    expect(workflow).toContain("github.event.workflow_run.head_branch == 'main'");
-    expect(workflow).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
-    expect(workflow).toContain("github.event.workflow_run.run_attempt == 1");
+    expect(workflow).toContain('UPSTREAM_RESULT: ${{ github.event.workflow_run.conclusion }}');
+    expect(workflow).toContain('[ "$UPSTREAM_RESULT" != "success" ]');
+    expect(workflow).toContain('UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}');
+    expect(workflow).toContain('[ "$UPSTREAM_EVENT" != "push" ]');
+    expect(workflow).toContain('UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}');
+    expect(workflow).toContain('[ "$UPSTREAM_BRANCH" != "main" ]');
+    expect(workflow).toContain('UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}');
+    expect(workflow).toContain('[ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ]');
+    expect(workflow).toContain('UPSTREAM_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}');
+    expect(workflow).toContain('[ "$UPSTREAM_ATTEMPT" != "1" ]');
+    expect(workflow).toContain("vars.GHCR_PUBLISH_APPROVED_SHA != ''");
+    expect(workflow).toContain("vars.GHCR_PUBLISH_APPROVED_SHA == needs.preflight.outputs.release_sha");
     expect(workflow).toContain("needs: preflight");
     expect(workflow).toContain("Reject stale main revision before publishing");
     expect(workflow).toContain("Reject stale main revision before deployment");
