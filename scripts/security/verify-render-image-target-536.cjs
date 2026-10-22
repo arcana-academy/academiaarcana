@@ -1,7 +1,9 @@
 "use strict";
 
-// Read-only guard. No Render deploy request may run until the hook's service
-// identity, backing mode, and registered image repository are proven.
+// Fail-closed Render target guard. The deploy hook may only be requested
+// by the same operation that just read and verified live service metadata.
+// This minimizes TOCTOU exposure; Render does not offer an atomic hook
+// precondition tied to the service configuration snapshot.
 const IMAGE_REPOSITORY = "ghcr.io/arcana-academy/academiaarcana";
 const IMAGE_DIGEST = /^ghcr\.io\/arcana-academy\/academiaarcana@sha256:[a-f0-9]{64}$/;
 const SERVICE_ID = /^srv-[a-z0-9]+$/;
@@ -79,16 +81,49 @@ async function verifyRenderImageTarget(inputs) {
   return true;
 }
 
-module.exports = { checkedHookServiceId, registeredImageRepo, verifyRenderImageTarget };
+/** Recheck live Render metadata immediately before requesting this image deploy.
+ * Callers must not split this operation into separate CI steps.
+ * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, imageUrl:string,
+ * fetchService?:typeof fetch}} inputs
+ */
+async function requestVerifiedRenderImageDeployment(inputs) {
+  const fetchService = inputs.fetchService || fetch;
+  await verifyRenderImageTarget({ ...inputs, fetchService });
+
+  // Never reuse a hook URL or a preflight result without this fresh API read.
+  const hook = new URL(inputs.hookUrl);
+  hook.searchParams.set("imgURL", inputs.imageUrl);
+  let response;
+  try {
+    response = await fetchService(hook.toString(), {
+      method: "GET",
+      redirect: "error",
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch {
+    throw new Error("Render deploy hook request failed; deployment is not confirmed.");
+  }
+  if (!response || response.status !== 200) {
+    throw new Error("Render deploy hook did not confirm HTTP 200.");
+  }
+  return true;
+}
+
+module.exports = {
+  checkedHookServiceId,
+  registeredImageRepo,
+  verifyRenderImageTarget,
+  requestVerifiedRenderImageDeployment,
+};
 
 if (require.main === module) {
-  verifyRenderImageTarget({
+  requestVerifiedRenderImageDeployment({
     hookUrl: process.env.RENDER_DEPLOY_HOOK_URL,
     approvedServiceId: process.env.RENDER_IMAGE_SERVICE_ID,
     apiKey: process.env.RENDER_SERVICE_READ_API_KEY,
     imageUrl: process.env.IMAGE_URL,
   }).then(() => {
-    process.stdout.write("Render image-backed target verification: PASS\n");
+    process.stdout.write("Render image deployment requested after live target verification.\n");
   }).catch(error => {
     // Errors intentionally contain no hooks, tokens, API payloads or image digests.
     process.stderr.write(error.message + "\n");
