@@ -62,7 +62,7 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain('[ "$UPSTREAM_ATTEMPT" != "1" ]');
     expect(workflow).toContain("queue: max");
     expect(workflow).toContain('[[ ! "$UPSTREAM_WORKFLOW_PATH" =~ ^\\.github/workflows/quality\\.yml(@(refs/heads/)?main)?$ ]]');
-    expect(workflow).toContain('.path == " .github/workflows/quality.yml@main"'.replace(" ", ""));
+    expect(workflow).toContain('.path == ".github/workflows/quality.yml@main"');
     expect(workflow).toContain('.path == ".github/workflows/quality.yml@refs/heads/main"');
     expect(workflow).toContain("name: Require approved dispatch run ID after environment gate");
     expect(workflow).toContain("APPROVED_RUN_ID: ${{ vars.RENDER_DEPLOY_APPROVED_RUN_ID }}");
