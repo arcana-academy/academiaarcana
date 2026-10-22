@@ -91,6 +91,36 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).not.toContain("docker build");
   });
 
+  it("preserves the documented 30-day approved image promotion window", () => {
+    const quality = readRepoFile(".github/workflows/quality.yml");
+    const upload = quality.split("      - name: Upload production image artifact\n")[1]
+      ?.split("\n      - name:")[0] ?? "";
+    expect(upload).toContain('name: academiaarcana-image-${{ github.sha }}');
+    expect(upload).toMatch(/^\s*retention-days: 30\s*$/m);
+    const instructions = readRepoFile("docs/deployment/render.md");
+    expect(instructions).toContain("30-day promotion window");
+    expect(instructions).toContain("not extended retroactively");
+  });
+
+  it("documents all explicit GHCR and Render manual promotion gates", () => {
+    const instructions = readRepoFile("docs/deployment/render.md");
+    for (const key of [
+      "GHCR_PUBLISH_APPROVED_SHA",
+      "RENDER_IMAGE_DEPLOY_ENABLED",
+      "RENDER_IMAGE_SERVICE_ID",
+      "RENDER_DEPLOY_APPROVED_RUN_ID",
+      "RENDER_DEPLOY_HOOK_URL",
+      "RENDER_SERVICE_READ_API_KEY",
+      "approved_revision",
+      "quality_run_id",
+      "render-production-approval",
+    ]) {
+      expect(instructions).toContain(`\`${key}\``);
+    }
+    expect(instructions).toContain("after dispatch");
+    expect(instructions).toContain("NO-GO remains in force");
+  });
+
   it("defines one canonical provider for each infrastructure responsibility", () => {
     const roles = CANONICAL_INFRASTRUCTURE_PROVIDERS.map((item) => item.role);
 

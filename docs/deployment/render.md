@@ -17,6 +17,19 @@ The image pipeline is being introduced in two stages so production keeps its exi
 
 The Render deploy workflow requires `RENDER_IMAGE_DEPLOY_ENABLED=true` and the `RENDER_DEPLOY_HOOK_URL` secret. The secret is used only by the deploy job. The exact-revision smoke workflow verifies liveness, readiness, public routes, CSP, and integration status after a requested image deployment.
 
+The production release workflow has **additional manual gates** beyond the feature flag and hook. These are requirements for future, explicitly approved releases, **not instructions to activate production now**:
+
+- GitHub Actions **repository variable** `GHCR_PUBLISH_APPROVED_SHA`: the exact independently reviewed, current 40-character `main` commit SHA. Empty/mismatched values prevent publication. Do not set it without separate release authorization.
+- GitHub Actions **repository variable** `RENDER_IMAGE_DEPLOY_ENABLED`: keep unset or `false` while release is NO-GO; `true` only after the approved Render migration and production controls are proven.
+- GitHub Actions **repository variable** `RENDER_IMAGE_SERVICE_ID`: independently approved production `srv-...` identifier, required to match the deploy hook and live image-backed web service.
+- GitHub Actions **repository variable** `RENDER_DEPLOY_APPROVED_RUN_ID`: the exact GitHub Actions dispatch run ID, recorded **after dispatch** and checked **after** the `render-production-approval` environment gate. It must not be pre-entered for an unknown future run.
+- GitHub Actions **secret** `RENDER_DEPLOY_HOOK_URL`: the approved HTTPS hook for the same service ID; used only in the deploy job.
+- GitHub Actions **secret** `RENDER_SERVICE_READ_API_KEY`: API credential limited to reading the target service metadata, used for live fail-closed preflight immediately before the hook request.
+- Manual promotion uses **`workflow_dispatch` on `main`** with inputs `approved_revision` (the approved current `main` SHA) and `quality_run_id` (the original, completed, successful push-to-`main` Quality Gate run, attempt 1). Independent SHA authorization is required for GHCR publication; the `render-production-approval` environment must require the designated independent approval before the post-dispatch run-ID check permits deployment. Publication and deployment have separate gates; environment approval for deployment does **not** retroactively approve a GHCR publication.
+- The Docker image artifact from a trusted `main` Quality Gate is kept for a **30-day promotion window** (`retention-days: 30`, subject to repository/organization retention limits). The image must already exist and be unexpired; download fails closed on expiration. Older artifacts with the previous one-day retention are **not** extended retroactively. Outside the supported window, establish fresh authorized provenance rather than bypassing checks or rebuilding an unreviewed image. CI artifact retention is not an OCI backup or an authorization to publish.
+
+**NO-GO remains in force:** do not set release variables or secrets, modify Render, run GHCR publication, request a deploy, or merge merely to exercise this workflow. Issue #536, independent review, custodian/backup approvals, and authenticated QA gates remain protected.
+
 The GHCR package must be public for Render Free to pull it without registry credentials. The package contains the public application's image, built from the already public source. This design uses the existing Free service and public-repository GitHub Actions; no paid plan is required.
 
 ## Transition safeguards and P0 closure evidence
