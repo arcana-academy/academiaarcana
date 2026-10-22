@@ -24,20 +24,24 @@ const AppearanceContext = createContext<AppearanceContextValue | null>(null);
 
 export function SiteAppearanceProvider({ children }: { children: ReactNode }) {
   const { setTheme } = useTheme();
-  const [appearance, setAppearanceState] = useState<AppearanceMode>("system");
-  const [prefersLight, setPrefersLight] = useState(false);
-
-  useEffect(() => {
+  const [appearance, setAppearanceState] = useState<AppearanceMode>(() => {
+    if (typeof window === "undefined") return "system";
     try {
       const saved = window.localStorage.getItem(APPEARANCE_STORAGE_KEY);
-      if (isAppearanceMode(saved)) setAppearanceState(saved);
+      return isAppearanceMode(saved) ? saved : "system";
     } catch {
-      // A preference is optional; the site remains usable without storage.
+      return "system";
     }
+  });
+  const [prefersLight, setPrefersLight] = useState(() =>
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-color-scheme: light)").matches,
+  );
 
+  useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
     const media = window.matchMedia("(prefers-color-scheme: light)");
-    setPrefersLight(media.matches);
     const onChange = (event: MediaQueryListEvent) => setPrefersLight(event.matches);
     media.addEventListener("change", onChange);
     return () => media.removeEventListener("change", onChange);
