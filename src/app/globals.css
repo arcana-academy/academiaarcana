@@ -2331,3 +2331,99 @@ p {
   background: var(--aa-surfaces-inset);
 }
 
+
+/* Brand Book 360 — approved institutional appearance and accessibility entry.
+   Isolated from personal grimoire page themes. */
+html[data-theme="arcana-noturna"] { color-scheme: dark; }
+html[data-theme="arcana-pergaminho"] { color-scheme: light; }
+
+html[data-theme="arcana-noturna"] .aa-topbar,
+html[data-theme="arcana-pergaminho"] .aa-topbar {
+  background: color-mix(in srgb, var(--aa-surfaces-panel) 94%, transparent);
+}
+html[data-theme="arcana-noturna"] .aa-sidebar,
+html[data-theme="arcana-pergaminho"] .aa-sidebar {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--aa-accent-secondary) 8%, transparent), transparent 22rem), var(--aa-surfaces-panel);
+}
+.aa-topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.aa-accessibility-entry { position: relative; }
+.aa-accessibility-trigger { min-height: 2.75rem; }
+.aa-accessibility-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.75rem);
+  width: min(38rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem;
+  border: 2px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-lg);
+  background: var(--aa-surfaces-modal);
+  color: var(--aa-text-primary);
+  box-shadow: var(--aa-shadows-modal);
+  z-index: var(--aa-z-index-modal);
+}
+.aa-accessibility-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.aa-accessibility-panel-heading h2 { margin: 0; font-size: 1.35rem; }
+.aa-accessibility-panel p { color: var(--aa-text-secondary); line-height: 1.55; }
+.aa-accessibility-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-block: 1rem;
+}
+.aa-accessibility-sections .aa-button {
+  white-space: normal;
+  text-align: center;
+  min-height: 3rem;
+}
+.aa-accessibility-sections [aria-pressed="true"] {
+  background: var(--aa-accent-primary);
+  color: var(--aa-text-inverse);
+  border-color: var(--aa-accent-primary);
+}
+.aa-accessibility-controls { display: grid; gap: 0.75rem; }
+.aa-accessibility-controls label { display: flex; gap: 0.6rem; align-items: center; }
+.aa-accessibility-controls input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--aa-accent-primary); }
+.aa-accessibility-controls h3 { margin: 0; font-size: 1.125rem; }
+html[data-aa-text-scale="large"] { font-size: 112.5%; }
+html[data-aa-spacing="wide"] p,
+html[data-aa-spacing="wide"] li,
+html[data-aa-spacing="wide"] .workspace-page-editor { line-height: 1.9; letter-spacing: 0.02em; word-spacing: 0.12em; }
+html[data-aa-focus-mode="on"] body::before { display: none; }
+html[data-aa-focus-mode="on"] { --aa-effects-glow: none !important; --aa-effects-texture: none !important; }
+html[data-aa-contrast="high"] {
+  color-scheme: dark;
+  --aa-surfaces-canvas: #101014 !important;
+  --aa-surfaces-panel: #18171C !important;
+  --aa-surfaces-elevated: #242229 !important;
+  --aa-surfaces-floating: #242229 !important;
+  --aa-surfaces-modal: #242229 !important;
+  --aa-surfaces-inset: #101014 !important;
+  --aa-text-primary: #F9F7F2 !important;
+  --aa-text-secondary: #EFE7EF !important;
+  --aa-text-muted: #DCCFDF !important;
+  --aa-text-inverse: #101014 !important;
+  --aa-border-default: #D5C7D7 !important;
+  --aa-accent-primary: #EDE3D9 !important;
+  --aa-accent-secondary: #B99D78 !important;
+  --aa-focus-ring: #FFFFFF !important;
+}
+@media (max-width: 48rem) {
+  .aa-topbar { flex-wrap: wrap; }
+  .aa-topbar-actions { margin-left: auto; }
+  .aa-accessibility-panel { right: -0.5rem; }
+  .aa-accessibility-sections { grid-template-columns: 1fr; }
+  .aa-accessibility-trigger { padding-inline: 0.65rem; font-size: 0.875rem; }
+}
