@@ -84,7 +84,7 @@ export function useReadingPreferences() {
   );
 
   const update = useCallback((changes: Partial<ReadingPreferences>) => {
-    const next = { ...parsePreferences(readSnapshot()), ...changes };
+    const next = { ...preferences, ...changes };
     try {
       window.localStorage.setItem(KEY, JSON.stringify(next));
       setMemoryFallback(null);
@@ -93,7 +93,7 @@ export function useReadingPreferences() {
       // Keep accessible controls functional in browsers with blocked storage.
       setMemoryFallback(next);
     }
-  }, []);
+  }, [preferences]);
 
   return { preferences, update };
 }
