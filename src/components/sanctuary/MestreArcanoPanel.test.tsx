@@ -54,6 +54,99 @@ describe("MestreArcanoPanel", () => {
     fetchMock.mockRestore();
   });
 
+  it("preserva a pista escolhida após personalizar o texto sugerido", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ output: "Pista personalizada." }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    render(<MestreArcanoPanel />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Quero tentar primeiro. Me dê uma pista sem entregar a resposta.",
+      }),
+    );
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Mensagem para o Mestre Arcano" }),
+      { target: { value: "Preciso de uma pista para esta questão específica." } },
+    );
+
+    expect(screen.getByRole("combobox", { name: "Como prefere receber ajuda?" })).toHaveValue("hint");
+    fireEvent.click(screen.getByRole("button", { name: "Consultar Mestre Arcano" }));
+    await screen.findByText("Pista personalizada.");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/agent/mestre-arcano",
+      expect.objectContaining({
+        body: JSON.stringify({
+          input: "Preciso de uma pista para esta questão específica.",
+          helpLevel: "hint",
+        }),
+      }),
+    );
+    fetchMock.mockRestore();
+  });
+
+  it("permite escolher resposta direta para uma pergunta personalizada", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ output: "Resposta direta." }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    render(<MestreArcanoPanel />);
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Mensagem para o Mestre Arcano" }),
+      { target: { value: "Qual é a definição?" } },
+    );
+    fireEvent.change(screen.getByRole("combobox", { name: "Como prefere receber ajuda?" }), {
+      target: { value: "direct-answer" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Consultar Mestre Arcano" }));
+    await screen.findByText("Resposta direta.");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/agent/mestre-arcano",
+      expect.objectContaining({
+        body: JSON.stringify({ input: "Qual é a definição?", helpLevel: "direct-answer" }),
+      }),
+    );
+    fetchMock.mockRestore();
+  });
+
+  it("preserva o contrato legado ao voltar para sem preferência", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ output: "Resposta sem preferência." }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    render(<MestreArcanoPanel />);
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Mensagem para o Mestre Arcano" }),
+      { target: { value: "Explique o conceito." } },
+    );
+    const helpLevelSelect = screen.getByRole("combobox", {
+      name: "Como prefere receber ajuda?",
+    });
+    fireEvent.change(helpLevelSelect, { target: { value: "hint" } });
+    fireEvent.change(helpLevelSelect, { target: { value: "unspecified" } });
+    fireEvent.click(screen.getByRole("button", { name: "Consultar Mestre Arcano" }));
+
+    await screen.findByText("Resposta sem preferência.");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/agent/mestre-arcano",
+      expect.objectContaining({
+        body: JSON.stringify({ input: "Explique o conceito." }),
+      }),
+    );
+    fetchMock.mockRestore();
+  });
+
   it("consulta o agente e apresenta a resposta", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
