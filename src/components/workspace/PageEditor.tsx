@@ -6,6 +6,7 @@ import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
 import { AccessiblePageReadingPreview } from "./AccessiblePageReadingPreview";
 import { AccessiblePageTextExport } from "./AccessiblePageTextExport";
 import { AccessiblePageStructuredExport } from "./AccessiblePageStructuredExport";
+import { KNOWN_BLOCK_TYPES, isKnownBlockType, accessibilityFieldLabel, retagBlockPreservingAuthoredDescription } from "./accessible-block-contract";
 import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
 
 type PageDeleteControlProps = {
@@ -174,14 +175,12 @@ function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: Page
                 value={block.type}
                 onChange={(event) => onChange(index, { type: event.target.value })}
               >
-                {!["paragraph", "image", "video", "formula", "diagram"].includes(block.type) ? (
+                {!isKnownBlockType(block.type) ? (
                   <option value={block.type}>Tipo existente: {block.type}</option>
                 ) : null}
-                <option value="paragraph">Texto</option>
-                <option value="image">Imagem — referência textual</option>
-                <option value="video">Vídeo — referência textual</option>
-                <option value="formula">Fórmula</option>
-                <option value="diagram">Diagrama — referência textual</option>
+                {KNOWN_BLOCK_TYPES.map(({ id, label }) => (
+                  <option key={id} value={id}>{label}</option>
+                ))}
               </select>
               {block.type === "image" ? (
                 <label htmlFor={"workspace-block-decorative-" + index}>
@@ -204,15 +203,7 @@ function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: Page
               ) : (
                 <>
                   <label htmlFor={"workspace-block-description-" + index}>
-                    {block.type === "image"
-                      ? "Descrição alternativa"
-                      : block.type === "video"
-                        ? "Transcrição ou descrição"
-                        : block.type === "formula"
-                          ? "Leitura da fórmula"
-                          : block.type === "diagram"
-                            ? "Descrição do diagrama"
-                            : "Observação acessível (opcional)"}
+                    {accessibilityFieldLabel(block.type)}
                   </label>
                   <textarea
                     id={"workspace-block-description-" + index}
@@ -380,7 +371,7 @@ export function PageEditor({
       blocks: current.blocks.map((block, position) =>
         position === index
           ? changes.type && changes.type !== block.type
-            ? { ...block, ...changes, accessibility: undefined }
+            ? { ...retagBlockPreservingAuthoredDescription(block, changes.type), ...changes }
             : { ...block, ...changes }
           : block,
       ),
