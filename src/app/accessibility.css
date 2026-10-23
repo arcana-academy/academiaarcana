@@ -191,3 +191,18 @@ html[data-aa-contrast="high"][data-theme="pergaminho-claro"] {
   overflow-wrap: anywhere;
 }
 .workspace-reading-preview-missing { font-style: italic; }
+
+/* C97: Local text export remains visible and keyboard accessible. */
+.workspace-reading-export-actions {
+  margin-block: var(--aa-spacing-md);
+  padding: var(--aa-spacing-md);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+}
+.workspace-reading-export-actions > button {
+  min-height: var(--aa-sizing-control-md);
+}
+.workspace-reading-export-actions > button:focus-visible {
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
+}
