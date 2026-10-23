@@ -1,0 +1,23 @@
+name: C88 Focused editor style proof
+on:
+  push:
+    branches:
+      - work/aa360-c88-check-774-20261022
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Only the new CSS target regression
+        run: npm exec -- vitest run src/components/workspace/PageEditor.test.tsx -t "renders the styled and accessible block container"
