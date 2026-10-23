@@ -1,0 +1,31 @@
+name: C94 browser-only combined appearance proof
+on:
+  push:
+    branches:
+      - work/aa360-c94-browser-proof-20261023
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Build isolated fixture with synthetic public configuration
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+      - name: Only new C94 real-browser CSS/mobile scenarios
+        run: npm exec -- playwright test --config=tests/c94.config.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
