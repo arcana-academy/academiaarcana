@@ -1,0 +1,74 @@
+name: C107 isolated approved visual composition proof
+on:
+  push:
+    branches:
+      - work/aa360-c107-composition-proof-20261023
+permissions:
+  contents: read
+jobs:
+  focused-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 41d2a7c1a40b3990d906294d9a8c380cb680820e
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Only C107 invalidated auth shell sanctuary and proxy contracts
+        run: npm exec -- vitest run src/components/auth/AuthForm.test.tsx src/app/configuracoes/page.c106.test.tsx src/components/layout/SanctuaryMobileDock.test.tsx src/components/layout/AuthenticatedShell.test.tsx src/components/sanctuary/Sanctuary.test.tsx src/application/sanctuary/get-sanctuary.test.ts src/proxy.test.ts
+      - name: Lint only 9 C107 touched TSX files
+        run: npm exec -- eslint src/app/layout.tsx src/app/configuracoes/page.tsx src/app/configuracoes/page.c106.test.tsx src/components/auth/AuthForm.tsx src/components/auth/AuthForm.test.tsx src/components/layout/AuthenticatedShell.tsx src/components/layout/SanctuaryMobileDock.tsx src/components/layout/SanctuaryMobileDock.test.tsx src/components/layout/Sidebar.tsx src/components/sanctuary/Sanctuary.tsx src/components/sanctuary/Sanctuary.test.tsx
+      - name: Typecheck C107 exact product head
+        run: npm run typecheck
+      - name: Parse C107 approved CSS and validate real local art references
+        run: node -e "const fs=require('node:fs');const p='src/app/arcana-visual-approved.css';const css=fs.readFileSync(p,'utf8');require('postcss').parse(css,{from:p}); for (const image of ['aa-login-ambiente-approved.webp','aa-sanctuary-ambiente-approved.webp']) {if(!css.includes(image)||!fs.statSync('public/assets/visual/'+image).isFile())process.exit(1)}console.log('CSS and approved assets PASS');"
+  browser-delta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 26
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 4
+      - name: Verify proof starts from exact product composition
+        run: git merge-base --is-ancestor 41d2a7c1a40b3990d906294d9a8c380cb680820e HEAD
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - run: npm exec -- playwright install chromium
+      - name: Start ephemeral localhost-only proof (synthetic user, no hosted services)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3106 > /tmp/c107-next.log 2>&1 &
+          for i in $(seq 1 75); do
+            if curl -fsS --max-time 4 http://127.0.0.1:3106/cadastro >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 100 /tmp/c107-next.log
+          exit 1
+      - name: Chromium only login/recovery/sanctuary mobile impacted by updated proxy and sanctuary
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: npm exec -- playwright test --config=c106-playwright.config.ts -g "cadastro-mobile|recuperacao-mobile|santuario-mobile"
+      - name: Keep isolated evidence private
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: c107-reconciled-visual-private
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
