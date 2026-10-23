@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
+import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
 
 type PageDeleteControlProps = {
   pageId: string;
@@ -390,6 +391,8 @@ export function PageEditor({
           setStatus("idle");
         }}
       />
+
+      <ReadingToolbar />
 
       <PageBlocks
         blocks={content.blocks}
