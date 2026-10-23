@@ -8,6 +8,9 @@ import {
   NVIDIA_PHYSICAL_AI_SKILLS,
   NVIDIA_PHYSICAL_AI_TRACKS,
 } from "@/infrastructure/integrations/nvidia-physical-ai";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/integracoes");
 
 export const dynamic = "force-dynamic";
 
