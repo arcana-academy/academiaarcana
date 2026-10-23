@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
 import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
@@ -20,6 +20,60 @@ function PageDeleteControl({
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const launchButton = useRef<HTMLButtonElement>(null);
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const confirmButton = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const openedOnce = useRef(false);
+
+  useEffect(() => {
+    if (isConfirming) {
+      openedOnce.current = true;
+      if (isDeleting) {
+        dialogRef.current?.focus();
+      } else {
+        cancelButton.current?.focus();
+      }
+    } else if (openedOnce.current) {
+      launchButton.current?.focus();
+    }
+  }, [isConfirming, isDeleting]);
+
+  // The confirmation is modal for keyboard and assistive-technology users.
+  // Escape must work even if focus is moved programmatically outside it.
+  useEffect(() => {
+    if (!isConfirming) return;
+
+    const onDocumentKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isDeleting) {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsConfirming(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      const first = cancelButton.current;
+      const last = confirmButton.current;
+      if (isDeleting) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
+      if (!dialog || !first || !last) return;
+      const outsideDialog = !dialog.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || outsideDialog)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || outsideDialog)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onDocumentKeyDown, true);
+    return () => document.removeEventListener("keydown", onDocumentKeyDown, true);
+  }, [isConfirming, isDeleting]);
 
   /** Execute the confirmed deletion and report recoverable failures. */
   const remove = async () => {
@@ -38,6 +92,7 @@ function PageDeleteControl({
     return (
       <button
         type="button"
+        ref={launchButton}
         onClick={() => setIsConfirming(true)}
       >
         Excluir página
@@ -46,12 +101,20 @@ function PageDeleteControl({
   }
 
   return (
-    <div role="alertdialog" aria-label="Confirmar exclusão da página">
-      <p>
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="Confirmar exclusão da página"
+      aria-describedby="workspace-delete-page-warning"
+    >
+      <p id="workspace-delete-page-warning">
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <button
+        ref={cancelButton}
         type="button"
         disabled={isDeleting}
         onClick={() => setIsConfirming(false)}
@@ -59,6 +122,7 @@ function PageDeleteControl({
         Cancelar
       </button>
       <button
+        ref={confirmButton}
         type="button"
         disabled={isDeleting}
         onClick={remove}
@@ -231,7 +295,7 @@ type PageSaveStatusProps = {
 function PageSaveStatus({ status }: PageSaveStatusProps) {
   const messages: Record<PageSaveState, string> = {
     idle: "",
-    saving: "",
+    saving: "Salvando página…",
     saved: "Página salva.",
     error: "Não foi possível salvar a página.",
   };
@@ -278,6 +342,7 @@ export function PageEditor({
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
   const [starter, setStarter] = useState<PageStarterTemplate>("blank");
+  const editRevision = useRef(0);
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -306,6 +371,7 @@ export function PageEditor({
 
   /** Keep block edits local until the authenticated save confirms persistence. */
   const updateBlock = (index: number, changes: Partial<PageBlock>) => {
+    editRevision.current += 1;
     setContent((current) => ({
       ...current,
       blocks: current.blocks.map((block, position) =>
@@ -316,13 +382,14 @@ export function PageEditor({
           : block,
       ),
     }));
-    setStatus("idle");
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   const updateAccessibility = (
     index: number,
     changes: NonNullable<PageBlock["accessibility"]>,
   ) => {
+    editRevision.current += 1;
     setContent((current) => ({
       ...current,
       blocks: current.blocks.map((block, position) =>
@@ -331,7 +398,7 @@ export function PageEditor({
           : block,
       ),
     }));
-    setStatus("idle");
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   /** Persist the learning progress state for the selected page. */
@@ -353,6 +420,7 @@ export function PageEditor({
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
     setStatus("saving");
+    const revisionAtSave = editRevision.current;
 
     try {
       const saved = await onSave({
@@ -361,9 +429,15 @@ export function PageEditor({
         content,
       });
 
-      setTitle(saved.title);
-      setContent(saved.content);
-      setStatus("saved");
+      if (editRevision.current === revisionAtSave) {
+        setTitle(saved.title);
+        setContent(saved.content);
+        setStatus("saved");
+      } else {
+        // The user continued editing: never replace newer local text with an
+        // older server response or falsely mark the new draft as saved.
+        setStatus("idle");
+      }
     } catch {
       setStatus("error");
     }
@@ -371,7 +445,8 @@ export function PageEditor({
 
   /** Add a new paragraph block and generate its stable local key. */
   const addBlock = () => {
-    setStatus("idle");
+    editRevision.current += 1;
+    setStatus((current) => current === "saving" ? current : "idle");
     setContent({
       ...content,
       blocks: [...content.blocks, { type: "paragraph", content: "" }],
@@ -385,10 +460,11 @@ export function PageEditor({
   /** Templates never overwrite authored blocks or save without confirmation. */
   const applyStarter = () => {
     if (status === "saving" || !canApplyStarterTemplate(content)) return;
+    editRevision.current += 1;
     const nextContent = buildStarterTemplate(starter);
     setContent(nextContent);
     setBlockKeys(nextContent.blocks.map((_, index) => page.id + ":template:" + index));
-    setStatus("idle");
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   return (
@@ -398,8 +474,9 @@ export function PageEditor({
         id="workspace-page-title"
         value={title}
         onChange={(event) => {
+          editRevision.current += 1;
           setTitle(event.target.value);
-          setStatus("idle");
+          setStatus((current) => current === "saving" ? current : "idle");
         }}
       />
 
