@@ -116,4 +116,22 @@ describe("C99 — multimodal accessible contracts, without network media", () =>
     expect(onSave.mock.calls[0][0].content.blocks[0].accessibility?.description)
       .toBe("Explicação revisada pelo estudante.");
   });
+  test("free-type names colliding with Object.prototype remain readable and lossless", () => {
+    const reservedNames = ["__proto__", "constructor", "toString", "hasOwnProperty"];
+    for (const type of reservedNames) {
+      const content: PageContent = { type: "document", blocks: [
+        { type, content: "Referência do estudante", accessibility: {
+          description: "Alternativa escrita pelo autor.",
+        } },
+      ] };
+      expect(accessibleBlockTypeLabel(type)).toBe("Tipo livre: " + type);
+      expect(serializeAccessiblePageText("Caderno", content))
+        .toContain("Bloco 1 — Tipo livre: " + type);
+      expect(JSON.parse(serializeStructuredPage("Caderno", content)).content).toEqual(content);
+      const { unmount } = render(<AccessiblePageReadingPreview content={content} />);
+      expect(screen.getByText("Bloco 1 — Tipo livre: " + type)).toBeTruthy();
+      unmount();
+    }
+  });
+
 });

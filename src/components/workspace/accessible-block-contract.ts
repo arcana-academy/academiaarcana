@@ -21,7 +21,9 @@ export function isKnownBlockType(type: string): boolean {
 }
 
 export function accessibleBlockTypeLabel(type: string): string {
-  return accessibleBlockLabels[type] ?? ("Tipo livre: " + type);
+  return Object.prototype.hasOwnProperty.call(accessibleBlockLabels, type)
+    ? accessibleBlockLabels[type]
+    : "Tipo livre: " + type;
 }
 
 export function readingAlternativeLabel(type: string): string {
