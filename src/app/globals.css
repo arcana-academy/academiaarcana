@@ -92,6 +92,38 @@
 
 html { color-scheme: dark; }
 
+/*
+ * Before hydration, honor the device's light preference without JavaScript.
+ * The selector is deliberately inactive once applyTheme sets data-theme,
+ * so a manually selected dark/bright theme remains authoritative.
+ */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) {
+    color-scheme: light;
+    --aa-surfaces-canvas: #F7F1E8;
+    --aa-surfaces-panel: #F0E7DE;
+    --aa-surfaces-elevated: #E9DED5;
+    --aa-surfaces-floating: #E4D6CC;
+    --aa-surfaces-modal: #EDE2D7;
+    --aa-surfaces-inset: #FFFCF7;
+    --aa-text-primary: #302338;
+    --aa-text-secondary: #4A3B52;
+    --aa-text-muted: #5A4B61;
+    --aa-text-inverse: #F7F1E8;
+    --aa-border-default: #715E78;
+    --aa-border-strong: #604474;
+    --aa-accent-primary: #604474;
+    --aa-accent-secondary: #745A85;
+    --aa-status-success: #2F6650;
+    --aa-status-warning: #765222;
+    --aa-status-danger: #943D40;
+    --aa-status-info: #375E7B;
+    --aa-focus-ring: #604474;
+    --aa-effects-glow: none;
+    --aa-effects-texture: none;
+  }
+}
+
 body {
   margin: 0;
   min-height: 100vh;
