@@ -236,7 +236,7 @@ describe("delivery infrastructure contract", () => {
     expect(guard).toContain('"https://api.render.com/v1/services/" + inputs.approvedServiceId + "/deploys"');
     expect(guard).toContain('method: "POST"');
     expect(guard).toContain("Authorization: \"Bearer \" + inputs.deployApiKey");
-    expect(guard).toContain('body: JSON.stringify({ imageUrl: inputs.imageUrl })');
+    expect(guard).toContain('body: JSON.stringify({ imageUrl: inputs.imageUrl, clearCache: "do_not_clear" })');
     expect(guard).toContain("response.status !== 201");
     expect(guard).toContain("response?.status === 202");
     expect(guard).not.toContain("hook.searchParams.set");
