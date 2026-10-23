@@ -1,0 +1,46 @@
+name: C108 isolated WCAG and keyboard diagnostics
+on:
+  push:
+    branches:
+      - work/aa360-c108-accessibility-isolated-proof-20261023
+permissions:
+  contents: read
+jobs:
+  wcag-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 4
+      - name: Validate unchanged approved product ancestry
+        run: git merge-base --is-ancestor 41d2a7c1a40b3990d906294d9a8c380cb680820e HEAD
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Obtain ephemeral axe-core runtime without modifying manifests
+        run: npm install --no-save --package-lock=false --ignore-scripts axe-core@4.10.3
+      - run: npm exec -- playwright install chromium
+      - name: Start synthetic localhost preview only
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3106 > /tmp/c108-next.log 2>&1 &
+          for i in $(seq 1 75); do
+            if curl -fsS --max-time 3 http://127.0.0.1:3106/login >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 80 /tmp/c108-next.log
+          exit 1
+      - name: Targeted WCAG and keyboard checks on six approved screens
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: npm exec -- playwright test --config=c108-playwright.config.ts
