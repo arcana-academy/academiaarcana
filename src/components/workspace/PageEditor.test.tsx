@@ -251,8 +251,49 @@ describe("PageEditor", () => {
     expect(screen.getByRole("button", { name: "Cancelar" })).toHaveFocus();
     fireEvent.keyDown(confirmation, { key: "Escape" });
     expect(screen.queryByRole("alertdialog")).toBeNull();
-    expect(launch).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Excluir página" })).toHaveFocus();
     expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  test("closes the dialog on Escape even after focus moves outside", () => {
+    const onDelete = vi.fn(async () => undefined);
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={onDelete}
+        onSave={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Excluir página" }));
+    screen.getByLabelText("Título").focus();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.getByRole("button", { name: "Excluir página" })).toHaveFocus();
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  test("keeps Tab focus inside the destructive confirmation", () => {
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Excluir página" }));
+    const cancel = screen.getByRole("button", { name: "Cancelar" });
+    const confirm = screen.getByRole("button", { name: "Confirmar exclusão" });
+    expect(cancel).toHaveFocus();
+    expect(screen.getByRole("alertdialog")).toHaveAttribute("aria-modal", "true");
+
+    confirm.focus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(cancel).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(confirm).toHaveFocus();
+    fireEvent.click(cancel);
   });
 
   test("confirms and deletes the selected page", async () => {
