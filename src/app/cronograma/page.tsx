@@ -14,6 +14,9 @@ import {
   createStudyTask,
 } from "./actions";
 import { createOutlookEventForTask } from "./outlook-actions";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/cronograma");
 
 export default async function CronogramaPage() {
   const claims = await requireAuthenticatedUser();

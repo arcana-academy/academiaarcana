@@ -1,4 +1,7 @@
 import { CronogramaPilotHarness } from "./CronogramaPilotHarness";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/design-system/pilots/cronograma");
 
 type Scenario = "default" | "empty" | "error" | "connected";
 
