@@ -107,8 +107,9 @@ function PageDeleteControl({
       role="alertdialog"
       aria-modal="true"
       aria-label="Confirmar exclusão da página"
+      aria-describedby="workspace-delete-page-warning"
     >
-      <p>
+      <p id="workspace-delete-page-warning">
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
