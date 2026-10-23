@@ -139,11 +139,11 @@ export default async function IntegracoesPage() {
           ))}
           <a
             className="aa-button aa-button-secondary"
-            href="https://platform.openai.com/agents"
+            href="https://platform.openai.com/docs/guides/agents"
             rel="noreferrer"
             target="_blank"
           >
-            Abrir OpenAI Agents
+            Abrir documentação do OpenAI Agents
           </a>
         </article>
       </section>

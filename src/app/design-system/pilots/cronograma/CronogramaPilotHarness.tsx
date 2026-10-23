@@ -27,7 +27,7 @@ const outlookEvents = [
     subject: "Revisão guiada",
     start: { dateTime: "2026-10-08T18:00:00.000Z", timeZone: "UTC" },
     end: { dateTime: "2026-10-08T18:45:00.000Z", timeZone: "UTC" },
-    webLink: "https://example.com/outlook-event",
+    webLink: "https://outlook.office.com/calendar/",
     isCancelled: false,
   },
 ];
