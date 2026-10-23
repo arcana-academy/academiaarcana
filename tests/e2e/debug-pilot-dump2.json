@@ -1,0 +1,32 @@
+{
+  "empty": {
+    "scenario": "empty",
+    "nenhumCount": 10,
+    "nenhumVisible": 1
+  },
+  "error": {
+    "alertText": "Não foi possível criar a tarefa.",
+    "alertCount": 1
+  },
+  "connected": {
+    "scenario": "connected",
+    "conectado": 1,
+    "revisao": 1,
+    "agendar": 1
+  },
+  "keyboard": {
+    "focused": true,
+    "outline": {
+      "style": "solid",
+      "width": "3px"
+    },
+    "transition": "1e-05s"
+  },
+  "legacy": {
+    "heading": "Tarefas futuras"
+  },
+  "mobile375": {
+    "scrollW": 375,
+    "clientW": 375
+  }
+}
