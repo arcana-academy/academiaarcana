@@ -1,0 +1,27 @@
+name: C96 focused accessible reading preview proof
+on:
+  push:
+    branches:
+      - work/aa360-c96-reading-preview-proof-20261023
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Only new C96 reading preview regression tests
+        run: npm exec -- vitest run src/components/workspace/AccessiblePageReadingPreview.test.tsx
+      - name: Lint only changed TypeScript components
+        run: npm exec -- eslint src/components/workspace/AccessiblePageReadingPreview.tsx src/components/workspace/AccessiblePageReadingPreview.test.tsx src/components/workspace/PageEditor.tsx
+      - name: Typecheck C96 source HEAD
+        run: npm run typecheck
