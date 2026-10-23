@@ -76,7 +76,7 @@ function contrastRatio(foreground: string, background: string): number {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
-test.skip("Cronograma pilot renders the real StudyTaskBoard at representative viewports", async ({ page }) => {
+test("Cronograma pilot renders the real StudyTaskBoard at representative viewports", async ({ page }) => {
   for (const viewport of [
     { width: 375, height: 812, label: "mobile" },
     { width: 768, height: 1024, label: "tablet" },
@@ -95,7 +95,7 @@ test.skip("Cronograma pilot renders the real StudyTaskBoard at representative vi
   }
 });
 
-test.skip("StudyTaskBoard production styling stays M0-M1/T0/D0-D1 across all themes", async ({ page }) => {
+test("StudyTaskBoard production styling stays M0-M1/T0/D0-D1 across all themes", async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1280, height: 900 });
 
@@ -141,7 +141,7 @@ test.skip("StudyTaskBoard production styling stays M0-M1/T0/D0-D1 across all the
   }
 });
 
-test.skip("Cronograma pilot preserves keyboard focus and reduced motion", async ({ page }) => {
+test("Cronograma pilot preserves keyboard focus and reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
 
@@ -164,7 +164,7 @@ test.skip("Cronograma pilot preserves keyboard focus and reduced motion", async 
   expect(transitionMs).toBeLessThanOrEqual(0.01);
 });
 
-test.skip("Cronograma pilot covers empty, error and connected Outlook states deterministically", async ({ page }) => {
+test("Cronograma pilot covers empty, error and connected Outlook states deterministically", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?scenario=empty");
   await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "empty");
   await expect(page.getByText("Nenhuma tarefa pendente.")).toBeVisible();
@@ -182,7 +182,7 @@ test.skip("Cronograma pilot covers empty, error and connected Outlook states det
   await expect(page.getByRole("button", { name: "Agendar no Outlook" })).toBeVisible();
 });
 
-test.skip("StudyTaskBoard remains usable when decorative assets fail", async ({ page }) => {
+test("StudyTaskBoard remains usable when decorative assets fail", async ({ page }) => {
   await page.route("**/assets/**", (route) => route.abort());
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
 
@@ -192,8 +192,15 @@ test.skip("StudyTaskBoard remains usable when decorative assets fail", async ({ 
   await expect(page.getByText("Revisar capítulo de Fisiologia")).toBeVisible();
 });
 
-test.skip("Cronograma pilot records performance evidence without inventing a budget", async ({ page }) => {
+test("Cronograma pilot records performance evidence without inventing a budget", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
+  // Theme tokens apply after hydration, so button color transitions started by
+  // the initial paint must settle before measuring steady-state motion.
+  await page.waitForFunction(
+    () => document.getAnimations().every((animation) => animation.playState !== "running"),
+    null,
+    { timeout: 10_000 },
+  );
   const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
     descendants: node.querySelectorAll("*").length,
     images: node.querySelectorAll("img").length,
@@ -209,7 +216,7 @@ test.skip("Cronograma pilot records performance evidence without inventing a bud
   expect(metrics.activeAnimations).toBe(0);
 });
 
-test.skip("Cronograma pilot preserves reviewed visual pixels beyond the approved pending-task heading copy", async ({ page }) => {
+test("Cronograma pilot preserves reviewed visual pixels beyond the approved pending-task heading copy", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   const actual: Baselines = {};
   const referenceCopy: Baselines = {};
@@ -244,80 +251,4 @@ test.skip("Cronograma pilot preserves reviewed visual pixels beyond the approved
   }
 
   expect(actual).toEqual(baselines);
-});
-
-test("DEBUG dump interactions TEMPORARY", async ({ page }) => {
-  const dump: Record<string, unknown> = {};
-  const text = (s: string) => page.evaluate((sel) => document.querySelector(sel)?.textContent ?? null, s);
-  const count = (s: string) => page.evaluate((sel) => document.querySelectorAll(sel).length, s);
-
-  await page.goto("/design-system/pilots/cronograma?scenario=empty");
-  dump.empty = {
-    scenario: await page.getByTestId("cronograma-production-pilot").getAttribute("data-scenario"),
-    nenhumCount: await count("p"),
-    nenhumVisible: await page.getByText("Nenhuma tarefa pendente.").count(),
-  };
-
-  await page.goto("/design-system/pilots/cronograma?scenario=error");
-  await page.getByRole("textbox", { name: "Tarefa", exact: true }).fill("Tarefa que falha");
-  await page.getByRole("button", { name: "Criar tarefa" }).click();
-  await page.waitForTimeout(1500);
-  dump.error = {
-    alertText: await text('.aa-field-error[role="alert"]'),
-    alertCount: await count('.aa-field-error[role="alert"]'),
-  };
-
-  await page.goto("/design-system/pilots/cronograma?scenario=connected");
-  dump.connected = {
-    scenario: await page.getByTestId("cronograma-production-pilot").getAttribute("data-scenario"),
-    conectado: await page.getByText("Conectado", { exact: true }).count(),
-    revisao: await page.getByText("Revisão guiada").count(),
-    agendar: await page.getByRole("button", { name: "Agendar no Outlook" }).count(),
-  };
-
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
-  const input = page.getByRole("textbox", { name: "Tarefa", exact: true });
-  await input.focus();
-  dump.keyboard = {
-    focused: await input.evaluate((n) => document.activeElement === n),
-    outline: await input.evaluate((n) => {
-      const c = getComputedStyle(n);
-      return { style: c.outlineStyle, width: c.outlineWidth };
-    }),
-    transition: await page.getByRole("button", { name: "Criar tarefa" }).evaluate((n) => getComputedStyle(n).transitionDuration),
-  };
-
-  await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default&copy=legacy");
-  dump.legacy = { heading: await text("#upcoming-tasks-title") };
-
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
-  dump.mobile375 = await page.evaluate(() => ({
-    scrollW: document.documentElement.scrollWidth,
-    clientW: document.documentElement.clientWidth,
-  }));
-
-  const { writeFileSync } = await import("node:fs");
-  writeFileSync("tests/e2e/debug-pilot-dump2.json", JSON.stringify(dump, null, 2));
-});
-
-test("DEBUG dump animations TEMPORARY", async ({ page }) => {
-  await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
-  const immediate = await page.locator(".aa-study-task-board").evaluate((node) => ({
-    descendants: node.querySelectorAll("*").length,
-    running: document.getAnimations().filter((a) => a.playState === "running").length,
-    details: document.getAnimations().map((a) => ({
-      playState: a.playState,
-      type: (a as CSSAnimation).animationName !== undefined && (a as CSSTransition).transitionProperty === undefined ? "css-animation" : "transition-or-web",
-      name: ((a as CSSAnimation).animationName ?? (a as CSSTransition).transitionProperty ?? "?").toString(),
-      target: ((a as CSSAnimation).effect as KeyframeEffect)?.target
-        ? ((a.effect as KeyframeEffect).target as Element).className?.toString().slice(0, 80) ?? null
-        : null,
-    })),
-  }));
-  await page.waitForTimeout(2000);
-  const settled = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length);
-  const { writeFileSync } = await import("node:fs");
-  writeFileSync("tests/e2e/debug-pilot-dump3.json", JSON.stringify({ immediate, settled }, null, 2));
 });
