@@ -9,10 +9,9 @@ import { pageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata = pageMetadata("/configuracoes");
 
-export default async function ConfiguracoesPage() {
-  await requireAuthenticatedUser();
+/** Presentation-only content shared with isolated visual fixtures; auth remains in route. */
+export function ConfiguracoesContent() {
   return (
-    <AuthenticatedShell currentPath="/configuracoes">
       <ArcanaPage
         eyebrow="Controle pessoal"
         title="Configurações"
@@ -70,6 +69,14 @@ export default async function ConfiguracoesPage() {
           </FeatureCard>
         </ArcanaFeatureGrid>
       </ArcanaPage>
+  );
+}
+
+export default async function ConfiguracoesPage() {
+  await requireAuthenticatedUser();
+  return (
+    <AuthenticatedShell currentPath="/configuracoes">
+      <ConfiguracoesContent />
     </AuthenticatedShell>
   );
 }
