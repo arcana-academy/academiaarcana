@@ -247,6 +247,8 @@ jobs:
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}
+          # Separate write-capable credential; missing secret blocks the deploy job.
+          RENDER_DEPLOY_API_KEY: ${{ secrets.RENDER_DEPLOY_API_KEY }}
           RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}
           IMAGE_URL: ${{ needs.publish.outputs.image_url }}
           IMAGE_REVISION: ${{ needs.preflight.outputs.release_sha }}
@@ -257,8 +259,9 @@ jobs:
             echo "Unexpected deployment revision." >&2
             exit 1
           fi
-          # One fail-closed operation: live service GET, validation, then hook.
-          # Never split the guard and hook across separate workflow steps.
+          # One fail-closed operation: live service GET, then exactly one
+          # authenticated POST /deploys requiring 201 with its unique ID.
+          # Never retry an ambiguous API outcome or split these steps.
           node /tmp/aa-render-image-target-guard.cjs
           printf '%s\n' "$IMAGE_REVISION" > /tmp/academiaarcana-deployed-revision.txt
 
