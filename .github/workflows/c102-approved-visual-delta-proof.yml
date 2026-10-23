@@ -1,0 +1,30 @@
+name: C102 approved visual login and sanctuary delta
+on:
+  push:
+    branches:
+      - work/aa360-c102-login-sanctuary-delta-proof-20261023
+permissions:
+  contents: read
+jobs:
+  visual-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: b523dbd0eb2c608ca81c2aa6980c48969c2862eb
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Only introduced C102 visual contract tests
+        run: npm exec -- vitest run src/components/auth/AuthForm.test.tsx src/components/sanctuary/Sanctuary.test.tsx -t "shows approved visual login layout|offers real study routes"
+      - name: Lint only modified TSX
+        run: npm exec -- eslint src/app/layout.tsx src/components/auth/AuthForm.tsx src/components/layout/AuthenticatedShell.tsx src/components/layout/Sidebar.tsx src/components/sanctuary/Sanctuary.tsx src/components/auth/AuthForm.test.tsx src/components/sanctuary/Sanctuary.test.tsx
+      - name: Verify TypeScript delta
+        run: npm run typecheck
+      - name: Check global stylesheet integration compiles
+        run: npm run build
