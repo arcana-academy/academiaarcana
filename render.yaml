@@ -3,8 +3,8 @@ services:
     name: academiaarcana
     runtime: node
     branch: main
-    autoDeployTrigger: checksPass
-    buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build
+    autoDeployTrigger: off
+    buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
@@ -16,6 +16,8 @@ services:
         value: "true"
       - key: NEXT_PUBLIC_APP_ENV
         value: production
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://academiaarcana.onrender.com
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
@@ -24,6 +26,8 @@ services:
         sync: false
       - key: OPENAI_AGENT_MODEL
         value: gpt-5.6-sol
+      - key: NEXT_PUBLIC_ADOBE_FONTS_KIT_ID
+        sync: false
       - key: NEXT_PUBLIC_HONEYBADGER_API_KEY
         sync: false
       - key: NEXT_PUBLIC_HONEYBADGER_ASSETS_URL

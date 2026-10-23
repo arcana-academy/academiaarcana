@@ -1,4 +1,7 @@
 import { CronogramaPilotHarness } from "./CronogramaPilotHarness";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/design-system/pilots/cronograma");
 
 type Scenario = "default" | "empty" | "error" | "connected";
 
@@ -12,5 +15,5 @@ export default async function CronogramaPilotPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  return <CronogramaPilotHarness scenario={scenarioFrom(params.scenario)} />;
+  return <CronogramaPilotHarness scenario={scenarioFrom(params.scenario)} legacyHeading={params.copy === "legacy"} />;
 }

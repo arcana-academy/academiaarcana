@@ -4,6 +4,11 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import {
+  isVisualBaselineWriteEnabled,
+  writeVisualBaselines,
+} from "./support/visual-baselines";
+
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 import { PROOF_IDS } from "../../src/design-system/proofs/proof-registry";
 
@@ -180,6 +185,11 @@ test("proof visual matrix matches deterministic A/B/C baselines", async ({ page 
   }
 
   console.log(`AA_PROOF_BASELINES_JSON=${JSON.stringify(actual)}`);
+  if (isVisualBaselineWriteEnabled()) {
+    writeVisualBaselines(baselinePath, actual);
+    return;
+  }
+
   expect(actual).toEqual(baselines);
 });
 

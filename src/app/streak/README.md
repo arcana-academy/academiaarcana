@@ -1,3 +1,3 @@
-# streak
+# Streak
 
-Architectural route placeholder. This directory is reserved for the approved product area; no route implementation is introduced by this structural checkpoint.
+Rota autenticada que mostra a sequência atual e a última atividade registrada pela gamificação. A continuidade é apenas um indicador de constância e não reduz o progresso do usuário em caso de pausa.

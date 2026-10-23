@@ -8,6 +8,9 @@ import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/streak");
 
 export default async function StreakPage() {
   const claims = await requireAuthenticatedUser();

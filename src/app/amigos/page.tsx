@@ -7,6 +7,9 @@ import { FeatureCard } from "@/components/ui/feature-card";
 import { SupabaseSocialRepository } from "@/infrastructure/supabase/social/social-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/amigos");
 
 function countLabel(count: number, singular: string, plural: string) {
   return `${count} ${count === 1 ? singular : plural}`;

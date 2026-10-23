@@ -9,6 +9,9 @@ import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/missoes");
 
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
@@ -19,10 +22,18 @@ const missionDocument = "/assets/missions/aa-mission-document.svg";
 export default async function MissoesPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
-  const missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
-    claims.sub,
-    todayUtc(),
-  );
+  // A failed read is not an empty day. Preserve the authenticated route and
+  // show a retry rather than hiding previously recorded missions.
+  let missions: Awaited<ReturnType<SupabaseGamificationRepository["listDailyMissions"]>> = [];
+  let loadError = false;
+  try {
+    missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
+      claims.sub,
+      todayUtc(),
+    );
+  } catch {
+    loadError = true;
+  }
   const completed = missions.filter((mission) => mission.status === "completed").length;
 
   return (
@@ -39,12 +50,23 @@ export default async function MissoesPage() {
             description="Missões registradas para o dia atual."
             icon={<Image src={missionDocument} alt="" width={22} height={22} />}
           >
-            <p className="aa-state-copy" aria-live="polite">
-              {missions.length
-                ? `${completed}/${missions.length} concluídas`
-                : "Nenhuma missão registrada hoje."}
-            </p>
-            {!missions.length ? (
+            {loadError ? (
+              <div role="alert">
+                <p>Não foi possível carregar as missões. Seus registros não foram alterados.</p>
+                <form action="/missoes" method="get" className="aa-card-actions">
+                  <button className="aa-button aa-button-secondary aa-button-sm" type="submit">
+                    Tentar novamente
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <p className="aa-state-copy" aria-live="polite">
+                {missions.length
+                  ? `${completed}/${missions.length} concluídas`
+                  : "Nenhuma missão registrada hoje."}
+              </p>
+            )}
+            {!loadError && !missions.length ? (
               <p className="aa-card-actions">
                 <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">
                   Planejar um estudo
