@@ -20,6 +20,11 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
       - run: npm exec -- playwright install --with-deps chromium
+      - name: Build isolated production-like test server
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
       - name: Only C88 synthetic browser scenarios
         run: npm exec -- playwright test --config=tests/c88.config.ts
         env:
