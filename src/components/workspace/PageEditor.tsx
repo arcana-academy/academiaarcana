@@ -22,16 +22,58 @@ function PageDeleteControl({
   const [error, setError] = useState<string | null>(null);
   const launchButton = useRef<HTMLButtonElement>(null);
   const cancelButton = useRef<HTMLButtonElement>(null);
+  const confirmButton = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const openedOnce = useRef(false);
 
   useEffect(() => {
     if (isConfirming) {
       openedOnce.current = true;
-      cancelButton.current?.focus();
+      if (isDeleting) {
+        dialogRef.current?.focus();
+      } else {
+        cancelButton.current?.focus();
+      }
     } else if (openedOnce.current) {
       launchButton.current?.focus();
     }
-  }, [isConfirming]);
+  }, [isConfirming, isDeleting]);
+
+  // The confirmation is modal for keyboard and assistive-technology users.
+  // Escape must work even if focus is moved programmatically outside it.
+  useEffect(() => {
+    if (!isConfirming) return;
+
+    const onDocumentKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isDeleting) {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsConfirming(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      const first = cancelButton.current;
+      const last = confirmButton.current;
+      if (isDeleting) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
+      if (!dialog || !first || !last) return;
+      const outsideDialog = !dialog.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || outsideDialog)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || outsideDialog)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onDocumentKeyDown, true);
+    return () => document.removeEventListener("keydown", onDocumentKeyDown, true);
+  }, [isConfirming, isDeleting]);
 
   /** Execute the confirmed deletion and report recoverable failures. */
   const remove = async () => {
@@ -60,14 +102,11 @@ function PageDeleteControl({
 
   return (
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="alertdialog"
+      aria-modal="true"
       aria-label="Confirmar exclusão da página"
-      onKeyDown={(event) => {
-        if (event.key === "Escape" && !isDeleting) {
-          event.stopPropagation();
-          setIsConfirming(false);
-        }
-      }}
     >
       <p>
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
@@ -82,6 +121,7 @@ function PageDeleteControl({
         Cancelar
       </button>
       <button
+        ref={confirmButton}
         type="button"
         disabled={isDeleting}
         onClick={remove}
