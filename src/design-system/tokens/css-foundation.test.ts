@@ -37,6 +37,15 @@ describe("canonical CSS token fallback", () => {
       expect(css).not.toContain(legacyVariable);
     }
   });
+  test("preserves the special editorial roles without forcing reading typography", () => {
+    const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(baseTokens.typography.heading).toContain('"Grenze"');
+    expect(baseTokens.typography.body).not.toContain('"Smythe"');
+    expect(css).toContain('.aa-type-editorial');
+    expect(css).toContain('.aa-type-ornamental');
+    expect(css).toContain('.aa-type-reading-literata');
+  });
+
   test("keeps the SSR/static CSS fallback synchronized with base tokens", () => {
     const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
 
