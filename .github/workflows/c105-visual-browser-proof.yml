@@ -1,0 +1,53 @@
+name: C105 isolated browser visual approval proof
+on:
+  push:
+    branches:
+      - work/aa360-c105-browser-proof-synthetic-20261023
+permissions:
+  contents: read
+jobs:
+  browser-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - run: npm exec -- playwright install chromium --only-shell
+      - name: Start strictly loopback-only dev server with inert synthetic env
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3000 >/tmp/c105-next.log 2>&1 &
+          echo $! >/tmp/c105-next.pid
+          for i in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:3000/login >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 120 /tmp/c105-next.log
+          exit 1
+      - name: Verify actual Login route and synthetic Sanctuary fixture at desktop and mobile widths
+        run: node scripts/c105-browser-proof.mjs
+      - name: Save private CI screenshots and measurements
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: c105-isolated-visual-proof
+          path: |
+            c105-artifacts/
+            /tmp/c105-next.log
+          if-no-files-found: warn
+          retention-days: 1
+      - name: Stop isolated server
+        if: always()
+        run: |
+          if [ -f /tmp/c105-next.pid ]; then kill "$(cat /tmp/c105-next.pid)" || true; fi
