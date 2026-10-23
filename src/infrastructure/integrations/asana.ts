@@ -287,7 +287,19 @@ export async function refreshAsanaCredentials(credentials: AsanaCredentials): Pr
     throw new AsanaConnectionError("A autorização do Asana expirou ou foi revogada. Reconecte a conta.", "reauthorization_required");
   }
 
-  return { subjectId: credentials.subjectId, ...normalizeTokenSet(await response.json()) };
+  let payload: { access_token?: string; refresh_token?: string; expires_in?: number };
+  try {
+    payload = await response.json() as typeof payload;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new AsanaConnectionError(
+        "O Asana devolveu JSON inválido durante a renovação.",
+        "request_failed",
+      );
+    }
+    throw error;
+  }
+  return { subjectId: credentials.subjectId, ...normalizeTokenSet(payload) };
 }
 
 async function asanaRequest<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
