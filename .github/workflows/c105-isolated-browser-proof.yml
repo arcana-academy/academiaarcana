@@ -1,0 +1,77 @@
+name: C105 isolated visual browser proof
+on:
+  push:
+    branches:
+      - work/aa360-c105-browser-proof-20261023
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 0a3fa4c4ad8c8281fe40607a422eba34ff758271
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: C105 exact asset hash
+        run: npm exec -- vitest run src/app/c105-approved-illustrations.test.ts
+      - name: C105 changed TypeScript lint
+        run: npm exec -- eslint src/components/layout/Sidebar.tsx src/app/c105-approved-illustrations.test.ts
+      - name: C105 TypeScript
+        run: npm run typecheck
+  isolated-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify product ancestry unchanged
+        run: test "$(git rev-parse HEAD^)" = "0a3fa4c4ad8c8281fe40607a422eba34ff758271"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Install Chromium in ephemeral runner
+        run: npm exec -- playwright install chromium
+      - name: Start local-only synthetic preview (no external services)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3105 > /tmp/c105-next.log 2>&1 &
+          echo $! > /tmp/c105-next.pid
+          for i in $(seq 1 70); do
+            if curl --fail --silent --max-time 3 http://127.0.0.1:3105/login >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 90 /tmp/c105-next.log
+          exit 1
+      - name: Real Chromium desktop/mobile screenshots
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          mkdir -p artifacts
+          npm exec -- playwright test --config=c105-playwright.config.ts
+      - name: Upload private visual evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: c105-private-visual-evidence
+          path: |
+            artifacts/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
