@@ -109,6 +109,7 @@ async function requestVerifiedRenderImageDeployment(inputs) {
   // Never reuse a hook URL or a preflight result without this fresh API read.
   const hook = new URL(inputs.hookUrl);
   hook.searchParams.set("imgURL", inputs.imageUrl);
+  const requestStartedAt = Date.now();
   let response;
   try {
     response = await fetchService(hook.toString(), {
@@ -119,35 +120,87 @@ async function requestVerifiedRenderImageDeployment(inputs) {
   } catch {
     throw new Error("Render deploy hook request failed; deployment is not confirmed.");
   }
-  // An HTTP 202 acknowledges a queued request but supplies no deployment ID.
-  // Without that ID, the specific rollout cannot be verified. Never emit
-  // successful deployment evidence merely because Render queued a request.
-  if (response?.status === 202) {
-    throw new Error("Render queued deployment without a trackable ID; rollout is not confirmed.");
-  }
-  if (!response || response.status !== 200) {
-    throw new Error("Render deploy hook did not accept the request (HTTP 200 required).");
-  }
-  let started;
-  try { started = await response.json(); } catch {
-    throw new Error("Render deploy hook returned invalid deployment identity.");
-  }
-  const deployId = started?.deploy?.id;
-  if (typeof deployId !== "string" || !/^dep-[a-z0-9]+$/.test(deployId)) {
-    throw new Error("Render deploy hook returned no valid deployment ID.");
-  }
-
-  // Verify the *specific* new deploy, not the already-live alias or merely
-  // the source SHA: a previous deployment of the same SHA may still be live.
+  // A hook HTTP 202 can create an asynchronous deploy without returning its
+  // ID. Never mistake that acceptance for a confirmed or canceled deployment.
+  // Reconcile against live Render deploy records and require one unambiguous
+  // post-request deploy_hook event with the exact immutable image reference.
+  // Queued deployment discovery and live confirmation share one time budget.
   const waitForNextPoll = inputs.waitForNextPoll ||
     (delayMs => new Promise(resolve => setTimeout(resolve, delayMs)));
-  const deadline = Date.now() + 20 * 60 * 1000;
+  const deadline = requestStartedAt + 20 * 60 * 1000;
   const pause = async delayMs => {
     if (!Number.isFinite(delayMs) || delayMs < 0 || Date.now() + delayMs > deadline) {
       throw new Error("Render deploy confirmation exceeded the bounded 20-minute window.");
     }
     await waitForNextPoll(delayMs);
   };
+
+  let deployId;
+  if (response?.status === 202) {
+    const listUrl = "https://api.render.com/v1/services/" + inputs.approvedServiceId +
+      "/deploys?createdAfter=" + encodeURIComponent(new Date(requestStartedAt).toISOString()) +
+      "&limit=100";
+    for (let attempt = 0; attempt < 120 && Date.now() < deadline; attempt++) {
+      let listed;
+      try {
+        listed = await fetchService(listUrl, {
+          method: "GET",
+          headers: { Accept: "application/json", Authorization: "Bearer " + inputs.apiKey },
+          redirect: "error",
+          signal: AbortSignal.timeout(15000),
+        });
+      } catch {
+        throw new Error("Cannot reconcile queued Render deployment; rollout is not confirmed.");
+      }
+      if (!listed || listed.status !== 200) {
+        throw new Error("Queued Render deployment lookup failed; rollout is not confirmed.");
+      }
+      let entries;
+      try { entries = await listed.json(); } catch {
+        throw new Error("Queued Render deployment lookup returned invalid JSON.");
+      }
+      // A full page might omit additional new deployments: do not guess.
+      if (!Array.isArray(entries) || entries.length >= 100) {
+        throw new Error("Queued Render deployment lookup is incomplete or malformed.");
+      }
+      const newHookDeploys = entries.map(entry => entry?.deploy).filter(deploy =>
+        deploy?.trigger === "deploy_hook" &&
+        typeof deploy.createdAt === "string" &&
+        Date.parse(deploy.createdAt) >= requestStartedAt
+      );
+      if (newHookDeploys.length > 1) {
+        throw new Error("Queued Render deployment identity is ambiguous; rollout is not confirmed.");
+      }
+      if (newHookDeploys.length === 1) {
+        const candidate = newHookDeploys[0];
+        if (typeof candidate.id !== "string" || !/^dep-[a-z0-9]+$/.test(candidate.id) ||
+            candidate.image?.ref !== inputs.imageUrl) {
+          throw new Error("Queued Render deployment is not the uniquely approved image.");
+        }
+        deployId = candidate.id;
+        break;
+      }
+      if (attempt < 119) await pause(10000);
+    }
+    if (!deployId) {
+      throw new Error("Queued Render deployment ID was not confirmed in the bounded window.");
+    }
+  } else {
+    if (!response || response.status !== 200) {
+      throw new Error("Render deploy hook did not accept the request (HTTP 200 required).");
+    }
+    let started;
+    try { started = await response.json(); } catch {
+      throw new Error("Render deploy hook returned invalid deployment identity.");
+    }
+    deployId = started?.deploy?.id;
+    if (typeof deployId !== "string" || !/^dep-[a-z0-9]+$/.test(deployId)) {
+      throw new Error("Render deploy hook returned no valid deployment ID.");
+    }
+  }
+
+  // Verify the *specific* new deploy, not the already-live alias or merely
+  // the source SHA: a previous deployment of the same SHA may still be live.
   const expectedDigest = inputs.imageUrl.split("@")[1];
   const digestHex = expectedDigest.slice("sha256:".length);
   // 120 polls at 10 seconds apart allow roughly 20 minutes for Render\'s
