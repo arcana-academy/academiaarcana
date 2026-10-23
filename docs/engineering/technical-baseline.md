@@ -50,6 +50,8 @@ This document defines the currently supported development and build baseline for
 | Vite | 7.3.6 |
 | @vitejs/plugin-react | 5.x on current main |
 
+**Security patch update (2026-10-23):** the table above is the 2026-09-28 snapshot and is not relabeled. The `Academia Arcana Quality Gate` stopped at its production audit step (`npm audit --omit=dev --audit-level=high`) because `next@16.3.8` is affected by GHSA-2464-fhr4-w9xw (Image Optimization RCE with SVG), GHSA-p3m5-59mp-jv5r (App Router Server Actions denial of service) and GHSA-673q-mjm6-r5xr (`use cache` typed-array RCE). The repository now pins Next.js `16.4.3`, with a clean production audit (all three advisories are patched from `16.4.1` for the 16.x line). Vite was raised from `7.3.6` to `7.3.7` to clear the dev-only GHSA-9jrq-w75r-8gcw advisory reported by the full audit. `eslint-config-next` keeps its `16.3.8` pin in this change: it is a lint-only preset with no advisory, and `16.4.3` is the newest published release, so it cannot be advanced past the version the changed-line dependency scan flags; aligning it is a follow-up once a later patch is published.
+
 ## TypeScript policy
 
 TypeScript 7 is **not** part of this baseline.
