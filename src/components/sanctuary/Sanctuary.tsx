@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookOpen, CalendarDays, GraduationCap, Target } from "lucide-react";
 import type { SanctuaryViewModel } from "@/domains/sanctuary";
 import { SanctuaryContinueLearning } from "./SanctuaryContinueLearning";
 import { SanctuaryHeader } from "./SanctuaryHeader";
@@ -11,6 +12,13 @@ import { MestreArcanoPanel } from "./MestreArcanoPanel";
 type SanctuaryProps = {
   viewModel: SanctuaryViewModel;
 };
+
+const sanctuaryShortcuts = [
+  { href: "/grimorios", title: "Meus grimórios", detail: "Sua biblioteca pessoal", icon: BookOpen },
+  { href: "/academia", title: "Academia", detail: "Aprenda qualquer assunto", icon: GraduationCap },
+  { href: "/missoes", title: "Missões", detail: "Acompanhe seus objetivos", icon: Target },
+  { href: "/cronograma", title: "Cronograma", detail: "Organize sua jornada", icon: CalendarDays },
+] as const;
 
 export function Sanctuary({ viewModel }: SanctuaryProps) {
   const learningHeading =
@@ -42,6 +50,25 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
           <p className="aa-eyebrow">Visão geral</p>
           <h2>Seu progresso</h2>
           <SanctuaryProgress progress={viewModel.progress} />
+        </div>
+      </section>
+
+      <section className="aa-sanctuary-shortcuts" aria-labelledby="sanctuary-shortcuts-title">
+        <div className="aa-sanctuary-shortcuts-header">
+          <div>
+            <p className="aa-eyebrow">Sua biblioteca e rotina</p>
+            <h2 id="sanctuary-shortcuts-title">Explore seus espaços de estudo</h2>
+          </div>
+        </div>
+        <div className="aa-sanctuary-shortcuts-grid">
+          {sanctuaryShortcuts.map(({ href, title, detail, icon: Icon }) => (
+            <Link className="aa-sanctuary-shortcut" href={href} key={href}>
+              <Icon size={22} aria-hidden="true" />
+              <strong>{title}</strong>
+              <span>{detail}</span>
+              <span className="aa-sanctuary-shortcut-arrow" aria-hidden="true">↗</span>
+            </Link>
+          ))}
         </div>
       </section>
 

@@ -2,6 +2,8 @@
 
 import { FormEvent, useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -145,14 +147,32 @@ export function AuthForm({ mode }: AuthFormProps) {
   const passwordInputType = showPassword ? "text" : "password";
 
   return (
-    <main aria-labelledby="auth-title">
-      <h1 id="auth-title">{copy.title}</h1>
+    <main className={mode === "login" ? "aa-auth-screen aa-auth-login" : "aa-auth-screen"} aria-labelledby="auth-title">
+      {mode === "login" ? (
+        <aside className="aa-auth-story" aria-hidden="true">
+          <div className="aa-auth-story-copy">
+            <span className="aa-auth-story-sigil">✧</span>
+            <p>Academia Arcana</p>
+            <strong>Um universo de estudos para descobrir.</strong>
+          </div>
+        </aside>
+      ) : null}
+      <div className="aa-auth-card">
+        <div className="aa-auth-card-brand">
+          <Image src="/assets/brand/aa-institutional-seal.svg" alt="" width={64} height={64} priority />
+          <span>Academia Arcana</span>
+        </div>
+        <h1 id="auth-title">{mode === "login" ? "Entre no seu santuário de estudos" : copy.title}</h1>
+        {mode === "login" ? (
+          <p className="aa-auth-welcome">Continue sua jornada e organize seus conhecimentos em um só lugar.</p>
+        ) : null}
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="aa-auth-form" onSubmit={handleSubmit} noValidate>
         {mode !== "update-password" && (
           <div>
             <label htmlFor={emailId}>Email</label>
             <input
+              className="aa-auth-input"
               id={emailId}
               name="email"
               type="email"
@@ -169,6 +189,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           <div>
             <label htmlFor={passwordId}>Senha</label>
             <input
+              className="aa-auth-input"
               id={passwordId}
               name="password"
               type={passwordInputType}
@@ -196,6 +217,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           <div>
             <label htmlFor={confirmPasswordId}>Confirmar senha</label>
             <input
+              className="aa-auth-input"
               id={confirmPasswordId}
               name="confirm-password"
               type={passwordInputType}
@@ -215,10 +237,21 @@ export function AuthForm({ mode }: AuthFormProps) {
           </p>
         )}
 
-        <button type="submit" disabled={status === "loading"}>
+        <button className="aa-auth-submit" type="submit" disabled={status === "loading"}>
           {status === "loading" ? "Processando…" : copy.submit}
         </button>
       </form>
+      {mode === "login" ? (
+        <nav className="aa-auth-secondary-links" aria-label="Opções de acesso">
+          <Link href="/recuperar-senha">Esqueci minha senha</Link>
+          <span aria-hidden="true">·</span>
+          <Link href="/cadastro">Criar conta</Link>
+        </nav>
+      ) : null}
+      {mode === "login" ? (
+        <p className="aa-auth-privacy-note">Seu acesso utiliza a autenticação segura existente da Academia Arcana.</p>
+      ) : null}
+      </div>
     </main>
   );
 }
