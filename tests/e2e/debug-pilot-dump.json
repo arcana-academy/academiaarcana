@@ -1,0 +1,176 @@
+{
+  "cronogramaDefault": {
+    "dataTheme": "mago-classico",
+    "surfaceCount": 3,
+    "surfaces": [
+      {
+        "labelledby": "new-task-title",
+        "h2": "Adicionar tarefa de estudo",
+        "h2Color": "rgb(230, 223, 236)",
+        "h2Bg": "rgba(0, 0, 0, 0)",
+        "surfaceBg": "rgb(33, 29, 40)",
+        "surfaceBgImage": "none",
+        "borderStyle": "solid",
+        "filter": "none",
+        "backdropFilter": "none"
+      },
+      {
+        "labelledby": "outlook-title",
+        "h2": "Outlook Calendar",
+        "h2Color": "rgb(230, 223, 236)",
+        "h2Bg": "rgba(0, 0, 0, 0)",
+        "surfaceBg": "rgb(33, 29, 40)",
+        "surfaceBgImage": "none",
+        "borderStyle": "solid",
+        "filter": "none",
+        "backdropFilter": "none"
+      },
+      {
+        "labelledby": "upcoming-tasks-title",
+        "h2": "Tarefas pendentes",
+        "h2Color": "rgb(230, 223, 236)",
+        "h2Bg": "rgba(0, 0, 0, 0)",
+        "surfaceBg": "rgb(33, 29, 40)",
+        "surfaceBgImage": "none",
+        "borderStyle": "solid",
+        "filter": "none",
+        "backdropFilter": "none"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "study-task-title",
+        "type": "text",
+        "role": null,
+        "label": "Tarefa"
+      },
+      {
+        "id": "study-task-due",
+        "type": "datetime-local",
+        "role": null,
+        "label": "Prazo"
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Criar tarefa",
+        "disabled": true
+      },
+      {
+        "text": "Enviar ao Todoist",
+        "disabled": false
+      },
+      {
+        "text": "Enviar ao Asana",
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "disabled": false
+      }
+    ],
+    "headings": [
+      " Cronograma — validação do consumer real",
+      "Cronograma",
+      "Adicionar tarefa de estudo",
+      "Outlook Calendar",
+      "Tarefas pendentes"
+    ],
+    "overflow": {
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "filteredDescendants": 0
+  },
+  "cronogramaPergaminho": {
+    "dataTheme": null,
+    "surfaceCount": 3,
+    "surfaces": [
+      {
+        "labelledby": "new-task-title",
+        "h2": "Adicionar tarefa de estudo",
+        "h2Color": "rgb(48, 35, 56)",
+        "h2Bg": "rgba(0, 0, 0, 0)",
+        "surfaceBg": "rgb(240, 231, 222)",
+        "surfaceBgImage": "none",
+        "borderStyle": "solid",
+        "filter": "none",
+        "backdropFilter": "none"
+      },
+      {
+        "labelledby": "outlook-title",
+        "h2": "Outlook Calendar",
+        "h2Color": "rgb(48, 35, 56)",
+        "h2Bg": "rgba(0, 0, 0, 0)",
+        "surfaceBg": "rgb(240, 231, 222)",
+        "surfaceBgImage": "none",
+        "borderStyle": "solid",
+        "filter": "none",
+        "backdropFilter": "none"
+      },
+      {
+        "labelledby": "upcoming-tasks-title",
+        "h2": "Tarefas pendentes",
+        "h2Color": "rgb(48, 35, 56)",
+        "h2Bg": "rgba(0, 0, 0, 0)",
+        "surfaceBg": "rgb(240, 231, 222)",
+        "surfaceBgImage": "none",
+        "borderStyle": "solid",
+        "filter": "none",
+        "backdropFilter": "none"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "study-task-title",
+        "type": "text",
+        "role": null,
+        "label": "Tarefa"
+      },
+      {
+        "id": "study-task-due",
+        "type": "datetime-local",
+        "role": null,
+        "label": "Prazo"
+      }
+    ],
+    "buttons": [
+      {
+        "text": "Criar tarefa",
+        "disabled": true
+      },
+      {
+        "text": "Enviar ao Todoist",
+        "disabled": false
+      },
+      {
+        "text": "Enviar ao Asana",
+        "disabled": false
+      },
+      {
+        "text": "Concluir",
+        "disabled": false
+      }
+    ],
+    "headings": [
+      " Cronograma — validação do consumer real",
+      "Cronograma",
+      "Adicionar tarefa de estudo",
+      "Outlook Calendar",
+      "Tarefas pendentes"
+    ],
+    "overflow": {
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "filteredDescendants": 0
+  },
+  "statistics": {
+    "dataTheme": null,
+    "sections": 0,
+    "overflow": {
+      "scrollW": 1280,
+      "clientW": 1280
+    }
+  }
+}
