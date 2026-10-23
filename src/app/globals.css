@@ -2408,3 +2408,22 @@ p {
   border: 1px solid var(--aa-border-default);
   border-radius: var(--aa-radius-md);
 }
+
+/*
+ * Brand Book 360 — approved academic type roles, reusing official source PR #770.
+ * The logo/lettering is an independent canonical image and is never recreated.
+ * Existing semantic theme typography tokens remain unchanged for UI readability.
+ */
+.aa-page-header h1 {
+  font-family: var(--font-arcana-grenze), var(--aa-typography-heading);
+}
+.workspace-page-editor textarea,
+.workspace-page-block textarea {
+  font-family: var(--font-arcana-literata), Georgia, serif;
+}
+.aa-editorial-highlight {
+  font-family: var(--font-arcana-cormorant), Georgia, serif;
+}
+.aa-arcane-inscription {
+  font-family: var(--font-arcana-smythe), Georgia, serif;
+}
