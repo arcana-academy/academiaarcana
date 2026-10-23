@@ -132,24 +132,25 @@ describe("Render image-backed deploy preflight (read-only, synthetic)", () => {
     }
   });
 
-  it("puts the independent live-kind check BEFORE the imgURL webhook", () => {
+  it("puts the live-kind guard fetch BEFORE the authenticated deploy request", () => {
     const workflow = readFileSync(resolve(
       process.cwd(), ".github/workflows/image-release.yml",
     ), "utf8");
     const deploy = workflow.split("\n  deploy:\n")[1];
     expect(deploy).toBeTruthy();
     const fetchGuard = deploy.indexOf("Fetch immutable public preflight from approved main SHA");
-    const preflight = deploy.indexOf("Verify live Render image-backed service and approved target");
-    const webhook = deploy.indexOf("Request deployment of the immutable image");
+    const request = deploy.indexOf("- name: Request Render image deployment");
     expect(fetchGuard).toBeGreaterThan(0);
-    expect(preflight).toBeGreaterThan(fetchGuard);
-    expect(webhook).toBeGreaterThan(preflight);
+    expect(request).toBeGreaterThan(fetchGuard);
+    // The single guard invocation performs the live service GET before the
+    // exactly-once authenticated POST /deploys; hook-POST flow is retired.
+    expect(deploy).toContain("node /tmp/aa-render-image-target-guard.cjs");
     expect(deploy).toContain("secrets.RENDER_SERVICE_READ_API_KEY");
+    expect(deploy).toContain("secrets.RENDER_DEPLOY_API_KEY");
     expect(deploy).toContain("vars.RENDER_IMAGE_SERVICE_ID");
     expect(deploy).toContain("verify-render-image-target-536.cjs");
     expect(deploy).toContain("permissions: {}");
     expect(deploy).toContain("raw.githubusercontent.com");
     expect(deploy).toContain("needs.preflight.outputs.release_sha");
-    expect(deploy).toContain("--data-urlencode \"imgURL=$IMAGE_URL\"");
   });
 });
