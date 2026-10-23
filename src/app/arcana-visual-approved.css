@@ -190,3 +190,93 @@
 @media (prefers-reduced-motion: reduce) {
   .aa-auth-submit, .aa-sanctuary-shortcut { transition: none; }
 }
+
+
+/* C103 — learning paths and personal grimoire gallery; all content stays real and private. */
+.aa-shell .academy-page { width: min(100%, 96rem); max-width: none; }
+.aa-shell .academy-page > .aa-page-header,
+.aa-shell .grimoires-library + .aa-page-header {
+  border: 1px solid rgb(185 157 120 / .28);
+  border-radius: 1rem;
+}
+.aa-shell .academy-page > .aa-page-header {
+  min-height: 13rem;
+  align-items: center;
+  padding: clamp(1.2rem, 2.8vw, 2.5rem);
+  background: linear-gradient(95deg, #23172F 12%, rgb(24 15 35 / .7) 70%),
+    url('/arcana/arcana-hero.svg') center / cover no-repeat;
+}
+.aa-shell .academy-page > .aa-page-header h1 { color: #F3D7AC; }
+.aa-shell .academy-paths-header h2 { font: 500 clamp(1.45rem, 2.2vw, 2rem) Georgia, serif; color: #F0D8B7; }
+.aa-shell .academy-path-groups { gap: 1rem; }
+.aa-shell .academy-path-group {
+  min-height: 17rem;
+  padding: clamp(1.2rem, 2.4vw, 1.8rem);
+  border-color: rgb(185 157 120 / .4);
+  background:
+    radial-gradient(circle at 100% 0, rgb(96 68 116 / .34), transparent 55%),
+    linear-gradient(145deg, #30233A, #1A1422);
+}
+.aa-shell .academy-path-group h3 { font: 500 1.5rem Georgia, serif; color: #EED9B7; }
+.aa-shell .academy-path-link {
+  justify-content: space-between;
+  min-height: 4.1rem;
+  border: 1px solid rgb(185 157 120 / .24);
+  background: #24192E;
+  color: #EEE2EE;
+  padding: .8rem;
+}
+.aa-shell .academy-path-link:hover { border-color: #D1AA7B; background: #352642; }
+.aa-shell .academy-path-link-arrow { color: #E5C391; }
+.aa-shell .grimoires-library-header { padding-block: .5rem 1rem; border-color: rgb(185 157 120 / .4); }
+.aa-shell .grimoires-library-header h2 { font: 500 1.65rem Georgia, serif; color: #F0D8B7; }
+.aa-shell .grimoires-library-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; }
+.aa-shell .grimoires-library-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: .8rem;
+  gap: .75rem;
+  border-color: rgb(185 157 120 / .42);
+  background: linear-gradient(165deg, #32243B, #19131F);
+}
+.aa-shell .grimoires-library-card .aa-grimoire-item-visual {
+  width: 100%;
+  min-height: 11rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(185 157 120 / .3);
+  border-radius: .6rem;
+  background:
+    radial-gradient(circle at 50% 40%, rgb(135 98 159 / .25), transparent 70%),
+    linear-gradient(145deg, #33243C, #120E1B);
+}
+.aa-shell .grimoires-library-card .aa-grimoire-item-visual img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 9.8rem;
+  object-fit: contain;
+  filter: drop-shadow(0 13px 18px rgb(0 0 0 / .42));
+}
+.aa-shell .grimoires-library-card .aa-grimoire-item-copy { flex: 1; min-width: 0; }
+.aa-shell .grimoires-library-card .aa-grimoire-item-copy h3 { font: 500 1.3rem Georgia, serif; color: #F0DBBA; }
+.aa-shell .grimoires-library-card .grimoires-library-open {
+  align-self: stretch;
+  justify-content: center;
+  border: 1px solid #A99073;
+  min-height: 2.75rem;
+  background: #282036;
+  text-align: center;
+}
+.aa-shell .grimoires-library-card .grimoires-library-open:hover { background: #473451; }
+@media (max-width: 78rem) {
+  .aa-shell .grimoires-library-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 58rem) {
+  .aa-shell .academy-path-groups { grid-template-columns: 1fr; }
+}
+@media (max-width: 42rem) {
+  .aa-shell .grimoires-library-list { grid-template-columns: 1fr; }
+}
