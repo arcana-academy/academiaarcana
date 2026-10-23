@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useReadingPreferences } from "@/application/accessibility-preferences/reading-preferences";
+import { ReadingPreferencesControls } from "@/components/personalization/ReadingPreferencesControls";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -202,6 +204,7 @@ export function PageEditor({
   progressStatus = "not-started",
   onSetProgress = async () => undefined,
 }: PageEditorProps) {
+  const { preferences } = useReadingPreferences();
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
@@ -290,18 +293,28 @@ export function PageEditor({
 
   return (
     <article aria-label="Editor da página">
-      <label htmlFor="workspace-page-title">Título</label>
-      <input
-        id="workspace-page-title"
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
-      />
+      <ReadingPreferencesControls />
+      <div
+        className="aa-reading-editor"
+        data-reading-size={preferences.size}
+        data-reading-contrast={preferences.contrast}
+        data-reading-spacing={preferences.spacing}
+        data-reading-focus={preferences.focus}
+        data-reading-font={preferences.font}
+      >
+        <label htmlFor="workspace-page-title">Título</label>
+        <input
+          id="workspace-page-title"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+        />
 
-      <PageBlocks
-        blocks={content.blocks}
-        blockKeys={blockKeys}
-        onChange={updateBlock}
-      />
+        <PageBlocks
+          blocks={content.blocks}
+          blockKeys={blockKeys}
+          onChange={updateBlock}
+        />
+      </div>
 
       <button type="button" onClick={addBlock}>
         Adicionar bloco
