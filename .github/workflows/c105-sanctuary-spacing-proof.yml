@@ -1,0 +1,59 @@
+name: C105 isolated sanctuary spacing screenshot
+on:
+  push:
+    branches:
+      - work/aa360-c105-sanctuary-spacing-proof-20261023
+permissions:
+  contents: read
+jobs:
+  css-and-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 3
+      - name: Verify exact product ancestry
+        run: git merge-base --is-ancestor d2a9cce09f72e87b22291dd1239b80e9217440c7 HEAD
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: CSS syntax only
+        run: node -e "const fs=require('node:fs');const postcss=require('postcss');const p='src/app/arcana-visual-approved.css';postcss.parse(fs.readFileSync(p,'utf8'),{from:p});console.log('C105 style syntax PASS')"
+      - name: Install disposable Chromium
+        run: npm exec -- playwright install chromium
+      - name: Start synthetic preview only on 127.0.0.1
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3105 > /tmp/c105-next.log 2>&1 &
+          for i in $(seq 1 70); do
+            if curl --fail --silent --max-time 3 http://127.0.0.1:3105/c105-visual-sanctuary >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 90 /tmp/c105-next.log
+          exit 1
+      - name: Screenshot only materially changed sanctuary desktop/mobile
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          mkdir -p artifacts
+          npm exec -- playwright test --config=c105-playwright.config.ts -g "Santuário sintético C105"
+      - name: Retain private screenshots for review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: c105-private-sanctuary-spacing-final
+          path: |
+            artifacts/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
