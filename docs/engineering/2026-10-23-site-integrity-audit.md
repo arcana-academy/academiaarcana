@@ -176,3 +176,31 @@ TypeScript 7.x por política do repositório.
    ativar a tipografia Adobe.
 2. Confirmar `NEXT_PUBLIC_APP_URL` com a origem pública real usada nos redirect URIs OAuth.
 3. Manter `OPENAI_API_KEY` como Secret File/ambiente de runtime (nunca em `NEXT_PUBLIC_*`).
+
+## Adendo — itens complementares desta revisão
+
+A auditoria acima cobriu CSP, dev server, configuração de integrações e conteúdo. Esta revisão
+acrescentou três pontos que ficaram de fora:
+
+### Favicon binário
+
+`src/app/icon.svg` já era servido em `/icon.svg`, mas `/favicon.ico` continuava retornando 404 para
+navegadores e crawlers que pedem o caminho convencional. Foi adicionado `src/app/favicon.ico`
+(32×32, derivado do selo institucional); o Next.js declara os dois em `<link rel="icon">` e ambos
+respondem 200 com o `Content-Type` correto.
+
+### Janela de espera do smoke de produção
+
+O run `40001118764` (commit `c985f03`) falhou em *Check health endpoint*: a raiz já respondia 200 na
+revisão anterior e a verificação da revisão esperada desistia após 12 × 10 s, antes de o Render
+concluir o deploy. A espera passou para 30 × 10 s e o `timeout-minutes` do job para 18.
+
+### Regeneração dos manifestos visuais
+
+A correção de CSP faz os atributos `style` voltarem a valer, o que altera os screenshots das páginas
+que montam layout com `style`. Os manifestos (`tests/e2e/*-baselines.json`) precisam ser regravados
+pelo **mesmo build de Chromium da CI**. As specs passaram a honrar `AA_VISUAL_BASELINES_WRITE=1`, e o
+workflow `autofix` habilita esse modo somente para PRs com o label `refresh-visual-baselines`,
+commitando os manifestos regravados para revisão normal. Fora desse label, toda execução continua
+assertando. Os cinco manifestos foram regravados dessa forma e o resultado é idêntico ao já
+publicado em `main`.
