@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "npm@11.19.1",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "prebuild": "node scripts/verify-public-runtime-config.mjs && node scripts/verify-deployment-platform.cjs && node scripts/verify-canonical-infrastructure.cjs",
     "build": "next build --webpack",
     "start": "next start",

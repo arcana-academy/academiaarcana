@@ -164,12 +164,44 @@ jobs:
           }
 
           const csp = cspLine.slice(cspLine.indexOf(":") + 1).trim();
-          if (/[\u0027\"]unsafe-inline[\u0027\"]/i.test(csp) || /[\u0027\"]unsafe-eval[\u0027\"]/i.test(csp)) {
-            throw new Error("Production CSP contains unsafe-inline or unsafe-eval.");
+
+          // Split into directives so each one is validated in its own context.
+          const directives = new Map();
+          for (const part of csp.split(";")) {
+            const trimmed = part.trim();
+            if (!trimmed) continue;
+            const [name, ...sources] = trimmed.split(/\s+/);
+            directives.set(name.toLowerCase(), sources.join(" "));
           }
 
-          if (!/script-src[^;]*\u0027nonce-[^\u0027]+\u0027/i.test(csp)) {
+          const scriptSrc = directives.get("script-src") ?? "";
+          const styleSrc = directives.get("style-src") ?? "";
+          const styleSrcAttr = directives.get("style-src-attr") ?? "";
+
+          // Scripts must stay nonce-based: no inline and no eval anywhere.
+          if (/\u0027unsafe-inline\u0027/i.test(scriptSrc)) {
+            throw new Error("Production script-src must not allow unsafe-inline.");
+          }
+          if (/\u0027unsafe-eval\u0027/i.test(csp)) {
+            throw new Error("Production CSP must not allow unsafe-eval.");
+          }
+          if (!/\u0027nonce-[^\u0027]+\u0027/i.test(scriptSrc)) {
             throw new Error("Production script-src CSP nonce is missing.");
+          }
+
+          // <style> elements and stylesheets must stay nonce-based. Only the
+          // attribute directive may allow inline styles, because React
+          // `style={{...}}` props cannot carry a nonce.
+          if (/\u0027unsafe-inline\u0027/i.test(styleSrc)) {
+            throw new Error("Production style-src must not allow unsafe-inline.");
+          }
+          if (!/\u0027nonce-[^\u0027]+\u0027/i.test(styleSrc)) {
+            throw new Error("Production style-src CSP nonce is missing.");
+          }
+          if (!/\u0027unsafe-inline\u0027/i.test(styleSrcAttr)) {
+            throw new Error(
+              "Production style-src-attr must allow inline styles for React style props.",
+            );
           }
 
           console.log("Production Content Security Policy regression contract is healthy.");
