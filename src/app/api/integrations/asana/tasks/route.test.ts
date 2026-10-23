@@ -71,6 +71,21 @@ describe("Asana task routes with authenticated credential context", () => {
     expect(mockGetTasks).not.toHaveBeenCalled();
   });
 
+  it("responds HTTP 502 for temporary refresh failure on reads and writes", async () => {
+    mockContext.mockResolvedValue({ credentials: null, status: "request_failed" });
+    const listed = await GET(new Request("https://example.invalid/api/integrations/asana/tasks"));
+    const created = await POST(request("POST", { name: "Synthetic task" }));
+    const closed = await PATCH(request("PATCH", { taskId: "task-1" }));
+    expect([listed.status, created.status, closed.status]).toEqual([502, 502, 502]);
+    for (const response of [listed, created, closed]) {
+      expect(response.headers.get("cache-control")).toBe("private, no-store");
+      expect((await response.json()).status).toBe("request_failed");
+    }
+    expect(mockGetTasks).not.toHaveBeenCalled();
+    expect(mockCreateTask).not.toHaveBeenCalled();
+    expect(mockCloseTask).not.toHaveBeenCalled();
+  });
+
   it("lists tasks with the subject-validated refreshed token and project filter", async () => {
     mockGetTasks.mockResolvedValue({ output: [{ id: "task-1", name: "Study" }] });
     const response = await GET(

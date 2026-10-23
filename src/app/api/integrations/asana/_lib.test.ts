@@ -22,6 +22,9 @@ vi.mock("@/lib/auth/require-authenticated-user", () => ({
 }));
 vi.mock("@/infrastructure/integrations/asana", () => ({
   ASANA_CREDENTIALS_COOKIE: "__Host-aa-asana-credentials",
+  AsanaConnectionError: class AsanaConnectionError extends Error {
+    constructor(message: string, readonly code: string) { super(message); this.name = "AsanaConnectionError"; }
+  },
   decryptAsanaCredentials: mockDecrypt,
   shouldRefreshAsanaCredentials: mockShouldRefresh,
   refreshAsanaCredentials: mockRefresh,
@@ -103,6 +106,40 @@ describe("Asana subject-bound credentials and refresh", () => {
   it("fails closed and removes the cookie when refreshing is rejected", async () => {
     mockShouldRefresh.mockReturnValueOnce(true);
     mockRefresh.mockRejectedValueOnce(new Error("synthetic refresh rejection"));
+    const context = await getAsanaCredentialsContext();
+    expect(context).toEqual({ credentials: null, status: "reauthorization_required" });
+    expect(jar.delete).toHaveBeenCalledWith("__Host-aa-asana-credentials");
+    expect(jar.set).not.toHaveBeenCalled();
+  });
+
+  it.each(["rate_limited", "request_failed"])(
+    "keeps the cookie and marks %s as retryable after token refresh",
+    async code => {
+      mockShouldRefresh.mockReturnValueOnce(true);
+      const { AsanaConnectionError } = await import("@/infrastructure/integrations/asana");
+      mockRefresh.mockRejectedValueOnce(new AsanaConnectionError("synthetic temporary error", code));
+      const context = await getAsanaCredentialsContext();
+      expect(context).toEqual({ credentials: null, status: "request_failed" });
+      expect(jar.delete).not.toHaveBeenCalled();
+      expect(jar.set).not.toHaveBeenCalled();
+    },
+  );
+
+  it("retains subject-bound cookie when a successful refresh response contains invalid JSON", async () => {
+    mockShouldRefresh.mockReturnValueOnce(true);
+    const { AsanaConnectionError } = await import("@/infrastructure/integrations/asana");
+    mockRefresh.mockRejectedValueOnce(
+      new AsanaConnectionError("synthetic malformed OAuth response", "request_failed"),
+    );
+    const context = await getAsanaCredentialsContext();
+    expect(context).toEqual({ credentials: null, status: "request_failed" });
+    expect(jar.delete).not.toHaveBeenCalled();
+    expect(jar.set).not.toHaveBeenCalled();
+  });
+
+  it("fails closed on SyntaxError outside the OAuth response parser", async () => {
+    mockShouldRefresh.mockReturnValueOnce(true);
+    mockEncrypt.mockRejectedValueOnce(new SyntaxError("synthetic cookie encoding error"));
     const context = await getAsanaCredentialsContext();
     expect(context).toEqual({ credentials: null, status: "reauthorization_required" });
     expect(jar.delete).toHaveBeenCalledWith("__Host-aa-asana-credentials");

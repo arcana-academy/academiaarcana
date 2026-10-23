@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 
 import {
   ASANA_CREDENTIALS_COOKIE,
+  AsanaConnectionError,
   decryptAsanaCredentials,
   encryptAsanaCredentials,
   refreshAsanaCredentials,
@@ -47,7 +48,13 @@ export async function getAsanaCredentialsContext() {
         },
       );
       credentials = refreshed;
-    } catch {
+    } catch (error) {
+      // Rely on the OAuth adapter's typed transient error only.
+      // A SyntaxError elsewhere (including cookie serialization) fails closed.
+      if (error instanceof AsanaConnectionError &&
+          (error.code === "request_failed" || error.code === "rate_limited")) {
+        return { credentials: null, status: "request_failed" as const };
+      }
       cookieStore.delete(ASANA_CREDENTIALS_COOKIE);
       return { credentials: null, status: "reauthorization_required" as const };
     }

@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const { credentials, status } = await getAsanaCredentialsContext();
   if (!credentials) return NextResponse.json({ providerId: "asana", status, tasks: [] }, {
+    status: status === "request_failed" ? 502 : 200,
     headers: { "Cache-Control": "private, no-store" },
   });
   const projectId = new URL(request.url).searchParams.get("projectId") ?? undefined;
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const { credentials, status } = await getAsanaCredentialsContext();
-  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: 401 });
+  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: status === "request_failed" ? 502 : 401, headers: { "Cache-Control": "private, no-store" } });
 
   try {
     const body = await request.json() as {
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   const { credentials, status } = await getAsanaCredentialsContext();
-  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: 401 });
+  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: status === "request_failed" ? 502 : 401, headers: { "Cache-Control": "private, no-store" } });
 
   try {
     const body = await request.json() as { taskId?: string };

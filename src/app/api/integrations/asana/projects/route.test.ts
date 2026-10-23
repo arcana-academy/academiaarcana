@@ -62,6 +62,17 @@ describe("Asana projects route with renewable credentials", () => {
     expect(mockGetProjects).not.toHaveBeenCalled();
   });
 
+  it("reports HTTP 502 without forcing reconnect after a transient refresh outage", async () => {
+    mockContext.mockResolvedValueOnce({ credentials: null, status: "request_failed" });
+    const response = await GET();
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      providerId: "asana", status: "request_failed", projects: [],
+    });
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(mockGetProjects).not.toHaveBeenCalled();
+  });
+
   it("preserves provider error semantics", async () => {
     mockGetProjects.mockRejectedValueOnce(new Error("synthetic provider outage"));
     const response = await GET();
