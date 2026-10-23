@@ -54,7 +54,17 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           AA_LOCAL_SUPABASE_E2E: "1"
+          AA_C54_SYNTHETIC_VISUAL: "1"
         run: node scripts/security/test-local-authenticated-nextjs-e2e.mjs
+
+      - name: Archive synthetic local visual evidence
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: academiaarcana-c54-synthetic-visual
+          path: artifacts/aa360-c54-visual/*.png
+          if-no-files-found: warn
+          retention-days: 1
 
       - name: Stop ephemeral Supabase
         if: always()

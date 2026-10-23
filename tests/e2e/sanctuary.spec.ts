@@ -9,6 +9,13 @@ async function expectWorkspaceContext(page: import("@playwright/test").Page) {
     page.getByRole("navigation", { name: "Navegação do workspace" }),
   ).toBeVisible();
 
+  // A #current link must land on the visible Workspace editor, not a
+  // nonexistent fragment; maintain a programmatically focusable destination.
+  const editorTarget = page.locator("#current");
+  await expect(editorTarget).toHaveCount(1);
+  await expect(editorTarget).toHaveAttribute("aria-labelledby", "workspace-editor-heading");
+  await expect(editorTarget).toHaveAttribute("tabindex", "-1");
+
   const url = new URL(page.url());
   if (url.searchParams.has("page")) {
     await expect(page.locator('[aria-current="page"]')).toBeVisible();
@@ -86,6 +93,7 @@ test.describe("authenticated Sanctuary flow", () => {
     });
 
     if (await resumeStudy.count()) {
+      await expect(resumeStudy).toHaveAttribute("href", /#current$/);
       await resumeStudy.click();
       await expectWorkspaceContext(page);
       return;
@@ -96,6 +104,7 @@ test.describe("authenticated Sanctuary flow", () => {
     });
 
     if (await openStudy.count()) {
+      await expect(openStudy).toHaveAttribute("href", /#current$/);
       await openStudy.click();
       await expectWorkspaceContext(page);
       return;
