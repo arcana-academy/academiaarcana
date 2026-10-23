@@ -14,6 +14,13 @@ const resolveSubjectIdServerMock = vi.hoisted(() =>
   vi.fn(() => async () => "user-1"),
 );
 
+vi.mock("./fonts", () => ({
+  arcanaGrenze: { variable: "font-grenze-var" },
+  arcanaLiterata: { variable: "font-literata-var" },
+  arcanaCormorant: { variable: "font-cormorant-var" },
+  arcanaSmythe: { variable: "font-smythe-var" },
+}));
+
 vi.mock("@/application/providers/ApplicationProviders", () => ({
   ApplicationProviders: applicationProvidersMock,
 }));
@@ -31,6 +38,10 @@ describe("RootLayout", () => {
     });
 
     expect(element.type).toBe("html");
+    for (const fontVariable of ["font-grenze-var", "font-literata-var", "font-cormorant-var", "font-smythe-var"]) {
+      expect(element.props.className).toContain(fontVariable);
+    }
+
 
     const htmlChildren = Array.isArray(element.props.children)
       ? element.props.children

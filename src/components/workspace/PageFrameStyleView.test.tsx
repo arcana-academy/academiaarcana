@@ -39,10 +39,13 @@ describe("Optional Brand Book grimoire frames", () => {
   });
 
   test("does not claim durable save when browser storage denies writes", () => {
+    window.localStorage.setItem(pageFrameStorageKey("frame-blocked"), "medieval");
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
-    const { container } = render(<PageFrameStyleView pageId="frame-blocked"><article>Original</article></PageFrameStyleView>);
+    const { container, rerender } = render(<PageFrameStyleView pageId="frame-blocked"><article>Original</article></PageFrameStyleView>);
     fireEvent.change(screen.getByRole("combobox", { name: "Moldura desta página" }), { target: { value: "ornamental" } });
     expect(container.querySelector(".workspace-page-frame")).toHaveAttribute("data-aa-frame-style", "ornamental");
     expect(screen.getByRole("status")).toHaveTextContent(/não foi salva/i);
+    rerender(<PageFrameStyleView pageId="frame-other"><article>Outra</article></PageFrameStyleView>);
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });

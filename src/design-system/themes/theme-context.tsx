@@ -18,6 +18,8 @@ export type AppearanceChoice = "system" | "dark" | "light";
 type ActiveAppearance = AppearanceChoice | "custom";
 const STORAGE_KEY = "academia-arcana.appearance-v1";
 const CHANGE_EVENT = "academia-arcana:appearance-changed";
+let fallbackAppearance: AppearanceChoice = "system";
+let storageBlocked = false;
 
 type ThemeContextValue = {
   theme: ThemeId;
@@ -30,19 +32,27 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getAppearance(): AppearanceChoice {
+  if (storageBlocked) return fallbackAppearance;
   try {
     const value = window.localStorage.getItem(STORAGE_KEY);
     return value === "dark" || value === "light" ? value : "system";
   } catch {
-    return "system";
+    return fallbackAppearance;
   }
 }
 
 function subscribeAppearance(notify: () => void): () => void {
-  window.addEventListener("storage", notify);
+  const storageListener = (event: StorageEvent) => {
+    if (!event.key || event.key === STORAGE_KEY) {
+      storageBlocked = false;
+      fallbackAppearance = "system";
+    }
+    notify();
+  };
+  window.addEventListener("storage", storageListener);
   window.addEventListener(CHANGE_EVENT, notify);
   return () => {
-    window.removeEventListener("storage", notify);
+    window.removeEventListener("storage", storageListener);
     window.removeEventListener(CHANGE_EVENT, notify);
   };
 }
@@ -103,10 +113,12 @@ export function ThemeProvider({
 
   const setAppearance = useCallback((choice: AppearanceChoice) => {
     setCustomOverride(false);
+    fallbackAppearance = choice;
     try {
       window.localStorage.setItem(STORAGE_KEY, choice);
+      storageBlocked = false;
     } catch {
-      // A missing storage provider leaves device defaults available.
+      storageBlocked = true;
     }
     window.dispatchEvent(new Event(CHANGE_EVENT));
   }, []);

@@ -15,6 +15,7 @@ export type PageFrameStyle = (typeof PAGE_FRAME_STYLES)[number]["id"];
 const PREFIX = "academia-arcana.page-frame.v1:";
 const EVENT = "academia-arcana:frame-changed";
 const sessionFallback = new Map<string, PageFrameStyle>();
+const blocked = new Set<string>();
 
 export function isPageFrameStyle(value: unknown): value is PageFrameStyle {
   return PAGE_FRAME_STYLES.some((item) => item.id === value);
@@ -26,21 +27,35 @@ export function pageFrameStorageKey(pageId: string): string {
 
 function readFrame(pageId: string): PageFrameStyle {
   if (typeof window === "undefined") return "none";
+  if (blocked.has(pageId)) return sessionFallback.get(pageId) ?? "none";
   try {
     const persisted = window.localStorage.getItem(pageFrameStorageKey(pageId));
     if (isPageFrameStyle(persisted)) return persisted;
   } catch {
     // Private browsing may disable storage. Session changes still work.
+    return sessionFallback.get(pageId) ?? "none";
   }
-  return sessionFallback.get(pageId) ?? "none";
+  return "none";
 }
 
 function subscribe(listener: () => void): () => void {
+  const storageListener = (event: StorageEvent) => {
+    if (event.key?.startsWith(PREFIX)) {
+      try {
+        const pageId = decodeURIComponent(event.key.slice(PREFIX.length));
+        sessionFallback.delete(pageId);
+        blocked.delete(pageId);
+      } catch {
+        return;
+      }
+    }
+    listener();
+  };
   window.addEventListener(EVENT, listener);
-  window.addEventListener("storage", listener);
+  window.addEventListener("storage", storageListener);
   return () => {
     window.removeEventListener(EVENT, listener);
-    window.removeEventListener("storage", listener);
+    window.removeEventListener("storage", storageListener);
   };
 }
 
@@ -53,7 +68,8 @@ export function PageFrameStyleView({
   children: ReactNode;
 }) {
   const fieldId = useId();
-  const [storageWarning, setStorageWarning] = useState(false);
+  const [warningPageId, setWarningPageId] = useState<string | null>(null);
+  const storageWarning = warningPageId === pageId;
   const current = useSyncExternalStore(
     subscribe,
     () => readFrame(pageId),
@@ -65,9 +81,11 @@ export function PageFrameStyleView({
     sessionFallback.set(pageId, style);
     try {
       window.localStorage.setItem(pageFrameStorageKey(pageId), style);
-      setStorageWarning(false);
+      blocked.delete(pageId);
+      setWarningPageId(null);
     } catch {
-      setStorageWarning(true);
+      blocked.add(pageId);
+      setWarningPageId(pageId);
     }
     window.dispatchEvent(new Event(EVENT));
   };

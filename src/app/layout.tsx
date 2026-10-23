@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./accessibility.css";
 
+import { arcanaGrenze, arcanaLiterata, arcanaCormorant, arcanaSmythe } from "./fonts";
 import { ApplicationProviders } from "@/application/providers/ApplicationProviders";
 import { createIdentityResolver } from "@/application/identity/IdentityResolver";
 import type { ApplicationIdentityState } from "@/application/identity/contracts";
@@ -29,7 +30,12 @@ export default async function RootLayout({
   const adobeFontsStylesheetUrl = getAdobeFontsStylesheetUrl();
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={[
+      arcanaGrenze.variable,
+      arcanaLiterata.variable,
+      arcanaCormorant.variable,
+      arcanaSmythe.variable,
+    ].join(" ")}>
       <head>
         {adobeFontsStylesheetUrl ? (
           <link rel="stylesheet" href={adobeFontsStylesheetUrl} />
