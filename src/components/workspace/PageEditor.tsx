@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
+import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
 
 type PageDeleteControlProps = {
   pageId: string;
@@ -275,6 +276,7 @@ export function PageEditor({
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
+  const [starter, setStarter] = useState<PageStarterTemplate>("blank");
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -379,6 +381,15 @@ export function PageEditor({
     ]);
   };
 
+  /** Templates never overwrite authored blocks or save without confirmation. */
+  const applyStarter = () => {
+    if (status === "saving" || !canApplyStarterTemplate(content)) return;
+    const nextContent = buildStarterTemplate(starter);
+    setContent(nextContent);
+    setBlockKeys(nextContent.blocks.map((_, index) => page.id + ":template:" + index));
+    setStatus("idle");
+  };
+
   return (
     <article aria-label="Editor da página">
       <label htmlFor="workspace-page-title">Título</label>
@@ -390,6 +401,31 @@ export function PageEditor({
           setStatus("idle");
         }}
       />
+
+      <section aria-label="Modelos iniciais de página" className="workspace-page-template-controls">
+        <label htmlFor="workspace-page-starter">Modelo inicial</label>
+        <select
+          id="workspace-page-starter"
+          className="aa-input"
+          value={starter}
+          disabled={!canApplyStarterTemplate(content) || status === "saving"}
+          onChange={(event) => setStarter(event.target.value as PageStarterTemplate)}
+        >
+          {PAGE_STARTER_TEMPLATES.map((choice) => (
+            <option key={choice.id} value={choice.id}>{choice.label}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          disabled={!canApplyStarterTemplate(content) || status === "saving"}
+          onClick={applyStarter}
+        >Aplicar modelo</button>
+        <p className="aa-field-description">
+          Disponível somente em páginas vazias. A aplicação prepara um rascunho local;
+          use Salvar página para registrar as alterações. O modelo ilustrado cria uma
+          referência textual, não envia imagens.
+        </p>
+      </section>
 
       <PageBlocks
         blocks={content.blocks}
