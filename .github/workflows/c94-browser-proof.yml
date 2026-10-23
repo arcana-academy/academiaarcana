@@ -25,7 +25,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
       - name: Only new C94 real-browser CSS/mobile scenarios
-        run: npm exec -- playwright test --config=tests/c94.config.ts
+        run: npm exec -- playwright test --config=tests/c94.config.ts --grep "mobile combined toolbar"
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC

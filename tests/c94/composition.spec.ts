@@ -43,11 +43,11 @@ test("mobile combined toolbar and templates preserve unsaved authoring", async (
 
   await page.getByRole("combobox", { name: "Modelo inicial" }).selectOption("notes");
   await page.getByRole("button", { name: "Aplicar modelo" }).click();
-  await expect(page.getByLabel("Bloco 1")).toHaveValue("Tema e objetivo:");
-  await page.getByLabel("Bloco 1").fill("Meu estudo permanece editável.");
+  await expect(page.getByRole("textbox", { name: "Bloco 1", exact: true })).toHaveValue("Tema e objetivo:");
+  await page.getByRole("textbox", { name: "Bloco 1", exact: true }).fill("Meu estudo permanece editável.");
   await expect(page.getByTestId("c94-save-count")).toHaveText("0");
   await paper.selectOption("arcano-escuro");
-  await expect(page.getByLabel("Bloco 1")).toHaveValue("Meu estudo permanece editável.");
+  await expect(page.getByRole("textbox", { name: "Bloco 1", exact: true })).toHaveValue("Meu estudo permanece editável.");
   expect(await page.evaluate(() => document.documentElement.scrollWidth))
     .toBeLessThanOrEqual(376);
 
