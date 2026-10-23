@@ -242,7 +242,7 @@ describe("delivery infrastructure contract", () => {
     expect(guard).not.toContain("hook.searchParams.set");
     expect(guard).not.toContain("fetchService(hook.toString()");
     expect(request).toContain("RENDER_DEPLOY_API_KEY");
-    expect(request).toContain("exactly one");
+    expect(guard).toContain("Create exactly one deployment through the authenticated API.");
     expect(request).not.toMatch(/fetch\([^\n]*\/deploy\//);
   });
 
