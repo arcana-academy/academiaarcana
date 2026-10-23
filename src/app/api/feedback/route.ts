@@ -13,8 +13,17 @@ const FeedbackSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Revise os campos do formulário." },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  try {
     const input = FeedbackSchema.parse(body);
     const record = await createFeedback(input);
     return NextResponse.json(

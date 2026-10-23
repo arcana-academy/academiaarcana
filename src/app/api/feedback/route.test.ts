@@ -67,6 +67,34 @@ describe("POST /api/feedback", () => {
     expect(createFeedback).not.toHaveBeenCalled();
   });
 
+  it("treats malformed JSON as a client input error, without persistence", async () => {
+    const request = new Request("https://example.com/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{"name":',
+    });
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({
+      error: "Revise os campos do formulário.",
+    });
+    expect(createFeedback).not.toHaveBeenCalled();
+  });
+
+  it("keeps server-side SyntaxError classified as internal failure", async () => {
+    createFeedback.mockRejectedValueOnce(
+      new SyntaxError("internal parser detail must remain private"),
+    );
+    const response = await POST(feedbackRequest(validInput));
+    expect(response.status).toBe(500);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({
+      error: "Não foi possível salvar o feedback.",
+    });
+  });
+
   it("returns 401 only for a typed authentication failure", async () => {
     createFeedback.mockRejectedValueOnce(new FeedbackAuthenticationError());
 
