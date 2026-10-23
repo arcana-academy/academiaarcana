@@ -13,6 +13,7 @@ type Target = {
 type VerifyInput = {
   hookUrl: string;
   approvedServiceId: string;
+  deployApiKey: string;
   apiKey: string;
   imageUrl: string;
   fetchService: (url: string, options?: RequestInit) => Promise<{ status: number; json: () => Promise<unknown> }>;
@@ -31,6 +32,7 @@ const inputs = {
   hookUrl: `https://api.render.com/deploy/${id}?key=synthetic-test-only`,
   approvedServiceId: id,
   apiKey: "synthetic-read-api-key",
+  deployApiKey: "synthetic-deploy-api-key",
   imageUrl: `${imageRepo}@sha256:${"a".repeat(64)}`,
 };
 const service: Target = {
@@ -100,7 +102,7 @@ describe("Render image-release target preflight", () => {
     })).rejects.toThrow(/approved GHCR/);
   });
 
-  it("refuses the deployment hook when a freshly read nested image path changes", async () => {
+  it("refuses the deploy API when a freshly read nested image path changes", async () => {
     const urls: string[] = [];
     const changed: Target = {
       id,
@@ -136,354 +138,282 @@ describe("Render image-release target preflight", () => {
     await expect(verify(service, { imageUrl: `${imageRepo}:mutable` })).rejects.toThrow(/immutable GHCR image/);
   });
 
-  it("confirms the exact requested digest and new deployment ID before success", async () => {
-    const requests: Array<{ url: string; options?: RequestInit }> = [];
-    const deployId = "dep-synthetic123";
-    const fetchService = async (url: string, options?: RequestInit) => {
-      requests.push({ url, options });
-      if (url.includes("/deploys/")) {
-        return { status: 200, json: async () => ({
-          id: deployId, status: "live", image: { ref: inputs.imageUrl },
-        }) };
-      }
-      if (url.includes("/deploy/")) {
-        return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-      }
-      return { status: 200, json: async () => service };
-    };
 
-    await expect(requestVerifiedRenderImageDeployment({ ...inputs, fetchService })).resolves.toBe(true);
-    expect(requests).toHaveLength(3);
-    expect(requests[0].url).toBe(`https://api.render.com/v1/services/${id}`);
-    expect(requests[0].options?.method).toBe("GET");
-    expect(requests[0].options?.headers).toMatchObject({ Authorization: "Bearer synthetic-read-api-key" });
-    const hook = new URL(requests[1].url);
-    expect(hook.origin).toBe("https://api.render.com");
-    expect(hook.pathname).toBe(`/deploy/${id}`);
-    expect(hook.searchParams.get("key")).toBe("synthetic-test-only");
-    expect(hook.searchParams.get("imgURL")).toBe(inputs.imageUrl);
-    expect(requests[1].options?.method).toBe("GET");
-    expect(requests[1].options?.redirect).toBe("error");
-    expect(requests[1].options?.headers).toBeUndefined();
-    expect(requests[2].url).toBe(`https://api.render.com/v1/services/${id}/deploys/${deployId}`);
-    expect(requests[2].options?.headers).toMatchObject({ Authorization: "Bearer synthetic-read-api-key" });
+  // The Render Deploy API returns a top-level deployment ID for HTTP 201.
+  // It must never infer an identity from a matching concurrent deployment.
+  const serviceURL = "https://api.render.com/v1/services/" + id;
+  const deployURL = serviceURL + "/deploys";
+  const deployId = "dep-synthetic123";
+  const approvedAck = () => ({
+    id: deployId, trigger: "api", status: "created",
+    image: { ref: inputs.imageUrl },
   });
-
-  it("rechecks metadata and refuses hook when the live target changes after an earlier read", async () => {
-    let current = service;
-    const requests: string[] = [];
-    const fetchService = async (url: string) => {
-      requests.push(url);
-      return { status: 200, json: async () => current };
-    };
-    await expect(verifyRenderImageTarget({ ...inputs, fetchService })).resolves.toBe(true);
-    requests.length = 0;
-    current = { ...service, imagePath: "docker.io/example/changed-target" };
-    await expect(requestVerifiedRenderImageDeployment({ ...inputs, fetchService })).rejects.toThrow(/approved GHCR/);
-    expect(requests).toEqual([`https://api.render.com/v1/services/${id}`]);
+  const reply = (status: number, data: unknown, retryAfter?: string) => ({
+    status,
+    json: async () => data,
+    headers: { get: () => retryAfter ?? null },
   });
-
-  it("never calls the hook when the service GET fails or auto-deploy is enabled", async () => {
-    const requests: string[] = [];
-    const fetchService = async (url: string) => {
-      requests.push(url);
-      return { status: 503, json: async () => service };
-    };
-    await expect(requestVerifiedRenderImageDeployment({ ...inputs, fetchService })).rejects.toThrow(/HTTP 200/);
-    expect(requests).toHaveLength(1);
-    requests.length = 0;
-    const changedService = { ...service, autoDeployTrigger: "commit" };
-    await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      fetchService: async (url: string) => {
-        requests.push(url);
-        return { status: 200, json: async () => changedService };
-      },
-    })).rejects.toThrow(/automatic deployment disabled/);
-    expect(requests).toEqual([`https://api.render.com/v1/services/${id}`]);
-  });
-
-  it("fails closed if the hook does not return HTTP 200", async () => {
-    const requests: string[] = [];
-    await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      fetchService: async (url: string) => {
-        requests.push(url);
-        return { status: url.includes("/deploy/") ? 403 : 200, json: async () => service };
-      },
-    })).rejects.toThrow(/hook did not accept the request/);
-    expect(requests).toHaveLength(2);
-  });
-  it("fails closed on HTTP 202 because a queued hook has no deploy ID", async () => {
-    const urls: string[] = [];
-    await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      fetchService: async (url: string) => {
-        urls.push(url);
-        return { status: url.includes("/deploy/") ? 202 : 200, json: async () => service };
-      },
-    })).rejects.toThrow(/queued deployment without a trackable ID/);
-    expect(urls).toHaveLength(2);
-  });
-
-  it("waits for the specific new deploy to become live, not an old matching SHA", async () => {
-    const deployId = "dep-synthetic123";
-    const urls: string[] = [];
+  function stub(config: {
+    createStatus?: number;
+    createData?: unknown;
+    createError?: boolean;
+    serviceData?: Target;
+    poll?: (deployId: string, attempt: number) => ReturnType<typeof reply> | Promise<ReturnType<typeof reply>>;
+  } = {}) {
+    const calls: Array<{ url: string; options?: RequestInit }> = [];
     let polls = 0;
-    let waits = 0;
+    const fetchService = async (url: string, options?: RequestInit) => {
+      calls.push({ url, options });
+      if (url === serviceURL) {
+        return reply(200, config.serviceData ?? service);
+      }
+      if (url === deployURL) {
+        if (options?.method !== "POST") throw new Error("Expected authenticated POST");
+        if (config.createError) throw new Error("Synthetic network disconnect after POST");
+        return reply(config.createStatus ?? 201,
+          Object.prototype.hasOwnProperty.call(config, "createData")
+            ? config.createData : approvedAck());
+      }
+      if (url.startsWith(deployURL + "/")) {
+        polls += 1;
+        const polledId = url.slice((deployURL + "/").length);
+        return config.poll
+          ? await config.poll(polledId, polls)
+          : reply(200, { id: polledId, status: "live", image: { ref: inputs.imageUrl } });
+      }
+      throw new Error("Unexpected Render endpoint");
+    };
+    return { calls, fetchService, get polls() { return polls; } };
+  }
+
+  it("creates exactly one API deployment, validates HTTP 201 and confirms its own ID", async () => {
+    const m = stub();
     await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      waitForNextPoll: async () => { waits += 1; },
-      fetchService: async (url: string) => {
-        urls.push(url);
-        if (url.includes("/deploys/")) {
-          polls += 1;
-          return { status: 200, json: async () => ({
-            id: deployId, status: polls === 1 ? "update_in_progress" : "live",
-            image: { ref: inputs.imageUrl },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
-      },
+      ...inputs, fetchService: m.fetchService,
     })).resolves.toBe(true);
-    expect(polls).toBe(2);
-    expect(waits).toBe(1);
-    expect(urls).toHaveLength(4);
+    expect(m.calls.map(c => c.url)).toEqual([serviceURL, deployURL, deployURL + "/" + deployId]);
+    expect(m.calls[0].options?.method).toBe("GET");
+    expect(m.calls[0].options?.headers).toMatchObject({
+      Authorization: "Bearer synthetic-read-api-key",
+    });
+    expect(m.calls[1].options?.method).toBe("POST");
+    expect(m.calls[1].options?.headers).toMatchObject({
+      Authorization: "Bearer synthetic-deploy-api-key",
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    });
+    expect(JSON.parse(String(m.calls[1].options?.body))).toEqual({
+      imageUrl: inputs.imageUrl, clearCache: "do_not_clear",
+    });
+    expect(m.calls[2].options?.headers).toMatchObject({
+      Authorization: "Bearer synthetic-read-api-key",
+    });
+    expect(m.calls.every(c => !c.url.includes("/deploy/" + id))).toBe(true);
   });
 
-  it("rejects a hook HTTP 200 without a verifiable deploy ID", async () => {
-    const urls: string[] = [];
+  it("refuses any API call when the separately approved write credential is missing", async () => {
+    const m = stub();
     await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      fetchService: async (url: string) => {
-        urls.push(url);
-        return { status: 200, json: async () => url.includes("/deploy/")
-          ? { deploy: {} } : service };
-      },
-    })).rejects.toThrow(/no valid deployment ID/);
-    expect(urls).toHaveLength(2);
+      ...inputs, deployApiKey: "", fetchService: m.fetchService,
+    })).rejects.toThrow(/credential is missing/);
+    expect(m.calls).toHaveLength(0);
   });
 
-  it.each(["canceled", "build_failed", "update_failed", "pre_deploy_failed"])(
-    "rejects a specific deploy ending in %s",
-    async (status) => {
-      const deployId = "dep-synthetic123";
-      const requests: string[] = [];
+  it("refuses POST when fresh image-backed target validation fails", async () => {
+    const m = stub({ serviceData: { ...service, imagePath: "docker.io/unapproved/image" } });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+    })).rejects.toThrow(/approved GHCR/);
+    expect(m.calls.map(c => c.url)).toEqual([serviceURL]);
+  });
+
+  it("does not confuse concurrent identical-image API deploys with distinct returned IDs", async () => {
+    const otherId = "dep-otheractor123";
+    const a = stub({
+      createData: { id: deployId, trigger: "api", image: { ref: inputs.imageUrl } },
+      poll: async polledId => reply(200, {
+        id: polledId, status: "live", image: { ref: inputs.imageUrl },
+      }),
+    });
+    const b = stub({
+      createData: { id: otherId, trigger: "api", image: { ref: inputs.imageUrl } },
+      poll: async polledId => reply(200, {
+        id: polledId, status: "live", image: { ref: inputs.imageUrl },
+      }),
+    });
+    await expect(Promise.all([
+      requestVerifiedRenderImageDeployment({ ...inputs, fetchService: a.fetchService }),
+      requestVerifiedRenderImageDeployment({ ...inputs, fetchService: b.fetchService }),
+    ])).resolves.toEqual([true, true]);
+    expect(a.calls.map(x => x.url)).toEqual([serviceURL, deployURL, deployURL + "/" + deployId]);
+    expect(b.calls.map(x => x.url)).toEqual([serviceURL, deployURL, deployURL + "/" + otherId]);
+  });
+
+  it("never adopts a different deploy ID even with identical digest", async () => {
+    const m = stub({ poll: async () => reply(200, {
+      id: "dep-otheractor123", status: "live", image: { ref: inputs.imageUrl },
+    }) });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+    })).rejects.toThrow(/different deployment ID/);
+    expect(m.calls.filter(c => c.options?.method === "POST")).toHaveLength(1);
+  });
+
+  it("treats HTTP 202 as an indeterminate accepted deployment with no retry or lookup-by-time", async () => {
+    const m = stub({ createStatus: 202, createData: null });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+    })).rejects.toThrow(/HTTP 202.*manual reconciliation required. Do not retry/);
+    expect(m.calls.map(c => c.url)).toEqual([serviceURL, deployURL]);
+  });
+
+  it("does not retry a POST on a network disconnect with possibly accepted deploy", async () => {
+    const m = stub({ createError: true });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+    })).rejects.toThrow(/outcome unknown.*manual reconciliation required. Do not retry/);
+    expect(m.calls.map(c => c.url)).toEqual([serviceURL, deployURL]);
+  });
+
+  it.each([200, 400, 401, 409, 429, 500])(
+    "rejects creation HTTP %i and does not retry the write",
+    async status => {
+      const m = stub({ createStatus: status });
       await expect(requestVerifiedRenderImageDeployment({
-        ...inputs,
-        fetchService: async (url: string) => {
-          requests.push(url);
-          if (url.includes("/deploys/")) {
-            return { status: 200, json: async () => ({
-              id: deployId, status, image: { ref: inputs.imageUrl },
-            }) };
-          }
-          if (url.includes("/deploy/")) {
-            return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-          }
-          return { status: 200, json: async () => service };
-        },
-      })).rejects.toThrow(/failed or was canceled/);
-      expect(requests).toHaveLength(3);
+        ...inputs, fetchService: m.fetchService,
+      })).rejects.toThrow(/did not return HTTP 201/);
+      expect(m.calls.map(c => c.url)).toEqual([serviceURL, deployURL]);
     },
   );
 
-  it("rejects a live deploy of a different image digest, even for the same source SHA", async () => {
-    const deployId = "dep-synthetic123";
+  it.each([
+    { name: "missing", value: { trigger: "api", image: { ref: inputs.imageUrl } } },
+    { name: "malformed", value: { id: "not-a-deploy-id", trigger: "api", image: { ref: inputs.imageUrl } } },
+    { name: "wrong trigger", value: { id: deployId, trigger: "deploy_hook", image: { ref: inputs.imageUrl } } },
+    { name: "wrong digest", value: { id: deployId, trigger: "api", image: { ref: imageRepo + "@sha256:" + "b".repeat(64) } } },
+    { name: "missing image", value: { id: deployId, trigger: "api" } },
+  ])("rejects HTTP 201 with $name identity evidence", async ({ value }) => {
+    const m = stub({ createData: value });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+    })).rejects.toThrow(/did not prove a unique approved deploy identity/);
+    expect(m.calls.map(c => c.url)).toEqual([serviceURL, deployURL]);
+  });
+
+  it("rejects malformed JSON after 201, without issuing another write", async () => {
+    const urls: string[] = [];
     await expect(requestVerifiedRenderImageDeployment({
       ...inputs,
       fetchService: async (url: string) => {
-        if (url.includes("/deploys/")) {
-          return { status: 200, json: async () => ({
-            id: deployId, status: "live",
-            image: { ref: `${imageRepo}@sha256:${"b".repeat(64)}` },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
+        urls.push(url);
+        if (url === serviceURL) return reply(200, service);
+        if (url === deployURL) return { status: 201, json: async () => { throw new Error("bad JSON"); } };
+        throw new Error("Unexpected URL");
       },
+    })).rejects.toThrow(/invalid deployment identity; do not retry/);
+    expect(urls).toEqual([serviceURL, deployURL]);
+  });
+
+  it("waits for its exact deploy to become live, ignoring older live image aliases", async () => {
+    let count = 0;
+    const m = stub({
+      poll: async polledId => reply(200, {
+        id: polledId, status: ++count === 1 ? "queued" : "live",
+        image: { ref: inputs.imageUrl },
+      }),
+    });
+    const waits: number[] = [];
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+      waitForNextPoll: async delay => { waits.push(delay); },
+    })).resolves.toBe(true);
+    expect(m.polls).toBe(2);
+    expect(waits).toEqual([10000]);
+  });
+
+  it.each(["canceled", "build_failed", "update_failed", "pre_deploy_failed"])(
+    "rejects exact deploy with terminal failure %s", async status => {
+      const m = stub({ poll: async polledId => reply(200, {
+        id: polledId, status, image: { ref: inputs.imageUrl },
+      }) });
+      await expect(requestVerifiedRenderImageDeployment({
+        ...inputs, fetchService: m.fetchService,
+      })).rejects.toThrow(/failed or was canceled/);
+    },
+  );
+
+  it.each([
+    { ref: imageRepo + "@sha256:" + "b".repeat(64) },
+    { ref: inputs.imageUrl, sha: "b".repeat(64) },
+  ])("rejects contradictory or foreign image digest on its exact deploy", async image => {
+    const m = stub({ poll: async polledId => reply(200, {
+      id: polledId, status: "live", image,
+    }) });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
     })).rejects.toThrow(/does not match approved image digest/);
   });
 
-  it("rejects an incorrect deployment ID or a permanent HTTP error", async () => {
-    const deployId = "dep-synthetic123";
-    for (const scenario of ["wrong_id", "http_401"]) {
-      let checks = 0;
-      await expect(requestVerifiedRenderImageDeployment({
-        ...inputs,
-        fetchService: async (url: string) => {
-          if (url.includes("/deploys/")) {
-            checks += 1;
-            return { status: scenario === "http_401" ? 401 : 200, json: async () => ({
-              id: scenario === "wrong_id" ? "dep-other123" : deployId,
-              status: "live", image: { ref: inputs.imageUrl },
-            }) };
-          }
-          if (url.includes("/deploy/")) {
-            return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-          }
-          return { status: 200, json: async () => service };
-        },
-      })).rejects.toThrow(scenario === "http_401"
-        ? /deploy lookup failed/ : /different deployment ID/);
-      expect(checks).toBe(1);
-    }
+  it("accepts same ref and resolved SHA only for the returned deploy ID", async () => {
+    const m = stub({ poll: async polledId => reply(200, {
+      id: polledId, status: "live",
+      image: { ref: inputs.imageUrl, sha: "sha256:" + "a".repeat(64) },
+    }) });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+    })).resolves.toBe(true);
   });
 
-  it("keeps tracking a legitimate rollout beyond the previous 24-poll cutoff", async () => {
-    const deployId = "dep-synthetic123";
-    let polls = 0;
+  it("retries transient GET lookup without repeating the deploy POST", async () => {
+    const waits: number[] = [];
+    const m = stub({ poll: async (polledId, attempt) => attempt === 1
+      ? reply(429, {}, "12")
+      : reply(200, { id: polledId, status: "live", image: { ref: inputs.imageUrl } }),
+    });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+      waitForNextPoll: async delay => { waits.push(delay); },
+    })).resolves.toBe(true);
+    expect(waits).toEqual([12000]);
+    expect(m.polls).toBe(2);
+    expect(m.calls.filter(c => c.options?.method === "POST")).toHaveLength(1);
+  });
+
+  it("rejects permanent GET errors for the returned ID", async () => {
+    const m = stub({ poll: async () => reply(401, {}) });
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs, fetchService: m.fetchService,
+    })).rejects.toThrow(/deploy lookup failed/);
+    expect(m.calls.filter(c => c.options?.method === "POST")).toHaveLength(1);
+  });
+
+  it("keeps polling a legitimate deployment beyond the old four-minute cutoff", async () => {
+    const m = stub({ poll: async (polledId, attempt) => reply(200, {
+      id: polledId, status: attempt <= 26 ? "update_in_progress" : "live",
+      image: { ref: inputs.imageUrl },
+    }) });
     let waits = 0;
     await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
+      ...inputs, fetchService: m.fetchService,
       waitForNextPoll: async () => { waits += 1; },
-      fetchService: async (url: string) => {
-        if (url.includes("/deploys/")) {
-          polls += 1;
-          return { status: 200, json: async () => ({
-            id: deployId,
-            status: polls <= 26 ? "update_in_progress" : "live",
-            image: { ref: inputs.imageUrl },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
-      },
     })).resolves.toBe(true);
-    expect(polls).toBe(27);
+    expect(m.polls).toBe(27);
     expect(waits).toBe(26);
   });
 
-  it("fails closed after the bounded 20-minute polling budget", async () => {
-    const deployId = "dep-synthetic123";
-    let polls = 0;
+  it("fails closed after the bounded polling budget without retrying POST", async () => {
+    const m = stub({ poll: async polledId => reply(200, {
+      id: polledId, status: "update_in_progress",
+      image: { ref: inputs.imageUrl },
+    }) });
     let waits = 0;
     await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
+      ...inputs, fetchService: m.fetchService,
       waitForNextPoll: async () => { waits += 1; },
-      fetchService: async (url: string) => {
-        if (url.includes("/deploys/")) {
-          polls += 1;
-          return { status: 200, json: async () => ({
-            id: deployId, status: "update_in_progress", image: { ref: inputs.imageUrl },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
-      },
     })).rejects.toThrow(/bounded confirmation window/);
-    expect(polls).toBe(120);
+    expect(m.polls).toBe(120);
     expect(waits).toBe(119);
-  });
-
-  it.each([
-    { firstStatus: 429, retryAfter: "12", delay: 12000 },
-    { firstStatus: 503, retryAfter: null, delay: 10000 },
-  ])("retries HTTP $firstStatus and verifies the same deploy ID", async ({ firstStatus, retryAfter, delay }) => {
-    const deployId = "dep-synthetic123";
-    let polls = 0;
-    const waits: number[] = [];
-    await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      waitForNextPoll: async (ms) => { waits.push(ms); },
-      fetchService: async (url: string) => {
-        if (url.includes("/deploys/")) {
-          polls += 1;
-          if (polls === 1) {
-            return {
-              status: firstStatus,
-              headers: { get: () => retryAfter },
-              json: async () => ({}),
-            };
-          }
-          return { status: 200, json: async () => ({
-            id: deployId, status: "live", image: { ref: inputs.imageUrl },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
-      },
-    })).resolves.toBe(true);
-    expect(polls).toBe(2);
-    expect(waits).toEqual([delay]);
-  });
-
-  it("retries a transient deploy-lookup connection error without retriggering the hook", async () => {
-    const deployId = "dep-synthetic123";
-    let calls = 0;
-    let hookCalls = 0;
-    await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      waitForNextPoll: async () => {},
-      fetchService: async (url: string) => {
-        if (url.includes("/deploys/")) {
-          calls += 1;
-          if (calls === 1) throw new Error("synthetic temporary disconnect");
-          return { status: 200, json: async () => ({
-            id: deployId, status: "live", image: { ref: inputs.imageUrl },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          hookCalls += 1;
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
-      },
-    })).resolves.toBe(true);
-    expect(calls).toBe(2);
-    expect(hookCalls).toBe(1);
-  });
-
-  it.each([
-    { ref: inputs.imageUrl, sha: "b".repeat(64) },
-    { ref: `${imageRepo}@sha256:${"b".repeat(64)}`, sha: "a".repeat(64) },
-  ])("rejects contradictory image.ref and image.sha metadata", async ({ ref, sha }) => {
-    const deployId = "dep-synthetic123";
-    await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      fetchService: async (url: string) => {
-        if (url.includes("/deploys/")) {
-          return { status: 200, json: async () => ({
-            id: deployId, status: "live", image: { ref, sha },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
-      },
-    })).rejects.toThrow(/does not match approved image digest/);
-  });
-
-  it("accepts consistent image.ref and resolved SHA metadata", async () => {
-    const deployId = "dep-synthetic123";
-    await expect(requestVerifiedRenderImageDeployment({
-      ...inputs,
-      fetchService: async (url: string) => {
-        if (url.includes("/deploys/")) {
-          return { status: 200, json: async () => ({
-            id: deployId, status: "live", image: {
-              ref: inputs.imageUrl, sha: `sha256:${"a".repeat(64)}`,
-            },
-          }) };
-        }
-        if (url.includes("/deploy/")) {
-          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
-        }
-        return { status: 200, json: async () => service };
-      },
-    })).resolves.toBe(true);
+    expect(m.calls.filter(c => c.options?.method === "POST")).toHaveLength(1);
   });
 
 });

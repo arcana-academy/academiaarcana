@@ -1,9 +1,9 @@
 "use strict";
 
-// Fail-closed Render target guard. The deploy hook may only be requested
-// by the same operation that just read and verified live service metadata.
-// This minimizes TOCTOU exposure; Render does not offer an atomic hook
-// precondition tied to the service configuration snapshot.
+// Fail-closed Render target guard. Verify the live service and use the
+// authenticated Render Deploy API, which supplies a deployment ID on 201.
+// A 202 or an ambiguous network failure must never be correlated by time,
+// digest, or nearby deploy records; neither outcome authorizes success.
 const IMAGE_REPOSITORY = "ghcr.io/arcana-academy/academiaarcana";
 const IMAGE_DIGEST = /^ghcr\.io\/arcana-academy\/academiaarcana@sha256:[a-f0-9]{64}$/;
 const SERVICE_ID = /^srv-[a-z0-9]+$/;
@@ -99,46 +99,62 @@ async function verifyRenderImageTarget(inputs) {
 
 /** Recheck live Render metadata immediately before requesting this image deploy.
  * Callers must not split this operation into separate CI steps.
- * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, imageUrl:string,
- * fetchService?:typeof fetch, waitForNextPoll?:(delayMs:number)=>Promise<void>}} inputs
+ * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, deployApiKey:string,
+ * imageUrl:string, fetchService?:typeof fetch, waitForNextPoll?:(delayMs:number)=>Promise<void>}} inputs
  */
 async function requestVerifiedRenderImageDeployment(inputs) {
   const fetchService = inputs.fetchService || fetch;
+  // The read credential must not authorize deployment implicitly. The
+  // separately approved write credential is required before any network call.
+  if (typeof inputs.deployApiKey !== "string" || !inputs.deployApiKey.trim()) {
+    throw new Error("Separately approved Render deploy API credential is missing.");
+  }
   await verifyRenderImageTarget({ ...inputs, fetchService });
 
-  // Never reuse a hook URL or a preflight result without this fresh API read.
-  const hook = new URL(inputs.hookUrl);
-  hook.searchParams.set("imgURL", inputs.imageUrl);
+  // Create exactly one deployment through the authenticated API. Unlike the
+  // hook's HTTP 200, an HTTP 201 provides a top-level, request-specific ID.
+  // Do not retry a POST after network errors, timeout, or HTTP 202: the
+  // request might have been accepted and could later alter production.
   let response;
   try {
-    response = await fetchService(hook.toString(), {
-      method: "GET",
-      redirect: "error",
-      signal: AbortSignal.timeout(15000),
-    });
+    response = await fetchService(
+      "https://api.render.com/v1/services/" + inputs.approvedServiceId + "/deploys", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + inputs.deployApiKey,
+        },
+        body: JSON.stringify({ imageUrl: inputs.imageUrl, clearCache: "do_not_clear" }),
+        redirect: "error",
+        signal: AbortSignal.timeout(15000),
+      },
+    );
   } catch {
-    throw new Error("Render deploy hook request failed; deployment is not confirmed.");
+    throw new Error(
+      "Render deploy API outcome unknown; rollout may still occur; " +
+      "manual reconciliation required. Do not retry.",
+    );
   }
-  // An HTTP 202 acknowledges a queued request but supplies no deployment ID.
-  // Without that ID, the specific rollout cannot be verified. Never emit
-  // successful deployment evidence merely because Render queued a request.
   if (response?.status === 202) {
-    throw new Error("Render queued deployment without a trackable ID; rollout is not confirmed.");
+    throw new Error(
+      "Render API accepted a queued deployment (HTTP 202) without a request-specific ID; " +
+      "rollout may still occur; manual reconciliation required. Do not retry.",
+    );
   }
-  if (!response || response.status !== 200) {
-    throw new Error("Render deploy hook did not accept the request (HTTP 200 required).");
+  if (!response || response.status !== 201) {
+    throw new Error("Render deploy API did not return HTTP 201; rollout is not confirmed.");
   }
   let started;
   try { started = await response.json(); } catch {
-    throw new Error("Render deploy hook returned invalid deployment identity.");
+    throw new Error("Render deploy API returned invalid deployment identity; do not retry.");
   }
-  const deployId = started?.deploy?.id;
-  if (typeof deployId !== "string" || !/^dep-[a-z0-9]+$/.test(deployId)) {
-    throw new Error("Render deploy hook returned no valid deployment ID.");
+  const deployId = started?.id;
+  if (typeof deployId !== "string" || !/^dep-[a-z0-9]+$/.test(deployId) ||
+      started.trigger !== "api" || started.image?.ref !== inputs.imageUrl) {
+    throw new Error("Render deploy API did not prove a unique approved deploy identity; do not retry.");
   }
 
-  // Verify the *specific* new deploy, not the already-live alias or merely
-  // the source SHA: a previous deployment of the same SHA may still be live.
   const waitForNextPoll = inputs.waitForNextPoll ||
     (delayMs => new Promise(resolve => setTimeout(resolve, delayMs)));
   const deadline = Date.now() + 20 * 60 * 1000;
@@ -148,6 +164,9 @@ async function requestVerifiedRenderImageDeployment(inputs) {
     }
     await waitForNextPoll(delayMs);
   };
+
+  // Verify the *specific* new deploy, not the already-live alias or merely
+  // the source SHA: a previous deployment of the same SHA may still be live.
   const expectedDigest = inputs.imageUrl.split("@")[1];
   const digestHex = expectedDigest.slice("sha256:".length);
   // 120 polls at 10 seconds apart allow roughly 20 minutes for Render\'s
@@ -175,7 +194,7 @@ async function requestVerifiedRenderImageDeployment(inputs) {
     }
     if (!current || current.status !== 200) {
       // Transient Render API throttling/outages are retried after accepting
-      // the deploy hook. A nontransient response still fails immediately.
+      // the deploy API. A nontransient response still fails immediately.
       if (current && [429, 500, 502, 503, 504].includes(current.status) &&
           attempt < 119) {
         const rawRetryAfter = current.headers?.get?.("retry-after");
@@ -238,6 +257,7 @@ if (require.main === module) {
     hookUrl: process.env.RENDER_DEPLOY_HOOK_URL,
     approvedServiceId: process.env.RENDER_IMAGE_SERVICE_ID,
     apiKey: process.env.RENDER_SERVICE_READ_API_KEY,
+    deployApiKey: process.env.RENDER_DEPLOY_API_KEY,
     imageUrl: process.env.IMAGE_URL,
   }).then(() => {
     process.stdout.write("Render image deployment confirmed live after target verification.\n");

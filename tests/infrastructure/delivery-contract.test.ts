@@ -222,8 +222,28 @@ describe("delivery infrastructure contract", () => {
     expect(request).toMatch(/^\s*node \/tmp\/aa-render-image-target-guard\.cjs\s*$/m);
     expect(request).toContain("RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}");
     expect(request).toContain("RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}");
+    expect(request).toContain("RENDER_DEPLOY_API_KEY: ${{ secrets.RENDER_DEPLOY_API_KEY }}");
     expect(request).toContain("RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}");
     expect(request).not.toMatch(/\bcurl\b/);
+  });
+
+  it("uses Render's authenticated deploy API with exact 201 ID, never a hook lookup", () => {
+    const guard = readRepoFile("scripts/security/verify-render-image-target-536.cjs");
+    const request = releaseStep(
+      releaseJob(readRepoFile(".github/workflows/image-release.yml"), "deploy"),
+      "Request Render image deployment",
+    );
+    expect(guard).toContain('"https://api.render.com/v1/services/" + inputs.approvedServiceId + "/deploys"');
+    expect(guard).toContain('method: "POST"');
+    expect(guard).toContain("Authorization: \"Bearer \" + inputs.deployApiKey");
+    expect(guard).toContain('body: JSON.stringify({ imageUrl: inputs.imageUrl, clearCache: "do_not_clear" })');
+    expect(guard).toContain("response.status !== 201");
+    expect(guard).toContain("response?.status === 202");
+    expect(guard).not.toContain("hook.searchParams.set");
+    expect(guard).not.toContain("fetchService(hook.toString()");
+    expect(request).toContain("RENDER_DEPLOY_API_KEY");
+    expect(guard).toContain("Create exactly one deployment through the authenticated API.");
+    expect(request).not.toMatch(/fetch\([^\n]*\/deploy\//);
   });
 
   it("preserves the documented 30-day approved image promotion window", () => {
@@ -246,6 +266,7 @@ describe("delivery infrastructure contract", () => {
       "RENDER_DEPLOY_APPROVED_RUN_ID",
       "RENDER_DEPLOY_HOOK_URL",
       "RENDER_SERVICE_READ_API_KEY",
+      "RENDER_DEPLOY_API_KEY",
       "approved_revision",
       "quality_run_id",
       "render-production-approval",
