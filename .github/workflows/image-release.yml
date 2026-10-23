@@ -215,6 +215,33 @@ jobs:
             exit 1
           fi
 
+      - name: Fetch immutable public preflight from approved main SHA
+        env:
+          EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! [[ "$EXPECTED_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid approved guard source revision." >&2
+            exit 1
+          fi
+          # Public immutable source: no GITHUB_TOKEN and no expanded job permissions.
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-redirs 0 \
+            --output /tmp/aa-render-image-target-guard.cjs \
+            "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${EXPECTED_REVISION}/scripts/security/verify-render-image-target-536.cjs"
+
+      - name: Verify live Render image-backed service and approved target
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}
+          RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}
+          IMAGE_URL: ${{ needs.publish.outputs.image_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A secret hook alone does not establish service type. Use an
+          # authenticated GET (read-only) to reject Git-backed targets.
+          node /tmp/aa-render-image-target-guard.cjs
       - name: Request deployment of the immutable image
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
