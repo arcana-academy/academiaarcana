@@ -301,3 +301,23 @@ test("DEBUG dump interactions TEMPORARY", async ({ page }) => {
   const { writeFileSync } = await import("node:fs");
   writeFileSync("tests/e2e/debug-pilot-dump2.json", JSON.stringify(dump, null, 2));
 });
+
+test("DEBUG dump animations TEMPORARY", async ({ page }) => {
+  await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
+  const immediate = await page.locator(".aa-study-task-board").evaluate((node) => ({
+    descendants: node.querySelectorAll("*").length,
+    running: document.getAnimations().filter((a) => a.playState === "running").length,
+    details: document.getAnimations().map((a) => ({
+      playState: a.playState,
+      type: (a as CSSAnimation).animationName !== undefined && (a as CSSTransition).transitionProperty === undefined ? "css-animation" : "transition-or-web",
+      name: ((a as CSSAnimation).animationName ?? (a as CSSTransition).transitionProperty ?? "?").toString(),
+      target: ((a as CSSAnimation).effect as KeyframeEffect)?.target
+        ? ((a.effect as KeyframeEffect).target as Element).className?.toString().slice(0, 80) ?? null
+        : null,
+    })),
+  }));
+  await page.waitForTimeout(2000);
+  const settled = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length);
+  const { writeFileSync } = await import("node:fs");
+  writeFileSync("tests/e2e/debug-pilot-dump3.json", JSON.stringify({ immediate, settled }, null, 2));
+});
