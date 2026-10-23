@@ -4,6 +4,11 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import {
+  isVisualBaselineWriteEnabled,
+  writeVisualBaselines,
+} from "./support/visual-baselines";
+
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
 type Baselines = Record<string, string>;
@@ -44,6 +49,11 @@ test("all 40 themes match deterministic visual baselines", async ({ page }) => {
   // Kept intentionally machine-readable so the first reviewed run can seed
   // the text manifest without committing binary screenshot artifacts.
   console.log(`AA_VISUAL_BASELINES_JSON=${JSON.stringify(actual)}`);
+  if (isVisualBaselineWriteEnabled()) {
+    writeVisualBaselines(baselinePath, actual);
+    return;
+  }
+
   expect(actual).toEqual(baselines);
 });
 

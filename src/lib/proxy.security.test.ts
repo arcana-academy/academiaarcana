@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   updateSession: vi.fn(),
@@ -10,23 +10,25 @@ vi.mock("@/lib/supabase/proxy", () => ({
 
 import { proxy } from "../proxy";
 
+function createRequest() {
+  return { headers: new Headers() } as never;
+}
+
 describe("proxy security headers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NODE_ENV", "production");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("passes a per-request nonce through request headers and response CSP", async () => {
-    const request = {
-      headers: new Headers(),
-    } as never;
-
-    const response = {
-      headers: new Headers(),
-    };
-
+    const response = { headers: new Headers() };
     mocks.updateSession.mockResolvedValue(response);
 
-    await proxy(request);
+    await proxy(createRequest());
 
     expect(mocks.updateSession).toHaveBeenCalledTimes(1);
 
@@ -41,5 +43,29 @@ describe("proxy security headers", () => {
     expect(responseCsp).toBe(requestCsp);
     expect(requestCsp).not.toContain("'unsafe-eval'");
     expect(requestCsp).not.toContain("script-src 'self' 'unsafe-inline'");
+    expect(requestCsp).toContain("style-src-attr 'unsafe-inline'");
+    expect(requestCsp).toContain("upgrade-insecure-requests");
+  });
+
+  it("enforces the policy in production", async () => {
+    const response = { headers: new Headers() };
+    mocks.updateSession.mockResolvedValue(response);
+
+    await proxy(createRequest());
+
+    expect(response.headers.get("Content-Security-Policy-Report-Only")).toBeNull();
+  });
+
+  it("reports instead of enforcing in development so HMR keeps working", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const response = { headers: new Headers() };
+    mocks.updateSession.mockResolvedValue(response);
+
+    await proxy(createRequest());
+
+    const reportOnly = response.headers.get("Content-Security-Policy-Report-Only");
+
+    expect(reportOnly).toContain("script-src 'self' 'nonce-");
+    expect(response.headers.get("Content-Security-Policy")).toBeNull();
   });
 });

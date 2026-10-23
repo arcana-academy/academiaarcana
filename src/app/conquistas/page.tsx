@@ -8,6 +8,9 @@ import { getAchievements, getProgression } from "@/domains/gamification";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/conquistas");
 
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);

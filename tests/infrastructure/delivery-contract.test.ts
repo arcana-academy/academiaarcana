@@ -333,6 +333,38 @@ describe("delivery infrastructure contract", () => {
     expect(smoke).toContain("docker rm --force");
   });
 
+  it("propagates every public build-time variable into the production image", () => {
+    const dockerfile = readRepoFile("Dockerfile");
+    const quality = readRepoFile(".github/workflows/quality.yml");
+    const blueprint = readRepoFile("render.yaml");
+
+    for (const name of [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_APP_URL",
+      "NEXT_PUBLIC_ADOBE_FONTS_KIT_ID",
+      "NEXT_PUBLIC_HONEYBADGER_API_KEY",
+      "NEXT_PUBLIC_HONEYBADGER_ASSETS_URL",
+    ]) {
+      // `NEXT_PUBLIC_*` values are inlined at build time, so each of them must
+      // reach the image build and the runtime environment.
+      expect(dockerfile).toContain(`ARG ${name}`);
+      expect(dockerfile).toContain(`${name}=\${${name}}`);
+      expect(quality).toContain(`--build-arg ${name}=`);
+
+      if (name === "NEXT_PUBLIC_APP_URL" || name === "NEXT_PUBLIC_ADOBE_FONTS_KIT_ID") {
+        expect(blueprint).toContain(`key: ${name}`);
+      }
+    }
+
+    expect(blueprint).not.toMatch(/sb_secret_|service_role/i);
+  });
+
+  it("ships declared application icons so browsers never request a missing favicon", () => {
+    expect(existsSync(resolve(root, "src/app/favicon.ico"))).toBe(true);
+    expect(existsSync(resolve(root, "src/app/icon.svg"))).toBe(true);
+  });
+
   it("blocks equivalent hosting and CI platforms from active delivery files", () => {
     const activeFiles = [
       ".github/workflows/quality.yml",

@@ -28,6 +28,9 @@ import {
 import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { resolveWorkspaceState } from "@/application/learning/workspace/state";
 import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/workspace");
 
 type WorkspacePageProps = {
   searchParams: Promise<{
