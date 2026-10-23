@@ -136,7 +136,7 @@
   min-height: 16rem;
   align-items: center;
   background: linear-gradient(90deg, #24192C 12%, rgb(27 17 36 / .85) 56%, rgb(25 14 31 / .26)),
-    url('/arcana/arcana-hero.svg') center / cover no-repeat;
+    url('/assets/visual/aa-sanctuary-ambiente-approved.webp') 58% 39% / cover no-repeat;
   border-color: rgb(185 157 120 / .46);
 }
 .aa-shell .aa-sanctuary-hero h1 { color: #F3DAB3; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.08; }
