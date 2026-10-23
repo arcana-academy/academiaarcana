@@ -3,13 +3,13 @@ import { createHash, timingSafeEqual } from "node:crypto";
 export const PRIVATE_PREVIEW_USER = "arcana-preview";
 
 /**
- * An opt-in, non-production HTTP Basic gate for the isolated preview only.
+ * Fail-closed HTTP Basic gate for the isolated preview candidate only.
  * Missing/invalid credentials must never grant access when the gate is enabled.
  */
 export function isPrivatePreviewEnabled(
   environment: NodeJS.ProcessEnv = process.env,
 ): boolean {
-  return environment.AA_PRIVATE_PREVIEW === "required";
+  return environment.AA_PRIVATE_PREVIEW !== "disabled";
 }
 
 export function isPrivatePreviewAuthorized(
