@@ -425,3 +425,17 @@
   .aa-c106-settings-group .aa-feature-card-content > a { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .aa-c106-mobile-dock * { transition: none; } }
+
+
+/* C106 desktop screenshot remediation: match approved two-column settings composition. */
+.aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+  align-items: stretch;
+  gap: 1rem;
+}
+.aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-grid > * { min-width: 0; }
+.aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-card { height: 100%; }
+@media (max-width: 64rem) {
+  .aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-grid { grid-template-columns: minmax(0,1fr); }
+}
