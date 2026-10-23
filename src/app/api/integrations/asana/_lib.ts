@@ -50,8 +50,11 @@ export async function getAsanaCredentialsContext() {
       credentials = refreshed;
     } catch (error) {
       // Retain the subject-bound encrypted cookie on recoverable provider failures.
-      if (error instanceof AsanaConnectionError &&
-          (error.code === "request_failed" || error.code === "rate_limited")) {
+      // A successful HTTP response with malformed JSON is not evidence of
+      // revoked OAuth consent. Keep the encrypted cookie for a future retry.
+      if (error instanceof SyntaxError ||
+          (error instanceof AsanaConnectionError &&
+           (error.code === "request_failed" || error.code === "rate_limited"))) {
         return { credentials: null, status: "request_failed" as const };
       }
       cookieStore.delete(ASANA_CREDENTIALS_COOKIE);
