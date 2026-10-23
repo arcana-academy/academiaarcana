@@ -35,7 +35,7 @@ function registeredImageRepo(value) {
 
 /** Require live authenticated Render metadata, never a caller's asserted kind.
  * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, imageUrl:string,
- * fetchService?:typeof fetch}} inputs
+ * fetchService?:typeof fetch, waitForNextPoll?:()=>Promise<void>}} inputs
  */
 async function verifyRenderImageTarget(inputs) {
   const { hookUrl, approvedServiceId, apiKey, imageUrl, fetchService = fetch } = inputs;
@@ -100,7 +100,7 @@ async function verifyRenderImageTarget(inputs) {
 /** Recheck live Render metadata immediately before requesting this image deploy.
  * Callers must not split this operation into separate CI steps.
  * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, imageUrl:string,
- * fetchService?:typeof fetch}} inputs
+ * fetchService?:typeof fetch, waitForNextPoll?:()=>Promise<void>}} inputs
  */
 async function requestVerifiedRenderImageDeployment(inputs) {
   const fetchService = inputs.fetchService || fetch;
@@ -119,12 +119,75 @@ async function requestVerifiedRenderImageDeployment(inputs) {
   } catch {
     throw new Error("Render deploy hook request failed; deployment is not confirmed.");
   }
-  // Render accepts 200 for an immediately started deploy or 202 for a
-  // queued deploy. Both confirm the request, not a completed rollout.
-  if (!response || (response.status !== 200 && response.status !== 202)) {
-    throw new Error("Render deploy hook did not accept the request (HTTP 200/202).");
+  // An HTTP 202 acknowledges a queued request but supplies no deployment ID.
+  // Without that ID, the specific rollout cannot be verified. Never emit
+  // successful deployment evidence merely because Render queued a request.
+  if (response?.status === 202) {
+    throw new Error("Render queued deployment without a trackable ID; rollout is not confirmed.");
   }
-  return true;
+  if (!response || response.status !== 200) {
+    throw new Error("Render deploy hook did not accept the request (HTTP 200 required).");
+  }
+  let started;
+  try { started = await response.json(); } catch {
+    throw new Error("Render deploy hook returned invalid deployment identity.");
+  }
+  const deployId = started?.deploy?.id;
+  if (typeof deployId !== "string" || !/^dep-[a-z0-9]+$/.test(deployId)) {
+    throw new Error("Render deploy hook returned no valid deployment ID.");
+  }
+
+  // Verify the *specific* new deploy, not the already-live alias or merely
+  // the source SHA: a previous deployment of the same SHA may still be live.
+  const waitForNextPoll = inputs.waitForNextPoll ||
+    (() => new Promise(resolve => setTimeout(resolve, 10000)));
+  const expectedDigest = inputs.imageUrl.split("@")[1];
+  for (let attempt = 0; attempt < 24; attempt++) {
+    let current;
+    try {
+      current = await fetchService(
+        "https://api.render.com/v1/services/" + inputs.approvedServiceId +
+          "/deploys/" + deployId,
+        {
+          method: "GET",
+          headers: { Accept: "application/json", Authorization: "Bearer " + inputs.apiKey },
+          redirect: "error",
+          signal: AbortSignal.timeout(15000),
+        },
+      );
+    } catch {
+      throw new Error("Cannot check Render deployment status; rollout is not confirmed.");
+    }
+    if (!current || current.status !== 200) {
+      throw new Error("Render deploy lookup failed; rollout is not confirmed.");
+    }
+    let details;
+    try { details = await current.json(); } catch {
+      throw new Error("Render deploy lookup returned invalid JSON.");
+    }
+    if (!details || details.id !== deployId) {
+      throw new Error("Render deploy lookup returned a different deployment ID.");
+    }
+    if (details.status === "live") {
+      const image = details.image;
+      if (!image || (image.ref !== inputs.imageUrl &&
+          image.sha !== expectedDigest &&
+          image.sha !== expectedDigest.slice("sha256:".length))) {
+        throw new Error("Live Render deployment does not match approved image digest.");
+      }
+      return true;
+    }
+    if (["canceled", "deactivated", "build_failed", "update_failed", "pre_deploy_failed"]
+      .includes(details.status)) {
+      throw new Error("Render deployment failed or was canceled before becoming live.");
+    }
+    if (!["created", "queued", "build_in_progress", "update_in_progress",
+      "pre_deploy_in_progress"].includes(details.status)) {
+      throw new Error("Render deployment returned an unrecognized status.");
+    }
+    if (attempt < 23) await waitForNextPoll();
+  }
+  throw new Error("Render deployment did not reach live within the bounded confirmation window.");
 }
 
 module.exports = {
