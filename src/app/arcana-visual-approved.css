@@ -280,3 +280,60 @@
 @media (max-width: 42rem) {
   .aa-shell .grimoires-library-list { grid-template-columns: 1fr; }
 }
+
+
+/* C104 — extend approved visual skin to existing missions, timetable, profile and editor. */
+/* These selectors style existing data-backed components. No fictitious calendar, scores or media controls. */
+.aa-shell .aa-page > .aa-page-header:has(.aa-page-title),
+.aa-shell .aa-study-task-board > .aa-page-header {
+  min-height: 11.5rem;
+  display: flex;
+  align-items: center;
+  padding: clamp(1.1rem, 2.8vw, 2.3rem);
+  border: 1px solid rgb(185 157 120 / .3);
+  border-radius: 1rem;
+  background:
+    linear-gradient(95deg, #22172D 7%, rgb(22 14 31 / .86) 65%, rgb(26 17 33 / .6)),
+    url('/arcana/arcana-hero.svg') center / cover no-repeat;
+}
+.aa-shell .aa-page-title,
+.aa-shell .aa-study-task-board .aa-page-header h1 { color: #F2DBB9; font: 500 clamp(2rem, 4vw, 3rem) Georgia, serif; }
+.aa-shell .aa-page-eyebrow { color: #DDBB8C; letter-spacing: .11em; font-size: .76rem; font-weight: 700; text-transform: uppercase; }
+.aa-shell .aa-page-description { color: #DCD0DE; max-width: 46rem; line-height: 1.65; }
+.aa-shell .aa-feature-card {
+  border: 1px solid rgb(185 157 120 / .4);
+  background: linear-gradient(135deg, #30233A, #18121F);
+  border-radius: .9rem;
+  min-height: 13rem;
+  box-shadow: 0 16px 35px rgb(0 0 0 / .2);
+}
+.aa-shell .aa-feature-title { color: #F2DAB6; font: 500 1.4rem Georgia, serif; }
+.aa-shell .aa-feature-description { color: #D5C7D7; }
+.aa-shell .aa-feature-icon { color: #E2BC86; }
+.aa-shell .aa-list-item { border-color: rgb(185 157 120 / .3); background: #241B2F; }
+.aa-shell .aa-study-task-board { max-width: 96rem; width: 100%; }
+.aa-shell .aa-study-task-board .aa-surface { border: 1px solid rgb(185 157 120 / .38); background: linear-gradient(135deg, #30223A, #18121F); }
+.aa-shell .aa-study-task-board .aa-list-item { color: #F0E2E9; }
+.aa-shell .aa-study-task-board .aa-input { background: #17121E; color: #F6EAF0; border-color: #9A829D; }
+.aa-shell .aa-workspace-page {
+  --aa-border-default: #96809E;
+  --aa-surfaces-panel: #261C30;
+  --aa-surfaces-elevated: #30223B;
+  --aa-surfaces-inset: #17121E;
+  max-width: 96rem;
+}
+.aa-shell .aa-workspace-page :is(input, textarea, select) {
+  color: #F3E6EF;
+  border-color: #96809E;
+}
+.aa-shell .aa-workspace-page :is(button, select, input, textarea):focus-visible {
+  outline: 3px solid #EAD1A3;
+  outline-offset: 2px;
+}
+@media (max-width: 48rem) {
+  .aa-shell .aa-page > .aa-page-header:has(.aa-page-title),
+  .aa-shell .aa-study-task-board > .aa-page-header {
+    min-height: 9rem;
+    padding: 1.1rem;
+  }
+}
