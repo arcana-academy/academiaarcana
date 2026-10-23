@@ -2441,7 +2441,6 @@ p {
   border-radius: var(--aa-radius-md);
 }
 
-
 /* C93 — Optional frames are strictly limited to personal grimoire pages. */
 .workspace-frame-controls {
   display: grid;
@@ -2478,4 +2477,23 @@ p {
 }
 html[data-aa-contrast="high"] .workspace-page-frame[data-aa-frame-style]:not([data-aa-frame-style="none"]) > article {
   box-shadow: inset 0 0 0 2px var(--aa-border-strong);
+}
+
+/*
+ * Brand Book 360 — approved academic type roles, reusing official source PR #770.
+ * The logo/lettering is an independent canonical image and is never recreated.
+ * Existing semantic theme typography tokens remain unchanged for UI readability.
+ */
+.aa-page-header h1 {
+  font-family: var(--font-arcana-grenze), var(--aa-typography-heading);
+}
+.workspace-page-editor textarea,
+.workspace-page-block textarea {
+  font-family: var(--font-arcana-literata), Georgia, serif;
+}
+.aa-editorial-highlight {
+  font-family: var(--font-arcana-cormorant), Georgia, serif;
+}
+.aa-arcane-inscription {
+  font-family: var(--font-arcana-smythe), Georgia, serif;
 }
