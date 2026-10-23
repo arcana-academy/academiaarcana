@@ -337,3 +337,30 @@
     padding: 1.1rem;
   }
 }
+
+
+/* C105 — screenshot-confirmed correction: intelligent search needs its own surface padding and inline form layout. */
+.aa-shell .aa-sanctuary > .aa-card[aria-labelledby="relewise-search-title"] {
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid rgb(185 157 120 / .38);
+  border-radius: .9rem;
+  background: linear-gradient(135deg, #30223A, #18121F);
+}
+.aa-shell .aa-sanctuary > .aa-card[aria-labelledby="relewise-search-title"] h2 {
+  margin: .25rem 0 0;
+}
+.aa-shell .aa-sanctuary > .aa-card[aria-labelledby="relewise-search-title"] form[role="search"] {
+  display: flex;
+  align-items: end;
+  gap: .7rem;
+  margin-top: 1rem;
+}
+.aa-shell .aa-sanctuary > .aa-card[aria-labelledby="relewise-search-title"] .aa-input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.aa-shell .aa-sanctuary > .aa-card[aria-labelledby="relewise-search-title"] form[role="search"] > button {
+  flex: 0 0 2.75rem;
+  min-width: 2.75rem;
+  padding-inline: 0;
+}
