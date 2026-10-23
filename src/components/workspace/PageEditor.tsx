@@ -85,7 +85,7 @@ function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: Page
         <p>Esta página ainda não possui conteúdo.</p>
       ) : (
         blocks.map((block, index) => (
-          <div key={blockKeys[index]}>
+          <div key={blockKeys[index]} className="workspace-page-block">
             <label htmlFor={`workspace-page-block-${index}`}>
               Bloco {index + 1}
             </label>
