@@ -223,8 +223,33 @@ async function main() {
   }), "SSR synthetic session to exercise sign-out");
   assert.equal(logoutSignIn.user.id, uidA);
   assert.ok(cookies.size > 0);
-  const signout = await logoutClient.auth.signOut();
+  // Only the refresh token is revocable immediately. A previously issued
+  // access-token JWT can remain valid until its exp (Supabase Auth semantics).
+  const revokedRefreshToken = logoutSignIn.session?.refresh_token;
+  assert.ok(typeof revokedRefreshToken === "string" && revokedRefreshToken.length > 0,
+    "SSR sign-in must issue a refresh token to verify server-side revocation");
+  const signout = await logoutClient.auth.signOut({ scope: "global" });
   assert.ifError(signout.error);
+
+  // Use the actual local GoTrue HTTP API in a fresh request: removing cookies
+  // alone cannot satisfy this proof. Never print or persist the token.
+  const refreshAttempt = await fetch(new URL("/auth/v1/token?grant_type=refresh_token", api), {
+    method: "POST",
+    headers: { apikey: key, "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: revokedRefreshToken }),
+    signal: AbortSignal.timeout(15000),
+  });
+  assert.ok([400, 401, 403].includes(refreshAttempt.status),
+    "Revoked refresh token must receive an Auth 4xx, not a successful response or 5xx");
+  const refreshDenial = await refreshAttempt.json().catch(() => null);
+  assert.ok(refreshDenial && typeof refreshDenial === "object" && (
+    /refresh[_ -]?token/i.test(String(refreshDenial.error_code ?? "")) ||
+    /refresh[_ -]?token/i.test(String(refreshDenial.msg ?? refreshDenial.message ?? ""))
+  ), "Denial must identify invalid/revoked refresh token, not another request failure");
+  const bStillValid = await b.auth.getUser();
+  assert.ifError(bStillValid.error);
+  assert.equal(bStillValid.data?.user?.id, uidB,
+    "Signing out A must not revoke independent user B");
   const sessionAfterLogout = await ssr().auth.getSession();
   assert.ifError(sessionAfterLogout.error);
   assert.equal(sessionAfterLogout.data.session, null,
@@ -234,7 +259,7 @@ async function main() {
   assert.ok(unauthorizedAfterLogout.error ||
     (unauthorizedAfterLogout.data ?? []).length === 0,
     "Signed-out SSR client cannot read private Grimoire");
-  console.log("PASS: SSR cookie logout and private PostgREST denial");
+  console.log("PASS: SSR cookie logout, GoTrue refresh-token revocation, user B continuity and private PostgREST denial");
 
   console.log("CHECKPOINT P0-536: synthetic Auth, SSR, Feedback RLS, Storage and logout PASS, local only");
 }
