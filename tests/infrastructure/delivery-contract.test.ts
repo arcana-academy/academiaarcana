@@ -63,6 +63,80 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain('select(.name == "academiaarcana-deploy-request" and .expired == false)');
   });
 
+  it("keeps independent production smoke attempts from cancelling one another", () => {
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+
+    // A release triggered by the same upstream Quality Gate can finish with its
+    // deploy job skipped; it must never cancel an in-flight Git-backed smoke.
+    expect(workflow).not.toMatch(/^concurrency:/m);
+
+    // Cover workflow-level and jobs.<name>.concurrency declarations, including
+    // quoted values and expressions that may evaluate to true. Only explicit
+    // false values are non-cancelling.
+    const canCancelAnActiveSmoke = (source: string) =>
+      source.split(/\r?\n/).some((line) => {
+        const declaration = /^[ \t]*cancel-in-progress[ \t]*:[ \t]*(.*)$/i.exec(line);
+        if (!declaration) return false;
+
+        return !/^(?:false|"false"|'false'|\$\{\{\s*false\s*\}\})(?:[ \t]+#.*)?$/i.test(
+          declaration[1].trim(),
+        );
+      });
+
+    expect(canCancelAnActiveSmoke(workflow)).toBe(false);
+
+    for (const value of [
+      "false",
+      '"false"',
+      "'false'",
+      '${{ false }}',
+      "false # disabled",
+    ]) {
+      const config = [
+        "jobs:",
+        "  smoke:",
+        "    concurrency:",
+        "      group: smoke",
+        `      cancel-in-progress: ${value}`,
+      ].join("\n");
+
+      expect(canCancelAnActiveSmoke(config)).toBe(false);
+    }
+
+    for (const value of [
+      "true",
+      '"true"',
+      "'true'",
+      '${{ inputs.cancel_smoke }}',
+      "",
+    ]) {
+      const config = [
+        "jobs:",
+        "  smoke:",
+        "    concurrency:",
+        "      group: smoke",
+        `      cancel-in-progress: ${value}`,
+      ].join("\n");
+
+      expect(canCancelAnActiveSmoke(config)).toBe(true);
+    }
+
+    expect(
+      canCancelAnActiveSmoke("concurrency:\n  group: smoke\n  cancel-in-progress: true"),
+    ).toBe(true);
+    expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate", "Academia Arcana Image Release"]');
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Image Release'");
+    expect(workflow).toContain("github.event.workflow_run.name == 'Academia Arcana Quality Gate'");
+
+    // An authorized operator can manually smoke the *actual deployed* revision
+    // while main is ahead and Git auto-deploy is deliberately frozen.
+    expect(workflow).toContain("expected_revision:");
+    expect(workflow).toContain(
+      "inputs.expected_revision || github.event.workflow_run.head_sha || github.sha",
+    );
+    expect(workflow).toContain('[[ "$expected" =~ ^[0-9a-f]{40}$ ]]');
+  });
+
   it("validates workflow-derived production revisions before shell use", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml");
 
@@ -311,8 +385,8 @@ describe("delivery infrastructure contract", () => {
       "type: web",
       "runtime: node",
       "branch: main",
-      "autoDeployTrigger: checksPass",
-      "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
+      "autoDeployTrigger: off",
+      "buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
       "startCommand: npm start",
       "healthCheckPath: /api/health",
       "NPM_CONFIG_IGNORE_SCRIPTS",
@@ -324,6 +398,7 @@ describe("delivery infrastructure contract", () => {
       expect(blueprint).toContain(expected);
     }
 
+    expect(blueprint).not.toContain("autoDeployTrigger: checksPass");
     expect(blueprint).not.toMatch(/service_role|sb_secret_/i);
     expect(blueprint).not.toMatch(/Netlify/i);
   });
@@ -387,6 +462,38 @@ describe("delivery infrastructure contract", () => {
     expect(smoke).toContain("/api/health");
     expect(smoke).toContain("response.revision !== revision");
     expect(smoke).toContain("docker rm --force");
+  });
+
+  it("propagates every public build-time variable into the production image", () => {
+    const dockerfile = readRepoFile("Dockerfile");
+    const quality = readRepoFile(".github/workflows/quality.yml");
+    const blueprint = readRepoFile("render.yaml");
+
+    for (const name of [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_APP_URL",
+      "NEXT_PUBLIC_ADOBE_FONTS_KIT_ID",
+      "NEXT_PUBLIC_HONEYBADGER_API_KEY",
+      "NEXT_PUBLIC_HONEYBADGER_ASSETS_URL",
+    ]) {
+      // `NEXT_PUBLIC_*` values are inlined at build time, so each of them must
+      // reach the image build and the runtime environment.
+      expect(dockerfile).toContain(`ARG ${name}`);
+      expect(dockerfile).toContain(`${name}=\${${name}}`);
+      expect(quality).toContain(`--build-arg ${name}=`);
+
+      if (name === "NEXT_PUBLIC_APP_URL" || name === "NEXT_PUBLIC_ADOBE_FONTS_KIT_ID") {
+        expect(blueprint).toContain(`key: ${name}`);
+      }
+    }
+
+    expect(blueprint).not.toMatch(/sb_secret_|service_role/i);
+  });
+
+  it("ships declared application icons so browsers never request a missing favicon", () => {
+    expect(existsSync(resolve(root, "src/app/favicon.ico"))).toBe(true);
+    expect(existsSync(resolve(root, "src/app/icon.svg"))).toBe(true);
   });
 
   it("blocks equivalent hosting and CI platforms from active delivery files", () => {

@@ -46,9 +46,16 @@ function grimoiresPageIds(grimoire: SanctuaryGrimoire): string[] {
 }
 
 function resolveProgressSummary(grimoires: SanctuaryGrimoire[], progress: SanctuaryProgressProjection[]): SanctuaryViewModel["progress"] {
-  const totalPages = collectPageIds(grimoires).length;
+  // Count only unique pages present in the current authenticated hierarchy.
+  // Orphaned or duplicate progress projections must not inflate the percentage.
+  const currentPageIds = new Set(collectPageIds(grimoires));
+  const totalPages = currentPageIds.size;
   if (totalPages === 0) return { status: "empty", data: null };
-  const completedPages = progress.filter((item) => item.status === "completed").length;
+  const completedPages = new Set(
+    progress
+      .filter((item) => item.status === "completed" && currentPageIds.has(item.pageId))
+      .map((item) => item.pageId),
+  ).size;
   return {
     status: "ready",
     data: {

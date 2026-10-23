@@ -29,7 +29,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -58,6 +58,9 @@ jobs:
 
       - name: Run Feedback Hub database privilege tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_hub_privileges.test.sql
+
+      - name: Test Feedback deletion cascade only in disposable local database
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_fk_cascade_p0.test.sql
 
       - name: Run integration credential security tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/integration_credentials_security.test.sql

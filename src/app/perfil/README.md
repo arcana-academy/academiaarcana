@@ -1,3 +1,3 @@
-# perfil
+# Perfil
 
-Architectural route placeholder. This directory is reserved for the approved product area; no route implementation is introduced by this structural checkpoint.
+Rota autenticada que apresenta a identidade básica da conta (e-mail e data de criação vindos da sessão Supabase) e atalhos para grimórios e configurações. Dados de aprendizagem permanecem nos domínios responsáveis.

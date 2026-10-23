@@ -339,6 +339,83 @@ describe("getSanctuary", () => {
     });
   });
 
+  it("counts only distinct completed pages in the current hierarchy", async () => {
+    const getPageProgress = vi.fn().mockResolvedValue([
+      { pageId: "page-1", status: "completed" },
+      { pageId: "page-1", status: "completed" },
+      { pageId: "orphan-page", status: "completed" },
+    ]);
+    const repository: SanctuaryRepository = {
+      ...createRepository([grimoire]),
+      getPageProgress,
+    };
+
+    const result = await getSanctuary(repository, sessionContext);
+
+    expect(getPageProgress).toHaveBeenCalledWith("user-1", ["page-1"]);
+    expect(result.progress).toEqual({
+      status: "ready",
+      data: { percentage: 100, label: "1 de 1 páginas concluídas" },
+    });
+  });
+
+  it("does not award progress from completed records outside the hierarchy", async () => {
+    const repository: SanctuaryRepository = {
+      ...createRepository([grimoire]),
+      getPageProgress: vi.fn().mockResolvedValue([
+        { pageId: "orphan-page", status: "completed" },
+        { pageId: "page-1", status: "in-progress" },
+      ]),
+    };
+
+    const result = await getSanctuary(repository, sessionContext);
+
+    expect(result.progress).toEqual({
+      status: "ready",
+      data: { percentage: 0, label: "0 de 1 páginas concluídas" },
+    });
+  });
+
+  it("deduplicates the hierarchy denominator and rounds partial progress without counting orphan records", async () => {
+    const hierarchy = structuredClone(grimoire);
+    const firstPage = hierarchy.notebooks[0].chapters[0].pages[0];
+    hierarchy.notebooks[0].chapters[0].pages = [
+      firstPage, { ...firstPage },
+      { ...firstPage, id: "page-2" }, { ...firstPage, id: "page-3" },
+    ];
+    const repository: SanctuaryRepository = {
+      ...createRepository([hierarchy]),
+      getPageProgress: vi.fn().mockResolvedValue([
+        { pageId: "page-1", status: "completed" },
+        { pageId: "page-1", status: "completed" },
+        { pageId: "page-2", status: "in-progress" },
+        { pageId: "orphan", status: "completed" },
+      ]),
+    };
+    const original = structuredClone(hierarchy);
+    expect((await getSanctuary(repository, sessionContext)).progress).toEqual({
+      status: "ready", data: { percentage: 33, label: "1 de 3 páginas concluídas" },
+    });
+    expect(hierarchy).toEqual(original);
+  });
+
+  it("keeps progress empty when the hierarchy has no pages despite orphan completions", async () => {
+    const repository: SanctuaryRepository = {
+      ...createRepository([{ ...grimoire, notebooks: [] }]),
+      getPageProgress: vi.fn().mockResolvedValue([{ pageId: "orphan", status: "completed" }]),
+    };
+    expect((await getSanctuary(repository, sessionContext)).progress).toEqual({ status: "empty", data: null });
+  });
+
+  it("reports zero observed progress when pages exist but no progress records do", async () => {
+    const repository: SanctuaryRepository = {
+      ...createRepository([grimoire]), getPageProgress: vi.fn().mockResolvedValue([]),
+    };
+    expect((await getSanctuary(repository, sessionContext)).progress).toEqual({
+      status: "ready", data: { percentage: 0, label: "0 de 1 páginas concluídas" },
+    });
+  });
+
   it("does not mutate the authenticated session context", async () => {
     const repository = createRepository([grimoire]);
 

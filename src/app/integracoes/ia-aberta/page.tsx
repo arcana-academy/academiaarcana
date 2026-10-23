@@ -1,6 +1,9 @@
 import Link from "next/link";
 import OpenSourceAiPlayground from "./open-source-ai-playground";
 import { getOpenSourceAiStatus, openSourceAiIntegrations } from "@/infrastructure/integrations/open-source-ai";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/integracoes/ia-aberta");
 
 export const dynamic = "force-dynamic";
 

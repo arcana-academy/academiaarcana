@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 
 import { AcademiaArcanaLanding } from "@/components/generated/AcademiaArcanaLanding";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/");
 
 async function hasAuthenticatedSession(): Promise<boolean> {
   try {

@@ -4,6 +4,9 @@ import { TodoistConnectionPanel } from "@/components/integrations/TodoistConnect
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/integracoes/todoist");
 
 export const dynamic = "force-dynamic";
 

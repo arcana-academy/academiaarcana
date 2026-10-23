@@ -27,7 +27,7 @@ const outlookEvents = [
     subject: "Revisão guiada",
     start: { dateTime: "2026-10-08T18:00:00.000Z", timeZone: "UTC" },
     end: { dateTime: "2026-10-08T18:45:00.000Z", timeZone: "UTC" },
-    webLink: "https://example.com/outlook-event",
+    webLink: "https://outlook.office.com/calendar/",
     isCancelled: false,
   },
 ];
@@ -36,7 +36,7 @@ function isThemeId(value: string | null): value is ThemeId {
   return Boolean(value && THEME_IDS.includes(value as ThemeId));
 }
 
-export function CronogramaPilotHarness({ scenario }: { scenario: Scenario }) {
+export function CronogramaPilotHarness({ scenario, legacyHeading = false }: { scenario: Scenario; legacyHeading?: boolean }) {
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -80,6 +80,7 @@ export function CronogramaPilotHarness({ scenario }: { scenario: Scenario }) {
       <StudyTaskBoard
         key={scenario}
         tasks={initialTasks}
+        pendingTasksHeading={legacyHeading ? "Tarefas futuras" : "Tarefas pendentes"}
         outlookConnected={scenario === "connected"}
         outlookEvents={scenario === "connected" ? outlookEvents : []}
         onCreate={async ({ title, dueAt }) => {
