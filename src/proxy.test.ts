@@ -36,6 +36,7 @@ const request = (pathname: string, auth?: string) => ({
 describe("proxy liveness and isolated preview protection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("AA_PRIVATE_PREVIEW", "disabled");
     mocks.updateSession.mockImplementation(async () => ({
       headers: new Headers(),
     }));
