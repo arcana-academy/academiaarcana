@@ -28,10 +28,11 @@ export function pagePaperStorageKey(pageId: string): string {
 function readPagePaper(pageId: string): PagePaperStyle {
   if (typeof window === "undefined") return "inherit";
   const cached = fallback.get(pageId);
+  if (blocked.has(pageId)) return cached ?? "inherit";
   try {
     const saved = window.localStorage.getItem(pagePaperStorageKey(pageId));
     if (isPagePaperStyle(saved)) return saved;
-    return blocked.has(pageId) ? cached ?? "inherit" : "inherit";
+    return "inherit";
   } catch {
     return cached ?? "inherit";
   }
@@ -69,7 +70,8 @@ export function PagePaperStyleView({
   pageId: string;
   children: ReactNode;
 }) {
-  const [storageWarning, setStorageWarning] = useState(false);
+  const [warningPageId, setWarningPageId] = useState<string | null>(null);
+  const storageWarning = warningPageId === pageId;
   const selected = useSyncExternalStore(
     subscribe,
     () => readPagePaper(pageId),
@@ -82,10 +84,10 @@ export function PagePaperStyleView({
     try {
       window.localStorage.setItem(pagePaperStorageKey(pageId), value);
       blocked.delete(pageId);
-      setStorageWarning(false);
+      setWarningPageId(null);
     } catch {
       blocked.add(pageId);
-      setStorageWarning(true);
+      setWarningPageId(pageId);
     }
     window.dispatchEvent(new Event(CHANGE_EVENT));
   }

@@ -77,10 +77,11 @@ describe("Quatro papéis opcionais do grimório", () => {
   });
 
   it("mantém a escolha utilizável se o navegador bloquear armazenamento", () => {
+    window.localStorage.setItem(pagePaperStorageKey("nonpersistent-page"), "pergaminho-antigo");
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("storage blocked");
     });
-    const { container } = render(
+    const { container, rerender } = render(
       <PagePaperStyleView pageId="nonpersistent-page"><p>A</p></PagePaperStyleView>,
     );
     fireEvent.change(screen.getByRole("combobox", { name: "Estilo do papel desta página" }), {
@@ -88,6 +89,9 @@ describe("Quatro papéis opcionais do grimório", () => {
     });
     expect(container.querySelector(".workspace-page-editor")).toHaveAttribute("data-aa-paper-style", "arcano-escuro");
     expect(screen.getByRole("status")).toHaveTextContent(/não foi possível salvar/i);
+
+    rerender(<PagePaperStyleView pageId="other-page"><p>B</p></PagePaperStyleView>);
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("isola as preferências de outras chaves de armazenamento", () => {
