@@ -332,4 +332,54 @@ describe("Render image-release target preflight", () => {
     }
   });
 
+  it("keeps tracking a legitimate rollout beyond the previous 24-poll cutoff", async () => {
+    const deployId = "dep-synthetic123";
+    let polls = 0;
+    let waits = 0;
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs,
+      waitForNextPoll: async () => { waits += 1; },
+      fetchService: async (url: string) => {
+        if (url.includes("/deploys/")) {
+          polls += 1;
+          return { status: 200, json: async () => ({
+            id: deployId,
+            status: polls <= 26 ? "update_in_progress" : "live",
+            image: { ref: inputs.imageUrl },
+          }) };
+        }
+        if (url.includes("/deploy/")) {
+          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
+        }
+        return { status: 200, json: async () => service };
+      },
+    })).resolves.toBe(true);
+    expect(polls).toBe(27);
+    expect(waits).toBe(26);
+  });
+
+  it("fails closed after the bounded 20-minute polling budget", async () => {
+    const deployId = "dep-synthetic123";
+    let polls = 0;
+    let waits = 0;
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs,
+      waitForNextPoll: async () => { waits += 1; },
+      fetchService: async (url: string) => {
+        if (url.includes("/deploys/")) {
+          polls += 1;
+          return { status: 200, json: async () => ({
+            id: deployId, status: "update_in_progress", image: { ref: inputs.imageUrl },
+          }) };
+        }
+        if (url.includes("/deploy/")) {
+          return { status: 200, json: async () => ({ deploy: { id: deployId } }) };
+        }
+        return { status: 200, json: async () => service };
+      },
+    })).rejects.toThrow(/bounded confirmation window/);
+    expect(polls).toBe(120);
+    expect(waits).toBe(119);
+  });
+
 });

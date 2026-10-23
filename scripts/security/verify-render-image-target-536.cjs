@@ -142,7 +142,10 @@ async function requestVerifiedRenderImageDeployment(inputs) {
   const waitForNextPoll = inputs.waitForNextPoll ||
     (() => new Promise(resolve => setTimeout(resolve, 10000)));
   const expectedDigest = inputs.imageUrl.split("@")[1];
-  for (let attempt = 0; attempt < 24; attempt++) {
+  // 120 polls at 10 seconds apart allow roughly 20 minutes for Render\'s
+  // documented 15-minute start-command allowance and rollout overhead.
+  // The deploy job is independently bounded at 25 minutes.
+  for (let attempt = 0; attempt < 120; attempt++) {
     let current;
     try {
       current = await fetchService(
@@ -185,7 +188,7 @@ async function requestVerifiedRenderImageDeployment(inputs) {
       "pre_deploy_in_progress"].includes(details.status)) {
       throw new Error("Render deployment returned an unrecognized status.");
     }
-    if (attempt < 23) await waitForNextPoll();
+    if (attempt < 119) await waitForNextPoll();
   }
   throw new Error("Render deployment did not reach live within the bounded confirmation window.");
 }

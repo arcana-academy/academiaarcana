@@ -179,6 +179,7 @@ describe("delivery infrastructure contract", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
     const deploy = releaseJob(workflow, "deploy");
     expect(deploy).not.toBe("");
+    expect(deploy).toMatch(/^ {4}timeout-minutes: 25\\s*$/m);
     const condition = releaseBlock(deploy, "if: >-", 4);
     expect(condition).not.toBe("");
     expect(condition).toMatch(/^\s*github\.event_name == 'workflow_dispatch'\s*$/m);

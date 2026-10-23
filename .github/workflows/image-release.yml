@@ -196,7 +196,7 @@ jobs:
     environment:
       name: render-production-approval
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 25
     permissions: {}
 
     steps:
