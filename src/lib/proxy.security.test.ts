@@ -18,6 +18,7 @@ describe("proxy security headers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("AA_PRIVATE_PREVIEW", "disabled");
   });
 
   afterEach(() => {
