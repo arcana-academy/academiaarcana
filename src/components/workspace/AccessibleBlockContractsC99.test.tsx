@@ -113,7 +113,7 @@ describe("C99 — multimodal accessible contracts, without network media", () =>
     fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
     expect(onSave.mock.calls[0][0].content.blocks[0].type).toBe("instrumento-tradicional");
-    expect(onSave.mock.calls[0][0].content.blocks[0].accessibility.description)
+    expect(onSave.mock.calls[0][0].content.blocks[0].accessibility?.description)
       .toBe("Explicação revisada pelo estudante.");
   });
 });
