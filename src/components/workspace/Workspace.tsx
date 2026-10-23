@@ -13,6 +13,7 @@ type WorkspaceProps = {
   state: WorkspaceState;
   title: string;
   selectedPage: Page | null;
+  deletionFeedback?: string;
   onOpenGrimoire: (id: string) => void;
   onOpenNotebook: (id: string) => void;
   onOpenChapter: (id: string) => void;
