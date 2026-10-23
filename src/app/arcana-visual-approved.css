@@ -96,7 +96,7 @@
   min-height: 3.3rem; width: 100%;
   border: 1px solid #DAB985; border-radius: .6rem;
   background: linear-gradient(120deg, #F0D3A4, #C5A073);
-  color: #231529; font: 700 1rem inherit; cursor: pointer;
+  color: #231529; font: inherit; font-weight: 700; cursor: pointer;
 }
 .aa-auth-submit:hover:not(:disabled) { filter: brightness(1.05); }
 .aa-auth-submit:disabled { opacity: .6; cursor: progress; }
