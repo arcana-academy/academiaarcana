@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
+import { PagePaperStyleView } from "./PagePaperStyleView";
+import { PageFrameStyleView } from "./PageFrameStyleView";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { WorkspaceTitleEditor } from "./WorkspaceTitleEditor";
@@ -406,8 +408,9 @@ export function Workspace({
           ) : null}
 
           {selectedPage ? (
-            <div className="workspace-page-editor">
-              <PageEditor
+            <PagePaperStyleView pageId={selectedPage.id}>
+              <PageFrameStyleView pageId={selectedPage.id}>
+                <PageEditor
                 key={selectedPage.id}
                 page={selectedPage}
                 canMoveUp={canMovePageUp}
@@ -418,7 +421,8 @@ export function Workspace({
                 progressStatus={pageProgressStatus}
                 onSetProgress={onSetPageProgress}
               />
-            </div>
+              </PageFrameStyleView>
+            </PagePaperStyleView>
           ) : (
             <div className="workspace-empty-state" role="status">
               <strong>

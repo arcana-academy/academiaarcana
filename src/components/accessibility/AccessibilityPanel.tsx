@@ -133,6 +133,44 @@ function QuickControls() {
   );
 }
 
+/** Single source of truth: same device-local preferences as the global accessibility panel. */
+export function ReadingToolbar() {
+  const { options, toggle } = useContext(Context);
+
+  return (
+    <div className="aa-reading-toolbar" role="group" aria-label="Barra de leitura do grimório">
+      <span className="aa-reading-toolbar-label">Tamanho do texto</span>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        aria-label="Restaurar tamanho padrão do texto"
+        disabled={!options.largerText}
+        onClick={() => toggle("largerText")}
+      >A−</button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        aria-label="Ampliar tamanho do texto"
+        disabled={options.largerText}
+        onClick={() => toggle("largerText")}
+      >A+</button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        aria-pressed={options.focus}
+        onClick={() => toggle("focus")}
+      >Modo Foco</button>
+      <details className="aa-reading-toolbar-details">
+        <summary>Mais ajustes</summary>
+        <div className="aa-reading-toolbar-more">
+          <QuickControls />
+          <Link href="/configuracoes#acessibilidade">Central completa de Acessibilidade</Link>
+        </div>
+      </details>
+    </div>
+  );
+}
+
 export function AccessibilityPanel({ variant }: { variant: "quick" | "full" }) {
   const { appearance, setAppearance } = useTheme();
   const themeId = useId();
