@@ -34,4 +34,27 @@ jobs:
 
       - run: npm run lint -- --fix
 
+      # Visual baselines depend on the CI Chromium build, so they can only be
+      # regenerated here. This runs exclusively for pull requests a maintainer
+      # labelled `refresh-visual-baselines`; autofix.ci commits the refreshed
+      # manifests onto the pull-request branch for normal review.
+      - name: Install Playwright browser for baseline refresh
+        if: contains(github.event.pull_request.labels.*.name, 'refresh-visual-baselines')
+        run: npm exec -- playwright install --with-deps chromium
+
+      - name: Refresh visual baselines
+        if: contains(github.event.pull_request.labels.*.name, 'refresh-visual-baselines')
+        env:
+          AA_VISUAL_BASELINES_WRITE: "1"
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+        run: |
+          npm run build
+          npm run test:e2e -- \
+            design-system-visual \
+            proof-surfaces \
+            focus-production-pilot \
+            cronograma-production-pilot \
+            statistics-production-pilot
+
       - uses: autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a
