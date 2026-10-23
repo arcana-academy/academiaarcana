@@ -8,6 +8,9 @@ import {
   NVIDIA_PHYSICAL_AI_SKILLS,
   NVIDIA_PHYSICAL_AI_TRACKS,
 } from "@/infrastructure/integrations/nvidia-physical-ai";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/integracoes");
 
 export const dynamic = "force-dynamic";
 
@@ -136,11 +139,11 @@ export default async function IntegracoesPage() {
           ))}
           <a
             className="aa-button aa-button-secondary"
-            href="https://platform.openai.com/agents"
+            href="https://platform.openai.com/docs/guides/agents"
             rel="noreferrer"
             target="_blank"
           >
-            Abrir OpenAI Agents
+            Abrir documentação do OpenAI Agents
           </a>
         </article>
       </section>

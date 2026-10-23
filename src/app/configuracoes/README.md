@@ -1,3 +1,3 @@
-# configuracoes
+# Configurações
 
-Architectural route placeholder. This directory is reserved for the approved product area; no route implementation is introduced by this structural checkpoint.
+Rota autenticada que reúne preferências de acessibilidade, aparência, segurança e integrações. As preferências existentes permanecem como fonte de verdade e as conexões externas apontam para os fluxos OAuth executados no servidor.

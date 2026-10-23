@@ -1,5 +1,8 @@
 import { StatisticsPilotHarness } from "./StatisticsPilotHarness";
 import type { StatisticsPilotScenario } from "./statistics-pilot-fixtures";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/design-system/pilots/statistics");
 
 function scenarioFrom(value: string | string[] | undefined): StatisticsPilotScenario {
   return value === "mixed-evidence" ||
