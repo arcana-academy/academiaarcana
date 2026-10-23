@@ -41,7 +41,14 @@ function subscribe(listener: () => void): () => void {
   const storageListener = (event: StorageEvent) => {
     // External changes to this key supersede any in-session fallback.
     if (event.key?.startsWith(STORE_PREFIX)) {
-      const pageId = decodeURIComponent(event.key.slice(STORE_PREFIX.length));
+      // Storage events may contain malformed or unexpected keys from another tab.
+      // Ignore those keys rather than interrupting the active student's editor.
+      let pageId: string;
+      try {
+        pageId = decodeURIComponent(event.key.slice(STORE_PREFIX.length));
+      } catch {
+        return;
+      }
       fallback.delete(pageId);
       blocked.delete(pageId);
     }
