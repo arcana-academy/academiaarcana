@@ -99,7 +99,7 @@ describe("StudyTaskBoard", () => {
       />,
     );
 
-    expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhuma tarefa pendente.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Criar primeira tarefa" })).toHaveAttribute(
       "href",
       "#study-task-title",
@@ -125,8 +125,30 @@ describe("StudyTaskBoard", () => {
 
     await waitFor(() => expect(onComplete).toHaveBeenCalledWith("task-1"));
     expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
-    expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
+    expect(screen.getByText("Nenhuma tarefa pendente.")).toBeInTheDocument();
   });
+  it("labels overdue, future and unscheduled items together as pending tasks", () => {
+    render(
+      <StudyTaskBoard
+        tasks={[
+          { ...task, id: "overdue", title: "Revisão vencida", dueAt: "2020-01-01T10:00:00.000Z" },
+          { ...task, id: "future", title: "Revisão futura", dueAt: "2030-01-01T10:00:00.000Z" },
+          { ...task, id: "unscheduled", title: "Revisão sem prazo", dueAt: null },
+        ]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    const pending = screen.getByRole("region", { name: "Tarefas pendentes" });
+    expect(pending).toContainElement(screen.getByText("Revisão vencida"));
+    expect(pending).toContainElement(screen.getByText("Revisão futura"));
+    expect(pending).toContainElement(screen.getByText("Revisão sem prazo"));
+    expect(pending).toContainElement(screen.getByText("Sem prazo"));
+    expect(screen.queryByRole("heading", { name: "Tarefas futuras" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Concluir" })).toHaveLength(3);
+  });
+
   it("keeps an overdue task visible and allows completing it", async () => {
     const overdue = {
       ...task,

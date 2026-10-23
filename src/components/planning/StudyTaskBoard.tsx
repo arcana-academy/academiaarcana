@@ -19,6 +19,8 @@ type StudyTaskBoardProps = {
   outlookConnected?: boolean;
   outlookEvents?: OutlookEvent[];
   outlookEventsUnavailable?: boolean;
+  /** Allows visual pilots to compare reviewed copy without mutating hydrated DOM. */
+  pendingTasksHeading?: "Tarefas futuras" | "Tarefas pendentes";
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
   onComplete: (id: string) => Promise<StudyTask>;
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
@@ -55,6 +57,7 @@ export function StudyTaskBoard({
   outlookConnected = false,
   outlookEvents = [],
   outlookEventsUnavailable = false,
+  pendingTasksHeading = "Tarefas pendentes",
   onCreate,
   onComplete,
   onScheduleInOutlook,
@@ -417,12 +420,12 @@ export function StudyTaskBoard({
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="upcoming-tasks-title">
         <div className="aa-surface-header">
-          <div><p className="aa-eyebrow">Próximos passos</p><h2 id="upcoming-tasks-title">Tarefas futuras</h2></div>
+          <div><p className="aa-eyebrow">Próximos passos</p><h2 id="upcoming-tasks-title">{pendingTasksHeading}</h2></div>
           <span className="aa-badge aa-badge-neutral">{items.length}</span>
         </div>
         {items.length === 0 ? (
           <div className="aa-empty">
-            <p>Nenhuma tarefa futura cadastrada.</p>
+            <p>Nenhuma tarefa pendente.</p>
             <a className="aa-button aa-button-secondary aa-button-sm" href="#study-task-title">
               Criar primeira tarefa
             </a>
