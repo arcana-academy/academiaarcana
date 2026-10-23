@@ -128,6 +128,7 @@ try {
   const result = spawnSync("npm", [
     "exec", "--", "playwright", "test",
     "tests/e2e/grimoires-workspace.spec.ts",
+    "tests/e2e/brand-accessibility-770.spec.ts",
     "tests/e2e/practice.spec.ts",
     "tests/e2e/sanctuary.spec.ts",
     "--config=playwright.local-auth.config.ts",
