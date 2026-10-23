@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { test, expect } from "@playwright/test";
 
+const require = createRequire(import.meta.url);
 const axeSource = readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const pages = [
   { name: "login-desktop", path: "/login", width: 1440, height: 900 },
