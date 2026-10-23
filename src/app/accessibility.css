@@ -158,3 +158,36 @@ html[data-aa-contrast="high"][data-theme="pergaminho-claro"] {
     width: 100%;
   }
 }
+
+
+/* C96: Plain-text author preview, inheriting the active paper/contrast tokens. */
+.workspace-reading-preview-disclosure {
+  margin-block: var(--aa-spacing-lg);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-panel);
+}
+.workspace-reading-preview-disclosure > summary {
+  cursor: pointer;
+  padding: var(--aa-spacing-md);
+  min-height: var(--aa-sizing-control-md);
+  color: var(--aa-text-primary);
+  font-weight: 650;
+}
+.workspace-reading-preview-disclosure > summary:focus-visible {
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
+}
+.workspace-reading-preview {
+  padding: var(--aa-spacing-md);
+  color: var(--aa-text-primary);
+}
+.workspace-reading-preview-block {
+  padding-block: var(--aa-spacing-sm);
+  border-bottom: 1px solid var(--aa-border-default);
+}
+.workspace-reading-preview-plain, .workspace-reading-preview-alternative {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.workspace-reading-preview-missing { font-style: italic; }
