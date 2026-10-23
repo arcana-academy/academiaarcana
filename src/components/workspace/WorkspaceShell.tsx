@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import {
@@ -137,6 +137,15 @@ export function WorkspaceShell({
   const [createdPages, setCreatedPages] = useState<Record<string, Page[]>>({});
   const [reorderedPages, setReorderedPages] = useState<Record<string, number>>({});
   const [deletedPageIds, setDeletedPageIds] = useState<string[]>([]);
+  const restoreFocusAfterDelete = useRef(false);
+
+  // The keyed PageEditor unmounts after successful deletion. Return focus
+  // to the surviving editor region, never to a now-detached delete button.
+  useEffect(() => {
+    if (!restoreFocusAfterDelete.current) return;
+    restoreFocusAfterDelete.current = false;
+    if (!state.pageId) document.getElementById("current")?.focus();
+  }, [state.pageId, deletedPageIds]);
 
   const workspaceTree = useMemo<WorkspaceTree>(() => ({
     grimoires: [
@@ -353,6 +362,7 @@ export function WorkspaceShell({
   /** Delete a page, clear its local state, and keep the chapter selected. */
   const deletePage = async (id: string) => {
     await onDeletePage(id);
+    restoreFocusAfterDelete.current = state.pageId === id;
     setDeletedPageIds((current) =>
       current.includes(id) ? current : [...current, id],
     );
