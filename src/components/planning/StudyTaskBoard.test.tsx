@@ -62,6 +62,24 @@ describe("StudyTaskBoard", () => {
     expect(screen.getByText(`${expected} · até ${expected}`)).toBeInTheDocument();
   });
 
+  it("replaces an Outlook outage with recovered events on the next server snapshot", () => {
+    const props = { tasks: [task], outlookConnected: true, onCreate: vi.fn(), onComplete: vi.fn() };
+    const events = [{
+      id: "recovered-event",
+      subject: "Revisão recuperada",
+      start: { dateTime: "2026-10-17T13:45:00Z", timeZone: "UTC" },
+      end: { dateTime: "2026-10-17T14:45:00Z", timeZone: "UTC" },
+    }];
+    const { rerender } = render(<StudyTaskBoard {...props} outlookEventsUnavailable outlookEvents={events} />);
+    expect(screen.getByRole("status")).toHaveTextContent("Não foi possível carregar");
+    expect(screen.queryByText("Revisão recuperada")).not.toBeInTheDocument();
+
+    rerender(<StudyTaskBoard {...props} outlookEventsUnavailable={false} outlookEvents={events} />);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByText("Revisão recuperada")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+  });
+
   it("creates a task and adds it to the visible schedule through the labeled form", async () => {
     const created = { ...task, id: "task-2", title: "Nova revisão" };
     const onCreate = vi.fn().mockResolvedValue(created);

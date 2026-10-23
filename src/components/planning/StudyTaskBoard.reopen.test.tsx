@@ -37,6 +37,22 @@ describe("Cronograma server snapshot acknowledgment and reopening", () => {
     expect(screen.queryByText(task.title)).not.toBeInTheDocument();
   });
 
+  it("does not duplicate a locally created task when a later successful creation returns its same ID", async () => {
+    const create = vi.fn().mockResolvedValue(task);
+    render(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={vi.fn()} />);
+    const form = screen.getByRole("form", { name: "Adicionar tarefa de estudo" });
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: task.title } });
+      fireEvent.submit(form);
+      await waitFor(() => expect(screen.getByLabelText("Tarefa")).toHaveValue(""));
+    }
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(screen.getAllByText(task.title)).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Concluir" })).toHaveLength(1);
+  });
+
   it("shows a newly received server task without remounting the board", () => {
     const newTask = { ...task, id: "new-server-task", title: "Preparar poções" };
     const create = vi.fn();
