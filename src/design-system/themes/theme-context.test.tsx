@@ -98,6 +98,40 @@ describe("ThemeProvider", () => {
     }
   });
 
+  test("retains explicit appearance choice in memory when localStorage writes fail", () => {
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => {
+      throw new Error("storage blocked");
+    };
+
+    function AppearanceProbe() {
+      const { theme, appearance, setAppearance } = useTheme();
+      return (
+        <div>
+          <p data-testid="appearance">{appearance}</p>
+          <p data-testid="theme">{theme}</p>
+          <button onClick={() => setAppearance("light")}>Modo claro</button>
+          <button onClick={() => setAppearance("system")}>Automático</button>
+        </div>
+      );
+    }
+
+    const target = document.createElement("div");
+    document.body.appendChild(target);
+    const root = createRoot(target);
+    try {
+      act(() => root.render(<ThemeProvider followSystem><AppearanceProbe /></ThemeProvider>));
+      act(() => (target.querySelector("button") as HTMLButtonElement).click());
+      expect(target.querySelector('[data-testid="appearance"]')?.textContent).toBe("light");
+      expect(target.querySelector('[data-testid="theme"]')?.textContent).toBe("pergaminho-claro");
+    } finally {
+      Storage.prototype.setItem = originalSetItem;
+      act(() => (target.querySelectorAll("button")[1] as HTMLButtonElement)?.click());
+      act(() => root.unmount());
+      target.remove();
+    }
+  });
+
   test("throws a clear error when useTheme is used outside the provider", () => {
     const container = document.createElement("div");
     const root = createRoot(container);

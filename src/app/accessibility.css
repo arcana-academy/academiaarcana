@@ -75,9 +75,11 @@ html[data-aa-focus="true"] .aa-main-content .aa-surface { box-shadow: none; }
   .aa-a11y-popover { position: fixed; top: 5.5rem; right: .5rem; left: .5rem; width: auto; }
 }
 
-/* Light mode must not retain hard-coded dark navigation surfaces. */
+/* Light mode must not retain hard-coded dark navigation or Sanctuary surfaces. */
 html[data-theme="pergaminho-claro"] .aa-topbar,
-html[data-theme="pergaminho-claro"] .aa-sidebar {
+html[data-theme="pergaminho-claro"] .aa-sidebar,
+html[data-theme="pergaminho-claro"] .aa-sanctuary-command-primary,
+html[data-theme="pergaminho-claro"] .aa-sanctuary-command-secondary {
   background: var(--aa-surfaces-panel);
   color: var(--aa-text-primary);
 }
