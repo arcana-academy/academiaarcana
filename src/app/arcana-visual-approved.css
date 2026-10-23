@@ -172,9 +172,9 @@
 }
 @media (max-width: 48rem) {
   .aa-auth-login { grid-template-columns: 1fr; }
-  .aa-auth-story { min-height: 11rem; padding: 1rem 1.5rem; }
+  .aa-auth-story { min-height: 8.5rem; padding: 1rem 1.5rem; }
   .aa-auth-story::after { inset: .5rem; }
-  .aa-auth-story-copy strong { font-size: 1.4rem; }
+  .aa-auth-story-copy { display: none; } /* C105: screenshot showed story text overlapping the login form */
   .aa-auth-story-copy p, .aa-auth-story-sigil { display: none; }
   .aa-auth-login .aa-auth-card { width: min(100% - 1.5rem, 31rem); margin: -1.3rem auto 1.5rem; position: relative; z-index: 1; }
   .aa-shell { grid-template-columns: 1fr; }
