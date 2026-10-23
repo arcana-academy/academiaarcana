@@ -194,6 +194,35 @@ describe("PageEditor", () => {
     expect(styled?.querySelector("details")).toBeTruthy();
   });
 
+  test("applies an experiment starter only to an empty page, pending manual save", async () => {
+    const emptyPage: Page = { ...page, id: "blank-new", content: { type: "document", blocks: [] } };
+    const onSave = vi.fn(async (input: SaveInput) => ({ ...emptyPage, ...input }));
+    render(<PageEditor {...movementProps} page={emptyPage}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    const selector = screen.getByRole("combobox", { name: "Modelo inicial" });
+    expect(screen.getAllByRole("option")).toHaveLength(4);
+    fireEvent.change(selector, { target: { value: "experiment" } });
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar modelo" }));
+    expect(screen.getByLabelText("Bloco 1")).toHaveProperty("value", "Objetivo do experimento:");
+    expect(screen.getByLabelText("Bloco 6")).toHaveProperty("value", "Conclusão:");
+    expect(screen.getByRole("button", { name: "Aplicar modelo" })).toBeDisabled();
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].content.blocks).toHaveLength(6);
+  });
+
+  test("does not replace existing study notes", () => {
+    const onSave = vi.fn();
+    render(<PageEditor {...movementProps} page={page}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    expect(screen.getByRole("button", { name: "Aplicar modelo" })).toBeDisabled();
+    expect(screen.getByRole("combobox", { name: "Modelo inicial" })).toBeDisabled();
+    expect(screen.getByLabelText("Bloco 1")).toHaveProperty("value", "Conteúdo inicial.");
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
