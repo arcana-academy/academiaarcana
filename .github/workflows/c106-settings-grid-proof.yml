@@ -1,0 +1,58 @@
+name: C106 isolated settings grid delta only
+on:
+  push:
+    branches:
+      - work/aa360-c106-settings-grid-proof-20261023
+permissions:
+  contents: read
+jobs:
+  material-delta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify product exact ancestry
+        run: git merge-base --is-ancestor 3ec5a942ee966c6feb17f0cffc1627794341e001 HEAD
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Only settings contract test
+        run: npm exec -- vitest run src/app/configuracoes/page.c106.test.tsx
+      - name: Only settings TypeScript lint
+        run: npm exec -- eslint src/app/configuracoes/page.tsx
+      - name: Typecheck updated settings
+        run: npm run typecheck
+      - name: Parse updated CSS
+        run: node -e "const fs=require('node:fs');const postcss=require('postcss');const p='src/app/arcana-visual-approved.css';postcss.parse(fs.readFileSync(p,'utf8'),{from:p});console.log('C106 CSS PASS')"
+      - run: npm exec -- playwright install chromium
+      - name: Start synthetic loopback fixture
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: |
+          npm run dev -- --hostname 127.0.0.1 --port 3106 > /tmp/c106-settings-next.log 2>&1 &
+          for i in $(seq 1 75); do
+            if curl -fsS --max-time 4 http://127.0.0.1:3106/cadastro >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 70 /tmp/c106-settings-next.log; exit 1
+      - name: Only desktop/mobile settings screenshots
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAAAAAAAAAAAAAA_BBBBBBBB
+          APP_ENV: test
+        run: npm exec -- playwright test --config=c106-playwright.config.ts -g configuracoes-
+      - name: Keep comparison private
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: c106-settings-grid-private-review
+          path: artifacts/c106-configuracoes-*.png
+          if-no-files-found: ignore
+          retention-days: 7
