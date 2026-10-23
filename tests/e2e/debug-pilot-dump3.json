@@ -1,0 +1,195 @@
+{
+  "immediate": {
+    "descendants": 76,
+    "running": 31,
+    "details": [
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "background-color",
+        "target": "aa-button aa-button-primary"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "background-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-bottom-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-left-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-right-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-top-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "background-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-bottom-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-left-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-right-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-top-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "background-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-bottom-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-left-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-right-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-top-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "background-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-bottom-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-left-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-right-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-top-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "background-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-bottom-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-left-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-right-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-top-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "background-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-bottom-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-left-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-right-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      },
+      {
+        "playState": "running",
+        "type": "transition-or-web",
+        "name": "border-top-color",
+        "target": "aa-button aa-button-secondary aa-button-sm"
+      }
+    ]
+  },
+  "settled": 0
+}
