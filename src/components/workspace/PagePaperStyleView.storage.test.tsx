@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { PagePaperStyleView, pagePaperStorageKey } from "./PagePaperStyleView";
 
@@ -46,11 +46,13 @@ describe("Robustez das preferências visuais no navegador", () => {
     expect(screen.getByRole("combobox", { name: "Estilo do papel desta página" })).toHaveValue("lilas");
 
     window.localStorage.removeItem(pagePaperStorageKey("other-page"));
-    window.dispatchEvent(new StorageEvent("storage", {
-      key: pagePaperStorageKey("other-page"),
-      oldValue: "lilas",
-      newValue: null,
-    }));
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", {
+        key: pagePaperStorageKey("other-page"),
+        oldValue: "lilas",
+        newValue: null,
+      }));
+    });
 
     expect(screen.getByRole("combobox", { name: "Estilo do papel desta página" })).toHaveValue("inherit");
     expect(screen.getByText("Rascunho intacto")).toBeVisible();
