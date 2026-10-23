@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { createContext, useContext, useEffect, useId, useState, type ReactNode } from "react";
-import { applyTheme, useTheme } from "@/design-system/themes";
+import { createContext, useContext, useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useTheme } from "@/design-system/themes";
 
 type AccessibilityOptions = {
   largerText: boolean;
@@ -16,6 +16,7 @@ type AccessibilityOptionsContextValue = {
   toggle: (key: OptionKey) => void;
 };
 const KEY = "academia-arcana.visual-accessibility-v1";
+const CHANGE_EVENT = "academia-arcana:visual-accessibility-changed";
 const defaults: AccessibilityOptions = {
   largerText: false, contrast: false, spacing: false, focus: false,
 };
@@ -32,41 +33,62 @@ function isOptions(value: unknown): value is AccessibilityOptions {
   );
 }
 
+let cachedSerialized: string | null = null;
+let cachedOptions: AccessibilityOptions = defaults;
+
+function getStoredOptions(): AccessibilityOptions {
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(KEY);
+  } catch {
+    return defaults;
+  }
+  if (raw === cachedSerialized) return cachedOptions;
+  cachedSerialized = raw;
+  try {
+    const value: unknown = raw ? JSON.parse(raw) : null;
+    cachedOptions = isOptions(value) ? value : defaults;
+  } catch {
+    cachedOptions = defaults;
+  }
+  return cachedOptions;
+}
+
+function subscribeOptions(notify: () => void): () => void {
+  window.addEventListener("storage", notify);
+  window.addEventListener(CHANGE_EVENT, notify);
+  return () => {
+    window.removeEventListener("storage", notify);
+    window.removeEventListener(CHANGE_EVENT, notify);
+  };
+}
+
+function getServerOptions(): AccessibilityOptions {
+  return defaults;
+}
+
 export function VisualAccessibilityProvider({ children }: { children: ReactNode }) {
-  const { theme } = useTheme();
-  const [options, setOptions] = useState<AccessibilityOptions>(defaults);
-  const [loaded, setLoaded] = useState(false);
+  const storedOptions = useSyncExternalStore(subscribeOptions, getStoredOptions, getServerOptions);
+  const [sessionOptions, setSessionOptions] = useState<AccessibilityOptions | null>(null);
+  const options = sessionOptions ?? storedOptions;
 
   useEffect(() => {
-    try {
-      const entry = window.localStorage.getItem(KEY);
-      if (entry) {
-        const candidate: unknown = JSON.parse(entry);
-        if (isOptions(candidate)) setOptions(candidate);
-      }
-    } catch {
-      // Private browsing/storage-denied mode must not disable accessibility.
-    }
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
     const target = document.documentElement;
     target.dataset.aaTextSize = options.largerText ? "large" : "normal";
     target.dataset.aaContrast = options.contrast ? "high" : "normal";
     target.dataset.aaSpacing = options.spacing ? "expanded" : "normal";
     target.dataset.aaFocus = options.focus ? "true" : "false";
-    applyTheme(theme);
-    try {
-      window.localStorage.setItem(KEY, JSON.stringify(options));
-    } catch {
-      // Continue with session-only preferences.
-    }
-  }, [loaded, options, theme]);
+  }, [options]);
 
   const toggle = (key: OptionKey) => {
-    setOptions((current) => ({ ...current, [key]: !current[key] }));
+    const updated = { ...options, [key]: !options[key] };
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(updated));
+      setSessionOptions(null);
+      window.dispatchEvent(new Event(CHANGE_EVENT));
+    } catch {
+      setSessionOptions(updated);
+    }
   };
 
   return <Context.Provider value={{ options, toggle }}>{children}</Context.Provider>;
