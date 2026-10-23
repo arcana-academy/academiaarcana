@@ -289,6 +289,7 @@ export function Workspace({
   state,
   title,
   selectedPage,
+  deletionFeedback = "",
   onOpenGrimoire,
   onOpenNotebook,
   onOpenChapter,
@@ -335,6 +336,7 @@ export function Workspace({
   return (
     <div className="workspace-shell">
       <WorkspaceHeader title={title} />
+      <p role="status" aria-live="polite" aria-atomic="true">{deletionFeedback}</p>
       <a className="aa-workspace-skip-link" href="#current">Ir para o editor da página</a>
 
       <div className="workspace-regions">
