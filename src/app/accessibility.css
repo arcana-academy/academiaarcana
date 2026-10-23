@@ -102,3 +102,57 @@ html[data-aa-contrast="high"][data-theme="pergaminho-claro"] {
   --aa-border-default: #604474 !important;
   --aa-focus-ring: #604474 !important;
 }
+
+/* Brand Book 360°: visible grimoire reading toolbar uses the existing preference store. */
+.aa-reading-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--aa-spacing-sm);
+  padding: var(--aa-spacing-sm);
+  margin-block: var(--aa-spacing-md);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-panel);
+  color: var(--aa-text-primary);
+}
+.aa-reading-toolbar-label {
+  font-size: var(--aa-type-scale-sm);
+  font-weight: 650;
+}
+.aa-reading-toolbar .aa-button {
+  min-height: var(--aa-sizing-control-md);
+  min-width: var(--aa-sizing-control-md);
+}
+.aa-reading-toolbar-details { position: relative; }
+.aa-reading-toolbar-details summary {
+  cursor: pointer;
+  padding: var(--aa-spacing-sm);
+  min-height: var(--aa-sizing-control-md);
+  align-content: center;
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+}
+.aa-reading-toolbar-details summary:focus-visible {
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
+}
+.aa-reading-toolbar-more {
+  position: absolute;
+  top: calc(100% + var(--aa-spacing-sm));
+  right: 0;
+  z-index: var(--aa-z-index-dropdown);
+  width: min(22rem, calc(100vw - 2rem));
+  padding: var(--aa-spacing-md);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-elevated);
+  box-shadow: var(--aa-shadows-md);
+}
+.aa-reading-toolbar-more a { display: inline-block; margin-top: var(--aa-spacing-md); }
+@media (max-width: 48rem) {
+  .aa-reading-toolbar-more {
+    position: static;
+    width: 100%;
+  }
+}

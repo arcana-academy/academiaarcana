@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
+import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
 import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
 
 type PageDeleteControlProps = {
@@ -401,6 +402,8 @@ export function PageEditor({
           setStatus("idle");
         }}
       />
+
+      <ReadingToolbar />
 
       <section aria-label="Modelos iniciais de página" className="workspace-page-template-controls">
         <label htmlFor="workspace-page-starter">Modelo inicial</label>
