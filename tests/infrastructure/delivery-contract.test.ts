@@ -11,13 +11,32 @@ const root = process.cwd();
 
 const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
-const releaseJob = (workflow: string, name: string) => {
-  const jobs = "\n" + (workflow.replaceAll("\r\n", "\n").split("\njobs:\n")[1] ?? "");
-  return jobs.split(`\n  ${name}:\n`)[1]?.split(/\n  [a-z][\w-]*:\n/)[0] ?? "";
+// Indentation-scoped extraction: only live YAML and shell lines count as controls.
+const releaseBlock = (source: string, heading: string, indentation: number) => {
+  const lines = source.replaceAll("\r\n", "\n").split("\n");
+  const first = lines.findIndex((line) => line === " ".repeat(indentation) + heading);
+  if (first < 0) return "";
+
+  const end = lines.findIndex(
+    (line, index) =>
+      index > first &&
+      line.trim() !== "" &&
+      !line.trimStart().startsWith("#") &&
+      (line.match(/^ */)?.[0].length ?? 0) <= indentation,
+  );
+  return lines
+    .slice(first + 1, end < 0 ? lines.length : end)
+    .filter((line) => !line.trimStart().startsWith("#"))
+    .join("\n");
 };
 
+const releaseJob = (workflow: string, name: string) =>
+  releaseBlock(releaseBlock(workflow, "jobs:", 0), name + ":", 2);
+
 const releaseStep = (job: string, name: string) =>
-  job.split(`\n      - name: ${name}\n`)[1]?.split("\n      - name: ")[0] ?? "";
+  releaseBlock(releaseBlock(job, "steps:", 4), "- name: " + name, 6);
+
+const releaseRun = (step: string) => releaseBlock(step, "run: |", 8);
 
 describe("delivery infrastructure contract", () => {
   it("retains git-source smoke until the image deployment switch is enabled", () => {
@@ -98,25 +117,99 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).not.toContain("docker build");
   });
 
-  it("scopes release provenance and immutable guard checks to their actual steps", () => {
+  it("rejects workflow_dispatch unless the trusted main ref is checked in preflight", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
-    const preflight = releaseJob(workflow, "preflight");
-    const trusted = releaseStep(preflight, "Verify trusted source for event or explicit promotion");
-    const deploy = releaseJob(workflow, "deploy");
-    const immutableGuard = releaseStep(deploy, "Fetch immutable public preflight from approved main SHA");
+    const step = releaseStep(
+      releaseJob(workflow, "preflight"),
+      "Verify trusted source for event or explicit promotion",
+    );
+    expect(step).not.toBe("");
 
-    expect(trusted).not.toBe("");
-    expect(trusted).toContain("RELEASE_REF: ${{ github.ref }}");
-    expect(trusted).toContain('[ "$RELEASE_REF" != "refs/heads/main" ]');
-    expect(trusted).toContain(".head_sha == $revision");
-    expect(trusted).toContain(".run_attempt == 1");
-    expect(trusted).toContain('.conclusion == "success"');
-    expect(immutableGuard).not.toBe("");
-    expect(immutableGuard).toContain("--max-redirs 0");
-    expect(immutableGuard).toContain("raw.githubusercontent.com");
-    expect(immutableGuard).not.toContain("GITHUB_TOKEN:");
-    expect(immutableGuard).not.toContain("GH_TOKEN:");
-    expect(deploy).toContain("github.event_name == 'workflow_dispatch'");
+    const env = releaseBlock(step, "env:", 8);
+    const run = releaseRun(step);
+    expect(env).toMatch(/^\s*RELEASE_EVENT:\s*\x24\{\{ github\.event_name \}\}\s*$/m);
+    expect(env).toMatch(/^\s*RELEASE_REF:\s*\x24\{\{ github\.ref \}\}\s*$/m);
+    expect(run).toMatch(
+      /elif \[ "\$RELEASE_EVENT" = "workflow_dispatch" \]; then\s+if \[ "\$RELEASE_REF" != "refs\/heads\/main" \]; then[\s\S]*?\bexit 1\s+fi/,
+    );
+  });
+
+  it("validates the original Quality Gate API run SHA, attempt, and conclusion", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const step = releaseStep(
+      releaseJob(workflow, "preflight"),
+      "Verify trusted source for event or explicit promotion",
+    );
+    const run = releaseRun(step);
+    expect(run).toMatch(
+      /run_json="\$\(gh api "\/repos\/\x24\{GITHUB_REPOSITORY\}\/actions\/runs\/\x24\{run_id\}"\)"/,
+    );
+    const filter = run.match(
+      /\|\s*jq -e\s*\\\s*--arg revision "\$revision"\s*\\\s*--arg repository "\$GITHUB_REPOSITORY"\s+'([\s\S]*?)'\s*>\/dev\/null;\s*then/,
+    )?.[1] ?? "";
+    expect(filter).not.toBe("");
+    expect(filter).toMatch(/^\s*\.head_sha == \$revision and\s*$/m);
+    expect(filter).toMatch(/^\s*\.run_attempt == 1 and\s*$/m);
+    expect(filter).toMatch(/^\s*\.conclusion == "success"\s*$/m);
+  });
+
+  it("downloads the immutable public preflight without redirects or GitHub tokens", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const deploy = releaseJob(workflow, "deploy");
+    const step = releaseStep(
+      deploy,
+      "Fetch immutable public preflight from approved main SHA",
+    );
+    expect(step).not.toBe("");
+    expect(deploy).toMatch(/^ {4}permissions: \{\}\s*$/m);
+
+    const env = releaseBlock(step, "env:", 8);
+    const run = releaseRun(step);
+    expect(env).toMatch(/^\s*EXPECTED_REVISION:\s*\x24\{\{ needs\.preflight\.outputs\.release_sha \}\}\s*$/m);
+    const download = run.match(
+      /^\s*curl --fail[^\n]*\\\s*--output \S+\s*\\\s*"https:\/\/raw\.githubusercontent\.com\/\x24\{GITHUB_REPOSITORY\}\/\x24\{EXPECTED_REVISION\}\/scripts\/security\/verify-render-image-target-536\.cjs"/m,
+    )?.[0] ?? "";
+    expect(download).not.toBe("");
+    expect(download).toMatch(/(?:^|\s)--max-redirs\s+0(?:\s|\\)/);
+    expect(download).toContain("--proto '=https'");
+    expect(env + run).not.toMatch(/\b(?:GITHUB_TOKEN|GH_TOKEN)\b/);
+  });
+
+  it("gates only the deploy job on an explicit workflow_dispatch", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const deploy = releaseJob(workflow, "deploy");
+    expect(deploy).not.toBe("");
+    const condition = releaseBlock(deploy, "if: >-", 4);
+    expect(condition).not.toBe("");
+    expect(condition).toMatch(/^\s*github\.event_name == 'workflow_dispatch'\s*$/m);
+    expect(condition).not.toMatch(/\|\||\bworkflow_run\b/);
+  });
+
+  it("ignores security checks preserved only as comments or in other jobs", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const commented = workflow
+      .replace(
+        '            if [ "$RELEASE_REF" != "refs/heads/main" ]; then',
+        '            # if [ "$RELEASE_REF" != "refs/heads/main" ]; then',
+      )
+      .replace(
+        "                   .head_sha == $revision and",
+        "                   # .head_sha == $revision and",
+      );
+    const run = releaseRun(
+      releaseStep(
+        releaseJob(commented, "preflight"),
+        "Verify trusted source for event or explicit promotion",
+      ),
+    );
+    expect(run).not.toMatch(/^\s*if \[ "\$RELEASE_REF" != "refs\/heads\/main" \]; then/m);
+    expect(run).not.toMatch(/^\s*\.head_sha == \$revision and/m);
+    expect(
+      releaseStep(
+        releaseJob(workflow, "publish"),
+        "Fetch immutable public preflight from approved main SHA",
+      ),
+    ).toBe("");
   });
 
   it("invokes the verified Render guard only inside the deploy request step", () => {
