@@ -85,3 +85,20 @@ html[data-theme="pergaminho-claro"] .aa-sidebar {
 html[data-theme="pergaminho-claro"] .aa-topbar .aa-button-ghost {
   color: var(--aa-text-primary);
 }
+
+
+/* High-contrast choices remain effective when the ThemeProvider reapplies tokens. */
+html[data-aa-contrast="high"]:not([data-theme="pergaminho-claro"]) {
+  --aa-text-primary: #FFFFFF !important;
+  --aa-text-secondary: #F6ECF7 !important;
+  --aa-text-muted: #DFD3E3 !important;
+  --aa-border-default: #D9C7DF !important;
+  --aa-focus-ring: #F4D5A5 !important;
+}
+html[data-aa-contrast="high"][data-theme="pergaminho-claro"] {
+  --aa-text-primary: #17101D !important;
+  --aa-text-secondary: #281D30 !important;
+  --aa-text-muted: #392A42 !important;
+  --aa-border-default: #604474 !important;
+  --aa-focus-ring: #604474 !important;
+}
