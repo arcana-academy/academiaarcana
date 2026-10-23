@@ -5,6 +5,7 @@ import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
 import { AccessiblePageReadingPreview } from "./AccessiblePageReadingPreview";
 import { AccessiblePageTextExport } from "./AccessiblePageTextExport";
+import { AccessiblePageStructuredExport } from "./AccessiblePageStructuredExport";
 import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
 
 type PageDeleteControlProps = {
@@ -521,6 +522,7 @@ export function PageEditor({
         <AccessiblePageReadingPreview content={content} />
       </details>
       <AccessiblePageTextExport title={title} content={content} />
+      <AccessiblePageStructuredExport title={title} content={content} />
 
       <button type="button" onClick={addBlock}>
         Adicionar bloco
