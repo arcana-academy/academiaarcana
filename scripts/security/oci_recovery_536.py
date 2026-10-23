@@ -53,9 +53,20 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Tar SHA mismatch")
     checked = {}
     metadata = {}
+    seen_directories = set()
     with tarfile.open(path, "r|*") as tar:
         for member in tar:
+            # OCI tar archives can contain safe structural directories and a
+            # single leading './' added by standard tar packing commands.
             name = member.name
+            if name.startswith("./"):
+                name = name[2:] or "."
+            if member.isdir():
+                directory = name.rstrip("/")
+                if directory not in (".", "blobs", "blobs/sha256") or directory in seen_directories or member.size != 0:
+                    raise IntegrityError("Unexpected/duplicate OCI directory")
+                seen_directories.add(directory)
+                continue
             if name in checked or not member.isfile():
                 raise IntegrityError("Duplicate/nonregular member")
             if name not in ("oci-layout", "index.json") and not BLOB.fullmatch(name):
@@ -119,8 +130,11 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Unexpected archive members")
     cfg_path = "blobs/sha256/" + cfg["digest"][7:]
     config = object_json(metadata.get(cfg_path, b""), "config")
-    user = config.get("config", {}).get("User")
-    if config.get("os") != "linux" or config.get("architecture") != "amd64" or user in ("", None, "0", "root"):
+    runtime_config = config.get("config")
+    user = runtime_config.get("User") if isinstance(runtime_config, dict) else None
+    principal = user.split(":", 1)[0] if isinstance(user, str) else ""
+    if (config.get("os") != "linux" or config.get("architecture") != "amd64"
+            or not principal or principal == "root" or re.fullmatch(r"[+-]?0+", principal)):
         raise IntegrityError("Unexpected platform or root runtime")
     return {"result": "PASS", "manifest": digest, "archiveSha256": actual_archive,
             "archiveBytes": path.stat().st_size, "objectsVerified": len(descs) + 1,
