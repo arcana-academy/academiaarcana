@@ -65,7 +65,9 @@ describe("C96 — accessible reading preview without uploads or HTML interpretat
     const summary = screen.getByText("Ver prévia de leitura acessível (rascunho local)");
     fireEvent.click(summary);
     fireEvent.change(screen.getByRole("textbox", { name: "Bloco 1" }), { target: { value: "Alterado sem salvar." } });
-    expect(screen.getByText("Alterado sem salvar.")).toBeTruthy();
+    const readingRegion = screen.getByRole("region", { name: "Leitura estruturada da página" });
+    expect(readingRegion.querySelector(".workspace-reading-preview-plain")?.textContent)
+      .toBe("Alterado sem salvar.");
     expect(onSave).not.toHaveBeenCalled();
   });
 });
