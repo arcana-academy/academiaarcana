@@ -1,0 +1,32 @@
+name: C91 focus typography verification
+on:
+  push:
+    branches:
+      - work/aa360-c91-fonts-verification-20261023
+permissions:
+  contents: read
+jobs:
+  fonts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Focused root-layout font test
+        run: npm exec -- vitest run src/app/layout.test.tsx
+      - name: Targeted lint for changed TS
+        run: npm exec -- eslint src/app/fonts.ts src/app/layout.tsx src/app/layout.test.tsx
+      - name: Typecheck exact typography HEAD
+        run: npm run typecheck
+      - name: Test build with self-hosted fonts, synthetic config only
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
