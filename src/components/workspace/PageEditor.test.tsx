@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Page } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
@@ -104,6 +104,69 @@ describe("PageEditor", () => {
     window.localStorage.clear();
   });
 
+  test("announces pending save without claiming completion", async () => {
+    const pendingSave = vi.fn(() => new Promise<Page>(() => undefined));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={pendingSave}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.getByText("Salvando página…").closest("[role=status]")).not.toBeNull();
+    expect(screen.getByText("Salvando página…")).toBeInTheDocument();
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(pendingSave).toHaveBeenCalledOnce();
+  });
+
+  test("clears stale saved feedback when a confirmed page is edited again", async () => {
+    const onSave = vi.fn((input: SaveInput) => Promise.resolve({
+      ...page, title: input.title, content: input.content,
+    }));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Novo título" } });
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(screen.getByLabelText("Título")).toHaveValue("Novo título");
+  });
+
+  test("retains newer local text when an older save completes", async () => {
+    let resolveSave!: (saved: Page) => void;
+    const onSave = vi.fn(() => new Promise<Page>((resolve) => {
+      resolveSave = resolve;
+    }));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.getByText("Salvando página…")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Ideia nova ainda não salva" },
+    });
+    await act(async () => {
+      resolveSave({ ...page, title: "Dor lombar" });
+    });
+    expect(screen.getByLabelText("Título")).toHaveValue("Ideia nova ainda não salva");
+    expect(screen.queryByText("Página salva.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Salvar página" })).toBeEnabled();
+  });
+
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
@@ -166,6 +229,29 @@ describe("PageEditor", () => {
         'Excluir a página "Dor lombar"? Essa ação não pode ser desfeita.',
       ),
     ).toBeTruthy();
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  test("focuses the safe action in the alert dialog and restores focus on Escape", () => {
+    const onDelete = vi.fn(async () => undefined);
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={onDelete}
+        onSave={vi.fn()}
+      />,
+    );
+    const launch = screen.getByRole("button", { name: "Excluir página" });
+    launch.focus();
+    fireEvent.click(launch);
+    const confirmation = screen.getByRole("alertdialog", {
+      name: "Confirmar exclusão da página",
+    });
+    expect(screen.getByRole("button", { name: "Cancelar" })).toHaveFocus();
+    fireEvent.keyDown(confirmation, { key: "Escape" });
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(launch).toHaveFocus();
     expect(onDelete).not.toHaveBeenCalled();
   });
 

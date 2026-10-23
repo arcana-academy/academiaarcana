@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ReadingControls } from "@/components/accessibility/ReadingControls";
 import { useReadingPreferences } from "@/application/accessibility-preferences/reading-preferences";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
@@ -20,6 +20,18 @@ function PageDeleteControl({
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const launchButton = useRef<HTMLButtonElement>(null);
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const openedOnce = useRef(false);
+
+  useEffect(() => {
+    if (isConfirming) {
+      openedOnce.current = true;
+      cancelButton.current?.focus();
+    } else if (openedOnce.current) {
+      launchButton.current?.focus();
+    }
+  }, [isConfirming]);
 
   /** Execute the confirmed deletion and report recoverable failures. */
   const remove = async () => {
@@ -38,6 +50,7 @@ function PageDeleteControl({
     return (
       <button
         type="button"
+        ref={launchButton}
         onClick={() => setIsConfirming(true)}
       >
         Excluir página
@@ -46,12 +59,22 @@ function PageDeleteControl({
   }
 
   return (
-    <div role="alertdialog" aria-label="Confirmar exclusão da página">
+    <div
+      role="alertdialog"
+      aria-label="Confirmar exclusão da página"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !isDeleting) {
+          event.stopPropagation();
+          setIsConfirming(false);
+        }
+      }}
+    >
       <p>
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <button
+        ref={cancelButton}
         type="button"
         disabled={isDeleting}
         onClick={() => setIsConfirming(false)}
@@ -161,7 +184,7 @@ type PageSaveStatusProps = {
 function PageSaveStatus({ status }: PageSaveStatusProps) {
   const messages: Record<PageSaveState, string> = {
     idle: "",
-    saving: "",
+    saving: "Salvando página…",
     saved: "Página salva.",
     error: "Não foi possível salvar a página.",
   };
@@ -208,6 +231,7 @@ export function PageEditor({
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
+  const editRevision = useRef(0);
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -241,7 +265,9 @@ export function PageEditor({
       ...nextBlocks[index],
       content: blockContent,
     };
+    editRevision.current += 1;
     setContent({ ...content, blocks: nextBlocks });
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   /** Persist the learning progress state for the selected page. */
@@ -263,6 +289,7 @@ export function PageEditor({
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
     setStatus("saving");
+    const revisionAtSave = editRevision.current;
 
     try {
       const saved = await onSave({
@@ -271,9 +298,15 @@ export function PageEditor({
         content,
       });
 
-      setTitle(saved.title);
-      setContent(saved.content);
-      setStatus("saved");
+      if (editRevision.current === revisionAtSave) {
+        setTitle(saved.title);
+        setContent(saved.content);
+        setStatus("saved");
+      } else {
+        // The user continued editing: never replace newer local text with an
+        // older server response or falsely mark the new draft as saved.
+        setStatus("idle");
+      }
     } catch {
       setStatus("error");
     }
@@ -289,6 +322,8 @@ export function PageEditor({
       ...current,
       `${page.id}:block:${current.length}`,
     ]);
+    editRevision.current += 1;
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   return (
@@ -306,7 +341,11 @@ export function PageEditor({
       <input
         id="workspace-page-title"
         value={title}
-        onChange={(event) => setTitle(event.target.value)}
+        onChange={(event) => {
+          editRevision.current += 1;
+          setTitle(event.target.value);
+          setStatus((current) => current === "saving" ? current : "idle");
+        }}
       />
 
       <PageBlocks
