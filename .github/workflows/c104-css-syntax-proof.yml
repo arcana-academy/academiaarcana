@@ -1,0 +1,23 @@
+name: C104 isolated remaining pages CSS proof
+on:
+  push:
+    branches:
+      - work/aa360-c104-remaining-pages-css-proof-20261023
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 22e82f9ccb8cf5ae69423a8f5108deee84e6be62
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - name: C104 exact source stylesheet syntax only
+        run: node -e "const fs=require('node:fs'); const postcss=require('postcss'); const file='src/app/arcana-visual-approved.css';const root=postcss.parse(fs.readFileSync(file,'utf8'),{from:file}); console.log('C104 stylesheet parses;',root.nodes.length,'rules');"
