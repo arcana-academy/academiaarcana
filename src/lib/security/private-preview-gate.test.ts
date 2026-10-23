@@ -16,8 +16,9 @@ const basic = (user: string, password: string) =>
   `Basic ${Buffer.from(`${user}:${password}`, "utf8").toString("base64")}`;
 
 describe("private preview access", () => {
-  it("is opt-in and never alters normal production by default", () => {
-    expect(isPrivatePreviewEnabled({})).toBe(false);
+  it("is fail-closed by default; test opt-out requires explicit setting", () => {
+    expect(isPrivatePreviewEnabled({})).toBe(true);
+    expect(isPrivatePreviewEnabled({ AA_PRIVATE_PREVIEW: "disabled" })).toBe(false);
     expect(isPrivatePreviewEnabled(environment)).toBe(true);
   });
 
