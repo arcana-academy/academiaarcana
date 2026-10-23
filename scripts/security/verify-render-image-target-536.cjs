@@ -109,7 +109,6 @@ async function requestVerifiedRenderImageDeployment(inputs) {
   // Never reuse a hook URL or a preflight result without this fresh API read.
   const hook = new URL(inputs.hookUrl);
   hook.searchParams.set("imgURL", inputs.imageUrl);
-  const requestStartedAt = Date.now();
   let response;
   try {
     response = await fetchService(hook.toString(), {
