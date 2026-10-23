@@ -608,6 +608,8 @@ describe("WorkspaceShell", () => {
     await waitFor(() =>
       expect(window.location.search).toBe("?view=tree&chapter=c1"),
     );
+    expect(screen.getByRole("region", { name: "Área de trabalho" })).toHaveFocus();
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
 });
