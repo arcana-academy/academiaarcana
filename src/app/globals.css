@@ -2331,3 +2331,80 @@ p {
   background: var(--aa-surfaces-inset);
 }
 
+
+
+/* Brand Book 360 — accessible properties live next to the selected page block. */
+.workspace-page-block {
+  display: grid;
+  gap: var(--aa-spacing-xs);
+  margin-block: var(--aa-spacing-sm);
+  padding: var(--aa-spacing-md);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-panel);
+}
+
+.workspace-page-block .aa-input {
+  width: 100%;
+  min-height: var(--aa-sizing-control-md);
+}
+
+.workspace-block-accessibility {
+  padding: var(--aa-spacing-sm);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-inset);
+}
+
+.workspace-block-accessibility[open] {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+}
+
+.workspace-block-accessibility summary {
+  cursor: pointer;
+  min-height: var(--aa-sizing-control-md);
+  align-content: center;
+  font-weight: 650;
+  color: var(--aa-text-primary);
+}
+
+.workspace-block-accessibility summary:focus-visible,
+.workspace-page-block select:focus-visible,
+.workspace-page-block textarea:focus-visible {
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
+}
+
+.workspace-block-accessibility label {
+  display: flex;
+  align-items: center;
+  gap: var(--aa-spacing-xs);
+  flex-wrap: wrap;
+}
+
+.workspace-block-accessibility textarea {
+  width: 100%;
+  min-height: 6rem;
+}
+
+.workspace-block-accessibility p {
+  color: var(--aa-text-secondary);
+  font-size: var(--aa-type-scale-sm);
+}
+
+/* Keep native checkboxes usable: generic page-editor input rules use width: 100%. */
+.workspace-page-editor .workspace-block-accessibility input[type="checkbox"] {
+  width: auto;
+  min-height: 1.25rem;
+  min-width: 1.25rem;
+  flex: none;
+  accent-color: var(--aa-accent-primary);
+}
+
+.workspace-page-editor .workspace-block-accessibility select {
+  background: var(--aa-surfaces-inset);
+  color: var(--aa-text-primary);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+}

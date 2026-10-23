@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { createContentSecurityPolicy } from "@/lib/security/csp";
 import { updateSession } from "@/lib/supabase/proxy";
@@ -12,7 +12,12 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", contentSecurityPolicy);
 
-  const response = await updateSession(request, requestHeaders);
+  // Liveness must not depend on an external Auth session refresh.
+  // Keep the CSP/nonce flow unchanged; readiness and protected routes still validate sessions.
+  const response =
+    request.nextUrl?.pathname === "/api/health"
+      ? NextResponse.next({ request: { headers: requestHeaders } })
+      : await updateSession(request, requestHeaders);
   response.headers.set("Content-Security-Policy", contentSecurityPolicy);
 
   return response;

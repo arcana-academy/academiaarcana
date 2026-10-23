@@ -1,5 +1,6 @@
 export type ThemeId =
   | "mago-classico"
+  | "pergaminho-claro"
   | "escuro"
   | "estudioso"
   | "natural"

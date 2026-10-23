@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
+import "./accessibility.css";
 
 import { ApplicationProviders } from "@/application/providers/ApplicationProviders";
 import { createIdentityResolver } from "@/application/identity/IdentityResolver";
