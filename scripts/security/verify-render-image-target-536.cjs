@@ -35,7 +35,7 @@ function registeredImageRepo(value) {
 
 /** Require live authenticated Render metadata, never a caller's asserted kind.
  * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, imageUrl:string,
- * fetchService?:typeof fetch, waitForNextPoll?:()=>Promise<void>}} inputs
+ * fetchService?:typeof fetch, waitForNextPoll?:(delayMs:number)=>Promise<void>}} inputs
  */
 async function verifyRenderImageTarget(inputs) {
   const { hookUrl, approvedServiceId, apiKey, imageUrl, fetchService = fetch } = inputs;
@@ -100,7 +100,7 @@ async function verifyRenderImageTarget(inputs) {
 /** Recheck live Render metadata immediately before requesting this image deploy.
  * Callers must not split this operation into separate CI steps.
  * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, imageUrl:string,
- * fetchService?:typeof fetch, waitForNextPoll?:()=>Promise<void>}} inputs
+ * fetchService?:typeof fetch, waitForNextPoll?:(delayMs:number)=>Promise<void>}} inputs
  */
 async function requestVerifiedRenderImageDeployment(inputs) {
   const fetchService = inputs.fetchService || fetch;
@@ -140,12 +140,20 @@ async function requestVerifiedRenderImageDeployment(inputs) {
   // Verify the *specific* new deploy, not the already-live alias or merely
   // the source SHA: a previous deployment of the same SHA may still be live.
   const waitForNextPoll = inputs.waitForNextPoll ||
-    (() => new Promise(resolve => setTimeout(resolve, 10000)));
+    (delayMs => new Promise(resolve => setTimeout(resolve, delayMs)));
+  const deadline = Date.now() + 20 * 60 * 1000;
+  const pause = async delayMs => {
+    if (!Number.isFinite(delayMs) || delayMs < 0 || Date.now() + delayMs > deadline) {
+      throw new Error("Render deploy confirmation exceeded the bounded 20-minute window.");
+    }
+    await waitForNextPoll(delayMs);
+  };
   const expectedDigest = inputs.imageUrl.split("@")[1];
+  const digestHex = expectedDigest.slice("sha256:".length);
   // 120 polls at 10 seconds apart allow roughly 20 minutes for Render\'s
   // documented 15-minute start-command allowance and rollout overhead.
   // The deploy job is independently bounded at 25 minutes.
-  for (let attempt = 0; attempt < 120; attempt++) {
+  for (let attempt = 0; attempt < 120 && Date.now() < deadline; attempt++) {
     let current;
     try {
       current = await fetchService(
@@ -159,9 +167,32 @@ async function requestVerifiedRenderImageDeployment(inputs) {
         },
       );
     } catch {
-      throw new Error("Cannot check Render deployment status; rollout is not confirmed.");
+      if (attempt === 119) {
+        throw new Error("Cannot check Render deployment status; retries exhausted.");
+      }
+      await pause(10000);
+      continue;
     }
     if (!current || current.status !== 200) {
+      // Transient Render API throttling/outages are retried after accepting
+      // the deploy hook. A nontransient response still fails immediately.
+      if (current && [429, 500, 502, 503, 504].includes(current.status) &&
+          attempt < 119) {
+        const rawRetryAfter = current.headers?.get?.("retry-after");
+        let retryMs = 10000;
+        if (typeof rawRetryAfter === "string") {
+          if (/^[0-9]+$/.test(rawRetryAfter)) {
+            retryMs = Math.max(retryMs, Number(rawRetryAfter) * 1000);
+          } else {
+            const retryDate = Date.parse(rawRetryAfter);
+            if (Number.isFinite(retryDate)) {
+              retryMs = Math.max(retryMs, retryDate - Date.now());
+            }
+          }
+        }
+        await pause(retryMs);
+        continue;
+      }
       throw new Error("Render deploy lookup failed; rollout is not confirmed.");
     }
     let details;
@@ -173,9 +204,11 @@ async function requestVerifiedRenderImageDeployment(inputs) {
     }
     if (details.status === "live") {
       const image = details.image;
-      if (!image || (image.ref !== inputs.imageUrl &&
-          image.sha !== expectedDigest &&
-          image.sha !== expectedDigest.slice("sha256:".length))) {
+      const hasRef = typeof image?.ref === "string" && image.ref.length > 0;
+      const hasSha = typeof image?.sha === "string" && image.sha.length > 0;
+      if (!image || (!hasRef && !hasSha) ||
+          (hasRef && image.ref !== inputs.imageUrl) ||
+          (hasSha && image.sha !== expectedDigest && image.sha !== digestHex)) {
         throw new Error("Live Render deployment does not match approved image digest.");
       }
       return true;
@@ -188,7 +221,7 @@ async function requestVerifiedRenderImageDeployment(inputs) {
       "pre_deploy_in_progress"].includes(details.status)) {
       throw new Error("Render deployment returned an unrecognized status.");
     }
-    if (attempt < 119) await waitForNextPoll();
+    if (attempt < 119) await pause(10000);
   }
   throw new Error("Render deployment did not reach live within the bounded confirmation window.");
 }
@@ -207,7 +240,7 @@ if (require.main === module) {
     apiKey: process.env.RENDER_SERVICE_READ_API_KEY,
     imageUrl: process.env.IMAGE_URL,
   }).then(() => {
-    process.stdout.write("Render image deployment requested after live target verification.\n");
+    process.stdout.write("Render image deployment confirmed live after target verification.\n");
   }).catch(error => {
     // Errors intentionally contain no hooks, tokens, API payloads or image digests.
     process.stderr.write(error.message + "\n");
