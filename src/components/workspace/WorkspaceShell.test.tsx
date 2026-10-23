@@ -609,6 +609,8 @@ describe("WorkspaceShell", () => {
       expect(window.location.search).toBe("?view=tree&chapter=c1"),
     );
     expect(screen.getByRole("region", { name: "Área de trabalho" })).toHaveFocus();
+    const deletionStatus = screen.getByText("Página excluída. Retorno ao capítulo.");
+    expect(deletionStatus.closest('[role="status"]')).toHaveAttribute("aria-live", "polite");
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 

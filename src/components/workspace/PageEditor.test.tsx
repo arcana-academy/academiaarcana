@@ -248,6 +248,9 @@ describe("PageEditor", () => {
     const confirmation = screen.getByRole("alertdialog", {
       name: "Confirmar exclusão da página",
     });
+    expect(confirmation).toHaveAccessibleDescription(
+      'Excluir a página "Dor lombar"? Essa ação não pode ser desfeita.',
+    );
     expect(screen.getByRole("button", { name: "Cancelar" })).toHaveFocus();
     fireEvent.keyDown(confirmation, { key: "Escape" });
     expect(screen.queryByRole("alertdialog")).toBeNull();
