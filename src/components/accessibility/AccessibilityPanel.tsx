@@ -172,8 +172,6 @@ export function ReadingToolbar() {
 }
 
 export function AccessibilityPanel({ variant }: { variant: "quick" | "full" }) {
-  const { appearance, setAppearance } = useTheme();
-  const themeId = useId();
   if (variant === "quick") {
     return (
       <details className="aa-a11y-disclosure">
@@ -186,6 +184,13 @@ export function AccessibilityPanel({ variant }: { variant: "quick" | "full" }) {
       </details>
     );
   }
+
+  return <FullAccessibilityPanel />;
+}
+
+function FullAccessibilityPanel() {
+  const { appearance, setAppearance } = useTheme();
+  const themeId = useId();
 
   return (
     <section className="aa-a11y-center" id="acessibilidade" aria-labelledby={themeId + "-heading"}>
