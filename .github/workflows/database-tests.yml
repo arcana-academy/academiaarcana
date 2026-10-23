@@ -59,6 +59,9 @@ jobs:
       - name: Run Feedback Hub database privilege tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_hub_privileges.test.sql
 
+      - name: Test Feedback deletion cascade only in disposable local database
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_fk_cascade_p0.test.sql
+
       - name: Run integration credential security tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/integration_credentials_security.test.sql
 

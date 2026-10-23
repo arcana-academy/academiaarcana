@@ -50,6 +50,71 @@ async function main() {
   assert.equal(attempted.length, 0);
   console.log("PASS: isolated two-account RLS behavior");
 
+  // C25: extend the already-isolated two-account exercise to the actual
+  // task-completion RPC, with no external endpoints or productive identities.
+  const taskA = ok(await a2.from("study_tasks")
+    .insert({ owner_id: aa.user.id, title: "Synthetic task A" })
+    .select("id").single());
+  const taskB = ok(await b.from("study_tasks")
+    .insert({ owner_id: bb.user.id, title: "Synthetic task B" })
+    .select("id").single());
+
+  const forgedOwner = await a2.from("study_tasks")
+    .insert({ owner_id: bb.user.id, title: "Forged task owner" })
+    .select("id").single();
+  assert.ok(forgedOwner.error, "RLS must reject an insert claiming a different owner");
+  assert.equal(forgedOwner.error.code, "42501");
+
+  const crossRead = ok(await a2.from("study_tasks").select("id").eq("id", taskB.id));
+  assert.equal(crossRead.length, 0, "Account A cannot read B's task");
+
+  const foreignCompletion = await a2.rpc("complete_study_task_with_reward", {
+    p_task_id: taskB.id,
+  });
+  assert.ok(foreignCompletion.error, "Cross-owner reward RPC must reject the task");
+  assert.equal(foreignCompletion.error.code, "P0002");
+  const bPending = ok(await b.from("study_tasks")
+    .select("status").eq("id", taskB.id).single());
+  assert.equal(bPending.status, "pending", "Denied RPC must not complete B's task");
+  const bBefore = ok(await b.from("gamification_profiles").select("xp"));
+  assert.equal(bBefore.length, 0, "Denied RPC must not create B's reward profile");
+
+  const firstA = ok(await a2.rpc("complete_study_task_with_reward", {
+    p_task_id: taskA.id,
+  }));
+  assert.equal(firstA.length, 1);
+  assert.equal(firstA[0].task_id, taskA.id);
+  assert.equal(firstA[0].task_owner_id, aa.user.id);
+  assert.equal(firstA[0].task_status, "completed");
+  assert.equal(firstA[0].mission_completed, true);
+  assert.equal(Number(firstA[0].xp), 10);
+
+  const retryA = ok(await a2.rpc("complete_study_task_with_reward", {
+    p_task_id: taskA.id,
+  }));
+  assert.equal(retryA.length, 1);
+  assert.equal(retryA[0].task_status, "completed");
+  assert.equal(retryA[0].mission_completed, false, "Repeat RPC must not award again");
+  assert.equal(Number(retryA[0].xp), 10, "Retry must preserve exactly 10 XP");
+
+  const aMissions = ok(await a2.from("missions")
+    .select("code,completed_at").eq("code", "complete-study-task"));
+  assert.equal(aMissions.length, 1, "One daily mission per owner");
+  assert.ok(aMissions[0].completed_at);
+  const bOwn = ok(await b.rpc("complete_study_task_with_reward", { p_task_id: taskB.id }));
+  assert.equal(bOwn.length, 1);
+  assert.equal(bOwn[0].task_owner_id, bb.user.id);
+  assert.equal(bOwn[0].mission_completed, true);
+  assert.equal(Number(bOwn[0].xp), 10);
+
+  const aProfile = ok(await a2.from("gamification_profiles").select("owner_id,xp"));
+  const bProfile = ok(await b.from("gamification_profiles").select("owner_id,xp"));
+  assert.deepEqual(aProfile.map(row => [row.owner_id, Number(row.xp)]), [[aa.user.id, 10]]);
+  assert.deepEqual(bProfile.map(row => [row.owner_id, Number(row.xp)]), [[bb.user.id, 10]]);
+  const bMissions = ok(await b.from("missions").select("code"));
+  assert.deepEqual(bMissions.map(row => row.code), ["complete-study-task"]);
+  console.log("PASS: local two-account task RLS, cross-owner RPC denial, retry idempotency, independent XP/missions");
+
   ok(await a1.auth.signOut({ scope: "global" }));
   assert.ok((await a2.auth.refreshSession()).error, "Session A2 must not refresh");
   assert.ok(ok(await b.auth.refreshSession()).session, "Independent B session must survive");

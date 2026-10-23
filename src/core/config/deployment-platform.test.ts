@@ -16,7 +16,7 @@ describe("deployment platform contract", () => {
       buildCommand: "npm ci && npm run build",
       startCommand: "npm start",
       healthCheckPath: "/api/health",
-      autoDeployTrigger: "checksPass",
+      autoDeployTrigger: "off",
     });
   });
 });
