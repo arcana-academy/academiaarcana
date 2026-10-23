@@ -1,0 +1,27 @@
+name: C88 Focused React correction proof
+on:
+  push:
+    branches:
+      - work/aa360-c88-fix-proof-776-20261022
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm install --global npm@11.19.1 --ignore-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Lint only modified React components
+        run: npm exec -- eslint src/design-system/themes/theme-context.tsx src/components/accessibility/AccessibilityPanel.tsx
+      - name: Regression tests impacted by state-store changes
+        run: npm exec -- vitest run src/design-system/themes/theme-context.test.tsx src/components/accessibility/AccessibilityPanel.test.tsx
+      - name: Typecheck updated head
+        run: npm run typecheck
