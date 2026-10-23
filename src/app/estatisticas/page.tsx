@@ -6,6 +6,9 @@ import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamifi
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
 import { StatisticsView } from "./StatisticsView";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/estatisticas");
 
 /** Returns the current UTC calendar day used by persisted gamification missions. */
 function todayUtc(): string {

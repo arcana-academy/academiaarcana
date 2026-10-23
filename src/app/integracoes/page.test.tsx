@@ -153,7 +153,8 @@ describe("IntegracoesPage", () => {
     expect(html).toContain("Exa — Web Research do Mestre Arcano");
     expect(html).toContain("Não configurado");
     expect(html).toContain("gpt-5.6-sol");
-    expect(html).toContain("Abrir OpenAI Agents");
+    expect(html).toContain("Abrir documentação do OpenAI Agents");
+    expect(html).toContain("https://platform.openai.com/docs/guides/agents");
     expect(html).toContain("1 Billion Brain Cells");
     expect(html).toContain("A-Z Daily Word");
     expect(html).toContain("A-Z Dictionary");

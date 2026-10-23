@@ -6,6 +6,9 @@ import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { FeatureCard } from "@/components/ui/feature-card";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/configuracoes");
 
 export default async function ConfiguracoesPage() {
   await requireAuthenticatedUser();

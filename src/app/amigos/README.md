@@ -1,3 +1,3 @@
-# amigos
+# Amigos
 
-Architectural route placeholder. This directory is reserved for the approved product area; no route implementation is introduced by this structural checkpoint.
+Rota autenticada que lista as conexões sociais do usuário: amizades aceitas, convites recebidos e convites enviados. Os dados vêm do repositório social no Supabase; a página não cria conexões fictícias e informa quando uma ação não pode ser executada com segurança.

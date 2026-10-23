@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Academia Arcana">
+  <title>Academia Arcana</title>
+  <defs>
+    <linearGradient id="icon-gold" x1="32" y1="32" x2="224" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E1C98E"/>
+      <stop offset=".48" stop-color="#C8A86A"/>
+      <stop offset="1" stop-color="#806334"/>
+    </linearGradient>
+    <linearGradient id="icon-violet" x1="64" y1="48" x2="192" y2="208" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C8A7F4"/>
+      <stop offset="1" stop-color="#704B9D"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="#17151C"/>
+  <circle cx="128" cy="128" r="96" stroke="url(#icon-gold)" stroke-width="3" opacity=".9"/>
+  <circle cx="128" cy="128" r="82" stroke="#B996EE" stroke-width="1.5" stroke-dasharray="2 9" opacity=".72"/>
+  <circle cx="128" cy="128" r="68" stroke="url(#icon-gold)" stroke-width="1.5" opacity=".5"/>
+
+  <path d="M128 62 150 96 188 102 161 128 168 166 128 146 88 166 95 128 68 102 106 96 128 62Z"
+    stroke="url(#icon-gold)" stroke-width="3" stroke-linejoin="round" fill="none"/>
+  <circle cx="128" cy="128" r="38" stroke="url(#icon-violet)" stroke-width="2.5" fill="none"/>
+  <path d="M100 112 128 121 156 112V150C143 145 135 144 128 147 121 144 113 145 100 150V112Z"
+    fill="#120D19" stroke="#E1C98E" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M128 121V147" stroke="#E1C98E" stroke-width="2.5"/>
+  <circle cx="128" cy="128" r="3" fill="#E1C98E"/>
+</svg>

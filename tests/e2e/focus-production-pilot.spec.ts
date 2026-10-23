@@ -4,6 +4,11 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import {
+  isVisualBaselineWriteEnabled,
+  writeVisualBaselines,
+} from "./support/visual-baselines";
+
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
 type Baselines = Record<string, string>;
@@ -155,5 +160,10 @@ test("Focus production pilot matches deterministic visual baselines", async ({ p
   }
 
   console.log(`AA_FOCUS_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
+  if (isVisualBaselineWriteEnabled()) {
+    writeVisualBaselines(baselinePath, actual);
+    return;
+  }
+
   expect(actual).toEqual(baselines);
 });

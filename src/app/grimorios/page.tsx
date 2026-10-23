@@ -7,6 +7,9 @@ import type { Grimoire } from "@/domains/learning";
 import { createGrimoireRepository } from "@/infrastructure/supabase/workspace/grimoire-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/grimorios");
 
 export default async function GrimoiresPage() {
   const claims = await requireAuthenticatedUser();

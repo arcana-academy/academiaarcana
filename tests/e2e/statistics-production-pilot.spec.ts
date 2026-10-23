@@ -4,6 +4,11 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import {
+  isVisualBaselineWriteEnabled,
+  writeVisualBaselines,
+} from "./support/visual-baselines";
+
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
 type Baselines = Record<string, string>;
@@ -223,7 +228,13 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
 
   if (process.env.UPDATE_STATISTICS_PILOT_BASELINES === "1") {
     writeFileSync(baselinePath, `${JSON.stringify(actual, null, 2)}\n`);
-  } else {
-    expect(actual).toEqual(baselines);
+    return;
   }
+
+  if (isVisualBaselineWriteEnabled()) {
+    writeVisualBaselines(baselinePath, actual);
+    return;
+  }
+
+  expect(actual).toEqual(baselines);
 });

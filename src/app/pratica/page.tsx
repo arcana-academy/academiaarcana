@@ -27,6 +27,9 @@ import { ObjectiveEvidenceSection } from "./objective-evidence";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/pratica");
 
 type PracticePageProps = {
   searchParams: Promise<{

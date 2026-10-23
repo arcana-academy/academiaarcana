@@ -8,6 +8,9 @@ import { FeatureCard } from "@/components/ui/feature-card";
 import { FocusSession } from "@/components/foco/FocusSession";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { completeFocusSession, startFocusSession } from "./actions";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/foco");
 
 const focusSigil = "/assets/focus/aa-focus-sigil.svg";
 

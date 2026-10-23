@@ -4,6 +4,9 @@ import { Sanctuary } from "@/components/sanctuary/Sanctuary";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { SupabaseSanctuaryRepository } from "@/infrastructure/sanctuary/supabase-sanctuary-repository";
 import { createClient } from "@/lib/supabase/server";
+import { pageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata = pageMetadata("/santuario");
 
 /** Render the authenticated Sanctuary route using the application layer. */
 export default async function SanctuaryPage() {
