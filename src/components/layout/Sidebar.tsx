@@ -21,8 +21,8 @@ export function Sidebar({ currentPath }: SidebarProps) {
             />
           </span>
           <span>
-            <span className="aa-brand-kicker">Academia Arcana</span>
-            <span className="aa-brand-name">Mapa Arcano</span>
+            <span className="aa-brand-kicker">Plataforma de estudos</span>
+            <span className="aa-brand-name">Academia Arcana</span>
           </span>
         </Link>
       </div>
@@ -31,6 +31,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
         <ul className="aa-sidebar-list">
           {navigationItems.map((item) => {
             const active = item.href === currentPath;
+            const Icon = item.icon;
             return (
               <li key={item.href}>
                 <Link
@@ -38,6 +39,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
                   className={`aa-sidebar-link ${active ? "aa-sidebar-link-active" : ""}`}
                   aria-current={active ? "page" : undefined}
                 >
+                  <Icon size={19} aria-hidden="true" />
                   <span>{item.label}</span>
                 </Link>
               </li>
@@ -45,6 +47,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
           })}
         </ul>
       </nav>
+      <p className="aa-sidebar-motto">Conhecimento também é uma forma de magia.</p>
     </div>
   );
 }
