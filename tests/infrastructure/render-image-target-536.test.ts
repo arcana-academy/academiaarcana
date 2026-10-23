@@ -214,16 +214,98 @@ describe("Render image-release target preflight", () => {
     })).rejects.toThrow(/hook did not accept the request/);
     expect(requests).toHaveLength(2);
   });
-  it("fails closed on HTTP 202 because a queued hook has no deploy ID", async () => {
+  it("recovers the unique accepted HTTP 202 deploy ID and confirms that exact image live", async () => {
+    const deployId = "dep-queuedsynthetic123";
+    const createdAt = new Date(Date.now() + 1000).toISOString();
+    const urls: string[] = [];
+    let polls = 0;
+    let waits = 0;
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs,
+      waitForNextPoll: async () => { waits += 1; },
+      fetchService: async (url: string, options?: RequestInit) => {
+        urls.push(url);
+        if (url.includes("/deploys?")) {
+          expect(options?.headers).toMatchObject({ Authorization: "Bearer synthetic-read-api-key" });
+          return { status: 200, json: async () => [{
+            deploy: {
+              id: deployId, trigger: "deploy_hook", createdAt,
+              status: "queued", image: { ref: inputs.imageUrl },
+            },
+          }] };
+        }
+        if (url.includes("/deploys/")) {
+          polls += 1;
+          return { status: 200, json: async () => ({
+            id: deployId, status: polls === 1 ? "queued" : "live",
+            image: { ref: inputs.imageUrl },
+          }) };
+        }
+        if (url.includes("/deploy/")) {
+          expect(options?.headers).toBeUndefined();
+          return { status: 202, json: async () => ({}) };
+        }
+        return { status: 200, json: async () => service };
+      },
+    })).resolves.toBe(true);
+    expect(polls).toBe(2);
+    expect(waits).toBe(1);
+    expect(urls).toHaveLength(5);
+    expect(urls[2]).toContain("/deploys?createdAfter=");
+    expect(urls[3]).toBe(`https://api.render.com/v1/services/${id}/deploys/${deployId}`);
+  });
+
+  it("fails closed if a queued HTTP 202 deploy cannot be reconciled", async () => {
     const urls: string[] = [];
     await expect(requestVerifiedRenderImageDeployment({
       ...inputs,
       fetchService: async (url: string) => {
         urls.push(url);
+        if (url.includes("/deploys?")) return { status: 503, json: async () => [] };
         return { status: url.includes("/deploy/") ? 202 : 200, json: async () => service };
       },
-    })).rejects.toThrow(/queued deployment without a trackable ID/);
-    expect(urls).toHaveLength(2);
+    })).rejects.toThrow(/Queued Render deployment lookup failed/);
+    expect(urls).toHaveLength(3);
+  });
+
+  it("rejects ambiguous queued HTTP 202 deploys rather than claiming an unrelated rollout", async () => {
+    const createdAt = new Date(Date.now() + 1000).toISOString();
+    const calls: string[] = [];
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs,
+      fetchService: async (url: string) => {
+        calls.push(url);
+        if (url.includes("/deploys?")) {
+          return { status: 200, json: async () =>
+            ["dep-queuedone", "dep-queuedtwo"].map(deployId => ({
+              deploy: {
+                id: deployId, trigger: "deploy_hook", createdAt,
+                image: { ref: inputs.imageUrl }, status: "queued",
+              },
+            })) };
+        }
+        return { status: url.includes("/deploy/") ? 202 : 200, json: async () => service };
+      },
+    })).rejects.toThrow(/identity is ambiguous/);
+    expect(calls).toHaveLength(3);
+  });
+
+  it("rejects a uniquely listed queued HTTP 202 deploy of another image", async () => {
+    const createdAt = new Date(Date.now() + 1000).toISOString();
+    await expect(requestVerifiedRenderImageDeployment({
+      ...inputs,
+      fetchService: async (url: string) => {
+        if (url.includes("/deploys?")) {
+          return { status: 200, json: async () => [{
+            deploy: {
+              id: "dep-queuedwrong", trigger: "deploy_hook", createdAt,
+              image: { ref: `${imageRepo}@sha256:${"b".repeat(64)}` },
+            },
+          }] };
+        }
+        return { status: url.includes("/deploy/") ? 202 : 200, json: async () => service };
+      },
+    })).rejects.toThrow(/not the uniquely approved image/);
   });
 
   it("waits for the specific new deploy to become live, not an old matching SHA", async () => {
