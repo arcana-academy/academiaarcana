@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { applyTheme } from "./apply-theme";
@@ -16,6 +17,7 @@ import type { ThemeId, ThemeTokens } from "../tokens/types";
 export type AppearanceChoice = "system" | "dark" | "light";
 type ActiveAppearance = AppearanceChoice | "custom";
 const STORAGE_KEY = "academia-arcana.appearance-v1";
+const CHANGE_EVENT = "academia-arcana:appearance-changed";
 
 type ThemeContextValue = {
   theme: ThemeId;
@@ -27,6 +29,42 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+function getAppearance(): AppearanceChoice {
+  try {
+    const value = window.localStorage.getItem(STORAGE_KEY);
+    return value === "dark" || value === "light" ? value : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function subscribeAppearance(notify: () => void): () => void {
+  window.addEventListener("storage", notify);
+  window.addEventListener(CHANGE_EVENT, notify);
+  return () => {
+    window.removeEventListener("storage", notify);
+    window.removeEventListener(CHANGE_EVENT, notify);
+  };
+}
+
+function subscribeDevice(notify: () => void): () => void {
+  const query = window.matchMedia?.("(prefers-color-scheme: light)");
+  query?.addEventListener?.("change", notify);
+  return () => query?.removeEventListener?.("change", notify);
+}
+
+function deviceIsLight(): boolean {
+  return Boolean(window.matchMedia?.("(prefers-color-scheme: light)")?.matches);
+}
+
+function serverAppearance(): AppearanceChoice {
+  return "system";
+}
+
+function serverDeviceIsLight(): boolean {
+  return false;
+}
+
 export function ThemeProvider({
   children,
   initialTheme = "mago-classico",
@@ -36,55 +74,41 @@ export function ThemeProvider({
   initialTheme?: ThemeId;
   followSystem?: boolean;
 }) {
-  const [theme, setThemeState] = useState<ThemeId>(initialTheme);
-  const [appearance, setAppearanceState] = useState<ActiveAppearance>(
-    followSystem ? "system" : "custom",
+  const savedAppearance = useSyncExternalStore(
+    subscribeAppearance, getAppearance, serverAppearance,
   );
+  const systemLight = useSyncExternalStore(
+    subscribeDevice, deviceIsLight, serverDeviceIsLight,
+  );
+  const [customTheme, setCustomTheme] = useState<ThemeId>(initialTheme);
+  const [customOverride, setCustomOverride] = useState(false);
 
-  // Restore only an explicit, validated local choice; no server or student data.
-  useEffect(() => {
-    if (!followSystem) return;
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored === "dark" || stored === "light" || stored === "system") {
-        setAppearanceState(stored);
-      }
-    } catch {
-      // Storage may be blocked; prefer the device without failing rendering.
-    }
-  }, [followSystem]);
-
-  useEffect(() => {
-    if (!followSystem || appearance === "custom") return;
-    const preference = window.matchMedia?.("(prefers-color-scheme: light)");
-    const synchronize = () => {
-      const light = appearance === "light" ||
-        (appearance === "system" && Boolean(preference?.matches));
-      setThemeState(light ? "pergaminho-claro" : "mago-classico");
-    };
-    synchronize();
-    if (appearance === "system") {
-      preference?.addEventListener?.("change", synchronize);
-      return () => preference?.removeEventListener?.("change", synchronize);
-    }
-  }, [appearance, followSystem]);
+  const appearance: ActiveAppearance = followSystem && !customOverride
+    ? savedAppearance
+    : "custom";
+  const theme: ThemeId = appearance === "custom"
+    ? customTheme
+    : appearance === "light" || (appearance === "system" && systemLight)
+      ? "pergaminho-claro"
+      : "mago-classico";
 
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
 
   const setTheme = useCallback((nextTheme: ThemeId) => {
-    setAppearanceState("custom");
-    setThemeState(nextTheme);
+    setCustomOverride(true);
+    setCustomTheme(nextTheme);
   }, []);
 
   const setAppearance = useCallback((choice: AppearanceChoice) => {
-    setAppearanceState(choice);
+    setCustomOverride(false);
     try {
       window.localStorage.setItem(STORAGE_KEY, choice);
     } catch {
-      // Theme changes remain available in memory when storage is unavailable.
+      // A missing storage provider leaves device defaults available.
     }
+    window.dispatchEvent(new Event(CHANGE_EVENT));
   }, []);
 
   const value = useMemo<ThemeContextValue>(
