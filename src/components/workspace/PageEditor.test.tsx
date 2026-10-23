@@ -179,6 +179,21 @@ describe("PageEditor", () => {
     expect(onSave.mock.calls[0][0].content.blocks[0].accessibility).toBeUndefined();
   });
 
+  test("renders the styled and accessible block container", () => {
+    const { container } = render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(() => Promise.resolve())}
+        onSave={vi.fn()}
+      />,
+    );
+    const styled = container.querySelector(".workspace-page-block");
+    expect(styled).not.toBeNull();
+    expect(styled?.querySelector("textarea")).toBeTruthy();
+    expect(styled?.querySelector("details")).toBeTruthy();
+  });
+
   test("allows adding a paragraph block", () => {
     render(
       <PageEditor
