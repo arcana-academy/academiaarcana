@@ -60,31 +60,33 @@ describe("GitHub integration verifier", () => {
     expect(init?.headers).not.toHaveProperty("Authorization");
   });
 
-  it("falls back to the public repository page when the GitHub API is rate-limited", async () => {
-    const fetchImpl = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(null, { status: 429 }))
-      .mockResolvedValueOnce(new Response("<html>Academia Arcana</html>", { status: 200 }));
+  it.each([403, 429])(
+    "does not report a fabricated public GitHub repository after HTTP %i",
+    async (status) => {
+      const fetchImpl = vi
+        .fn()
+        .mockResolvedValueOnce(new Response(null, { status }))
+        .mockResolvedValueOnce(
+          new Response("<html><title>Sign in to GitHub</title></html>", {
+            status: 200,
+          }),
+        );
 
-    const result = await verifyGitHubConnection({ fetchImpl });
+      await expect(
+        verifyGitHubConnection({
+          repository: DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
+          fetchImpl,
+        }),
+      ).rejects.toMatchObject({
+        name: GitHubConnectionError.name,
+        httpStatus: status,
+      });
 
-    expect(result).toMatchObject({
-      providerId: "github",
-      pluginName: "GitHub",
-      status: "connected",
-      repository: {
-        fullName: DEFAULT_GITHUB_VERIFICATION_REPOSITORY,
-        defaultBranch: "main",
-        visibility: "public",
-        private: false,
-      },
-    });
-
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
-    expect(fetchImpl.mock.calls[1]?.[0]).toBe(
-      "https://github.com/arcana-academy/academiaarcana",
-    );
-  });
+      // A generic HTML response (including a login page) cannot prove the
+      // repository identity, default branch, privacy, or permissions.
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it("rejects malformed repository identifiers before network access", async () => {
     const fetchImpl = vi.fn();
