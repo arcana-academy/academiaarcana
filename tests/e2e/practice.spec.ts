@@ -4,9 +4,15 @@ const e2eEmail = process.env.E2E_EMAIL;
 const e2ePassword = process.env.E2E_PASSWORD;
 
 test("unauthenticated Practice redirects to login", async ({ page }) => {
-  const response = await page.goto("/pratica");
+  // Practice has a loading boundary, so the guard must resolve in the proxy:
+  // otherwise Next.js streams a 200 document before the page can redirect.
+  const guarded = await page.request.get("/pratica", { maxRedirects: 0 });
 
-  expect(response?.status()).toBe(200);
+  expect(guarded.status()).toBe(307);
+  expect(guarded.headers()["location"]).toBe("/login");
+
+  await page.goto("/pratica");
+
   await expect(page).toHaveURL(/\/login$/);
 });
 

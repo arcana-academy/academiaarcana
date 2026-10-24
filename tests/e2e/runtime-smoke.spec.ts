@@ -20,9 +20,16 @@ test.describe("runtime smoke routes", () => {
 
   for (const route of protectedRoutes) {
     test(`redirects anonymous users from ${route} to login`, async ({ page }) => {
-      const response = await page.goto(route);
+      // The proxy must answer with a real redirect before the streamed shell is
+      // flushed; a `200` document plus meta refresh would violate that contract.
+      const guarded = await page.request.get(route, { maxRedirects: 0 });
 
-      expect(response?.status()).toBe(200);
+      expect(guarded.status()).toBe(307);
+      expect(guarded.headers()["location"]).toBe("/login");
+      expect(await guarded.text()).not.toContain("__next-page-redirect");
+
+      await page.goto(route);
+
       await expect(page).toHaveURL(/\/login$/);
     });
   }
