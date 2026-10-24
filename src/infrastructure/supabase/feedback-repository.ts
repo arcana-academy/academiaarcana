@@ -1,6 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import type { FeedbackInput, FeedbackRecord } from "@/domains/trust";
 
+/** Separate authentication failures from invalid input and storage errors. */
+export class FeedbackAuthenticationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FeedbackAuthenticationError";
+  }
+}
+
 export async function createFeedback(input: FeedbackInput): Promise<FeedbackRecord> {
   const supabase = await createClient();
   const {
@@ -9,11 +17,11 @@ export async function createFeedback(input: FeedbackInput): Promise<FeedbackReco
   } = await supabase.auth.getUser();
 
   if (userError) {
-    throw new Error("Não foi possível validar a sessão.");
+    throw new FeedbackAuthenticationError("Não foi possível validar a sessão.");
   }
 
   if (!user) {
-    throw new Error("É necessário estar autenticado para enviar feedback.");
+    throw new FeedbackAuthenticationError("É necessário estar autenticado para enviar feedback.");
   }
 
   const { data, error } = await supabase
