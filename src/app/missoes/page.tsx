@@ -23,7 +23,7 @@ const missionDocument = "/assets/missions/aa-mission-document.svg";
 export default async function MissoesPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
-  let missions: Mission[] = [];
+  let missions: Awaited<ReturnType<SupabaseGamificationRepository["listDailyMissions"]>> = [];
   let loadError = false;
 
   try {
@@ -34,6 +34,7 @@ export default async function MissoesPage() {
   } catch {
     loadError = true;
   }
+
   const completed = missions.filter((mission) => mission.status === "completed").length;
 
   return (
@@ -45,9 +46,9 @@ export default async function MissoesPage() {
         actions={[{ href: "/cronograma", label: "Abrir cronograma", variant: "secondary" }]}
       >
         {loadError ? (
-          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="missoes-load-error-title">
-            <h2 id="missoes-load-error-title">Não foi possível carregar as missões</h2>
-            <p>As missões não foram atualizadas. Tente carregar novamente.</p>
+          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="missions-error-title">
+            <h2 id="missions-error-title">Não foi possível carregar as missões</h2>
+            <p>Seu progresso não foi alterado. Tente carregar novamente.</p>
             <form action="/missoes" method="get">
               <button className="aa-button aa-button-secondary" type="submit">
                 Tentar novamente
@@ -55,16 +56,22 @@ export default async function MissoesPage() {
             </form>
           </section>
         ) : (
-          <ArcanaFeatureGrid>
-            <FeatureCard
-              title="Hoje"
-              description="Missões registradas para o dia atual."
-              icon={<Image src={missionDocument} alt="" width={22} height={22} />}
-            >
-              <p className="aa-state-copy" aria-live="polite">
-                {missions.length
-                  ? `${completed}/${missions.length} concluídas`
-                  : "Nenhuma missão registrada hoje."}
+        <ArcanaFeatureGrid>
+          <FeatureCard
+            title="Hoje"
+            description="Missões registradas para o dia atual."
+            icon={<Image src={missionDocument} alt="" width={22} height={22} />}
+          >
+            <p className="aa-state-copy" aria-live="polite">
+              {missions.length
+                ? `${completed}/${missions.length} concluídas`
+                : "Nenhuma missão registrada hoje."}
+            </p>
+            {!missions.length ? (
+              <p className="aa-card-actions">
+                <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">
+                  Planejar um estudo
+                </Link>
               </p>
               {!missions.length ? (
                 <p className="aa-card-actions">
@@ -92,18 +99,37 @@ export default async function MissoesPage() {
                 </ul>
               </FeatureCard>
             ) : null}
-            {missions.length ? (
-              <FeatureCard
-                title="Progresso significativo"
-                description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial."
-                icon={<Sparkles size={20} />}
-              >
-                <p className="aa-state-copy">
-                  As recompensas são calculadas pela operação atômica de conclusão de tarefa.
-                </p>
-              </FeatureCard>
-            ) : null}
-          </ArcanaFeatureGrid>
+          </FeatureCard>
+          {missions.length ? (
+            <FeatureCard
+              title="Objetivos"
+              description="Metas de estudo que nasceram de eventos persistidos."
+              icon={<Target size={20} />}
+            >
+              <ul className="aa-list" aria-label="Missões de hoje">
+                {missions.map((mission) => (
+                  <li className="aa-list-item aa-surface" key={mission.id}>
+                    <div>
+                      <strong>{mission.title}</strong>
+                      <p>{mission.rewardXp} XP · {mission.status === "completed" ? "concluída" : "em aberto"}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </FeatureCard>
+          ) : null}
+          {missions.length ? (
+            <FeatureCard
+              title="Progresso significativo"
+              description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial."
+              icon={<Sparkles size={20} />}
+            >
+              <p className="aa-state-copy">
+                As recompensas são calculadas pela operação atômica de conclusão de tarefa.
+              </p>
+            </FeatureCard>
+          ) : null}
+        </ArcanaFeatureGrid>
         )}
       </ArcanaPage>
     </AuthenticatedShell>

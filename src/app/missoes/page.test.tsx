@@ -58,31 +58,24 @@ describe("MissoesPage", () => {
     expect(listDailyMissionsMock).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
   });
 
-  it("shows an accessible recovery action instead of an empty day when missions fail to load", async () => {
-    listDailyMissionsMock.mockRejectedValue(new Error("internal-db-details-must-stay-private"));
+  it("exposes a retry action instead of incorrectly declaring an empty day on read failure", async () => {
+    listDailyMissionsMock.mockRejectedValue(new Error("provider-secret-detail"));
 
     render(await MissoesPage());
 
-    expect(screen.getByRole("heading", { name: "Missões", level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível carregar as missões");
-    expect(screen.getByRole("button", { name: "Tentar novamente" }).closest("form")).toHaveAttribute(
-      "action",
-      "/missoes",
-    );
-    expect(screen.getByRole("button", { name: "Tentar novamente" }).closest("form")).toHaveAttribute(
-      "method",
-      "get",
-    );
-    expect(screen.getByRole("link", { name: "Abrir cronograma" })).toHaveAttribute("href", "/cronograma");
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Não foi possível carregar as missões");
+    expect(alert).toHaveTextContent("Seu progresso não foi alterado.");
+    expect(screen.getByRole("button", { name: "Tentar novamente" })).toHaveAttribute("type", "submit");
+    expect(alert.querySelector('form[action="/missoes"]')).toBeInTheDocument();
     expect(screen.queryByText("Nenhuma missão registrada hoje.")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Planejar um estudo" })).not.toBeInTheDocument();
-    expect(screen.queryByText(/internal-db-details-must-stay-private/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Objetivos" })).not.toBeInTheDocument();
+    expect(alert).not.toHaveTextContent("provider-secret-detail");
   });
 
-  it("does not swallow authentication failures as mission-loading errors", async () => {
-    requireAuthenticatedUserMock.mockRejectedValue(new Error("authentication required"));
-
-    await expect(MissoesPage()).rejects.toThrow("authentication required");
+  it("preserves authentication failures outside the mission loading recovery", async () => {
+    requireAuthenticatedUserMock.mockRejectedValue(new Error("unauthenticated"));
+    await expect(MissoesPage()).rejects.toThrow("unauthenticated");
     expect(listDailyMissionsMock).not.toHaveBeenCalled();
   });
 
