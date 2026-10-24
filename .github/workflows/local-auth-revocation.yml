@@ -46,6 +46,11 @@ jobs:
       - name: Exercise two isolated identities and global session revocation
         run: node scripts/security/test-local-auth-revocation.mjs
 
+      - name: Exercise concurrent durable AI rate limiting with synthetic local identities
+        env:
+          AA_LOCAL_SUPABASE_E2E: "1"
+        run: node scripts/security/test-local-ai-rate-limit.mjs
+
       - name: Install browser for isolated authenticated Next.js E2E
         if: github.event_name == 'pull_request'
         run: npm exec -- playwright install --with-deps chromium

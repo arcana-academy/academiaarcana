@@ -11,6 +11,7 @@ import {
   Search,
   Server,
 } from "lucide-react";
+import { safeExternalUrl } from "@/lib/security/external-url";
 
 type ConnectionStatus =
   | { status: "disconnected" }
@@ -306,7 +307,7 @@ export function MicrosoftSharePointConnectionPanel() {
                 {sites.map((item) => <option key={item.id} value={item.id}>{item.displayName ?? item.name ?? item.id}</option>)}
               </select>
             </div>
-            {site?.webUrl ? <a href={site.webUrl} target="_blank" rel="noreferrer" className="aa-button aa-button-secondary aa-button-sm" style={{ marginTop: "0.75rem" }}><ExternalLink size={16} aria-hidden="true" /> Abrir site</a> : null}
+            {safeExternalUrl(site?.webUrl) ? <a href={safeExternalUrl(site?.webUrl)!} target="_blank" rel="noreferrer" className="aa-button aa-button-secondary aa-button-sm" style={{ marginTop: "0.75rem" }}><ExternalLink size={16} aria-hidden="true" /> Abrir site</a> : null}
           </div>
 
           {selectedSite ? (
@@ -322,7 +323,7 @@ export function MicrosoftSharePointConnectionPanel() {
                   {drives.map((item) => <option key={item.id} value={item.id}>{item.name ?? item.id}{item.driveType ? ` · ${item.driveType}` : ""}</option>)}
                 </select>
               </div>
-              {drive?.webUrl ? <a href={drive.webUrl} target="_blank" rel="noreferrer" className="aa-button aa-button-secondary aa-button-sm" style={{ marginTop: "0.75rem" }}><ExternalLink size={16} aria-hidden="true" /> Abrir biblioteca</a> : null}
+              {safeExternalUrl(drive?.webUrl) ? <a href={safeExternalUrl(drive?.webUrl)!} target="_blank" rel="noreferrer" className="aa-button aa-button-secondary aa-button-sm" style={{ marginTop: "0.75rem" }}><ExternalLink size={16} aria-hidden="true" /> Abrir biblioteca</a> : null}
             </div>
           ) : null}
 
@@ -371,7 +372,7 @@ export function MicrosoftSharePointConnectionPanel() {
                       </small>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--aa-spacing-sm)" }}>
-                      {item.webUrl ? <a className="aa-button aa-button-secondary aa-button-sm" href={item.webUrl} target="_blank" rel="noreferrer" aria-label={`Abrir ${item.name ?? "documento"} no SharePoint`}><ExternalLink size={16} aria-hidden="true" /> Abrir</a> : null}
+                      {safeExternalUrl(item.webUrl) ? <a className="aa-button aa-button-secondary aa-button-sm" href={safeExternalUrl(item.webUrl)!} target="_blank" rel="noreferrer" aria-label={`Abrir ${item.name ?? "documento"} no SharePoint`}><ExternalLink size={16} aria-hidden="true" /> Abrir</a> : null}
                       <button className="aa-button aa-button-primary aa-button-sm" type="button" onClick={() => void selectSource(item)} disabled={busy}>
                         <FileText size={16} aria-hidden="true" /> Usar como fonte
                       </button>
@@ -394,7 +395,7 @@ export function MicrosoftSharePointConnectionPanel() {
                 <div><dt><strong>Tipo</strong></dt><dd>{selectedSource.mimeType ?? "não informado"}</dd></div>
                 <div><dt><strong>Tamanho</strong></dt><dd>{formatSize(selectedSource.size ?? undefined) ?? "não informado"}</dd></div>
               </dl>
-              {selectedSource.webUrl ? <a className="aa-button aa-button-secondary" href={selectedSource.webUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" /> Abrir documento</a> : null}
+              {safeExternalUrl(selectedSource.webUrl) ? <a className="aa-button aa-button-secondary" href={safeExternalUrl(selectedSource.webUrl)!} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" /> Abrir documento</a> : null}
             </aside>
           ) : null}
 
@@ -408,7 +409,7 @@ export function MicrosoftSharePointConnectionPanel() {
                 {savedSources.map((source) => (
                   <li className="aa-list-item" key={source.id}>
                     <div><strong>{source.name ?? "Documento Microsoft"}</strong><small>{source.mimeType ?? "Tipo não informado"} · {source.status ?? "active"}</small></div>
-                    {source.webUrl ? <a className="aa-button aa-button-secondary aa-button-sm" href={source.webUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" /> Abrir</a> : null}
+                    {safeExternalUrl(source.webUrl) ? <a className="aa-button aa-button-secondary aa-button-sm" href={safeExternalUrl(source.webUrl)!} target="_blank" rel="noreferrer"><ExternalLink size={16} aria-hidden="true" /> Abrir</a> : null}
                   </li>
                 ))}
               </ul>

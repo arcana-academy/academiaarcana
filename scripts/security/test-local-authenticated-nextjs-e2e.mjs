@@ -13,6 +13,28 @@ assert.equal(process.env.GITHUB_ACTIONS, "true");
 assert.equal(process.env.GITHUB_EVENT_NAME, "pull_request");
 assert.equal(process.env.AA_LOCAL_SUPABASE_E2E, "1");
 
+function reportSubprocessResult(label, result) {
+  if (typeof result.stdout === "string" && result.stdout) process.stdout.write(result.stdout);
+  if (typeof result.stderr === "string" && result.stderr) process.stderr.write(result.stderr);
+
+  if (!result.error && !result.signal && result.status === 0) return;
+  if (process.env.GITHUB_ACTIONS !== "true") return;
+
+  const details = [result.stdout, result.stderr]
+    .filter((output) => typeof output === "string")
+    .join("\n")
+    .split(/\r?\n/)
+    .filter((line) => /(?:not ok|error|failed|expected|received|timed out|timeout|assertion)/i.test(line))
+    .slice(-20);
+  const summary = details.length > 0
+    ? details
+    : [`exit=${result.status ?? "unknown"}`, `signal=${result.signal ?? "none"}`, result.error?.message ?? "no subprocess diagnostics"];
+  for (const line of summary) {
+    const escaped = line.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+    console.log(`::error title=${label}::${escaped}`);
+  }
+}
+
 const raw = execFileSync("supabase", ["status", "-o", "env"], {
   encoding: "utf8",
   timeout: 30_000,
@@ -116,10 +138,12 @@ try {
     E2E_PASSWORD: password,
   };
   const build = spawnSync("npm", ["exec", "--", "next", "build", "--webpack"], {
-    stdio: "inherit",
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
     timeout: 8 * 60_000,
     env: syntheticEnvironment,
   });
+  reportSubprocessResult("Local Next.js build failure", build);
   if (build.error) throw build.error;
   assert.equal(build.signal, null, "Local Next.js build was interrupted");
   assert.equal(build.status, 0, "Local Next.js build failed");
@@ -132,10 +156,12 @@ try {
     "tests/e2e/sanctuary.spec.ts",
     "--config=playwright.local-auth.config.ts",
   ], {
-    stdio: "inherit",
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
     timeout: 11 * 60_000,
     env: syntheticEnvironment,
   });
+  reportSubprocessResult("Authenticated Next.js E2E failure", result);
   if (result.error) throw result.error;
   assert.equal(result.signal, null, "Authenticated Next.js E2E was interrupted");
   assert.equal(result.status, 0, "Authenticated Next.js E2E failed");

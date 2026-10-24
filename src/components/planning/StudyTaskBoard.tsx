@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
+import { safeExternalUrl } from "@/lib/security/external-url";
 
 type OutlookEvent = {
   id: string;
@@ -284,7 +285,8 @@ export function StudyTaskBoard({
       const event = await onScheduleInOutlook(id);
       completedSchedules.current.add(id);
       setScheduledIds((current) => new Set([...current, id]));
-      if (event.webLink) window.open(event.webLink, "_blank", "noopener,noreferrer");
+      const eventUrl = safeExternalUrl(event.webLink);
+      if (eventUrl) window.open(eventUrl, "_blank", "noopener,noreferrer");
     } catch (cause) {
       setError(
         cause instanceof Error && cause.message === "STUDY_TASK_WITHOUT_SCHEDULE"
@@ -453,10 +455,10 @@ export function StudyTaskBoard({
                       {formatOutlookDateTime(event.start.dateTime, browserHydrated, event.start.timeZone)} · até {formatOutlookDateTime(event.end.dateTime, browserHydrated, event.end.timeZone)}
                     </small>
                   </div>
-                  {event.webLink ? (
+                  {safeExternalUrl(event.webLink) ? (
                     <a
                       className="aa-button aa-button-secondary aa-button-sm"
-                      href={event.webLink}
+                      href={safeExternalUrl(event.webLink)!}
                       rel="noreferrer"
                       target="_blank"
                     >

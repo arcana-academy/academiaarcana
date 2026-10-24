@@ -83,6 +83,31 @@ jobs:
       - name: Run P1.5 objective evidence RLS and RPC tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_objective_evidence_p15_rls.test.sql
 
+      - name: Run durable AI rate-limit privileges and account-isolation tests
+        run: |
+          log_file="$RUNNER_TEMP/ai-rate-limit-pgtap.log"
+          set +e
+          supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/open_source_ai_rate_limits.test.sql >"$log_file" 2>&1
+          result=$?
+          set -e
+          cat "$log_file"
+          if [ "$result" -ne 0 ]; then
+            node --input-type=module - "$log_file" <<'NODE'
+          import { readFileSync } from "node:fs";
+          const lines = readFileSync(process.argv[2], "utf8").split(/\r?\n/);
+          const relevant = lines.filter((line) => /not ok|fail|error|exception|syntax|constraint|expected|looks like/i.test(line)).slice(-20);
+          const details = relevant.length ? relevant : ["Rate-limit pgTAP failed; consult this job's step log."];
+          for (const line of details) {
+            const escaped = line.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+            console.log(`::error title=Rate-limit local database test::${escaped}`);
+          }
+          NODE
+          fi
+          exit "$result"
+
+      - name: Run private grimoire-cover Storage RLS tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/grimoire_covers_storage_rls.test.sql
+
       - name: Stop local Supabase
         if: always()
         run: supabase stop

@@ -25,8 +25,9 @@ vi.mock("@/lib/supabase/proxy", () => ({
 import { config, proxy } from "./proxy";
 
 const request = (pathname: string) => ({
+  method: "GET",
   headers: new Headers({ "x-request-id": "synthetic" }),
-  nextUrl: { pathname },
+  nextUrl: { pathname, origin: "https://app.example" },
 }) as Parameters<typeof proxy>[0];
 
 describe("proxy liveness isolation", () => {

@@ -10,9 +10,18 @@ vi.mock("@/lib/supabase/proxy", () => ({
 
 import { proxy } from "../proxy";
 
-function createRequest(pathname = "/santuario") {
-  // Mirrors a real Next.js middleware request: `nextUrl` is always present.
-  return { headers: new Headers(), nextUrl: { pathname } } as never;
+function createRequest(
+  options: { method?: string; origin?: string; pathname?: string } = {},
+) {
+  const headers = new Headers(
+    options.origin ? { origin: options.origin } : undefined,
+  );
+  const pathname = options.pathname ?? "/path";
+  return {
+    headers,
+    method: options.method ?? "GET",
+    nextUrl: new URL(pathname, "https://app.example"),
+  } as never;
 }
 
 describe("proxy security headers", () => {
@@ -23,6 +32,27 @@ describe("proxy security headers", () => {
 
   afterEach(() => {
     vi.unstubAllEnvs();
+  });
+
+  it("blocks cross-origin unsafe methods before session processing", async () => {
+    const response = await proxy(
+      createRequest({ method: "POST", origin: "https://attacker.example" }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "cross_origin_request_blocked" });
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(mocks.updateSession).not.toHaveBeenCalled();
+  });
+
+  it("allows same-origin writes and read-only cross-origin requests", async () => {
+    const response = { headers: new Headers() };
+    mocks.updateSession.mockResolvedValue(response);
+
+    await proxy(createRequest({ method: "POST", origin: "https://app.example" }));
+    await proxy(createRequest({ method: "GET", origin: "https://attacker.example" }));
+
+    expect(mocks.updateSession).toHaveBeenCalledTimes(2);
   });
 
   it("passes a per-request nonce through request headers and response CSP", async () => {

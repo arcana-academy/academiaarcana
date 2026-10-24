@@ -172,6 +172,38 @@ describe("local authenticated Next.js runner", () => {
     await expect(loadRunner()).rejects.toThrow("Loopback HTTPS test gateway failed to start");
     expect(mocks.spawnSync).not.toHaveBeenCalled();
     expect(mocks.kill).not.toHaveBeenCalled();
-    expect(mocks.rmSync).toHaveBeenCalledOnce();
+    expect(mocks.rmSync).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces a concise subprocess failure annotation in GitHub Actions", async () => {
+    mocks.spawnSync.mockReturnValueOnce({ status: 0, signal: null });
+    mocks.spawnSync.mockReturnValueOnce({
+      status: 1,
+      signal: null,
+      stdout: "1 failed\nError: expected URL to match /santuario/\nReceived: /login\n",
+      stderr: "",
+    });
+
+    await expect(run()).rejects.toThrow("Authenticated Next.js E2E failed");
+
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("::error title=Authenticated Next.js E2E failure::Error: expected URL"),
+    );
+  });
+
+  it.each([
+    ["build", { status: 1, signal: null }],
+    ["build", { status: null, signal: "SIGTERM" }],
+    ["build", { error: new Error("build process failed") }],
+    ["journeys", { status: 1, signal: null }],
+    ["journeys", { status: null, signal: "SIGTERM" }],
+    ["journeys", { error: new Error("journey process failed") }],
+  ])("cleans up after %s subprocess failure (%j)", async (stage, result) => {
+    if (stage === "journeys") mocks.spawnSync.mockReturnValueOnce({ status: 0, signal: null });
+    mocks.spawnSync.mockReturnValueOnce(result);
+    await expect(run()).rejects.toThrow();
+    expect(mocks.spawnSync).toHaveBeenCalledTimes(stage === "build" ? 1 : 2);
+    expect(mocks.kill).toHaveBeenCalledTimes(1);
+    expect(mocks.rmSync).toHaveBeenCalledWith("/tmp/aa-c26-unit-tls", { recursive: true, force: true });
   });
 });

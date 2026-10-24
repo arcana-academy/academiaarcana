@@ -8,6 +8,22 @@ import {
 import { isPrivateRoutePath } from "@/lib/security/private-routes";
 import { updateSession } from "@/lib/supabase/proxy";
 
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function isCrossOriginMutation(request: NextRequest): boolean {
+  if (SAFE_METHODS.has((request.method ?? "GET").toUpperCase())) return false;
+
+  const origin = request.headers.get("origin");
+  // Non-browser clients may omit Origin; browsers include it on unsafe methods.
+  if (!origin) return false;
+
+  try {
+    return new URL(origin).origin !== request.nextUrl.origin;
+  } catch {
+    return true;
+  }
+}
+
 /**
  * Resolves the request pathname without ever throwing.
  *
@@ -30,6 +46,13 @@ function resolvePathname(request: NextRequest): string {
 }
 
 export async function proxy(request: NextRequest) {
+  if (isCrossOriginMutation(request)) {
+    return NextResponse.json(
+      { error: "cross_origin_request_blocked" },
+      { status: 403, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const nonce = Buffer.from(randomUUID()).toString("base64");
   const requestHeaders = new Headers(request.headers);
   const pathname = resolvePathname(request);

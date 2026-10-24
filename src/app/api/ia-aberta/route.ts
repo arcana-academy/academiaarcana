@@ -1,7 +1,37 @@
 import { NextResponse } from "next/server";
-import { invokeOpenSourceAi, type GatewayRequest } from "@/infrastructure/integrations/open-source-ai-gateway";
-import { getOpenSourceAiIntegration, getOpenSourceAiStatus, openSourceAiIntegrations } from "@/infrastructure/integrations/open-source-ai";
+import {
+  invokeOpenSourceAi,
+} from "@/infrastructure/integrations/open-source-ai-gateway";
+import {
+  openSourceAiIntegrations,
+  getOpenSourceAiStatus,
+} from "@/infrastructure/integrations/open-source-ai";
+import {
+  readBoundedJsonRequest,
+  validateOpenSourceAiRequest,
+} from "@/infrastructure/integrations/open-source-ai-request";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
+
+type RateLimitResult = {
+  allowed: boolean;
+  rate_limit: number;
+  remaining: number;
+  retry_after_seconds: number;
+};
+
+function isRateLimitResult(value: unknown): value is RateLimitResult {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const result = value as Record<string, unknown>;
+  return typeof result.allowed === "boolean" &&
+    Number.isInteger(result.rate_limit) &&
+    Number.isInteger(result.remaining) &&
+    Number.isInteger(result.retry_after_seconds) &&
+    (result.rate_limit as number) > 0 &&
+    (result.remaining as number) >= 0 &&
+    (result.remaining as number) <= (result.rate_limit as number) &&
+    (result.retry_after_seconds as number) >= 1 &&
+    (result.retry_after_seconds as number) <= 60;
+}
 
 export async function GET() {
   return NextResponse.json({
@@ -19,29 +49,76 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
-    const body = (await request.json()) as Partial<GatewayRequest>;
-    if (!body.provider || !body.model || body.model.length > 200 || !Array.isArray(body.messages) || body.messages.length === 0 || body.messages.length > 20) {
-      return NextResponse.json({ error: "provider, model e messages são obrigatórios." }, { status: 400 });
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
     }
-    const integration = getOpenSourceAiIntegration(body.provider);
-    if (!integration) return NextResponse.json({ error: "Provider não suportado." }, { status: 400 });
 
-    const result = await invokeOpenSourceAi({
-      provider: body.provider,
-      model: body.model,
-      messages: body.messages.map((message) => ({ role: message.role, content: String(message.content).slice(0, 12000) })),
-      temperature: body.temperature,
-      maxTokens: body.maxTokens,
-    });
-    return NextResponse.json(result);
+    const parsedBody = await readBoundedJsonRequest(request);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        { error: parsedBody.status === 413 ? "Solicitação excede o limite permitido." : "JSON inválido." },
+        { status: parsedBody.status },
+      );
+    }
+
+    const body = validateOpenSourceAiRequest(parsedBody.value);
+    if (!body) {
+      return NextResponse.json(
+        { error: "Revise o provider, modelo, mensagens e limites solicitados." },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    // PostgreSQL atomically grants a durable per-account slot before any
+    // provider call. A limiter outage fails closed to avoid unmetered spend.
+    let rateLimitData: unknown;
+    let rateLimitError: unknown;
+    try {
+      const result = await supabase.rpc("consume_open_source_ai_rate_limit");
+      rateLimitData = result.data;
+      rateLimitError = result.error;
+    } catch {
+      rateLimitError = true;
+    }
+    const rateLimitRow = Array.isArray(rateLimitData) && rateLimitData.length === 1
+      ? rateLimitData[0]
+      : null;
+    if (rateLimitError || !isRateLimitResult(rateLimitRow)) {
+      return NextResponse.json(
+        { error: "O limite de uso está temporariamente indisponível." },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    const rateLimitHeaders = {
+      "Cache-Control": "private, no-store",
+      "RateLimit-Limit": String(rateLimitRow.rate_limit),
+      "RateLimit-Remaining": String(rateLimitRow.remaining),
+    };
+    if (!rateLimitRow.allowed) {
+      return NextResponse.json(
+        { error: "Limite de uso atingido. Tente novamente após o intervalo informado." },
+        {
+          status: 429,
+          headers: {
+            ...rateLimitHeaders,
+            "Retry-After": String(rateLimitRow.retry_after_seconds),
+          },
+        },
+      );
+    }
+
+    const result = await invokeOpenSourceAi(body);
+    return NextResponse.json(result, { headers: rateLimitHeaders });
   } catch {
-    // Provider errors may include upstream response bodies or credentials.
-    // Never forward untrusted diagnostics to the browser.
+    // Do not echo provider error bodies, endpoint details, or runtime configuration.
     return NextResponse.json(
-      { error: "Não foi possível processar a solicitação de IA." },
-      { status: 502, headers: { "Cache-Control": "private, no-store" } },
+      { error: "Não foi possível concluir a solicitação ao provider." },
+      { status: 502, headers: { "Cache-Control": "no-store" } },
     );
   }
 }
