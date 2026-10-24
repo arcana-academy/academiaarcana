@@ -1,4 +1,6 @@
 import type { PageContent } from "@/domains/learning";
+import { accessibleBlockTypeLabel, readingAlternativeLabel } from "./accessible-block-contract";
+export { accessibleBlockLabels, readingAlternativeLabel } from "./accessible-block-contract";
 
 type Block = PageContent["blocks"][number];
 
@@ -6,22 +8,6 @@ type Block = PageContent["blocks"][number];
  * Plain-text reading preview: no HTML injection, external media requests or writes.
  * Media references are not presented as playable/uploaded assets.
  */
-export const accessibleBlockLabels: Record<string, string> = {
-  paragraph: "Texto",
-  image: "Imagem — referência textual",
-  video: "Vídeo — referência textual",
-  formula: "Fórmula — texto",
-  diagram: "Diagrama — referência textual",
-};
-
-export function readingAlternativeLabel(type: string): string {
-  return type === "image" ? "Descrição da imagem:"
-    : type === "video" ? "Transcrição ou descrição do vídeo:"
-    : type === "formula" ? "Leitura da fórmula:"
-    : type === "diagram" ? "Descrição do diagrama:"
-    : "Observação acessível:";
-}
-
 export function isDecorativeReadingBlock(block: Block): boolean {
   return block.type === "image" && block.accessibility?.decorative === true;
 }
@@ -32,7 +18,7 @@ function AccessibleReadingBlock({ block, index }: { block: Block; index: number 
     return null;
   }
 
-  const title = accessibleBlockLabels[block.type] ?? "Conteúdo textual";
+  const title = accessibleBlockTypeLabel(block.type);
   const description = block.accessibility?.description?.trim();
 
   return (
