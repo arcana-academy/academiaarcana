@@ -64,7 +64,9 @@ export const ROUTE_METADATA = {
     title: "Enviar feedback",
     description:
       "Envie sugestões, relatos de problemas e elogios sobre a Academia Arcana.",
-    indexable: true,
+    // Responses are stored against an authenticated owner, so the form only
+    // exists for signed-in students; it is not a public landing surface.
+    indexable: false,
   },
   "/integracoes": {
     title: "Integrações",

@@ -64,6 +64,19 @@ export default defineConfig([
     rules: {
       "no-empty": "off",
       "no-empty-function": "off",
+      // Mock signatures document the mocked API shape; underscore-prefixed
+      // parameters and bindings are intentionally unused placeholders.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          args: "all",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
     },
   },
   {
