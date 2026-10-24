@@ -7,6 +7,7 @@ import type {
   GrimoireRepository,
   Notebook,
   NotebookRepository,
+  Page,
   PageRepository,
 } from "@/domains/learning";
 
@@ -648,5 +649,88 @@ describe("workspace application service", () => {
     })).rejects.toThrow("synthetic read failure");
     expect(notebookRepository.create).not.toHaveBeenCalled();
   });
+
+
+  it.each([
+    ["notebook", notebookRepository],
+    ["chapter", chapterRepository],
+    ["page", pageRepository],
+  ] as const)("rejects invalid %s reorder positions before repository I/O", async (kind, repository) => {
+    const invalid = [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1];
+    const invoke = {
+      notebook: (position: number) => service.reorderNotebook("synthetic-id", position),
+      chapter: (position: number) => service.reorderChapter("synthetic-id", position),
+      page: (position: number) => service.reorderPage("synthetic-id", position),
+    }[kind];
+    for (const position of invalid) {
+      await expect(invoke(position)).rejects.toThrow("Posição inválida.");
+    }
+    expect(repository.getById).not.toHaveBeenCalled();
+    expect(repository.reorder).not.toHaveBeenCalled();
+  });
+
+  it.each(["notebook", "chapter", "page"] as const)(
+    "rejects invalid sibling positions during %s append before persistence",
+    async (kind) => {
+      const timestamp = "2026-09-14T00:00:00.000Z";
+      const grimoire: Grimoire = {
+        id: "synthetic-grimoire",
+        ownerId: "synthetic-owner",
+        title: "Grimoire",
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const notebook: Notebook = {
+        id: "synthetic-notebook",
+        grimoireId: grimoire.id,
+        title: "Notebook",
+        position: 0,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const chapter: Chapter = {
+        id: "synthetic-chapter",
+        notebookId: notebook.id,
+        title: "Chapter",
+        position: 0,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const page: Page = {
+        id: "synthetic-page",
+        chapterId: chapter.id,
+        title: "Page",
+        content: { type: "document", blocks: [] },
+        position: 0,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      vi.mocked(grimoireRepository.getById).mockResolvedValue(grimoire);
+      vi.mocked(notebookRepository.getById).mockResolvedValue(notebook);
+      vi.mocked(chapterRepository.getById).mockResolvedValue(chapter);
+      const create = {
+        notebook: () => service.createNotebook({ grimoireId: "synthetic-grimoire", title: "New" }),
+        chapter: () => service.createChapter({ notebookId: "synthetic-notebook", title: "New" }),
+        page: () => service.createPage({ chapterId: "synthetic-chapter", title: "New", content: { type: "document", blocks: [] } }),
+      }[kind];
+      for (const position of [Number.MAX_SAFE_INTEGER, Number.NaN, -1, 1.5]) {
+        if (kind === "notebook") {
+          vi.mocked(notebookRepository.listByGrimoire).mockResolvedValueOnce([{ ...notebook, position }]);
+        } else if (kind === "chapter") {
+          vi.mocked(chapterRepository.listByNotebook).mockResolvedValueOnce([{ ...chapter, position }]);
+        } else {
+          vi.mocked(pageRepository.listByChapter).mockResolvedValueOnce([{ ...page, position }]);
+        }
+        await expect(create()).rejects.toThrow("Posição inválida.");
+      }
+      const repository = {
+        notebook: notebookRepository,
+        chapter: chapterRepository,
+        page: pageRepository,
+      }[kind];
+      expect(repository.create).not.toHaveBeenCalled();
+    },
+  );
 
 });

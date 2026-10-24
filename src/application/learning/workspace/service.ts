@@ -35,8 +35,20 @@ type CreatePageInput = {
 };
 
 // Append within the current parent collection instead of repeatedly using 0.
+function assertValidPosition(position: number): void {
+  if (!Number.isSafeInteger(position) || position < 0) {
+    throw new Error("Posição inválida.");
+  }
+}
+
 function nextPosition(siblings: ReadonlyArray<{ position: number }>): number {
-  return siblings.reduce((max, sibling) => Math.max(max, sibling.position), -1) + 1;
+  const highest = siblings.reduce((max, sibling) => {
+    assertValidPosition(sibling.position);
+    return Math.max(max, sibling.position);
+  }, -1);
+  const position = highest + 1;
+  assertValidPosition(position);
+  return position;
 }
 
 export class WorkspaceService {
