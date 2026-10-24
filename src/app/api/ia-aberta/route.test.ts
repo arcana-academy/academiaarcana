@@ -2,11 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
+  consumeRateLimit: vi.fn(),
   invokeOpenSourceAi: vi.fn(),
 }));
 
 vi.mock("@/infrastructure/supabase/server", () => ({
-  createSupabaseServerClient: async () => ({ auth: { getUser: mocks.getUser } }),
+  createSupabaseServerClient: async () => ({
+    auth: { getUser: mocks.getUser },
+    rpc: mocks.consumeRateLimit,
+  }),
 }));
 vi.mock("@/infrastructure/integrations/open-source-ai-gateway", () => ({
   invokeOpenSourceAi: mocks.invokeOpenSourceAi,
@@ -32,6 +36,10 @@ describe("POST /api/ia-aberta security contract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getUser.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
+    mocks.consumeRateLimit.mockResolvedValue({
+      data: [{ allowed: true, rate_limit: 20, remaining: 19, retry_after_seconds: 60 }],
+      error: null,
+    });
   });
 
   it("requires an authenticated user before parsing or invoking a provider", async () => {
@@ -40,6 +48,7 @@ describe("POST /api/ia-aberta security contract", () => {
     const response = await POST(jsonRequest(validBody));
 
     expect(response.status).toBe(401);
+    expect(mocks.consumeRateLimit).not.toHaveBeenCalled();
     expect(mocks.invokeOpenSourceAi).not.toHaveBeenCalled();
   });
 
@@ -47,6 +56,54 @@ describe("POST /api/ia-aberta security contract", () => {
     const response = await POST(jsonRequest({ ...validBody, maxTokens: 100_000 }));
 
     expect(response.status).toBe(400);
+    expect(mocks.consumeRateLimit).not.toHaveBeenCalled();
+    expect(mocks.invokeOpenSourceAi).not.toHaveBeenCalled();
+  });
+
+  it("returns 429 and Retry-After without contacting a provider when limited", async () => {
+    mocks.consumeRateLimit.mockResolvedValue({
+      data: [{ allowed: false, rate_limit: 20, remaining: 0, retry_after_seconds: 37 }],
+      error: null,
+    });
+
+    const response = await POST(jsonRequest(validBody));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("37");
+    expect(response.headers.get("RateLimit-Limit")).toBe("20");
+    expect(response.headers.get("RateLimit-Remaining")).toBe("0");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(mocks.invokeOpenSourceAi).not.toHaveBeenCalled();
+  });
+
+  it("fails closed with 503 when the durable limiter is unavailable", async () => {
+    mocks.consumeRateLimit.mockResolvedValue({ data: null, error: new Error("database unavailable") });
+
+    const response = await POST(jsonRequest(validBody));
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(mocks.invokeOpenSourceAi).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when the limiter RPC throws", async () => {
+    mocks.consumeRateLimit.mockRejectedValue(new Error("database transport failure"));
+
+    const response = await POST(jsonRequest(validBody));
+
+    expect(response.status).toBe(503);
+    expect(mocks.invokeOpenSourceAi).not.toHaveBeenCalled();
+  });
+
+  it("fails closed for malformed limiter results", async () => {
+    mocks.consumeRateLimit.mockResolvedValue({
+      data: [{ allowed: true, rate_limit: 20, remaining: 19, retry_after_seconds: 999 }],
+      error: null,
+    });
+
+    const response = await POST(jsonRequest(validBody));
+
+    expect(response.status).toBe(503);
     expect(mocks.invokeOpenSourceAi).not.toHaveBeenCalled();
   });
 
@@ -61,6 +118,11 @@ describe("POST /api/ia-aberta security contract", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response.headers.get("RateLimit-Limit")).toBe("20");
+    expect(response.headers.get("RateLimit-Remaining")).toBe("19");
+    expect(mocks.consumeRateLimit.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.invokeOpenSourceAi.mock.invocationCallOrder[0],
+    );
     expect(await response.json()).toEqual({
       provider: "ollama",
       model: "llama3.2",

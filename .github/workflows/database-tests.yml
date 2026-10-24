@@ -80,6 +80,12 @@ jobs:
       - name: Run P1.5 objective evidence RLS and RPC tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_objective_evidence_p15_rls.test.sql
 
+      - name: Run durable AI rate-limit privileges and account-isolation tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/open_source_ai_rate_limits.test.sql
+
+      - name: Run private grimoire-cover Storage RLS tests
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/grimoire_covers_storage_rls.test.sql
+
       - name: Stop local Supabase
         if: always()
         run: supabase stop
