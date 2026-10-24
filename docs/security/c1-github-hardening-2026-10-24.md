@@ -24,9 +24,9 @@ Nenhum recurso pago foi contratado; nenhum merge/GHCR/deploy executado.
 
 | Superfície | Evidência coletada | Estado |
 | --- | --- | --- |
-| Branch protection `main` | `GET /branches/main/protection` → `403` (sem escopo admin) | **BLOCKED** → pendência A1 |
-| Rulesets | `GET /repos/.../rulesets` → `[]` (nenhum ruleset) | **FAIL** → pendência A1 |
-| Regras aplicadas a `main` | `GET /rules/branches/main` → `[]` (nenhuma regra vigorando) | **FAIL** → pendência A1 |
+| Branch protection `main` | `GET /branches/main/protection` → `403` (sem escopo admin) | **BLOCKED** → pendência A1 · **retificado no §8**: proteção clássica EXISTE (review obrigatório) |
+| Rulesets | `GET /repos/.../rulesets` → `[]` (nenhum ruleset) | ✅ confirmado — sem rulesets (proteção é clássica, ver §8) |
+| Regras aplicadas a `main` | `GET /rules/branches/main` → `[]` (nenhuma regra **de ruleset** vigorando) | ✅ confirmado — endpoint cobre só rulesets; a proteção clássica não aparece nele (§8) |
 | Permissões de Actions | `GET /actions/permissions`, `/permissions/workflow`, `/selected-actions` → `403` | **BLOCKED** → pendências A2/A3 |
 | CodeQL | `GET /code-scanning/codeql/databases` → databases `javascript` e `actions` construídas pelo `codeql.yml` no HEAD `9f90298…`; workflow `CodeQL` ativo (PR, push, cron semanal) | **PASS** (advanced setup; default setup **não** habilitado para não duplicar) |
 | Dependabot | `.github/dependabot.yml` (npm + github-actions, semanal, grupos); PRs abertos do bot (#757 dev-deps etc.); `dependabot/*` presente nos environments | **PASS** (preservado, sem alteração) |
@@ -91,10 +91,14 @@ esta branch, preferir o lockfile que audita 0 vulnerabilidades.
 
 Confirmar/alterar só com autorização explícita. Comandos prontos:
 
-- **A1 — Proteção do `main` (crítico; hoje `main` não tem nenhuma regra).** Sugerido (regras
-  clássicas, grátis):
+- **A1 — Proteção do `main`.** RETIFICADO (§8): `main` já tem proteção clássica com review
+  obrigatório (`reviewDecision: REVIEW_REQUIRED` no PR #807, merge só ocorreu com bypass
+  admin). A ação correta é **completar** a proteção, não criá-la: com token admin, ler o
+  estado atual (`GET /branches/main/protection`) e garantir required status checks
+  (`Quality Gate`, strict), `enforce_admins`, CODEOWNERS review e `allow_force_pushes=false` /
+  `allow_deletions=false`:
   `gh api -X PUT repos/arcana-academy/academiaarcana/branches/main/protection -F 'required_status_checks[strict]=true' -F 'required_status_checks[contexts][]=Quality Gate' -F 'enforce_admins=true' -F 'required_pull_request_reviews[require_code_owner_reviews]=true' -F 'required_pull_request_reviews[required_approving_review_count]=1' -F 'restrictions=null' -F 'allow_force_pushes=false' -F 'allow_deletions=false'`
-  (ou ruleset equivalente; exigir review de CODEOWNERS para `.github/`, lockfile e render.yaml).
+  (preservando quaisquer campos já configurados).
 - **A2 — Permissões de Actions:** restringir a *selected actions* (`actions/*` + criadores
   verificados + allowlist das actions já pinadas) e desabilitar "Allow GitHub Actions to
   create and approve pull requests":
@@ -135,3 +139,55 @@ Confirmar/alterar só com autorização explícita. Comandos prontos:
 
 - `package-lock.json` — bumps de segurança (fast-uri, undici, zod).
 - `docs/security/c1-github-hardening-2026-10-24.md` — este relatório.
+
+## 8. C2 — Tentativa de aplicação A1–A9 (2026-10-24, pós-merge do PR #807)
+
+O PR #807 foi mergeado em `main` como `2b8c1829f03ce720b97752e07d2f64bd514445c6` (squash,
+com todos os gates verdes). A aplicação das pendências A1–A9 foi tentada com o token desta
+sessão — que continua **sem privilégios administrativos** (`X-OAuth-Scopes` vazio; token
+fine-grained de integração, expiração 2026-10-24 23:48 UTC).
+
+### 8.1 Retificação importante (A1)
+
+A afirmação original do §2 ("`main` não tem nenhuma regra") estava **parcialmente errada**.
+Evidência nova: no PR #807, `reviewDecision = REVIEW_REQUIRED` e o merge comum foi recusado
+("the base branch policy prohibits the merge"), exigindo bypass administrativo. Portanto
+`main` **já possui branch protection clássica com review obrigatório** — os `GET` deste
+token (403) e o `GET /rules/branches/main` (`[]`, que só enumera **rulesets**) não a exibem.
+O dono do repo é uma conta de usuário (sem org → sem rulesets organizacionais). A1 muda de
+"criar proteção" para "**completar a proteção existente**" (ler antes com token admin, para
+não sobrescrever).
+
+### 8.2 Matriz de aplicação (todas as operações retornaram 403; nada foi alterado)
+
+| Item | Operação tentada (evidência) | Resultado |
+| --- | --- | --- |
+| A1 | `PUT /branches/main/protection` e `POST /rulesets` | **BLOCKED** — 403 |
+| A2 | `PUT /actions/permissions` (`allowed_actions=selected`) e `PUT /actions/permissions/workflow` (`default_workflow_permissions=read`, `can_approve_pull_request_reviews=false`) | **BLOCKED** — 403 |
+| A3 | `GET /actions/permissions` | **BLOCKED** — 403 |
+| A4 | `PUT /vulnerability-alerts` e `PUT /automated-security-fixes` | **BLOCKED** — 403 |
+| A5 | `PATCH /repos/...` com `security_and_analysis.secret_scanning{,_push_protection}=enabled` | **BLOCKED** — 403 |
+| A6 | `GET /actions/secrets` e `GET /actions/variables` | **BLOCKED** — 403 |
+| A7 | `PUT /environments/Production` (reviewer obrigatório: usuário `arcana-academy`, id 322877937) | **BLOCKED** — 403 |
+| A8 | `DELETE /environments/arena%2F…PR%20%23799` (prova) | **BLOCKED** — 403 |
+| A9 | `GET /code-scanning/codeql/databases` | **PASS** — `javascript` + `actions` ativos (advanced mantido; default setup não habilitado) |
+
+### 8.3 Scorecard pós-endurecimento
+
+- Run canônico no `main` pós-merge: **run 40108566017**, commit `2b8c182`, concluído
+  **success** (12/12 steps; SARIF enviado ao code scanning e artefato `scorecard-results`
+  gravado). Run anterior: 40029283125 em `9f90298`.
+- `workflow_dispatch` manual: **BLOCKED** (403 — token sem `actions: write`).
+- Pontuação numérica agregada: **BLOCKED neste sandbox** — os 4 canais de leitura estão
+  inacessíveis daqui: artefatos (redirect p/ `blob.core.windows.net`), logs (redirect p/
+  `results-receiver.actions.githubusercontent.com`), `api.scorecard.dev` (egress bloqueado)
+  e `GET /code-scanning/analyses` (403). Para conferir: Security → Code scanning do repo,
+  ou https://scorecard.dev/viewer/?uri=github.com/arcana-academy/academiaarcana.
+
+### 8.4 O que é necessário para aplicar A1–A9
+
+Reconectar o GitHub nesta sessão com token de **admin do repositório** (fine-grained com
+*Administration: Read and write*, *Environments: Read and write*, *Secrets: Read*,
+*Dependabot alerts: Read and write*, *Security events: Read*, *Actions: Read and write*),
+ou executar os comandos do §5 localmente com `gh auth login` de uma conta admin. Nenhuma
+mudança administrativa foi aplicada nesta sessão.
