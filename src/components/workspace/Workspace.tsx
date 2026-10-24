@@ -6,6 +6,7 @@ import { PageEditor } from "./PageEditor";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { WorkspaceTitleEditor } from "./WorkspaceTitleEditor";
+import { WorkspaceJourneyGuide } from "./WorkspaceJourneyGuide";
 import { useMobileDisclosure } from "./useMobileDisclosure";
 
 type WorkspaceProps = {
@@ -337,6 +338,8 @@ export function Workspace({
             <span className="workspace-region-kicker">Editor</span>
             <h2 id="workspace-editor-heading">Área de trabalho</h2>
           </div>
+
+          <WorkspaceJourneyGuide state={state} />
 
           <div className="workspace-create-panel">
             <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
