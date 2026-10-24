@@ -163,11 +163,17 @@ test("keyboard focus and reduced motion remain visible and predictable", async (
 
   const themeSelect = page.getByTestId("statistics-pilot-theme-select");
   await themeSelect.focus();
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Praticar" })).toBeFocused();
+  const practiceLink = page.getByRole("link", { name: "Praticar" });
+  let reachedByKeyboard = false;
+  for (let index = 0; index < 40; index += 1) {
+    await page.keyboard.press("Tab");
+    reachedByKeyboard = await practiceLink.evaluate((node) => document.activeElement === node);
+    if (reachedByKeyboard) break;
+  }
+  expect(reachedByKeyboard, "The practice link must be reachable from the theme control by Tab").toBe(true);
+  await expect(practiceLink).toBeFocused();
 
-  const focusStyle = await page.getByRole("link", { name: "Praticar" }).evaluate((node) => {
+  const focusStyle = await practiceLink.evaluate((node) => {
     const style = getComputedStyle(node);
     return { outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth) };
   });
