@@ -28,14 +28,8 @@ export default async function CronogramaPage() {
     new Date().toISOString(),
   );
 
-  let outlookConnected = false;
+  const outlookConnected = await isOutlookCalendarConnected();
   let outlookEventsUnavailable = false;
-  try {
-    outlookConnected = await isOutlookCalendarConnected();
-  } catch {
-    // An unavailable credential store must not hide native study tasks.
-    outlookEventsUnavailable = true;
-  }
   let outlookEvents: Awaited<
     ReturnType<OutlookCalendarClient["listEvents"]>
   > = [];

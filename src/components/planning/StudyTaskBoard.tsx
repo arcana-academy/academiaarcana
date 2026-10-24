@@ -19,8 +19,6 @@ type StudyTaskBoardProps = {
   outlookConnected?: boolean;
   outlookEvents?: OutlookEvent[];
   outlookEventsUnavailable?: boolean;
-  /** Allows visual pilots to compare reviewed copy without mutating hydrated DOM. */
-  pendingTasksHeading?: "Tarefas futuras" | "Tarefas pendentes";
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
   onComplete: (id: string) => Promise<StudyTask>;
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
@@ -57,7 +55,6 @@ export function StudyTaskBoard({
   outlookConnected = false,
   outlookEvents = [],
   outlookEventsUnavailable = false,
-  pendingTasksHeading = "Tarefas pendentes",
   onCreate,
   onComplete,
   onScheduleInOutlook,
