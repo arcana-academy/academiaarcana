@@ -80,6 +80,19 @@ Não foram executados comandos `supabase start`, migrations, SQL, chamadas HTTP/
 
 **Comandos de verificação usados:** `command -v docker/podman/supabase/psql`; `readlink /proc/self/ns/net`; `ip -brief address`; `ip route`; `ss -lnt`; nomes de variáveis via `env | cut -d= -f1` (valores não expostos); `unshare --net true`.
 
+## Addendum — repetição da checagem no branch atual (2026-10-24)
+
+**Resultado: BLOCKED; nenhum teste ou migration executado.** Confirmei que o branch desta sessão é `arena/32e030bb-academiaarcana`. Antes de qualquer ação no banco, repeti os pré-requisitos do runner:
+
+- `docker`, `podman`, `supabase` e `psql` não estão instalados/disponíveis (`command -v` não encontrou executáveis).
+- Namespace de rede `net:[4026531840]` tem interface `eth0` com endereço `169.254.0.21/30` e rota default via `169.254.0.22`; não é rede loopback-only.
+- `unshare --net true` falha com `Operation not permitted`, então não é possível criar namespace isolado neste ambiente.
+- Nenhum nome de variável relacionado a Supabase/database/Postgres foi listado; isso não prova ausência de segredos em arquivos, processos externos, ou serviços acessíveis.
+
+**Parada conforme instrução:** sem Supabase local, namespace isolado e prova de tráfego restrito, não executei migrations, consultas SQL, requisições HTTP, testes com duas identidades, nem enumeração/RPC/Storage/logout. Nenhuma correção foi tentada e nenhum dado/configuração hospedada foi acessado ou alterado. O conteúdo anterior sobre a tentativa do outro branch é histórico; esta seção registra a checagem atual.
+
+**Comandos:** `command -v docker/podman/supabase/psql`; `readlink /proc/self/ns/net`; `ip -brief address`; `ip route`; nomes de variáveis via `env | cut -d= -f1` (sem ler valores); `unshare --net true`.
+
 ## 🚀 Próximo prompt
 
 “Disponibilize um runner descartável com Docker/Supabase CLI e permissão para um namespace de rede isolado. Demonstre antes que as chamadas de rede estão limitadas ao próprio runner/loopback e que nenhuma credencial ou URL de projeto produtivo está disponível. Se qualquer condição falhar, pare em BLOCKED. Só então aplique migrations do zero, execute testes negativos com duas identidades sintéticas para RLS, RPC, Storage e sessões revogadas, registre RED→GREEN e corrija apenas em branch autorizada; não use serviços hospedados.”
