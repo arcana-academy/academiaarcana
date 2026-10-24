@@ -392,3 +392,24 @@ describe("PageEditor", () => {
   });
 
 });
+
+describe("saved block checklist integration", () => {
+  test("only opens for saved text and returns without persisting markings", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({ ...page, content: input.content, title: input.title }));
+    render(<PageEditor {...movementProps} page={page} onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", { name: "Organizar estudo por trechos" }));
+    expect(screen.getByRole("heading", { name: "Lista de estudo por trechos" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Trecho 1" }));
+    expect(screen.getByText("1 de 1 trechos marcados nesta tela.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Organizar estudo por trechos" }));
+    expect(screen.getByText("0 de 1 trechos marcados nesta tela.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    fireEvent.change(screen.getByLabelText("Bloco 1"), { target: { value: "Texto não salvo." } });
+    expect(screen.getByRole("button", { name: "Organizar estudo por trechos" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Organizar estudo por trechos" })).toBeEnabled();
+  });
+});
