@@ -4,6 +4,8 @@
 
 **Objetivo:** conferir cada referência no corpo da PR, sem fechamento automático e sem confundir documentação com código, teste ou aprovação. Nenhum campo abaixo concede GO de release.
 
+**Contagem de lacunas:** 23 entradas `GAP-*` no registro canônico; a PR #821 anuncia 22 e exige reconciliação da descrição antes de merge.
+
 ## Estados que esta consulta efetivamente comprova
 
 - **DOCUMENTADO**: existência da seção de especificação em `docs/specs/` para as 91 referências F1–F5; documentação ainda não mesclada.
