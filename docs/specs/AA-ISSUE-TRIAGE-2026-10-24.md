@@ -86,7 +86,34 @@ nesta triagem.
 
 É o rastreador de evidência operacional e continua válido; recebe referência cruzada ao documento F6.
 
-## 5. Verificação desta entrega
+## 5. Execução no GitHub — bloqueio de permissão
+
+A execução automática (comentário + encerramento) foi implementada em
+`scripts/issue-triage/apply-f-series-triage.mjs`, com o mapeamento issue → seção em
+`scripts/issue-triage/f-series-resolution.json` (91 entradas).
+
+Na sessão em que este documento foi produzido, o token do GitHub App disponível tinha `pull`, `push`,
+`triage`, `maintain` e `admin` no repositório, **mas não `issues: write`**:
+
+```
+POST /repos/arcana-academy/academiaarcana/issues/77/comments
+-> 403 Resource not accessible by integration
+```
+
+Portanto **nenhuma issue foi comentada ou encerrada por esta sessão**. A lacuna é de credencial, não de
+conteúdo: o mapeamento está pronto e a execução é idempotente.
+
+Para aplicar:
+
+```bash
+node scripts/issue-triage/apply-f-series-triage.mjs          # dry-run, não escreve
+node scripts/issue-triage/apply-f-series-triage.mjs --apply  # comenta + encerra
+```
+
+Pré-requisitos: `gh` autenticado com uma credencial que possua `issues: write` (ou a GitHub App
+correspondente instalada com a permissão de Issues), e o `main` contendo `docs/specs/`.
+
+## 6. Verificação desta entrega
 
 | Verificação | Resultado |
 |---|---|
