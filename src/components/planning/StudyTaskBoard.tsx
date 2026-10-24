@@ -121,6 +121,7 @@ export function StudyTaskBoard({
   const completedSchedules = useRef(new Set<string>());
   const [schedulingIds, setSchedulingIds] = useState<Set<string>>(() => new Set());
   const [scheduledIds, setScheduledIds] = useState<Set<string>>(() => new Set());
+
   const submit = async () => {
     if (createPending.current || !title.trim()) return;
     createPending.current = true;
