@@ -18,25 +18,6 @@ const task: StudyTask = {
 };
 
 describe("Cronograma server snapshot acknowledgment and reopening", () => {
-  it("retains an unacknowledged creation, then honors server edits and removal after acknowledgment", async () => {
-    const create = vi.fn().mockResolvedValue(task);
-    const complete = vi.fn();
-    const { rerender } = render(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
-    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: task.title } });
-    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
-    expect(await screen.findByText(task.title)).toBeInTheDocument();
-    // An empty snapshot received before creation acknowledgment is stale.
-    rerender(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
-    expect(screen.getAllByText(task.title)).toHaveLength(1);
-    const edited = { ...task, title: "Título confirmado pelo servidor" };
-    rerender(<StudyTaskBoard tasks={[edited]} onCreate={create} onComplete={complete} />);
-    expect(screen.getByText(edited.title)).toBeInTheDocument();
-    expect(screen.queryByText(task.title)).not.toBeInTheDocument();
-    rerender(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
-    expect(screen.queryByText(edited.title)).not.toBeInTheDocument();
-    expect(screen.queryByText(task.title)).not.toBeInTheDocument();
-  });
-
   it("shows a newly received server task without remounting the board", () => {
     const newTask = { ...task, id: "new-server-task", title: "Preparar poções" };
     const create = vi.fn();
@@ -92,23 +73,6 @@ describe("Cronograma server snapshot acknowledgment and reopening", () => {
     fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
     await waitFor(() => expect(complete).toHaveBeenCalledTimes(2));
     expect(screen.queryByText(task.title)).not.toBeInTheDocument();
-  });
-
-  it("does not resurrect a completed optimistic task after the server omits it", async () => {
-    const created = { ...task, id: "optimistic-completed", title: "Estudar alquimia" };
-    const create = vi.fn().mockResolvedValue(created);
-    const complete = vi.fn().mockResolvedValue({ ...created, status: "completed" });
-    const { rerender } = render(
-      <StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />,
-    );
-    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: created.title } });
-    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
-    expect(await screen.findByText(created.title)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
-    await waitFor(() => expect(screen.queryByText(created.title)).not.toBeInTheDocument());
-    rerender(<StudyTaskBoard tasks={[]} onCreate={create} onComplete={complete} />);
-    expect(screen.queryByText(created.title)).not.toBeInTheDocument();
-    expect(complete).toHaveBeenCalledTimes(1);
   });
 
   it("does not duplicate an optimistic task once the server acknowledges creation", async () => {

@@ -83,8 +83,7 @@ export default async function CronogramaPage() {
           end.toISOString(),
         );
       } else {
-        // A connection may disappear between the status check and token lookup.
-        // No token means no calendar query occurred, not an empty calendar.
+        // The connection can disappear before the token lookup completes.
         outlookEventsUnavailable = true;
       }
     } catch {

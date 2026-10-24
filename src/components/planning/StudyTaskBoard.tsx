@@ -26,18 +26,18 @@ type StudyTaskBoardProps = {
 
 function formatDueAt(value: string | null, timeZone?: string): string {
   if (!value) return "Sem prazo";
-  // Microsoft Graph returns offset-less dateTime values when requesting UTC.
-  // Parse them as UTC rather than the browser's local time zone.
-  const normalized =
-    timeZone === "UTC" && !/(?:[zZ]|[+-][0-9]{2}:[0-9]{2})$/.test(value)
-      ? `${value}Z`
-      : value;
-  const date = new Date(normalized);
+  const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Data indisponível";
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+/** Outlook Graph may provide a UTC wall time without an explicit offset. */
+function formatOutlookDateTime(value: string, timeZone: string): string {
+  const utcWithoutOffset =
+    timeZone.toUpperCase() === "UTC" &&
+    /^\d{4}-\d{2}-\d{2}T/.test(value) &&
+    !/(?:Z|[+-]\d{2}:\d{2})$/i.test(value);
+  return formatDueAt(utcWithoutOffset ? `${value}Z` : value);
 }
 
 export function StudyTaskBoard({
@@ -49,33 +49,30 @@ export function StudyTaskBoard({
   onComplete,
   onScheduleInOutlook,
 }: StudyTaskBoardProps) {
-  // Server snapshots are authoritative, but can lag behind locally confirmed
-  // creates/completions during a partial refresh of the Cronograma page.
+  // Changes returned by the server are authoritative, while local creations
+  // and completions remain visible/hidden until acknowledged by a new snapshot.
   const [locallyCreated, setLocallyCreated] = useState<StudyTask[]>([]);
   const [locallyCompleted, setLocallyCompleted] = useState<Set<string>>(() => new Set());
-  // Track acknowledgments as React state, not a ref read during render.
-  // Guarded adjustment handles a new server snapshot without an effect loop.
   const [acknowledgment, setAcknowledgment] = useState(() => ({
     serverTasks: tasks,
     localCreates: locallyCreated,
-    ids: new Set<string>(),
+    createdSeen: new Set<string>(),
     completedAbsent: new Set<string>(),
   }));
+
   if (acknowledgment.serverTasks !== tasks || acknowledgment.localCreates !== locallyCreated) {
     const serverIds = new Set(tasks.map((task) => task.id));
-    const ids = new Set(acknowledgment.ids);
+    const createdSeen = new Set(acknowledgment.createdSeen);
     for (const created of locallyCreated) {
-      if (serverIds.has(created.id)) ids.add(created.id);
+      if (serverIds.has(created.id)) createdSeen.add(created.id);
     }
-    // Only a *new* server snapshot that omits a completed ID acknowledges
-    // completion. A stale snapshot still containing that ID must stay hidden.
     const completedAbsent = new Set(acknowledgment.completedAbsent);
     if (acknowledgment.serverTasks !== tasks) {
       for (const id of locallyCompleted) {
         if (!serverIds.has(id)) completedAbsent.add(id);
       }
     }
-    setAcknowledgment({ serverTasks: tasks, localCreates: locallyCreated, ids, completedAbsent });
+    setAcknowledgment({ serverTasks: tasks, localCreates: locallyCreated, createdSeen, completedAbsent });
   }
 
   const items = useMemo(() => {
@@ -87,19 +84,19 @@ export function StudyTaskBoard({
       ...locallyCreated.filter(
         (task) =>
           !serverIds.has(task.id) &&
-          !acknowledgment.ids.has(task.id) &&
+          !acknowledgment.createdSeen.has(task.id) &&
           (!locallyCompleted.has(task.id) || acknowledgment.completedAbsent.has(task.id)),
       ),
     ];
-  }, [tasks, locallyCreated, locallyCompleted, acknowledgment.ids, acknowledgment.completedAbsent]);
+  }, [tasks, locallyCreated, locallyCompleted, acknowledgment.createdSeen, acknowledgment.completedAbsent]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // UI disabled state updates after rendering; a ref acquires the lock immediately.
-  const creatingTask = useRef(false);
-  // Synchronous guard prevents duplicate provider POSTs before React rerenders.
-  // Each provider/task pair remains independent while the request is pending.
+  // Guard the callbacks synchronously, before disabled controls rerender.
+  const createPending = useRef(false);
+  const completingPending = useRef(new Set<string>());
+  const [completingIds, setCompletingIds] = useState<Set<string>>(() => new Set());
   const activeSends = useRef(new Set<string>());
   const successfulSends = useRef(new Set<string>());
   const [sendingKeys, setSendingKeys] = useState<Set<string>>(() => new Set());
@@ -110,23 +107,20 @@ export function StudyTaskBoard({
   const completedSchedules = useRef(new Set<string>());
   const [schedulingIds, setSchedulingIds] = useState<Set<string>>(() => new Set());
   const [scheduledIds, setScheduledIds] = useState<Set<string>>(() => new Set());
-
   const submit = async () => {
-    if (creatingTask.current || !title.trim()) return;
-    creatingTask.current = true;
+    if (createPending.current || !title.trim()) return;
+    createPending.current = true;
     setError(null);
     setIsSubmitting(true);
     try {
       const created = await onCreate({ title, dueAt: dueAt ? new Date(dueAt).toISOString() : null });
-      setLocallyCreated((current) =>
-        current.some((task) => task.id === created.id) ? current : [...current, created],
-      );
+      setLocallyCreated((current) => current.some((task) => task.id === created.id) ? current : [...current, created]);
       setTitle("");
       setDueAt("");
     } catch {
       setError("Não foi possível criar a tarefa.");
     } finally {
-      creatingTask.current = false;
+      createPending.current = false;
       setIsSubmitting(false);
     }
   };
@@ -257,8 +251,7 @@ export function StudyTaskBoard({
     setError(null);
     try {
       await onComplete(id);
-      // Re-completing a legitimately reopened ID starts a new acknowledgment
-      // cycle. Otherwise the old absence proof would keep it visible.
+      // A second completion of a legitimately reopened task starts a new cycle.
       setAcknowledgment((current) => {
         if (!current.completedAbsent.has(id)) return current;
         const completedAbsent = new Set(current.completedAbsent);
@@ -362,7 +355,7 @@ export function StudyTaskBoard({
                   <div>
                     <strong>{event.subject || "Evento sem título"}</strong>
                     <small>
-                      {formatDueAt(event.start.dateTime, event.start.timeZone)} · até {formatDueAt(event.end.dateTime, event.end.timeZone)}
+                      {formatOutlookDateTime(event.start.dateTime, event.start.timeZone)} · até {formatOutlookDateTime(event.end.dateTime, event.end.timeZone)}
                     </small>
                   </div>
                   {event.webLink ? (
@@ -473,12 +466,7 @@ export function StudyTaskBoard({
                           : "Agendar no Outlook"}
                     </button>
                   ) : null}
-                  <button
-                    className="aa-button aa-button-secondary aa-button-sm"
-                    type="button"
-                    onClick={() => void complete(task.id)}
-                    disabled={completingIds.has(task.id)}
-                  >
+                  <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void complete(task.id)} disabled={completingIds.has(task.id)}>
                     {completingIds.has(task.id) ? "Concluindo…" : "Concluir"}
                   </button>
                 </div>
