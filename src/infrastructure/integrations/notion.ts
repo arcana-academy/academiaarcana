@@ -344,7 +344,10 @@ export async function refreshNotionCredentials(
     workspace_name?: string;
   };
 
-  if (!payload.access_token) {
+  if (
+    typeof payload?.access_token !== "string" ||
+    !payload.access_token.trim()
+  ) {
     throw new NotionConnectionError(
       "O Notion não devolveu um token renovado válido.",
       "reauthorization_required",
@@ -354,7 +357,10 @@ export async function refreshNotionCredentials(
   return {
     subjectId: credentials.subjectId,
     accessToken: payload.access_token,
-    refreshToken: payload.refresh_token ?? credentials.refreshToken,
+    refreshToken:
+      typeof payload.refresh_token === "string" && payload.refresh_token.trim()
+        ? payload.refresh_token
+        : credentials.refreshToken,
     botId: payload.bot_id ?? credentials.botId,
     workspaceId: payload.workspace_id ?? credentials.workspaceId,
     workspaceName: payload.workspace_name ?? credentials.workspaceName,
