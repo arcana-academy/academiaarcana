@@ -9,6 +9,7 @@ type Block = PageContent["blocks"][number];
 export const accessibleBlockLabels: Record<string, string> = {
   paragraph: "Texto",
   image: "Imagem — referência textual",
+  audio: "Áudio — referência textual",
   video: "Vídeo — referência textual",
   formula: "Fórmula — texto",
   diagram: "Diagrama — referência textual",
@@ -16,10 +17,16 @@ export const accessibleBlockLabels: Record<string, string> = {
 
 export function readingAlternativeLabel(type: string): string {
   return type === "image" ? "Descrição da imagem:"
+    : type === "audio" ? "Transcrição ou descrição do áudio:"
     : type === "video" ? "Transcrição ou descrição do vídeo:"
     : type === "formula" ? "Leitura da fórmula:"
     : type === "diagram" ? "Descrição do diagrama:"
     : "Observação acessível:";
+}
+
+/** Name existing freely typed blocks without changing or normalizing authored types. */
+export function readableBlockType(type: string): string {
+  return accessibleBlockLabels[type] ?? ("Tipo livre: " + type.slice(0, 120));
 }
 
 export function isDecorativeReadingBlock(block: Block): boolean {
@@ -32,7 +39,7 @@ function AccessibleReadingBlock({ block, index }: { block: Block; index: number 
     return null;
   }
 
-  const title = accessibleBlockLabels[block.type] ?? "Conteúdo textual";
+  const title = readableBlockType(block.type);
   const description = block.accessibility?.description?.trim();
 
   return (

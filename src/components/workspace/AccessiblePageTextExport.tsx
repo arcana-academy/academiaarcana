@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { PageContent } from "@/domains/learning";
 import {
-  accessibleBlockLabels,
+  readableBlockType,
   isDecorativeReadingBlock,
   readingAlternativeLabel,
 } from "./AccessiblePageReadingPreview";
@@ -25,7 +25,7 @@ export function serializeAccessiblePageText(title: string, content: PageContent)
     if (isDecorativeReadingBlock(block)) return;
     lines.push("");
     if (block.type !== "paragraph") {
-      lines.push("Bloco " + (index + 1) + " — " + (accessibleBlockLabels[block.type] ?? "Conteúdo textual"));
+      lines.push("Bloco " + (index + 1) + " — " + readableBlockType(block.type));
     }
     if (block.content) {
       lines.push(block.content);
