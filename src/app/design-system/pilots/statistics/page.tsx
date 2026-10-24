@@ -1,10 +1,10 @@
 import { StatisticsPilotHarness } from "./StatisticsPilotHarness";
-import type { StatisticsPilotScenario } from "./statistics-pilot-data";
+import type { StatisticsPilotScenario } from "./statistics-pilot-fixtures";
 
 function scenarioFrom(
   value: string | string[] | undefined,
 ): StatisticsPilotScenario {
-  return value === "mixed" ||
+  return value === "mixed-evidence" ||
     value === "objective-confirmed" ||
     value === "review-gap" ||
     value === "low-confidence"
