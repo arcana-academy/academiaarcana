@@ -115,11 +115,15 @@ export function AuthForm({ mode }: AuthFormProps) {
         }
 
         setStatus("success");
-        setMessage(
-          data.session
-            ? "Conta criada com sucesso."
-            : "Conta criada. Verifique seu email para confirmar o acesso, se a confirmação estiver habilitada.",
-        );
+        if (data.session) {
+          setMessage("Conta criada com sucesso.");
+          router.push("/santuario");
+          router.refresh();
+        } else {
+          setMessage(
+            "Conta criada. Verifique seu email para confirmar o acesso, se a confirmação estiver habilitada.",
+          );
+        }
         return;
       }
 

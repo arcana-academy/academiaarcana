@@ -173,6 +173,51 @@ describe("AuthForm", () => {
     );
   });
 
+  it("redirects an immediately authenticated signup to the Santuário", async () => {
+    signUp.mockResolvedValueOnce({
+      data: { session: { access_token: "test-session" } },
+      error: null,
+    });
+
+    render(<AuthForm mode="signup" />);
+
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "student@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Senha"), {
+      target: { value: "secure-password" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+
+    await waitFor(() => {
+      expect(signUp).toHaveBeenCalledTimes(1);
+      expect(push).toHaveBeenCalledWith("/santuario");
+      expect(refresh).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("does not redirect signup when email confirmation is pending", async () => {
+    render(<AuthForm mode="signup" />);
+
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "student@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Senha"), {
+      target: { value: "secure-password" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+
+    await waitFor(() => {
+      expect(signUp).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Verifique seu email para confirmar o acesso",
+      );
+    });
+
+    expect(push).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it("updates the password when confirmation matches", async () => {
     render(<AuthForm mode="update-password" />);
 
