@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signOut } from "@/lib/auth/actions";
 import { AccessibilityPanel } from "@/components/accessibility/AccessibilityPanel";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
+import { SanctuaryMobileDock } from "@/components/layout/SanctuaryMobileDock";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { navigationItems, type AuthenticatedRouteHref } from "@/config/navigation";
 
@@ -46,6 +47,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
         </header>
 
         <div className="aa-main-content">{children}</div>
+        {currentPath === "/santuario" ? <SanctuaryMobileDock /> : null}
       </div>
     </div>
   );

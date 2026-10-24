@@ -104,6 +104,12 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
 
       if (mode === "signup") {
+        if (password !== confirmPassword) {
+          setStatus("error");
+          setMessage("As senhas precisam ser iguais.");
+          return;
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -151,13 +157,13 @@ export function AuthForm({ mode }: AuthFormProps) {
   const passwordInputType = showPassword ? "text" : "password";
 
   return (
-    <main className={mode === "login" ? "aa-auth-screen aa-auth-login" : "aa-auth-screen"} aria-labelledby="auth-title">
-      {mode === "login" ? (
+    <main className={mode === "update-password" ? "aa-auth-screen" : `aa-auth-screen aa-auth-login aa-auth-${mode}`} aria-labelledby="auth-title">
+      {mode !== "update-password" ? (
         <aside className="aa-auth-story" aria-hidden="true">
           <div className="aa-auth-story-copy">
             <span className="aa-auth-story-sigil">✧</span>
             <p>Academia Arcana</p>
-            <strong>Um universo de estudos para descobrir.</strong>
+            <strong>{mode === "login" ? "Um universo de estudos para descobrir." : "Conhecimento também é uma forma de magia."}</strong>
           </div>
         </aside>
       ) : null}
@@ -166,9 +172,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           <Image src="/assets/brand/aa-institutional-seal.svg" alt="" width={64} height={64} priority />
           <span>Academia Arcana</span>
         </div>
-        <h1 id="auth-title">{mode === "login" ? "Entre no seu santuário de estudos" : copy.title}</h1>
+        <h1 id="auth-title">{mode === "login" ? "Entre no seu santuário de estudos" : mode === "signup" ? "Comece sua jornada" : copy.title}</h1>
         {mode === "login" ? (
           <p className="aa-auth-welcome">Continue sua jornada e organize seus conhecimentos em um só lugar.</p>
+        ) : mode === "signup" ? (
+          <p className="aa-auth-welcome">Crie seu espaço para aprender e registrar seus conhecimentos.</p>
+        ) : mode === "recover" ? (
+          <p className="aa-auth-welcome">Informe seu e-mail para receber instruções, se houver uma conta associada.</p>
         ) : null}
 
       <form className="aa-auth-form" onSubmit={handleSubmit} noValidate>
@@ -217,7 +227,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
         )}
 
-        {mode === "update-password" && (
+        {(mode === "update-password" || mode === "signup") && (
           <div>
             <label htmlFor={confirmPasswordId}>Confirmar senha</label>
             <input
@@ -252,8 +262,18 @@ export function AuthForm({ mode }: AuthFormProps) {
           <Link href="/cadastro">Criar conta</Link>
         </nav>
       ) : null}
+      {mode === "signup" ? (
+        <p className="aa-auth-authlink">Já tem conta? <Link href="/login">Entrar</Link></p>
+      ) : null}
+      {mode === "recover" ? (
+        <p className="aa-auth-authlink"><Link href="/login">Voltar ao Login</Link></p>
+      ) : null}
       {mode === "login" ? (
         <p className="aa-auth-privacy-note">Seu acesso utiliza a autenticação segura existente da Academia Arcana.</p>
+      ) : mode === "signup" ? (
+        <p className="aa-auth-privacy-note">A confirmação de e-mail protege seu acesso quando estiver habilitada.</p>
+      ) : mode === "recover" ? (
+        <p className="aa-auth-privacy-note">Por privacidade, não confirmamos se um endereço está cadastrado.</p>
       ) : null}
       </div>
     </main>
