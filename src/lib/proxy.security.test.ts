@@ -11,16 +11,23 @@ vi.mock("@/lib/supabase/proxy", () => ({
 import { proxy } from "../proxy";
 
 function createRequest(
-  options: { method?: string; origin?: string; pathname?: string } = {},
+  options: {
+    method?: string;
+    origin?: string;
+    pathname?: string;
+    host?: string;
+    nextUrlOrigin?: string;
+  } = {},
 ) {
   const headers = new Headers(
     options.origin ? { origin: options.origin } : undefined,
   );
+  if (options.host) headers.set("host", options.host);
   const pathname = options.pathname ?? "/path";
   return {
     headers,
     method: options.method ?? "GET",
-    nextUrl: new URL(pathname, "https://app.example"),
+    nextUrl: new URL(pathname, options.nextUrlOrigin ?? "https://app.example"),
   } as never;
 }
 
@@ -36,7 +43,11 @@ describe("proxy security headers", () => {
 
   it("blocks cross-origin unsafe methods before session processing", async () => {
     const response = await proxy(
-      createRequest({ method: "POST", origin: "https://attacker.example" }),
+      createRequest({
+        method: "POST",
+        origin: "https://attacker.example",
+        host: "app.example",
+      }),
     );
 
     expect(response.status).toBe(403);
@@ -53,6 +64,20 @@ describe("proxy security headers", () => {
     await proxy(createRequest({ method: "GET", origin: "https://attacker.example" }));
 
     expect(mocks.updateSession).toHaveBeenCalledTimes(2);
+  });
+
+  it("allows a same-Host mutation when a reverse proxy normalized Next URL", async () => {
+    const response = { headers: new Headers() };
+    mocks.updateSession.mockResolvedValue(response);
+
+    await proxy(createRequest({
+      method: "POST",
+      origin: "https://app.example",
+      host: "app.example",
+      nextUrlOrigin: "https://next-internal.example",
+    }));
+
+    expect(mocks.updateSession).toHaveBeenCalledTimes(1);
   });
 
   it("passes a per-request nonce through request headers and response CSP", async () => {

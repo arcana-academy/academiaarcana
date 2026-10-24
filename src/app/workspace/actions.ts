@@ -201,41 +201,27 @@ export async function createWorkspaceNotebook(
 export async function createWorkspaceGrimoire(
   input: CreateGrimoireInput,
 ): Promise<Grimoire> {
-  try {
-    const claims = await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
 
-    const supabase = await createClient();
-    const repository = createGrimoireRepository(
-      supabase as unknown as Parameters<typeof createGrimoireRepository>[0],
-    );
+  const supabase = await createClient();
+  const repository = createGrimoireRepository(
+    supabase as unknown as Parameters<typeof createGrimoireRepository>[0],
+  );
 
-    const title = input.title.trim();
-    if (!title) {
-      throw new Error("O título do grimório é obrigatório.");
-    }
-
-    const now = new Date().toISOString();
-
-    return await repository.create({
-      id: globalThis.crypto.randomUUID(),
-      ownerId: claims.sub,
-      title,
-      createdAt: now,
-      updatedAt: now,
-    });
-  } catch (error) {
-    // Only the ephemeral, pull-request-only local E2E runner may emit backend
-    // diagnostics; normal server errors remain generic to the browser.
-    if (
-      process.env.GITHUB_ACTIONS === "true" &&
-      process.env.GITHUB_EVENT_NAME === "pull_request" &&
-      process.env.AA_LOCAL_SUPABASE_E2E === "1"
-    ) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error("[local synthetic E2E] create grimoire failed:", message.slice(0, 500));
-    }
-    throw error;
+  const title = input.title.trim();
+  if (!title) {
+    throw new Error("O título do grimório é obrigatório.");
   }
+
+  const now = new Date().toISOString();
+
+  return repository.create({
+    id: globalThis.crypto.randomUUID(),
+    ownerId: claims.sub,
+    title,
+    createdAt: now,
+    updatedAt: now,
+  });
 }
 
 /** Persist the authenticated learning progress for one page. */

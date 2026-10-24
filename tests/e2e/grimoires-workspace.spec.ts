@@ -148,7 +148,8 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     const pageBody = `Conteúdo de estudo sintético ${prefix}`;
 
     const createGrimoire = page.getByRole("form", { name: "Criar grimório" });
-    const workspaceActionStatuses: number[] = [];
+    const workspaceActionDetails: string[] = [];
+    const workspaceActionTasks: Promise<void>[] = [];
     const recordWorkspaceAction = (response: import("@playwright/test").Response) => {
       const request = response.request();
       const responseUrl = new URL(response.url());
@@ -157,7 +158,16 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
         responseUrl.origin === "http://127.0.0.1:3000" &&
         responseUrl.pathname === "/workspace"
       ) {
-        workspaceActionStatuses.push(response.status());
+        workspaceActionTasks.push((async () => {
+          const requestHeaders = await request.allHeaders();
+          const body = response.status() === 403 ? await response.text() : "";
+          const reason = body.includes("cross_origin_request_blocked")
+            ? "; reason=cross_origin_request_blocked"
+            : "";
+          workspaceActionDetails.push(
+            `HTTP ${response.status()} origin=${requestHeaders.origin ?? "none"} target=${responseUrl.origin}${reason}`,
+          );
+        })());
       }
     };
     page.on("response", recordWorkspaceAction);
@@ -167,9 +177,10 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     try {
       await expect(createNotebookForm).toBeVisible();
     } catch (error) {
+      await Promise.all(workspaceActionTasks);
       const alerts = await page.getByRole("alert").allTextContents();
       throw new Error(
-        `Notebook creation form did not appear after creating a grimoire; URL=${page.url()}; action HTTP statuses=${workspaceActionStatuses.join(",") || "none"}; visible alerts=${alerts.join(" | ") || "none"}`,
+        `Notebook creation form did not appear after creating a grimoire; URL=${page.url()}; action responses=${workspaceActionDetails.join(" | ") || "none"}; visible alerts=${alerts.join(" | ") || "none"}`,
         { cause: error },
       );
     } finally {
