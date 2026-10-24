@@ -157,6 +157,8 @@ test("Focus production pilot matches deterministic visual baselines", async ({ p
     await page.goto("/design-system/pilots/focus?theme=mago-classico");
     const session = page.locator(".aa-focus-session");
     await expect(session).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
+    await page.evaluate(async () => { await document.fonts.ready; });
     const key = `focus:mago-classico:${viewport.label}`;
     const capture = await screenshotHash(session);
     actual[key] = capture.hash;
