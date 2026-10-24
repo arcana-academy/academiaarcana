@@ -4,6 +4,10 @@
 
 **Consolidated proposal:** [PR #592](https://github.com/arcana-academy/academiaarcana/pull/592), branch `integration/p0-536-release-train-20261009`, combining #590 (GHCR release guard), #591 (Render Auto Deploy off), #585 (fallback + historical validation) and #584 (smoke concurrency). All must remain unmerged until independent authorization. CI must be inspected on the **latest** exact PR head; results from earlier SHAs cannot be inherited.
 
+**#585 provenance delta (verified 2026-10-19; no silent carry-forward):** The #592 release-train composition pinned #585 at `55d2cb214b5ec3928bcd895284e4cc5be4242e67`, not its subsequently advanced head `90ae0378ec392915db10834738344fdae4e19d69`. A GitHub commit comparison confirms the newer head is **one commit ahead, zero behind**, changing `.github/workflows/fallback-historical-http-536.yml` and adding `scripts/security/test-historical-supabase-http-536.mjs` and `docs/deployment/fallback-http-auth-536.md`. The later standalone test and guide are **not present** in the reviewed C45 security candidate. Existing synthetic Auth/RLS/Storage coverage is not a proven byte-for-byte substitute for this historical-delta evidence. Preserve that later #585 work for separate scope/coverage reconciliation and independent review; do not claim it was already included or authorized for merge.
+
+**Code-review disposition:** The official Quality Gate workflow-path check and OCI directory/root-user guards exist in the later unmerged C41/C45 security chain, not in the frozen #592 HEAD. The live Render service remains Git-backed despite the candidate's declarative Blueprint change. The #592 review findings, candidate head, C03, off-GHCR custody, and production configuration must be independently verified at their exact revisions before any release decision.
+
 ## Decisions that require human identity and primary evidence
 
 | Gate | Decision authority | Required signed response in GitHub | Current state |
