@@ -1,11 +1,10 @@
 import { StatisticsPilotHarness } from "./StatisticsPilotHarness";
-import type { StatisticsPilotScenario } from "./statistics-pilot-fixtures";
-import { pageMetadata } from "@/lib/seo/site-metadata";
+import type { StatisticsPilotScenario } from "./statistics-pilot-data";
 
-export const metadata = pageMetadata("/design-system/pilots/statistics");
-
-function scenarioFrom(value: string | string[] | undefined): StatisticsPilotScenario {
-  return value === "mixed-evidence" ||
+function scenarioFrom(
+  value: string | string[] | undefined,
+): StatisticsPilotScenario {
+  return value === "mixed" ||
     value === "objective-confirmed" ||
     value === "review-gap" ||
     value === "low-confidence"
@@ -19,5 +18,5 @@ export default async function StatisticsPilotPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  return <StatisticsPilotHarness initialScenario={scenarioFrom(params.scenario)} />;
+  return <StatisticsPilotHarness scenario={scenarioFrom(params.scenario)} />;
 }

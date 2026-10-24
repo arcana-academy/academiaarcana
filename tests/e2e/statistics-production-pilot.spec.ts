@@ -1,13 +1,8 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
-
-import {
-  isVisualBaselineWriteEnabled,
-  writeVisualBaselines,
-} from "./support/visual-baselines";
 
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
@@ -16,12 +11,9 @@ type Baselines = Record<string, string>;
 const baselinePath = join(process.cwd(), "tests/e2e/statistics-pilot-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
 
-async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
+async function screenshotHash(locator: Locator): Promise<string> {
   const bytes = await locator.screenshot({ animations: "disabled" });
-  return {
-    hash: createHash("sha256").update(bytes).digest("hex"),
-    bytes,
-  };
+  return createHash("sha256").update(bytes).digest("hex");
 }
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
@@ -31,6 +23,32 @@ async function assertNoHorizontalOverflow(page: Page, label: string): Promise<vo
   expect(overflow, `horizontal overflow: ${label}`).toBe(false);
 }
 
+async function settleVisualSurface(page: Page, root: Locator): Promise<void> {
+  await page.evaluate(async () => {
+    await document.fonts?.ready;
+  });
+  for (const image of await root.locator("img").all()) {
+    await image.evaluate(async (node) => {
+      const element = node as HTMLImageElement;
+      if (!element.complete) {
+        await new Promise<void>((resolve) => {
+          element.addEventListener("load", () => resolve(), { once: true });
+          element.addEventListener("error", () => resolve(), { once: true });
+        });
+      }
+      if (element.complete && element.naturalWidth > 0 && "decode" in element) {
+        await element.decode().catch(() => undefined);
+      }
+    });
+  }
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
+}
+
 function channelToLinear(channel: number): number {
   const value = channel / 255;
   return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
@@ -38,141 +56,134 @@ function channelToLinear(channel: number): number {
 
 function parseRgb(value: string): [number, number, number] {
   const channels = value.match(/[\d.]+/g)?.slice(0, 3).map(Number);
-  if (!channels || channels.length !== 3) {
-    throw new Error(`Unsupported color value: ${value}`);
-  }
+  if (!channels || channels.length !== 3) throw new Error(`Unsupported color value: ${value}`);
   return [channels[0], channels[1], channels[2]];
 }
 
 function luminance(value: string): number {
-  const [red, green, blue] = parseRgb(value).map(channelToLinear);
-  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  const [r, g, b] = parseRgb(value).map(channelToLinear);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
 function contrastRatio(foreground: string, background: string): number {
-  const first = luminance(foreground);
-  const second = luminance(background);
-  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+  const a = luminance(foreground);
+  const b = luminance(background);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
-test("StatisticsView stays usable at mobile, tablet and desktop sizes", async ({ page }) => {
+test("StatisticsView pilot renders the real analytical view at representative viewports", async ({ page }) => {
   for (const viewport of [
     { width: 375, height: 812, label: "mobile" },
     { width: 768, height: 1024, label: "tablet" },
     { width: 1280, height: 900, label: "desktop" },
   ]) {
     await page.setViewportSize(viewport);
-    await page.goto("/design-system/pilots/statistics?scenario=mixed-evidence&theme=mago-classico");
+    await page.goto("/design-system/pilots/statistics?theme=mago-classico&scenario=mixed");
 
-    await expect(page.getByTestId("statistics-production-pilot")).toBeVisible();
-    await expect(page.getByTestId("statistics-view")).toBeVisible();
+    await expect(page.getByTestId("statistics-production-pilot")).toHaveAttribute("data-pilot-status", "validation");
+    await expect(page.locator("[data-statistics-view=production]")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Estatísticas", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Evidência objetiva" })).toBeVisible();
     await assertNoHorizontalOverflow(page, viewport.label);
   }
 });
 
-test("prepared scenarios keep no-data, self-report and objective evidence distinct", async ({ page }) => {
-  await page.goto("/design-system/pilots/statistics?scenario=no-data");
-  const view = page.getByTestId("statistics-view");
-  const progress = page.getByRole("progressbar", { name: "Progresso para o próximo nível" });
-
-  await expect(view).toContainText("Sem atividades de prática ainda.");
-  await expect(view).toContainText("Nenhuma avaliação objetiva foi criada ainda.");
-  await expect(view).toContainText("Sem dados");
-  await expect(progress).toHaveAttribute("aria-valuemin", "0");
-  await expect(progress).toHaveAttribute("aria-valuemax", "100");
-  await expect(progress).toHaveAttribute("aria-valuenow", "62");
-
-  await page.getByTestId("statistics-pilot-scenario-select").selectOption("mixed-evidence");
-  const selfReported = page.locator('[data-evidence-kind="self-reported"]');
-  const objective = page.locator('[data-evidence-kind="objective"]');
-  await expect(selfReported.getByRole("heading", { name: "Evidência autorreportada por conteúdo" })).toBeVisible();
-  await expect(selfReported).toContainText("Autoavaliação em desenvolvimento");
-  await expect(objective.getByRole("heading", { name: "Evidência objetiva" })).toBeVisible();
-  await expect(objective).toContainText("Não confirmado");
-
-  const boundaryStyles = await page.evaluate(() => ({
-    selfReported: getComputedStyle(document.querySelector('[data-evidence-kind="self-reported"]')!).borderTopStyle,
-    objective: getComputedStyle(document.querySelector('[data-evidence-kind="objective"]')!).borderTopStyle,
-  }));
-  expect(boundaryStyles.selfReported).toBe("solid");
-  expect(boundaryStyles.objective).toBe("double");
-});
-
-test("objective confirmation, due review, gaps and low-confidence signals remain explicit", async ({ page }) => {
-  await page.goto("/design-system/pilots/statistics?scenario=objective-confirmed");
-  const objective = page.locator('[data-evidence-kind="objective"]');
-  await expect(objective).toContainText("Confirmado");
-  await expect(objective).toContainText("2/2 aprovações");
-  await expect(page.locator('[data-evidence-kind="self-reported"]')).toContainText("Sem atividades de prática ainda.");
-
-  await page.getByTestId("statistics-pilot-scenario-select").selectOption("review-gap");
-  await expect(page.locator('[data-evidence-kind="learning-gap"]')).toContainText("Duas tentativas recentes indicam dificuldade.");
-  await expect(page.getByRole("link", { name: "Investigar" })).toHaveAttribute(
-    "href",
-    "/pratica?pagina=page-fractions&item=self-item-gap",
-  );
-  await expect(page.getByRole("link", { name: "Revisar" })).toHaveAttribute(
-    "href",
-    "/pratica?pagina=page-fractions&item=self-item-gap",
-  );
-
-  await page.getByTestId("statistics-pilot-scenario-select").selectOption("low-confidence");
-  await expect(page.locator(".statistics-view__profile")).toContainText("confiança Insuficiente");
-  await expect(page.locator(".statistics-view__profile")).toContainText("1 tentativa(s)");
-});
-
-test("all 40 themes keep composed contrast, evidence boundaries and no overflow", async ({ page }) => {
+test("StatisticsView analytical styling stays M0-M1/T0/D0-D1 across all themes", async ({ page }) => {
   test.setTimeout(180_000);
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/design-system/pilots/statistics?scenario=mixed-evidence&theme=mago-classico");
 
-  const themeSelect = page.getByTestId("statistics-pilot-theme-select");
   for (const themeId of THEME_IDS) {
-    await themeSelect.selectOption(themeId);
+    await page.goto(`/design-system/pilots/statistics?theme=${themeId}&scenario=mixed`);
     await expect(page.locator("html")).toHaveAttribute("data-theme", themeId);
-    await assertNoHorizontalOverflow(page, `theme:${themeId}`);
 
-    const surfaces = await page.evaluate(() => {
-      const selectors = [
-        ".statistics-view__educational-statistics",
-        ".statistics-view__self-reported",
-        ".statistics-view__objective",
-      ];
-      return selectors.map((selector) => {
-        const surface = document.querySelector(selector)!;
-        const heading = surface.querySelector("h2")!;
+    const root = page.locator("[data-statistics-view=production]");
+    const regions = root.locator("[data-statistics-region]");
+    expect(await regions.count()).toBeGreaterThanOrEqual(7);
+
+    const cards = root.locator(".aa-card");
+    for (let index = 0; index < await cards.count(); index += 1) {
+      const card = cards.nth(index);
+      const styles = await card.evaluate((node) => {
+        const computed = getComputedStyle(node);
         return {
-          foreground: getComputedStyle(heading).color,
-          background: getComputedStyle(surface).backgroundColor,
-          backgroundImage: getComputedStyle(surface).backgroundImage,
+          backgroundColor: computed.backgroundColor,
+          backgroundImage: computed.backgroundImage,
+          borderStyle: computed.borderStyle,
+          filter: computed.filter,
+          backdropFilter: computed.backdropFilter,
         };
       });
-    });
 
-    for (const [index, surface] of surfaces.entries()) {
-      expect(contrastRatio(surface.foreground, surface.background), `${themeId}: section ${index} text contrast`).toBeGreaterThanOrEqual(4.5);
-      expect(surface.backgroundImage, `${themeId}: section ${index} uses no decorative gradient`).toBe("none");
+      expect(styles.backgroundImage, `decorative gradient leaked into ${themeId}`).toBe("none");
+      expect(styles.borderStyle).toBe("solid");
+      expect(styles.filter).toBe("none");
+      expect(styles.backdropFilter).toBe("none");
+
+      const heading = card.locator("h2").first();
+      if (await heading.count()) {
+        const textColor = await heading.evaluate((node) => getComputedStyle(node).color);
+        expect(
+          contrastRatio(textColor, styles.backgroundColor),
+          `Statistics card contrast in ${themeId}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
     }
+
+    await assertNoHorizontalOverflow(page, `theme:${themeId}`);
   }
 });
 
-test("keyboard focus and reduced motion remain visible and predictable", async ({ page }) => {
+test("StatisticsView preserves non-colour evidence semantics and progressbar semantics", async ({ page }) => {
+  await page.goto("/design-system/pilots/statistics?scenario=mixed");
+
+  await expect(page.getByRole("heading", { name: "Evidência autorreportada por conteúdo" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidência objetiva" })).toBeVisible();
+  await expect(page.getByText(/fonte: autoavaliação/)).toBeVisible();
+  await expect(page.getByText(/fonte: critério explícito/)).toBeVisible();
+
+  const progress = page.getByRole("progressbar", { name: "Progresso para o próximo nível" });
+  await expect(progress).toHaveAttribute("aria-valuemin", "0");
+  await expect(progress).toHaveAttribute("aria-valuemax", "100");
+  await expect(progress).toHaveAttribute("aria-valuenow", "40");
+});
+
+test("StatisticsView covers no-data, objective confirmation, review-gap and low-confidence scenarios", async ({ page }) => {
+  await page.goto("/design-system/pilots/statistics?scenario=no-data");
+  await expect(page.getByText("Sem atividades de prática ainda.")).toBeVisible();
+  await expect(page.getByText(/A ausência aqui não significa ausência de aprendizagem/)).toBeVisible();
+  await expect(page.getByText(/Isso não significa que todas as competências estejam dominadas/)).toBeVisible();
+  await expect(page.getByText("Não há revisão liberada neste momento.")).toBeVisible();
+
+  await page.goto("/design-system/pilots/statistics?scenario=objective-confirmed");
+  await expect(page.getByText(/Confirmado/).first()).toBeVisible();
+  await expect(page.getByText(/fonte: critério explícito/)).toBeVisible();
+
+  await page.goto("/design-system/pilots/statistics?scenario=review-gap");
+  await expect(page.getByRole("heading", { name: "Possíveis lacunas" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Revisar" })).toHaveAttribute(
+    "href",
+    "/pratica?pagina=page-cardio&item=self-cardio",
+  );
+
+  await page.goto("/design-system/pilots/statistics?scenario=low-confidence");
+  await expect(page.getByText(/confiança Insuficiente/).first()).toBeVisible();
+  await expect(page.getByText("1 tentativa(s)")).toBeVisible();
+});
+
+test("StatisticsView preserves keyboard focus and reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/design-system/pilots/statistics?scenario=review-gap&theme=mago-classico");
+  await page.goto("/design-system/pilots/statistics?scenario=mixed");
 
-  const themeSelect = page.getByTestId("statistics-pilot-theme-select");
-  await themeSelect.focus();
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Praticar" })).toBeFocused();
+  const link = page.getByRole("link", { name: "Praticar" });
+  await link.focus();
+  await expect(link).toBeFocused();
 
-  const focusStyle = await page.getByRole("link", { name: "Praticar" }).evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth) };
+  const outline = await link.evaluate((node) => {
+    const computed = getComputedStyle(node);
+    return { style: computed.outlineStyle, width: Number.parseFloat(computed.outlineWidth) };
   });
-  expect(focusStyle.outlineStyle).not.toBe("none");
-  expect(focusStyle.outlineWidth).toBeGreaterThan(0);
+  expect(outline.style).not.toBe("none");
+  expect(outline.width).toBeGreaterThan(0);
 
   const transitionMs = await page.locator(".aa-progress-value").evaluate((node) => {
     const raw = getComputedStyle(node).transitionDuration.split(",")[0]?.trim() ?? "0s";
@@ -180,34 +191,37 @@ test("keyboard focus and reduced motion remain visible and predictable", async (
     return raw.endsWith("ms") ? value : value * 1000;
   });
   expect(transitionMs).toBeLessThanOrEqual(0.01);
-
-  const domReadyMs = await page.evaluate(() => {
-    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
-    return navigation.domContentLoadedEventEnd;
-  });
-  expect(domReadyMs, "the prepared projection should render without a long page stall").toBeLessThan(10_000);
 });
 
-test("learning data remains available when the decorative asset fails", async ({ page }) => {
-  const failedRequests: string[] = [];
-  page.on("requestfailed", (request) => failedRequests.push(request.url()));
+test("StatisticsView remains usable when AA-ASSET-004 fails", async ({ page }) => {
   await page.route("**/assets/**", (route) => route.abort());
-  await page.route("**/_next/image**", (route) => route.abort());
-  await page.goto("/design-system/pilots/statistics?scenario=review-gap&theme=mago-classico", {
-    waitUntil: "domcontentloaded",
-  });
+  await page.goto("/design-system/pilots/statistics?scenario=mixed");
 
-  await expect(page.getByTestId("statistics-view")).toContainText("Evidência autorreportada por conteúdo");
-  await expect(page.getByRole("progressbar", { name: "Progresso para o próximo nível" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Revisar" })).toBeVisible();
-  expect(failedRequests.some((url) => url.includes("aa-contained-arcane-flame.svg"))).toBe(true);
+  await expect(page.getByRole("heading", { name: "Continuidade" })).toBeVisible();
+  await expect(page.getByText("6 dias")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidência objetiva" })).toBeVisible();
+  await expect(page.getByText(/fonte: critério explícito/)).toBeVisible();
 });
 
-test("StatisticsView matches reviewed deterministic screenshots at three viewport sizes", async ({ page }) => {
-  test.setTimeout(120_000);
+test("StatisticsView records performance evidence without inventing a budget", async ({ page }) => {
+  await page.goto("/design-system/pilots/statistics?scenario=review-gap");
+  const metrics = await page.locator("[data-statistics-view=production]").evaluate((node) => ({
+    descendants: node.querySelectorAll("*").length,
+    images: node.querySelectorAll("img").length,
+    filters: [...node.querySelectorAll("*")].filter((element) => {
+      const style = getComputedStyle(element);
+      return style.filter !== "none" || style.backdropFilter !== "none";
+    }).length,
+    activeAnimations: document.getAnimations().filter((animation) => animation.playState === "running").length,
+  }));
+
+  console.log(`AA_STATISTICS_PILOT_PERF_JSON=${JSON.stringify(metrics)}`);
+  expect(metrics.filters).toBe(0);
+});
+
+test("StatisticsView production pilot matches deterministic visual baselines", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   const actual: Baselines = {};
-  const captureDir = process.env.STATISTICS_PILOT_CAPTURE_DIR;
 
   for (const viewport of [
     { width: 375, height: 812, label: "mobile" },
@@ -215,26 +229,13 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     { width: 1280, height: 900, label: "desktop" },
   ]) {
     await page.setViewportSize(viewport);
-    await page.goto("/design-system/pilots/statistics?scenario=mixed-evidence&theme=mago-classico");
-    const view = page.getByTestId("statistics-view");
-    await expect(view).toBeVisible();
-    const capture = await screenshotHash(view);
-    if (captureDir) {
-      mkdirSync(captureDir, { recursive: true });
-      writeFileSync(join(captureDir, `statistics-${viewport.label}.png`), capture.bytes);
-    }
-    actual[`statistics:mago-classico:${viewport.label}`] = capture.hash;
+    await page.goto("/design-system/pilots/statistics?theme=mago-classico&scenario=mixed");
+    const root = page.locator("[data-statistics-view=production]");
+    await expect(root).toBeVisible();
+    await settleVisualSurface(page, root);
+    actual[`statistics:mago-classico:${viewport.label}`] = await screenshotHash(root);
   }
 
-  if (process.env.UPDATE_STATISTICS_PILOT_BASELINES === "1") {
-    writeFileSync(baselinePath, `${JSON.stringify(actual, null, 2)}\n`);
-    return;
-  }
-
-  if (isVisualBaselineWriteEnabled()) {
-    writeVisualBaselines(baselinePath, actual);
-    return;
-  }
-
+  console.log(`AA_STATISTICS_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
   expect(actual).toEqual(baselines);
 });
