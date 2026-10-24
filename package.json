@@ -16,7 +16,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@honeybadger-io/nextjs": "^5.11.6",
+    "@honeybadger-io/nextjs": "^6.0.4",
     "@honeybadger-io/react": "^6.1.38",
     "@relewise/client": "^2.29.0",
     "@supabase/ssr": "^0.12.7",
