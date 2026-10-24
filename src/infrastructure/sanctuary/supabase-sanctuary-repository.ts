@@ -1,15 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type {
-  SanctuaryChapter,
-  SanctuaryGrimoire,
-  SanctuaryMissionProjection,
-  SanctuaryNotebook,
-  SanctuaryPage,
-  SanctuaryProgressProjection,
-  SanctuaryProjectionPort,
-  SanctuaryTaskProjection,
-} from "@/domains/sanctuary";
+import type { SanctuaryGrimoire, SanctuaryNotebook, SanctuaryChapter, SanctuaryPage } from "@/domains/sanctuary";
+import type { SanctuaryProjectionPort } from "@/application/sanctuary/sanctuary-projection-port";
 import { SupabasePageProgressRepository } from "@/infrastructure/supabase/learning/page-progress-repository";
 import { SupabaseStudyTaskRepository } from "@/infrastructure/supabase/planning/study-task-repository";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
