@@ -30,7 +30,6 @@ describe("isPrivateRoutePath", () => {
       "/login",
       "/cadastro",
       "/recuperar-senha",
-      "/feedback",
       "/design-system",
     ]) {
       expect(isPrivateRoutePath(path), path).toBe(false);
@@ -40,6 +39,13 @@ describe("isPrivateRoutePath", () => {
   it("ignores a trailing slash", () => {
     expect(isPrivateRoutePath("/santuario/")).toBe(true);
     expect(isPrivateRoutePath("/integracoes/asana/")).toBe(true);
+  });
+
+  it("gates feedback because responses require an authenticated owner", () => {
+    expect(isPrivateRoutePath("/feedback")).toBe(true);
+    expect(
+      PRIVATE_ROUTE_PREFIXES.some((route) => route === "/feedback"),
+    ).toBe(true);
   });
 
   it("leaves the login redirect target reachable", () => {

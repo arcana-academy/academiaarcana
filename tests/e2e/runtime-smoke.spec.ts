@@ -7,6 +7,9 @@ test.describe("runtime smoke routes", () => {
     "/redefinir-senha",
     "/santuario",
     "/workspace",
+    // Feedback is persisted against an authenticated owner, so the form must not
+    // be reachable anonymously.
+    "/feedback",
   ] as const;
 
   for (const route of publicRoutes) {

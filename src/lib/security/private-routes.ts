@@ -24,6 +24,11 @@ export const PRIVATE_ROUTE_PREFIXES = [
   "/configuracoes",
   "/personalizar",
   "/amigos",
+  // Feedback is persisted against an authenticated owner (supabase migration
+  // 20260929210000) and anonymous access to the table was revoked, so the form
+  // can only succeed for a signed-in user. Gating the page keeps the public
+  // surface from offering an action that always fails.
+  "/feedback",
   "/redefinir-senha",
   "/integracoes/asana",
   "/integracoes/todoist",

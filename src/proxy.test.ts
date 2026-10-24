@@ -95,8 +95,8 @@ describe("proxy liveness isolation", () => {
       "/login",
       "/cadastro",
       "/recuperar-senha",
-      "/feedback",
       "/integracoes",
+      "/integracoes/ia-aberta",
     ]) {
       await proxy(request(path));
     }
