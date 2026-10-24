@@ -135,6 +135,42 @@ describe("buildAdaptiveSignal", () => {
 });
 
 describe("getSanctuary", () => {
+  it("uses unique hierarchy pages as the denominator for partial progress", async () => {
+    const notebook = grimoire.notebooks[0];
+    const chapter = notebook.chapters[0];
+    const page = chapter.pages[0];
+    const hierarchy = [{
+      ...grimoire,
+      notebooks: [{
+        ...notebook,
+        chapters: [{ ...chapter, pages: [page, { ...page }, { ...page, id: "page-2" }, { ...page, id: "page-3" }] }],
+      }],
+    }];
+    const result = await getSanctuary({
+      ...createRepository(hierarchy),
+      getPageProgress: vi.fn().mockResolvedValue([
+        { pageId: "page-1", status: "completed" },
+        { pageId: "page-1", status: "completed" },
+        { pageId: "page-2", status: "in-progress" },
+        { pageId: "orphan", status: "completed" },
+      ]),
+    }, sessionContext);
+
+    expect(result.progress).toEqual({
+      status: "ready",
+      data: { percentage: 33, label: "1 de 3 páginas concluídas" },
+    });
+  });
+
+  it("keeps progress empty when completed projections have no current hierarchy pages", async () => {
+    const result = await getSanctuary({
+      ...createRepository([{ ...grimoire, notebooks: [] }]),
+      getPageProgress: vi.fn().mockResolvedValue([{ pageId: "orphan", status: "completed" }]),
+    }, sessionContext);
+
+    expect(result.progress).toEqual({ status: "empty", data: null });
+  });
+
   it("composes a complete Sanctuary view model from authenticated learning data", async () => {
     const repository = createRepository([grimoire]);
 

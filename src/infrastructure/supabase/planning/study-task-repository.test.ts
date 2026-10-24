@@ -22,13 +22,15 @@ function query(data: ReturnType<typeof row>[] | null, error: { message: string }
 }
 
 describe("SupabaseStudyTaskRepository", () => {
-  it.each([null, []])("returns an empty list for a successful query with data %s and respects a custom limit", async (data) => {
-    const builder = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), limit: vi.fn().mockResolvedValue({ data, error: null }) };
+  it.each([[], null])("returns an empty schedule for successful empty data %j", async (data) => {
+    const builder = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), limit: vi.fn() };
     for (const method of [builder.select, builder.eq, builder.order]) method.mockReturnValue(builder);
+    builder.limit.mockResolvedValue({ data, error: null });
     const repository = new SupabaseStudyTaskRepository({ from: vi.fn().mockReturnValue(builder) } as never);
-    expect(await repository.listUpcoming("owner-2", "2026-10-19T00:00:00Z", 3)).toEqual([]);
+
+    expect(await repository.listUpcoming("owner-1", "2026-10-16T17:00:00Z", 3)).toEqual([]);
     expect(builder.limit).toHaveBeenCalledWith(3);
-    expect(builder.eq.mock.calls).toEqual([["owner_id", "owner-2"], ["status", "pending"]]);
+    expect(builder.eq.mock.calls).toEqual([["owner_id", "owner-1"], ["status", "pending"]]);
   });
 
   it("keeps overdue, future and undated pending tasks actionable", async () => {

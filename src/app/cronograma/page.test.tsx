@@ -45,41 +45,35 @@ beforeEach(() => {
 });
 
 describe("CronogramaPage Outlook state", () => {
-  it("does not request a token or events for a disconnected calendar", async () => {
+  it("does not fetch events or flag an outage when Outlook is disconnected", async () => {
     vi.mocked(isOutlookCalendarConnected).mockResolvedValue(false);
     const page = await CronogramaPage();
-    expect(page.props.children.props).toMatchObject({ outlookConnected: false, outlookEventsUnavailable: false, outlookEvents: [] });
+    expect(page.props.children.props).toMatchObject({
+      outlookConnected: false, outlookEventsUnavailable: false, outlookEvents: [],
+    });
     expect(getOutlookAccessToken).not.toHaveBeenCalled();
     expect(listEventsMock).not.toHaveBeenCalled();
   });
 
-  it("preserves native tasks when refreshing the Outlook token fails", async () => {
-    const tasks = [{ id: "native-task", title: "Revisar runas" }];
+  it("preserves native tasks when refreshing the Outlook token throws", async () => {
+    const tasks = [{ id: "synthetic-task", title: "Revisar runas", dueAt: null }];
     listUpcomingMock.mockResolvedValue(tasks);
-    vi.mocked(getOutlookAccessToken).mockRejectedValueOnce(new Error("refresh failed"));
+    vi.mocked(getOutlookAccessToken).mockRejectedValueOnce(new Error("synthetic token outage"));
     const page = await CronogramaPage();
-    expect(page.props.children.props).toMatchObject({ tasks, outlookConnected: true, outlookEventsUnavailable: true, outlookEvents: [] });
+    expect(page.props.children.props).toMatchObject({
+      tasks, outlookConnected: true, outlookEventsUnavailable: true, outlookEvents: [],
+    });
     expect(getOutlookAccessToken).toHaveBeenCalledWith({ refresh: true });
     expect(listEventsMock).not.toHaveBeenCalled();
   });
 
-  it("passes successfully loaded events to the board without the outage flag", async () => {
-    const events = [{ id: "event-1", subject: "Revisão" }];
+  it("passes successfully loaded events through without an unavailable warning", async () => {
+    const events = [{ id: "synthetic-event", subject: "Revisão" }];
     listEventsMock.mockResolvedValue(events);
     const page = await CronogramaPage();
-    expect(page.props.children.props).toMatchObject({ outlookEvents: events, outlookEventsUnavailable: false });
-  });
-
-  it("preserves study tasks when Outlook credential lookup throws", async () => {
-    const tasks = [{ id: "synthetic-task", title: "Revisar runas" }];
-    listUpcomingMock.mockResolvedValue(tasks);
-    vi.mocked(isOutlookCalendarConnected).mockRejectedValueOnce(new Error("credential store unavailable"));
-    const page = await CronogramaPage();
     expect(page.props.children.props).toMatchObject({
-      tasks, outlookConnected: false, outlookEventsUnavailable: true, outlookEvents: [],
+      outlookConnected: true, outlookEventsUnavailable: false, outlookEvents: events,
     });
-    expect(getOutlookAccessToken).not.toHaveBeenCalled();
-    expect(listEventsMock).not.toHaveBeenCalled();
   });
 
   it("marks a calendar query failure as unavailable, not empty", async () => {

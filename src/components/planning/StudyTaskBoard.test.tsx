@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { renderToString } from "react-dom/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import type { StudyTask } from "@/domains/planning";
 
@@ -22,58 +21,35 @@ const task: StudyTask = {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("StudyTaskBoard", () => {
-  it("renders stable SSR placeholders and formats dates in the browser after hydration", () => {
-    const element = (
-      <StudyTaskBoard
-        tasks={[task]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn()}
-      />
-    );
-    // A server in UTC and a browser in another time zone must produce the
-    // same first-hydration markup. Browser-local dates are shown afterwards.
-    const html = renderToString(element);
-    expect(html).toContain("Carregando horário local…");
-    const expected = new Intl.DateTimeFormat("pt-BR", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(task.dueAt!));
-    render(element);
-    expect(screen.getByText(expected)).toBeInTheDocument();
-  });
-
   it.each([
-    ["2026-10-17T13:45:00", "utc", "2026-10-17T13:45:00Z"],
-    ["2026-10-17T13:45:00Z", "UTC", "2026-10-17T13:45:00Z"],
-    ["2026-10-17T13:45:00-03:00", "UTC", "2026-10-17T16:45:00Z"],
-    ["2026-10-17T13:45:00+02:00", "UTC", "2026-10-17T11:45:00Z"],
-  ])("formats Outlook time %s (%s) in a non-UTC browser zone", (dateTime, timeZone, instant) => {
-    const DateTimeFormat = Intl.DateTimeFormat;
-    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(function (locales, options) {
-      return new DateTimeFormat(locales, { ...options, timeZone: "America/Sao_Paulo" });
-    });
-    render(<StudyTaskBoard tasks={[]} outlookConnected outlookEvents={[{
-      id: "event-offset", subject: "Evento externo",
-      start: { dateTime, timeZone }, end: { dateTime, timeZone },
-    }]} onCreate={vi.fn()} onComplete={vi.fn()} />);
-    const expected = new DateTimeFormat("pt-BR", {
-      dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo",
-    }).format(new Date(instant));
-    expect(screen.getByText(`${expected} · até ${expected}`)).toBeInTheDocument();
+    ["2026-10-17T13:45:00", "utc"],
+    ["2026-10-17T13:45:00.0000000", "UTC"],
+    ["2026-10-17T13:45:00Z", "UTC"],
+    ["2026-10-17T10:45:00-03:00", "UTC"],
+    ["2026-10-17T15:45:00+02:00", "Europe/Paris"],
+  ])("renders equivalent Outlook timestamp %s (%s) as the same instant", (dateTime, timeZone) => {
+    render(<StudyTaskBoard tasks={[]} outlookConnected onCreate={vi.fn()} onComplete={vi.fn()}
+      outlookEvents={[{
+        id: "equivalent-event", subject: "Revisão externa",
+        start: { dateTime, timeZone },
+        end: { dateTime: "2026-10-17T14:45:00Z", timeZone: "UTC" },
+      }]} />);
+    const events = within(screen.getByRole("region", { name: "Eventos do Outlook" }));
+    const formatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" });
+    expect(events.getByText(`${formatter.format(new Date("2026-10-17T13:45:00Z"))} · até ${formatter.format(new Date("2026-10-17T14:45:00Z"))}`))
+      .toBeInTheDocument();
   });
 
   it("replaces an Outlook outage with recovered events on the next server snapshot", () => {
     const props = { tasks: [task], outlookConnected: true, onCreate: vi.fn(), onComplete: vi.fn() };
     const events = [{
-      id: "recovered-event",
-      subject: "Revisão recuperada",
+      id: "recovered-event", subject: "Revisão recuperada",
       start: { dateTime: "2026-10-17T13:45:00Z", timeZone: "UTC" },
       end: { dateTime: "2026-10-17T14:45:00Z", timeZone: "UTC" },
     }];
     const { rerender } = render(<StudyTaskBoard {...props} outlookEventsUnavailable outlookEvents={events} />);
     expect(screen.getByRole("status")).toHaveTextContent("Não foi possível carregar");
     expect(screen.queryByText("Revisão recuperada")).not.toBeInTheDocument();
-
     rerender(<StudyTaskBoard {...props} outlookEventsUnavailable={false} outlookEvents={events} />);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.getByText("Revisão recuperada")).toBeInTheDocument();

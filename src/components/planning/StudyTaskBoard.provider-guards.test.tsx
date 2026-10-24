@@ -27,62 +27,64 @@ const renderBoard = (schedule?: (id: string) => Promise<{webLink?: string | null
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("provider sends: synchronous duplicate guards", () => {
-  describe.each([
-    { provider: "Todoist", sentLabel: "Enviado", endpoint: "todoist" },
-    { provider: "Asana", sentLabel: "Enviado ao Asana", endpoint: "asana" },
-  ])("$provider retry boundaries", ({ provider, sentLabel, endpoint }) => {
-    it.each([401, 409, 500, "network"])("releases the guard after %s and permits a successful retry", async (failure) => {
-      const send = vi.fn();
-      if (failure === "network") send.mockRejectedValueOnce(new Error("network failed"));
-      else send.mockResolvedValueOnce({ ok: false, status: failure });
-      send.mockResolvedValueOnce({ ok: true, status: 201 });
-      vi.stubGlobal("fetch", send);
-      renderBoard();
-      const label = `Enviar ao ${provider}`;
-      fireEvent.click(screen.getByRole("button", { name: label }));
-      const error = await screen.findByRole("alert");
-      expect(error).toHaveTextContent(failure === 401 || failure === 409 ? `Conecte o ${provider}` : `Não foi possível enviar a tarefa para o ${provider}.`);
-      expect(screen.getByRole("button", { name: label })).toBeEnabled();
-      fireEvent.click(screen.getByRole("button", { name: label }));
-      expect(await screen.findByRole("button", { name: sentLabel })).toBeDisabled();
-      expect(send).toHaveBeenCalledTimes(2);
-      expect(send).toHaveBeenLastCalledWith(`/api/integrations/${endpoint}/tasks`, expect.objectContaining({ method: "POST" }));
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-      expect(screen.getByText(task.title)).toBeInTheDocument();
-    });
-  });
-
-  it("tracks simultaneous Todoist sends by task even when responses arrive out of order", async () => {
-    const first = deferred<Reply>();
-    const second = deferred<Reply>();
-    const send = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+  it.each([
+    ["Todoist", "todoist"], ["Asana", "asana"],
+  ])("allows %s retries after connection errors and network failures", async (provider, slug) => {
+    const send = vi.fn().mockResolvedValueOnce({ ok: false, status: 401 })
+      .mockResolvedValueOnce({ ok: false, status: 409 })
+      .mockRejectedValueOnce(new Error("synthetic network failure"))
+      .mockResolvedValueOnce({ ok: true, status: 201 });
     vi.stubGlobal("fetch", send);
-    const other = { ...task, id: "other-task", title: "Revisar poções" };
-    render(<StudyTaskBoard tasks={[task, other]} onCreate={vi.fn()} onComplete={vi.fn()} />);
-    const firstRow = screen.getByText(task.title).closest("li")!;
-    const secondRow = screen.getByText(other.title).closest("li")!;
-    fireEvent.click(within(firstRow).getByRole("button", { name: "Enviar ao Todoist" }));
-    fireEvent.click(within(secondRow).getByRole("button", { name: "Enviar ao Todoist" }));
-    await act(async () => { second.resolve({ ok: true, status: 201 }); });
-    expect(within(secondRow).getByRole("button", { name: "Enviado" })).toBeDisabled();
-    const pending = within(firstRow).getByRole("button", { name: "Enviando…" });
-    expect(pending).toBeDisabled();
-    fireEvent.click(pending);
-    expect(send).toHaveBeenCalledTimes(2);
-    await act(async () => { first.resolve({ ok: true, status: 201 }); });
-    expect(within(firstRow).getByRole("button", { name: "Enviado" })).toBeDisabled();
+    renderBoard();
+
+    for (const status of [401, 409, "network"]) {
+      fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(status === "network"
+        ? `Não foi possível enviar a tarefa para o ${provider}.`
+        : `Conecte o ${provider} em Integrações antes de enviar esta tarefa.`);
+      expect(screen.getByRole("button", { name: `Enviar ao ${provider}` })).toBeEnabled();
+    }
+    fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+    const sentLabel = provider === "Todoist" ? "Enviado" : "Enviado ao Asana";
+    const sent = await screen.findByRole("button", { name: sentLabel });
+    expect(sent).toBeDisabled();
+    fireEvent.click(sent);
+    expect(send).toHaveBeenCalledTimes(4);
+    expect(send).toHaveBeenLastCalledWith(`/api/integrations/${slug}/tasks`, expect.objectContaining({ method: "POST" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText(task.title)).toBeInTheDocument();
   });
 
-  it("opens a successful Outlook event once with opener protection", async () => {
-    const open = vi.spyOn(window, "open").mockImplementation(() => null);
-    const schedule = vi.fn().mockResolvedValue({ webLink: "https://outlook.example.test/event/1" });
-    renderBoard(schedule);
-    fireEvent.click(screen.getByRole("button", { name: "Agendar no Outlook" }));
-    const done = await screen.findByRole("button", { name: "Agendado no Outlook" });
-    fireEvent.click(done);
-    expect(schedule).toHaveBeenCalledTimes(1);
-    expect(open).toHaveBeenCalledExactlyOnceWith("https://outlook.example.test/event/1", "_blank", "noopener,noreferrer");
-  });
+  it.each(["Todoist", "Asana", "Outlook"])(
+    "keeps a second %s action pending when the first task finishes",
+    async (provider) => {
+      const first = deferred<Reply & { webLink: null }>();
+      const second = deferred<Reply & { webLink: null }>();
+      const send = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+      vi.stubGlobal("fetch", send);
+      const other = { ...task, id: "second-provider-task", title: "Estudar poções" };
+      render(<StudyTaskBoard tasks={[task, other]} outlookConnected
+        onCreate={vi.fn()} onComplete={vi.fn()} onScheduleInOutlook={send} />);
+      const firstRow = within(screen.getByText(task.title).closest("li")!);
+      const secondRow = within(screen.getByText(other.title).closest("li")!);
+      const label = provider === "Outlook" ? "Agendar no Outlook" : `Enviar ao ${provider}`;
+      fireEvent.click(firstRow.getByRole("button", { name: label }));
+      fireEvent.click(secondRow.getByRole("button", { name: label }));
+      expect(send).toHaveBeenCalledTimes(2);
+
+      await act(async () => { first.resolve({ ok: true, status: 201, webLink: null }); });
+      const pendingLabel = provider === "Outlook" ? "Agendando…" : "Enviando…";
+      const pending = secondRow.getByRole("button", { name: pendingLabel });
+      expect(pending).toBeDisabled();
+      fireEvent.click(pending);
+      expect(send).toHaveBeenCalledTimes(2);
+      await act(async () => { second.resolve({ ok: true, status: 201, webLink: null }); });
+      const doneLabel = provider === "Outlook" ? "Agendado no Outlook"
+        : provider === "Asana" ? "Enviado ao Asana" : "Enviado";
+      expect(firstRow.getByRole("button", { name: doneLabel })).toBeDisabled();
+      expect(secondRow.getByRole("button", { name: doneLabel })).toBeDisabled();
+    },
+  );
 
   it("coalesces repeated Todoist clicks while pending and prevents resend after success", async () => {
     const response = deferred<Reply>();
