@@ -39,8 +39,9 @@ export function StatisticsPilotHarness({
         <p className="aa-eyebrow">Fase 2 · Ciclo 12 · production pilot</p>
         <h1>Estatísticas — validação da presentation layer real</h1>
         <p className="aa-state-copy">
-          Este harness renderiza StatisticsView com projections prontas. Não executa
-          autenticação, repositories nem lógica de domínio.
+          Este harness renderiza a StatisticsView real com projeções preparadas, sem
+          consultar os repositórios de dados educacionais. O layout compartilhado
+          ainda resolve a identidade da aplicação.
         </p>
         <label className="aa-field">
           Tema de validação
