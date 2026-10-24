@@ -49,17 +49,10 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
     return toDomain(data as StudyTaskRow);
   }
 
-  /**
-   * Return the owner's pending tasks, earliest due dates first and undated tasks
-   * last, up to the limit (default 10). Overdue tasks remain eligible.
-   * Return an empty array when the query returns no data.
-   *
-   * @param _now Unused; retained for compatibility without filtering by time.
-   * @throws {Error} If Supabase reports a query error, preserving its message.
-   */
+  /** Upcoming means future-dated or undated for Sanctuary and Mestre Arcano. */
   async listUpcoming(
     ownerId: string,
-    _now: string,
+    now: string,
     limit = 10,
   ): Promise<StudyTask[]> {
     const { data, error } = await this.supabase
@@ -67,6 +60,7 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
       .select("*")
       .eq("owner_id", ownerId)
       .eq("status", "pending")
+      .or(`due_at.gte.${now},due_at.is.null`)
       .order("due_at", { ascending: true, nullsFirst: false })
       .order("id", { ascending: true })
       .limit(limit);

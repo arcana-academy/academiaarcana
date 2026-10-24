@@ -238,10 +238,12 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
-  if (isVisualBaselineWriteEnabled()) {
-    writeVisualBaselines(baselinePath, actual);
-    return;
+  console.log(`AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON=${JSON.stringify(referenceCopy)}`);
+  // Original approved baselines remain unchanged. Only the confirmed text
+  // change may alter the live pixels; rendering its prior wording must
+  // reproduce all three previously reviewed screenshots byte-for-byte.
+  expect(referenceCopy).toEqual(baselines);
+  for (const key of Object.keys(actual)) {
+    expect(actual[key], `Visible heading copy must change: ${key}`).not.toBe(referenceCopy[key]);
   }
-
-  expect(actual).toEqual(baselines);
 });

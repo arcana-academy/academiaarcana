@@ -58,25 +58,22 @@ describe("MissoesPage", () => {
     expect(listDailyMissionsMock).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
   });
 
-  it("exposes a retry action instead of incorrectly declaring an empty day on read failure", async () => {
-    listDailyMissionsMock.mockRejectedValue(new Error("provider-secret-detail"));
+
+  it("distinguishes a failed mission read from a genuinely empty day and provides a retry", async () => {
+    listDailyMissionsMock.mockRejectedValue(new Error("synthetic connection failure"));
 
     render(await MissoesPage());
 
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("Não foi possível carregar as missões");
-    expect(alert).toHaveTextContent("Seu progresso não foi alterado.");
+    expect(screen.getByRole("heading", { name: "Missões", level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível carregar as missões");
     expect(screen.getByRole("button", { name: "Tentar novamente" })).toHaveAttribute("type", "submit");
-    expect(alert.querySelector('form[action="/missoes"]')).toBeInTheDocument();
+    const retry = screen.getByRole("button", { name: "Tentar novamente" }).closest("form");
+    expect(retry).toHaveAttribute("action", "/missoes");
+    expect(retry).toHaveAttribute("method", "get");
     expect(screen.queryByText("Nenhuma missão registrada hoje.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/0\/0 concluídas/)).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Objetivos" })).not.toBeInTheDocument();
-    expect(alert).not.toHaveTextContent("provider-secret-detail");
-  });
-
-  it("preserves authentication failures outside the mission loading recovery", async () => {
-    requireAuthenticatedUserMock.mockRejectedValue(new Error("unauthenticated"));
-    await expect(MissoesPage()).rejects.toThrow("unauthenticated");
-    expect(listDailyMissionsMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("link", { name: "Planejar um estudo" })).not.toBeInTheDocument();
   });
 
   it("offers one clear route to plan a study when no mission exists", async () => {

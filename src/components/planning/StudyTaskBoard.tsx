@@ -19,16 +19,22 @@ type StudyTaskBoardProps = {
   outlookConnected?: boolean;
   outlookEvents?: OutlookEvent[];
   outlookEventsUnavailable?: boolean;
+  /** Allows visual pilots to compare reviewed copy without mutating hydrated DOM. */
+  pendingTasksHeading?: "Tarefas futuras" | "Tarefas pendentes";
   onCreate: (input: { title: string; dueAt: string | null }) => Promise<StudyTask>;
   onComplete: (id: string) => Promise<StudyTask>;
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
 };
 
-/**
- * Format a date in pt-BR using the browser's time zone. Return "Sem prazo" for
- * null or empty input and "Data indisponível" for an unparseable date.
- */
-function formatDueAt(value: string | null): string {
+// Render locale-dependent dates only after hydration. On the server and
+// initial hydration, the snapshot is the same even if the browser's time zone
+// differs from the CI/runtime region.
+const subscribeNoop = () => () => {};
+function useBrowserHydrated(): boolean {
+  return useSyncExternalStore(subscribeNoop, () => true, () => false);
+}
+
+function formatDueAt(value: string | null, browserHydrated: boolean): string {
   if (!value) return "Sem prazo";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Data indisponível";
@@ -36,13 +42,9 @@ function formatDueAt(value: string | null): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
-/**
- * Format an Outlook date with the same locale, display zone, and fallbacks as a deadline.
- * Outlook Graph may provide a UTC wall time without an explicit offset; treat an
- * ISO-style value as UTC when timeZone is UTC (case-insensitive). Other zone names
- * do not affect parsing, and explicit Z or ±HH:MM offsets are preserved.
- */
-function formatOutlookDateTime(value: string, timeZone: string): string {
+/** Outlook Graph may provide a UTC wall time without an explicit offset. */
+function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone?: string | null): string {
+  if (typeof timeZone !== "string" || !timeZone.trim()) return "Data indisponível";
   const utcWithoutOffset =
     timeZone.toUpperCase() === "UTC" &&
     /^\d{4}-\d{2}-\d{2}T/.test(value) &&
@@ -62,6 +64,7 @@ export function StudyTaskBoard({
   outlookConnected = false,
   outlookEvents = [],
   outlookEventsUnavailable = false,
+  pendingTasksHeading = "Tarefas pendentes",
   onCreate,
   onComplete,
   onScheduleInOutlook,

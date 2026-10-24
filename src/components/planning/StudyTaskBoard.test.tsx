@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { StudyTask } from "@/domains/planning";
 
@@ -21,6 +22,26 @@ const task: StudyTask = {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("StudyTaskBoard", () => {
+  it("renders stable SSR placeholders and formats dates in the browser after hydration", () => {
+    const element = (
+      <StudyTaskBoard
+        tasks={[task]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+      />
+    );
+    // A server in UTC and a browser in another time zone must produce the
+    // same first-hydration markup. Browser-local dates are shown afterwards.
+    const html = renderToString(element);
+    expect(html).toContain("Carregando horário local…");
+    const expected = new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(task.dueAt!));
+    render(element);
+    expect(screen.getByText(expected)).toBeInTheDocument();
+  });
+
   it.each([
     ["2026-10-17T13:45:00", "utc"],
     ["2026-10-17T13:45:00.0000000", "UTC"],
@@ -227,6 +248,28 @@ describe("StudyTaskBoard", () => {
     expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
     expect(screen.getByText("Nenhuma tarefa pendente.")).toBeInTheDocument();
   });
+  it("labels overdue, future and unscheduled items together as pending tasks", () => {
+    render(
+      <StudyTaskBoard
+        tasks={[
+          { ...task, id: "overdue", title: "Revisão vencida", dueAt: "2020-01-01T10:00:00.000Z" },
+          { ...task, id: "future", title: "Revisão futura", dueAt: "2030-01-01T10:00:00.000Z" },
+          { ...task, id: "unscheduled", title: "Revisão sem prazo", dueAt: null },
+        ]}
+        onCreate={vi.fn()}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    const pending = screen.getByRole("region", { name: "Tarefas pendentes" });
+    expect(pending).toContainElement(screen.getByText("Revisão vencida"));
+    expect(pending).toContainElement(screen.getByText("Revisão futura"));
+    expect(pending).toContainElement(screen.getByText("Revisão sem prazo"));
+    expect(pending).toContainElement(screen.getByText("Sem prazo"));
+    expect(screen.queryByRole("heading", { name: "Tarefas futuras" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Concluir" })).toHaveLength(3);
+  });
+
   it("keeps an overdue task visible and allows completing it", async () => {
     const overdue = {
       ...task,
