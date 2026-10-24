@@ -27,7 +27,7 @@ function localApiUrl(value) {
  * disposal/network isolation or establish an independent human review.
  * `localSupabaseApi` must come from `supabase status -o env` in this executor.
  */
-export function assessSyntheticIsolation({ env, currentHead, localSupabaseApi }) {
+export function assessSyntheticIsolation({ env, currentHead, localSupabaseApi, localSupabaseAnonKey }) {
   const reasons = [];
   if (env.C03_QA_MODE !== 'synthetic-local') {
     reasons.push('C03_QA_MODE must be synthetic-local');
@@ -43,6 +43,18 @@ export function assessSyntheticIsolation({ env, currentHead, localSupabaseApi })
   if (local && runtime && local.origin !== runtime.origin) {
     reasons.push('application API origin differs from disposable Supabase API');
   }
+  // The runtime URL can be local while its key belongs to a different project.
+  // Compare public anonymous keys supplied by the same local CLI status call;
+  // never print, persist, or return either key in a reason.
+  if (typeof localSupabaseAnonKey !== 'string' || !localSupabaseAnonKey.trim()) {
+    reasons.push('Supabase CLI did not report a local ANON_KEY');
+  }
+  if (typeof env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY !== 'string' ||
+      !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.trim() ||
+      !localSupabaseAnonKey ||
+      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY !== localSupabaseAnonKey) {
+    reasons.push('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must match local Supabase CLI ANON_KEY');
+  }
   if (!/^[a-z0-9._+\-]+@[a-z0-9.\-]+\.test$/i.test(env.E2E_EMAIL ?? '')) {
     reasons.push('E2E_EMAIL must use a reserved .test domain');
   }
@@ -55,17 +67,22 @@ export function assessSyntheticIsolation({ env, currentHead, localSupabaseApi })
   return { ok: reasons.length === 0, reasons };
 }
 
-function supabaseStatusApi(envOutput) {
-  const line = envOutput.split(/\r?\n/).find((item) => item.startsWith('API_URL='));
-  return line?.slice('API_URL='.length).trim().replace(/^['"]|['"]$/g, '') ?? '';
+function supabaseStatusField(envOutput, field) {
+  const line = envOutput.split(/\r?\n/).find((item) => item.startsWith(`${field}=`));
+  return line?.slice(field.length + 1).trim().replace(/^['"]|['"]$/g, '') ?? '';
 }
 
 export function assessCliInputs({ env, readGitHead, readSupabaseStatus }) {
   let currentHead = '';
   let localSupabaseApi = '';
+  let localSupabaseAnonKey = '';
   try { currentHead = readGitHead().trim(); } catch { /* fail closed below */ }
-  try { localSupabaseApi = supabaseStatusApi(readSupabaseStatus()); } catch { /* fail closed below */ }
-  return assessSyntheticIsolation({ env, currentHead, localSupabaseApi });
+  try {
+    const status = readSupabaseStatus();
+    localSupabaseApi = supabaseStatusField(status, 'API_URL');
+    localSupabaseAnonKey = supabaseStatusField(status, 'ANON_KEY');
+  } catch { /* fail closed below */ }
+  return assessSyntheticIsolation({ env, currentHead, localSupabaseApi, localSupabaseAnonKey });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
