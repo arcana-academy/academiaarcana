@@ -6,7 +6,7 @@ type Block = PageContent["blocks"][number];
  * Plain-text reading preview: no HTML injection, external media requests or writes.
  * Media references are not presented as playable/uploaded assets.
  */
-const accessibleBlockLabels: Record<string, string> = {
+export const accessibleBlockLabels: Record<string, string> = {
   paragraph: "Texto",
   image: "Imagem — referência textual",
   video: "Vídeo — referência textual",
@@ -14,9 +14,21 @@ const accessibleBlockLabels: Record<string, string> = {
   diagram: "Diagrama — referência textual",
 };
 
+export function readingAlternativeLabel(type: string): string {
+  return type === "image" ? "Descrição da imagem:"
+    : type === "video" ? "Transcrição ou descrição do vídeo:"
+    : type === "formula" ? "Leitura da fórmula:"
+    : type === "diagram" ? "Descrição do diagrama:"
+    : "Observação acessível:";
+}
+
+export function isDecorativeReadingBlock(block: Block): boolean {
+  return block.type === "image" && block.accessibility?.decorative === true;
+}
+
 function AccessibleReadingBlock({ block, index }: { block: Block; index: number }) {
   // A genuinely decorative image has no text equivalent in the reading flow.
-  if (block.type === "image" && block.accessibility?.decorative === true) {
+  if (isDecorativeReadingBlock(block)) {
     return null;
   }
 
@@ -35,15 +47,7 @@ function AccessibleReadingBlock({ block, index }: { block: Block; index: number 
       ) : null}
       {description ? (
         <p className="workspace-reading-preview-alternative">
-          <strong>{block.type === "image"
-            ? "Descrição da imagem:"
-            : block.type === "video"
-              ? "Transcrição ou descrição do vídeo:"
-              : block.type === "formula"
-                ? "Leitura da fórmula:"
-                : block.type === "diagram"
-                  ? "Descrição do diagrama:"
-                  : "Observação acessível:"}</strong>{" "}
+          <strong>{readingAlternativeLabel(block.type)}</strong>{" "}
           {description}
         </p>
       ) : block.type !== "paragraph" ? (

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
 import { AccessiblePageReadingPreview } from "./AccessiblePageReadingPreview";
+import { AccessiblePageTextExport } from "./AccessiblePageTextExport";
 import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
 
 type PageDeleteControlProps = {
@@ -526,6 +527,7 @@ export function PageEditor({
         <summary>Ver prévia de leitura acessível (rascunho local)</summary>
         <AccessiblePageReadingPreview content={content} />
       </details>
+      <AccessiblePageTextExport title={title} content={content} />
 
       <button type="button" onClick={addBlock}>
         Adicionar bloco
