@@ -204,7 +204,8 @@ test("Cronograma pilot records performance evidence without inventing a budget",
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
-    return document.getAnimations().every((animation) => animation.playState !== "running");
+    const board = document.querySelector(".aa-study-task-board");
+    return board !== null && board.getAnimations({ subtree: true }).every((animation) => animation.playState !== "running");
   }, null, { timeout: 10_000 });
   const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
     descendants: node.querySelectorAll("*").length,
@@ -213,7 +214,10 @@ test("Cronograma pilot records performance evidence without inventing a budget",
       const style = getComputedStyle(element);
       return style.filter !== "none" || style.backdropFilter !== "none";
     }).length,
-    activeAnimations: document.getAnimations().filter((animation) => animation.playState === "running").length,
+    // Scope the performance contract to StudyTaskBoard. Unrelated shell
+    // animations are retained as diagnostics rather than silently discarded.
+    activeAnimations: node.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length,
+    pageActiveAnimations: document.getAnimations().filter((animation) => animation.playState === "running").length,
   }));
 
   console.log(`AA_CRONOGRAMA_PILOT_PERF_JSON=${JSON.stringify(metrics)}`);
