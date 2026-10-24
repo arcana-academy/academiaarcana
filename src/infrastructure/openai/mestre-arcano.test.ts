@@ -61,6 +61,12 @@ describe("Mestre Arcano OpenAI integration", () => {
     const [, init] = fetchImpl.mock.calls[0] ?? [];
     expect(init?.headers).toMatchObject({ Authorization: "Bearer test-secret" });
     expect(String(init?.body)).not.toContain("test-secret");
+    const requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    expect(requestBody.store).toBe(false);
+    expect(requestBody.max_output_tokens).toBe(4096);
+    expect(requestBody.include).toContain("reasoning.encrypted_content");
+    expect(requestBody).not.toHaveProperty("previous_response_id");
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
 
 
@@ -158,12 +164,49 @@ describe("Mestre Arcano OpenAI integration", () => {
     );
     expect(providerFetch).not.toHaveBeenCalled();
 
+    const [, secondRequest] = fetchImpl.mock.calls[1] ?? [];
+    const secondBody = JSON.parse(String(secondRequest?.body)) as Record<string, unknown>;
+    expect(secondBody.store).toBe(false);
+    expect(secondBody).not.toHaveProperty("previous_response_id");
+    expect(JSON.stringify(secondBody.input)).toContain("PRIVATE-CONTENT-DO-NOT-EXFILTRATE");
+    expect(JSON.stringify(secondBody.input)).toContain("get_sharepoint_document_context");
+
     const [, thirdRequest] = fetchImpl.mock.calls[2] ?? [];
     expect(String(thirdRequest?.body)).toContain(
       "Pesquisa externa bloqueada após acesso a dados privados nesta execução.",
     );
 
     providerFetch.mockRestore();
+  });
+
+  it("blocks external tool calls in the same batch as an authenticated private read", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+    const providerFetch = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("No external calls allowed."));
+    try {
+      const fetchImpl = vi.fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response(JSON.stringify({ id: "resp_mixed", output: [
+          { type: "function_call", call_id: "private_call", name: "get_gamification_profile", arguments: "{}" },
+          { type: "function_call", call_id: "external_call", name: "search_web", arguments: JSON.stringify({ objective: "exfil", query: "private learning data", numResults: 1 }) },
+        ] }), { status: 200 }))
+        .mockResolvedValueOnce(new Response(JSON.stringify({ id: "resp_done", output_text: "Consulta externa bloqueada." }), { status: 200 }));
+      const result = await runMestreArcano("Consulte meu progresso.", { fetchImpl, toolContext: createToolContext() });
+      expect(result.output).toBe("Consulta externa bloqueada.");
+      expect(providerFetch).not.toHaveBeenCalled();
+      const [, followUp] = fetchImpl.mock.calls[1] ?? [];
+      expect(String(followUp?.body)).toContain("Pesquisa externa bloqueada após acesso a dados privados");
+    } finally {
+      providerFetch.mockRestore();
+    }
+  });
+
+  it("rejects more than four tool calls without executing any", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+    const toolContext = createToolContext();
+    const calls = Array.from({ length: 5 }, (_, index) => ({ type: "function_call", call_id: `c${index}`, name: "get_gamification_profile", arguments: "{}" }));
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ id: "resp_many", output: calls }), { status: 200 }));
+    await expect(runMestreArcano("Olá", { fetchImpl, toolContext })).rejects.toThrow("limite de ferramentas por iteração");
+    expect(toolContext.learner.getGamificationProfile).not.toHaveBeenCalled();
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   it("verifies the configured model", async () => {
