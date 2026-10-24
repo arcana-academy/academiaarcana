@@ -46,6 +46,20 @@ select extensions.ok(
   (select relrowsecurity from pg_class where oid = 'storage.objects'::regclass),
   'Storage objects RLS is enabled'
 );
+select extensions.ok(
+  exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'grimoire covers are deletable by owner'
+      and roles @> array['authenticated']::name[]
+      and coalesce(qual, '') like '%bucket_id%'
+      and coalesce(qual, '') like '%grimoire-covers%'
+      and coalesce(qual, '') like '%owner_id%'
+  ),
+  'cover deletion policy is restricted to authenticated owners of this bucket'
+);
 
 set local role anon;
 select extensions.results_eq(
@@ -92,14 +106,8 @@ select extensions.throws_ok(
   null,
   'cover owner A cannot move their object into user B folder'
 );
-select extensions.is(
-  pg_temp.exec_row_count(
-    $$delete from storage.objects where id = 'af000000-0000-4000-8000-000000000002'$$
-  ),
-  0,
-  'cover owner A cannot delete user B object'
-);
-
+-- Storage blocks direct DELETE against storage tables even after RLS; verify
+-- the owner-scoped policy in pg_policies rather than bypassing that safeguard.
 reset role;
 select set_config('request.jwt.claim.sub', 'ae000000-0000-4000-8000-000000000002', true);
 select set_config(
