@@ -24,30 +24,20 @@ type StudyTaskBoardProps = {
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
 };
 
-// Render locale-dependent dates only after hydration. On the server and
-// initial hydration, the snapshot is the same even if the browser's time zone
-// differs from the CI/runtime region.
-const subscribeNoop = () => () => {};
-function useBrowserHydrated(): boolean {
-  return useSyncExternalStore(subscribeNoop, () => true, () => false);
-}
-
-function formatDueAt(value: string | null, browserHydrated: boolean): string {
+function formatDueAt(value: string | null, timeZone?: string): string {
   if (!value) return "Sem prazo";
-  const date = new Date(value);
+  // Microsoft Graph returns offset-less dateTime values when requesting UTC.
+  // Parse them as UTC rather than the browser's local time zone.
+  const normalized =
+    timeZone === "UTC" && !/(?:[zZ]|[+-][0-9]{2}:[0-9]{2})$/.test(value)
+      ? `${value}Z`
+      : value;
+  const date = new Date(normalized);
   if (!Number.isFinite(date.getTime())) return "Data indisponível";
-  if (!browserHydrated) return "Carregando horário local…";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(date);
-}
-
-/** Outlook Graph may provide a UTC wall time without an explicit offset. */
-function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone?: string | null): string {
-  if (typeof timeZone !== "string" || !timeZone.trim()) return "Data indisponível";
-  const utcWithoutOffset =
-    timeZone.toUpperCase() === "UTC" &&
-    /^\d{4}-\d{2}-\d{2}T/.test(value) &&
-    !/(?:Z|[+-]\d{2}:\d{2})$/i.test(value);
-  return formatDueAt(utcWithoutOffset ? `${value}Z` : value, browserHydrated);
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 export function StudyTaskBoard({
@@ -353,7 +343,7 @@ export function StudyTaskBoard({
                   <div>
                     <strong>{event.subject || "Evento sem título"}</strong>
                     <small>
-                      {formatOutlookDateTime(event.start.dateTime, browserHydrated, event.start.timeZone)} · até {formatOutlookDateTime(event.end.dateTime, browserHydrated, event.end.timeZone)}
+                      {formatDueAt(event.start.dateTime, event.start.timeZone)} · até {formatDueAt(event.end.dateTime, event.end.timeZone)}
                     </small>
                   </div>
                   {event.webLink ? (
