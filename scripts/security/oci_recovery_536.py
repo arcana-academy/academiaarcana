@@ -59,13 +59,15 @@ def verify(path, digest, archive_digest=None):
             # OCI tar archives can contain safe structural directories and a
             # single leading './' added by standard tar packing commands.
             name = member.name
-            if name.startswith("./"):
-                name = name[2:] or "."
             if member.isdir():
-                directory = name.rstrip("/")
-                if directory not in (".", "blobs", "blobs/sha256") or directory in seen_directories or member.size != 0:
+                # Accept only OCI layout scaffolding; never extract directories.
+                # tarfile normalizes trailing slashes; reject duplicate logical names.
+                structural = name.rstrip("/")
+                if (name not in (".", "./", "blobs", "blobs/",
+                                 "blobs/sha256", "blobs/sha256/") or
+                        member.size != 0 or structural in seen_directories):
                     raise IntegrityError("Unexpected/duplicate OCI directory")
-                seen_directories.add(directory)
+                seen_directories.add(structural)
                 continue
             if name in checked or not member.isfile():
                 raise IntegrityError("Duplicate/nonregular member")
@@ -132,9 +134,11 @@ def verify(path, digest, archive_digest=None):
     config = object_json(metadata.get(cfg_path, b""), "config")
     runtime_config = config.get("config")
     user = runtime_config.get("User") if isinstance(runtime_config, dict) else None
-    principal = user.split(":", 1)[0] if isinstance(user, str) else ""
-    if (config.get("os") != "linux" or config.get("architecture") != "amd64"
-            or not principal or principal == "root" or re.fullmatch(r"[+-]?0+", principal)):
+    # Docker Config.User can be "user[:group]" or "uid[:gid]".
+    # Checking only "root" / "0" misses UID 0 with an explicit group.
+    principal = user.split(":", 1)[0].strip() if isinstance(user, str) else ""
+    root_identity = not principal or principal.lower() == "root" or re.fullmatch(r"[+-]?0+", principal)
+    if config.get("os") != "linux" or config.get("architecture") != "amd64" or root_identity:
         raise IntegrityError("Unexpected platform or root runtime")
     return {"result": "PASS", "manifest": digest, "archiveSha256": actual_archive,
             "archiveBytes": path.stat().st_size, "objectsVerified": len(descs) + 1,
