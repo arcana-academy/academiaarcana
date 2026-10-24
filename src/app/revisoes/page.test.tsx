@@ -52,6 +52,7 @@ describe("RevisoesPage", () => {
     expect(html).toContain('id="revisoes-title"');
     expect(html).toContain('aria-label="Atividades disponíveis para revisão"');
     expect(html).toContain('href="/pratica?pagina=page1&amp;item=item1"');
+    expect(html).toContain('href="/sessao-revisao"');
     expect(html).toContain("Descreva a célula");
     expect(html).not.toContain("Resposta confidencial");
     expect(html).not.toContain("Tentativa pessoal");
