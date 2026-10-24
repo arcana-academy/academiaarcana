@@ -7,12 +7,22 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 
-const statusText = execFileSync("supabase", ["status", "-o", "json"], {
-  encoding: "utf8", timeout: 30000, stdio: ["ignore", "pipe", "pipe"],
-});
+let statusText;
+try {
+  statusText = execFileSync("supabase", ["status", "-o", "json"], {
+    encoding: "utf8", timeout: 30000, stdio: ["ignore", "pipe", "pipe"],
+  });
+} catch {
+  throw new Error("ABORT: disposable local Supabase status unavailable");
+}
 const jsonStart = statusText.indexOf("{");
 if (jsonStart < 0) throw new Error("Supabase local status is not JSON");
-const status = JSON.parse(statusText.slice(jsonStart));
+let status;
+try {
+  status = JSON.parse(statusText.slice(jsonStart));
+} catch {
+  throw new Error("ABORT: invalid local Supabase status JSON");
+}
 const url = status.API_URL ?? status.api_url;
 const anon = status.ANON_KEY ?? status.anon_key;
 const adminKey = status.SERVICE_ROLE_KEY ?? status.service_role_key;
