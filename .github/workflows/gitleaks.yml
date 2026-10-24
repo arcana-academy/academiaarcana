@@ -37,4 +37,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: "false"
           GITLEAKS_ENABLE_SUMMARY: "true"
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "true"
+          # Prevent publishing potentially sensitive scan evidence as a downloadable SARIF artifact.
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
