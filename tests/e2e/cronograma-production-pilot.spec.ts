@@ -206,6 +206,19 @@ test("Cronograma pilot records performance evidence without inventing a budget",
     { timeout: 10_000 },
   );
   await page.evaluate(async () => { await document.fonts.ready; });
+  // Force style resolution before awaiting animation completion. Reading
+  // getComputedStyle() for the first time in the metric collection otherwise
+  // starts ~31 CSS transitions *after* a premature zero-animation poll.
+  await page.locator(".aa-study-task-board").evaluate((node) => {
+    for (const element of [node, ...node.querySelectorAll("*")]) {
+      const style = getComputedStyle(element);
+      void style.color;
+      void style.backgroundColor;
+      void style.borderColor;
+      void style.filter;
+      void style.backdropFilter;
+    }
+  });
   // The budget applies to the settled page: allow all finite transitions
   // to finish, then sample again after two paint frames.
   await page.waitForFunction(async () => {
