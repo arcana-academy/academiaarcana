@@ -101,6 +101,7 @@ export default async function GrimoiresPage() {
                     </div>
                     <Link
                       className="aa-button aa-button-ghost grimoires-library-open"
+                      aria-label={`Abrir grimório: ${grimoire.title}`}
                       href={getWorkspaceCanonicalHref({
                         grimoireId: grimoire.id,
                         notebookId: null,

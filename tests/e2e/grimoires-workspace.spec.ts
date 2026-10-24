@@ -58,7 +58,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await page.goto("/grimorios");
     await expect(page.getByRole("heading", { name: "Grimórios" })).toBeVisible();
 
-    const openGrimoire = page.getByRole("link", { name: "Abrir grimório" }).first();
+    const openGrimoire = page.getByRole("link", { name: /^Abrir grimório: .+/ }).first();
 
     if (!(await openGrimoire.count())) {
       await expect(
