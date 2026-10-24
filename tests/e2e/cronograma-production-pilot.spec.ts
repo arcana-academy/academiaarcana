@@ -193,13 +193,19 @@ test("StudyTaskBoard remains usable when decorative assets fail", async ({ page 
 
 test("Cronograma pilot records performance evidence without inventing a budget", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
-  // Theme tokens apply after hydration, so button color transitions started by
-  // the initial paint must settle before measuring steady-state motion.
-  await page.waitForFunction(
-    () => document.getAnimations().every((animation) => animation.playState !== "running"),
-    null,
-    { timeout: 10_000 },
-  );
+  // Wait for the actual hydrated theme/scenario rather than sampling the
+  // initial paint, which can briefly report zero animations before transitions start.
+  await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "connected");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
+  await page.evaluate(async () => { await document.fonts.ready; });
+  // The budget applies to the settled page: allow all finite transitions
+  // to finish, then sample again after two paint frames.
+  await page.waitForFunction(async () => {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    return document.getAnimations().every((animation) => animation.playState !== "running");
+  }, null, { timeout: 10_000 });
   const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
     descendants: node.querySelectorAll("*").length,
     images: node.querySelectorAll("img").length,
