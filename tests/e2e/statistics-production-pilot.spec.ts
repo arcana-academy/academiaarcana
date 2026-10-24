@@ -224,6 +224,8 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     await page.goto("/design-system/pilots/statistics?scenario=mixed-evidence&theme=mago-classico");
     const view = page.getByTestId("statistics-view");
     await expect(view).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
+    await page.evaluate(async () => { await document.fonts.ready; });
     const capture = await screenshotHash(view);
     if (captureDir) {
       mkdirSync(captureDir, { recursive: true });
