@@ -12,7 +12,15 @@ const REVIEW_DAYS: Record<PracticeAttempt["outcome"], number> = {
   insufficient: 1,
 };
 
-/** Builds the next review window from the latest retrieval evidence. */
+/**
+ * Build the next review window from the latest attempt with a parseable date and
+ * recognized outcome: strong adds seven UTC days, partial three, insufficient one.
+ * The review is due at or after that instant; no valid attempts yields no schedule.
+ *
+ * @param attempts Attempts already filtered to this practice item.
+ * @param now Instant used to determine whether the review is due.
+ * @throws {RangeError} If adding the interval exceeds the supported date range.
+ */
 export function buildReviewRecommendation(
   item: PracticeItem,
   attempts: PracticeAttempt[],

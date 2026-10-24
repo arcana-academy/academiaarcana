@@ -24,15 +24,11 @@ type StudyTaskBoardProps = {
   onScheduleInOutlook?: (id: string) => Promise<{ webLink?: string | null }>;
 };
 
-// Render locale-dependent dates only after hydration. On the server and
-// initial hydration, the snapshot is the same even if the browser's time zone
-// differs from the CI/runtime region.
-const subscribeNoop = () => () => {};
-function useBrowserHydrated(): boolean {
-  return useSyncExternalStore(subscribeNoop, () => true, () => false);
-}
-
-function formatDueAt(value: string | null, browserHydrated: boolean): string {
+/**
+ * Format a date in pt-BR using the browser's time zone. Return "Sem prazo" for
+ * null or empty input and "Data indisponível" for an unparseable date.
+ */
+function formatDueAt(value: string | null): string {
   if (!value) return "Sem prazo";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Data indisponível";
@@ -40,9 +36,13 @@ function formatDueAt(value: string | null, browserHydrated: boolean): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
-/** Outlook Graph may provide a UTC wall time without an explicit offset. */
-function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone?: string | null): string {
-  if (typeof timeZone !== "string" || !timeZone.trim()) return "Data indisponível";
+/**
+ * Format an Outlook date with the same locale, display zone, and fallbacks as a deadline.
+ * Outlook Graph may provide a UTC wall time without an explicit offset; treat an
+ * ISO-style value as UTC when timeZone is UTC (case-insensitive). Other zone names
+ * do not affect parsing, and explicit Z or ±HH:MM offsets are preserved.
+ */
+function formatOutlookDateTime(value: string, timeZone: string): string {
   const utcWithoutOffset =
     timeZone.toUpperCase() === "UTC" &&
     /^\d{4}-\d{2}-\d{2}T/.test(value) &&
@@ -50,6 +50,13 @@ function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone
   return formatDueAt(utcWithoutOffset ? `${value}Z` : value, browserHydrated);
 }
 
+/**
+ * Render study tasks with creation, completion, and external provider actions.
+ * Reconcile successful local changes with new tasks array snapshots: creations
+ * remain until acknowledged; completions stay hidden until absent from a snapshot,
+ * allowing later reopened tasks to appear. Action failures are shown as alerts.
+ * outlookEventsUnavailable distinguishes a calendar load failure from no events.
+ */
 export function StudyTaskBoard({
   tasks,
   outlookConnected = false,
@@ -118,6 +125,11 @@ export function StudyTaskBoard({
   const completedSchedules = useRef(new Set<string>());
   const [schedulingIds, setSchedulingIds] = useState<Set<string>>(() => new Set());
   const [scheduledIds, setScheduledIds] = useState<Set<string>>(() => new Set());
+  /**
+   * Create a task unless the title is blank or a submission is pending.
+   * Convert the local deadline to ISO or null, then add the returned task and clear
+   * the form on success. Date conversion and callback errors become a retryable alert.
+   */
   const submit = async () => {
     if (createPending.current || !title.trim()) return;
     createPending.current = true;
@@ -136,6 +148,10 @@ export function StudyTaskBoard({
     }
   };
 
+  /**
+   * Reserve a provider/task pair and mark it pending. Return its key, or null if
+   * already pending or successfully sent during this component's lifetime.
+   */
   const beginSend = (provider: "todoist" | "asana", id: string) => {
     const key = `${provider}:${id}`;
     if (activeSends.current.has(key) || successfulSends.current.has(key)) return null;
@@ -144,6 +160,7 @@ export function StudyTaskBoard({
     return key;
   };
 
+  /** Clear a send's pending state without clearing its successful-send guard. */
   const endSend = (key: string) => {
     activeSends.current.delete(key);
     setSendingKeys((current) => {
@@ -153,6 +170,11 @@ export function StudyTaskBoard({
     });
   };
 
+  /**
+   * Send a Todoist copy once per task during this component's lifetime.
+   * Skip pending or successful sends; show connection guidance for HTTP 401/409
+   * and an alert for other failures, leaving failed sends retryable.
+   */
   const sendToTodoist = async (task: StudyTask) => {
     const key = beginSend("todoist", task.id);
     if (!key) return;
@@ -189,6 +211,11 @@ export function StudyTaskBoard({
     }
   };
 
+  /**
+   * Send an Asana copy using the deadline's date portion, if present.
+   * Skip pending or successful sends during this component's lifetime; show
+   * connection guidance for HTTP 401/409 and retryable alerts for other failures.
+   */
   const sendToAsana = async (task: StudyTask) => {
     const key = beginSend("asana", task.id);
     if (!key) return;
@@ -225,6 +252,12 @@ export function StudyTaskBoard({
     }
   };
 
+  /**
+   * Schedule a task through the optional callback and open its returned web link.
+   * Skip pending or previously successful schedules during this component's lifetime.
+   * Callback errors become alerts, with specific guidance for a missing schedule;
+   * failed callback requests can be retried.
+   */
   const scheduleInOutlook = async (id: string) => {
     if (
       !onScheduleInOutlook ||
@@ -255,6 +288,11 @@ export function StudyTaskBoard({
       });
     }
   };
+  /**
+   * Complete a task once per pending request and hide it locally after success.
+   * A reopened task starts a new acknowledgment cycle when completed again.
+   * Callback errors become alerts and leave the task available for retry.
+   */
   const complete = async (id: string) => {
     if (completingPending.current.has(id)) return;
     completingPending.current.add(id);

@@ -19,6 +19,12 @@ import { pageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata = pageMetadata("/cronograma");
 
+/**
+ * Render the authenticated user's pending tasks and next seven days of Outlook events.
+ * Redirect unauthenticated users to login and refresh the Outlook token when needed.
+ * Missing tokens and token/event retrieval failures render an unavailable calendar;
+ * task loading and Outlook connection lookup errors propagate to the caller.
+ */
 export default async function CronogramaPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();

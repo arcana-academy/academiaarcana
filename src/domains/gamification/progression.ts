@@ -30,11 +30,23 @@ function safeCounter(value: number): number {
   return Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(value)));
 }
 
+/**
+ * Return a level starting at one, with level n reached at 100 * (n - 1)^2 XP.
+ * Non-finite XP becomes zero; finite XP is floored and clamped to the safe
+ * nonnegative integer range before calculating the level.
+ */
 export function getLevelForXp(xp: number): number {
   const safeXp = safeCounter(xp);
   return Math.floor(Math.sqrt(safeXp / 100)) + 1;
 }
 
+/**
+ * Derive level progress and completed mission counts from the supplied records.
+ * XP and streak days are floored and clamped to safe nonnegative integers;
+ * non-finite or missing counters become zero. A null profile starts at level one.
+ * levelProgressXp is XP earned within the level; nextLevelXp is the total XP
+ * threshold for the next level. Missions are not filtered by owner or date.
+ */
 export function getProgression(
   profile: GamificationProfile | null,
   missions: readonly Mission[],

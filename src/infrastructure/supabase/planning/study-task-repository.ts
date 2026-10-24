@@ -50,8 +50,12 @@ export class SupabaseStudyTaskRepository implements StudyTaskRepository {
   }
 
   /**
-   * Keep every pending task actionable, including overdue and undated tasks.
-   * The second argument is retained for existing callers of listUpcoming.
+   * Return the owner's pending tasks, earliest due dates first and undated tasks
+   * last, up to the limit (default 10). Overdue tasks remain eligible.
+   * Return an empty array when the query returns no data.
+   *
+   * @param _now Unused; retained for compatibility without filtering by time.
+   * @throws {Error} If Supabase reports a query error, preserving its message.
    */
   async listUpcoming(
     ownerId: string,

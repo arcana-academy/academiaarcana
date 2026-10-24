@@ -43,6 +43,11 @@ function grimoiresPageIds(grimoire: SanctuaryGrimoire): string[] {
   );
 }
 
+/**
+ * Return a rounded completion percentage and count label for unique hierarchy pages.
+ * Duplicate completions and progress for pages outside the hierarchy do not count.
+ * Return an empty state with null data when the hierarchy contains no pages.
+ */
 function resolveProgressSummary(grimoires: SanctuaryGrimoire[], progress: SanctuaryProgressProjection[]): SanctuaryViewModel["progress"] {
   // Count only unique pages present in the current authenticated hierarchy.
   // Orphaned or duplicate progress projections must not inflate the percentage.
