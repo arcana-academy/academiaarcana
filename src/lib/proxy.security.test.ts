@@ -10,11 +10,17 @@ vi.mock("@/lib/supabase/proxy", () => ({
 
 import { proxy } from "../proxy";
 
-function createRequest(options: { method?: string; origin?: string } = {}) {
+function createRequest(
+  options: { method?: string; origin?: string; pathname?: string } = {},
+) {
+  const headers = new Headers(
+    options.origin ? { origin: options.origin } : undefined,
+  );
+  const pathname = options.pathname ?? "/path";
   return {
-    headers: new Headers(options.origin ? { origin: options.origin } : undefined),
+    headers,
     method: options.method ?? "GET",
-    nextUrl: new URL("https://app.example/path"),
+    nextUrl: new URL(pathname, "https://app.example"),
   } as never;
 }
 
