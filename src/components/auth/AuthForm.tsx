@@ -2,6 +2,7 @@
 
 import { FormEvent, useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -223,6 +224,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           {status === "loading" ? "Processando…" : copy.submit}
         </button>
       </form>
+      {mode === "login" ? (
+        <p>
+          <Link className="aa-button aa-button-secondary aa-button-sm" href="/recuperar-senha">
+            Esqueci minha senha
+          </Link>
+        </p>
+      ) : null}
     </main>
   );
 }
