@@ -33,12 +33,10 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
       await completeSession(id);
       setSessionId((current) => current === id ? null : current);
       setError(null);
-    } catch (completionError) {
-      setError(
-        completionError instanceof Error
-          ? completionError.message
-          : "Não foi possível registrar a sessão.",
-      );
+    } catch {
+      // Server/database exceptions can contain private infrastructure details.
+      // Keep the session available for retry without displaying those messages.
+      setError("Não foi possível registrar a sessão. Tente novamente.");
     } finally {
       completionInFlight.current = false;
       setSaving(false);
@@ -87,8 +85,9 @@ export function FocusSession({ startSession, completeSession }: FocusSessionProp
       setSessionId(id);
       setDeadline(Date.now() + DEFAULT_SECONDS * 1000);
       setRunning(true);
-    } catch (startError) {
-      setError(startError instanceof Error ? startError.message : "Não foi possível iniciar a sessão.");
+    } catch {
+      // Do not render internal errors returned by server actions.
+      setError("Não foi possível iniciar a sessão. Tente novamente.");
     } finally {
       setSaving(false);
     }
