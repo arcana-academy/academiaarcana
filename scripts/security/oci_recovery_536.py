@@ -53,21 +53,22 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Tar SHA mismatch")
     checked = {}
     metadata = {}
-    seen_directories = set()
+    structural_directories = set()
     with tarfile.open(path, "r|*") as tar:
         for member in tar:
             # OCI tar archives can contain safe structural directories and a
             # single leading './' added by standard tar packing commands.
             name = member.name
             if member.isdir():
-                # Accept only OCI layout scaffolding; never extract directories.
-                # tarfile normalizes trailing slashes; reject duplicate logical names.
-                structural = name.rstrip("/")
-                if (name not in (".", "./", "blobs", "blobs/",
-                                 "blobs/sha256", "blobs/sha256/") or
-                        member.size != 0 or structural in seen_directories):
-                    raise IntegrityError("Unexpected/duplicate OCI directory")
-                seen_directories.add(structural)
+                # OCI tars may include these exact structural directory entries.
+                # Do not extract directories, links, or non-OCI members.
+                if name not in (".", "./", "blobs", "blobs/",
+                                "blobs/sha256", "blobs/sha256/") or member.size != 0:
+                    raise IntegrityError("Unexpected OCI directory")
+                canonical = name.rstrip("/")
+                if canonical in structural_directories:
+                    raise IntegrityError("Duplicate OCI directory")
+                structural_directories.add(canonical)
                 continue
             if name in checked or not member.isfile():
                 raise IntegrityError("Duplicate/nonregular member")
@@ -132,13 +133,15 @@ def verify(path, digest, archive_digest=None):
         raise IntegrityError("Unexpected archive members")
     cfg_path = "blobs/sha256/" + cfg["digest"][7:]
     config = object_json(metadata.get(cfg_path, b""), "config")
-    runtime_config = config.get("config")
-    user = runtime_config.get("User") if isinstance(runtime_config, dict) else None
-    # Docker Config.User can be "user[:group]" or "uid[:gid]".
-    # Checking only "root" / "0" misses UID 0 with an explicit group.
-    principal = user.split(":", 1)[0].strip() if isinstance(user, str) else ""
-    root_identity = not principal or principal.lower() == "root" or re.fullmatch(r"[+-]?0+", principal)
-    if config.get("os") != "linux" or config.get("architecture") != "amd64" or root_identity:
+    settings = config.get("config")
+    user = settings.get("User") if isinstance(settings, dict) else None
+    identity = user.split(":", 1)[0] if isinstance(user, str) else ""
+    root_runtime = (not isinstance(user, str) or not user or user != user.strip()
+                    or not identity or identity != identity.strip()
+                    or identity.casefold() == "root"
+                    or bool(re.fullmatch(r"[+-]?0+", identity))
+                    or (identity.isdecimal() and int(identity) == 0))
+    if config.get("os") != "linux" or config.get("architecture") != "amd64" or root_runtime:
         raise IntegrityError("Unexpected platform or root runtime")
     return {"result": "PASS", "manifest": digest, "archiveSha256": actual_archive,
             "archiveBytes": path.stat().st_size, "objectsVerified": len(descs) + 1,
