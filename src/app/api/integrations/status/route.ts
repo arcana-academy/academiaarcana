@@ -5,12 +5,20 @@ import { getIntegrationStatusSnapshot } from "@/infrastructure/integrations/stat
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const snapshot = await getIntegrationStatusSnapshot();
+  try {
+    const snapshot = await getIntegrationStatusSnapshot();
 
-  return NextResponse.json(snapshot, {
-    status: 200,
-    headers: {
-      "Cache-Control": "no-store",
-    },
-  });
+    return NextResponse.json(snapshot, {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch {
+    // Runtime/provider failures must not expose internal diagnostics.
+    return NextResponse.json(
+      { status: "unavailable" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 }
