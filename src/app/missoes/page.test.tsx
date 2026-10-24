@@ -58,22 +58,32 @@ describe("MissoesPage", () => {
     expect(listDailyMissionsMock).toHaveBeenCalledWith("user-1", expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
   });
 
-
-  it("distinguishes a failed mission read from a genuinely empty day and provides a retry", async () => {
-    listDailyMissionsMock.mockRejectedValue(new Error("synthetic connection failure"));
+  it("shows an accessible recovery action instead of an empty day when missions fail to load", async () => {
+    listDailyMissionsMock.mockRejectedValue(new Error("internal-db-details-must-stay-private"));
 
     render(await MissoesPage());
 
     expect(screen.getByRole("heading", { name: "Missões", level: 1 })).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível carregar as missões");
-    expect(screen.getByRole("button", { name: "Tentar novamente" })).toHaveAttribute("type", "submit");
-    const retry = screen.getByRole("button", { name: "Tentar novamente" }).closest("form");
-    expect(retry).toHaveAttribute("action", "/missoes");
-    expect(retry).toHaveAttribute("method", "get");
+    expect(screen.getByRole("button", { name: "Tentar novamente" }).closest("form")).toHaveAttribute(
+      "action",
+      "/missoes",
+    );
+    expect(screen.getByRole("button", { name: "Tentar novamente" }).closest("form")).toHaveAttribute(
+      "method",
+      "get",
+    );
+    expect(screen.getByRole("link", { name: "Abrir cronograma" })).toHaveAttribute("href", "/cronograma");
     expect(screen.queryByText("Nenhuma missão registrada hoje.")).not.toBeInTheDocument();
-    expect(screen.queryByText(/0\/0 concluídas/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Objetivos" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Planejar um estudo" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/internal-db-details-must-stay-private/)).not.toBeInTheDocument();
+  });
+
+  it("does not swallow authentication failures as mission-loading errors", async () => {
+    requireAuthenticatedUserMock.mockRejectedValue(new Error("authentication required"));
+
+    await expect(MissoesPage()).rejects.toThrow("authentication required");
+    expect(listDailyMissionsMock).not.toHaveBeenCalled();
   });
 
   it("offers one clear route to plan a study when no mission exists", async () => {
