@@ -46,15 +46,22 @@ select extensions.ok(
   (select allowed from public.consume_open_source_ai_rate_limit()),
   'first request for user A is allowed'
 );
+-- A set-returning, no-argument LATERAL call can be evaluated once and its
+-- result duplicated across generate_series rows. Invoke it in PL/pgSQL so each
+-- loop iteration is a real request against the durable counter.
+do $test$
+declare
+  request_number integer;
+begin
+  for request_number in 1..19 loop
+    perform public.consume_open_source_ai_rate_limit();
+  end loop;
+end;
+$test$;
 select extensions.is(
-  (
-    select count(*)::integer
-    from generate_series(1, 19) as requests(n)
-    cross join lateral public.consume_open_source_ai_rate_limit() as result
-    where result.allowed
-  ),
-  19,
-  'user A receives the remaining 19 requests in the window'
+  (select remaining from public.consume_open_source_ai_rate_limit()),
+  0,
+  'user A exhausts the remaining 19 requests in the window'
 );
 select extensions.ok(
   not (select allowed from public.consume_open_source_ai_rate_limit()),

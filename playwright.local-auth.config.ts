@@ -21,5 +21,8 @@ export default defineConfig({
     url: "http://127.0.0.1:3000/login",
     reuseExistingServer: false,
     timeout: 180_000,
+    // Preserve server-action diagnostics from the ephemeral local test server.
+    stdout: "pipe",
+    stderr: "pipe",
   },
 });
