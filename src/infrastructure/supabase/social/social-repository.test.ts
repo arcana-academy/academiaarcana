@@ -8,6 +8,7 @@ function createSupabase(options?: {
     error: { message: string } | null;
   };
   mutationError?: { message: string } | null;
+  updatedRow?: { id: string } | null;
 }) {
   const listResult = options?.list ?? { data: [], error: null };
   const mutationResult = { error: options?.mutationError ?? null };
@@ -16,7 +17,13 @@ function createSupabase(options?: {
   const listOr = vi.fn(() => ({ order }));
   const select = vi.fn(() => ({ or: listOr }));
 
-  const updateRecipientEq = vi.fn(async () => mutationResult);
+  const updateMaybeSingle = vi.fn(async () => ({
+    data: options?.updatedRow === undefined ? { id: "connection-1" } : options.updatedRow,
+    error: options?.mutationError ?? null,
+  }));
+  const updateSelect = vi.fn(() => ({ maybeSingle: updateMaybeSingle }));
+  const updateStatusEq = vi.fn(() => ({ select: updateSelect }));
+  const updateRecipientEq = vi.fn(() => ({ eq: updateStatusEq }));
   const updateIdEq = vi.fn(() => ({ eq: updateRecipientEq }));
   const update = vi.fn(() => ({ eq: updateIdEq }));
 
@@ -39,6 +46,9 @@ function createSupabase(options?: {
     update,
     updateIdEq,
     updateRecipientEq,
+    updateStatusEq,
+    updateSelect,
+    updateMaybeSingle,
     remove,
     deleteIdEq,
     deleteParticipantOr,
@@ -108,6 +118,24 @@ describe("SupabaseSocialRepository", () => {
       "recipient_id",
       "recipient-1",
     );
+    expect(supabase.updateStatusEq).toHaveBeenCalledWith("status", "pending");
+    expect(supabase.updateSelect).toHaveBeenCalledWith("id");
+    expect(supabase.updateMaybeSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects acceptance when no pending invitation is updated", async () => {
+    const supabase = createSupabase({ updatedRow: null });
+    const repository = new SupabaseSocialRepository(supabase.client as never);
+
+    await expect(
+      repository.updateConnectionStatus("recipient-1", "revoked-or-foreign", "accepted"),
+    ).rejects.toThrow("A solicitação não está mais disponível para aceitação.");
+
+    expect(supabase.updateIdEq).toHaveBeenCalledWith("id", "revoked-or-foreign");
+    expect(supabase.updateRecipientEq).toHaveBeenCalledWith("recipient_id", "recipient-1");
+    expect(supabase.updateStatusEq).toHaveBeenCalledWith("status", "pending");
+    expect(supabase.updateSelect).toHaveBeenCalledWith("id");
+    expect(supabase.updateMaybeSingle).toHaveBeenCalledTimes(1);
   });
 
   it("limits deletion to a participant in the connection", async () => {
