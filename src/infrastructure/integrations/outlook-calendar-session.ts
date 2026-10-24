@@ -160,9 +160,27 @@ async function refreshAccessToken(ownerId: string, refreshToken: string) {
   );
 
   if (!response.ok) {
-    await clearOutlookTokens(ownerId);
+    // A rate limit, outage or client configuration failure does not prove
+    // revocation of the user's stored refresh token. Entra marks an unusable
+    // authorization grant with the OAuth error "invalid_grant".
+    let invalidGrant = false;
+    if (response.status === 400) {
+      const payload: unknown = await response.json().catch(() => null);
+      invalidGrant =
+        payload !== null &&
+        typeof payload === "object" &&
+        "error" in payload &&
+        payload.error === "invalid_grant";
+    }
+
+    if (invalidGrant) {
+      await clearOutlookTokens(ownerId);
+    }
+
     throw new OutlookCalendarError(
-      "A autorização do Outlook expirou. Conecte novamente sua conta.",
+      invalidGrant
+        ? "A autorização do Outlook expirou. Conecte novamente sua conta."
+        : "Não foi possível renovar a conexão do Outlook. Tente novamente mais tarde.",
       response.status,
     );
   }
@@ -198,7 +216,9 @@ export async function getOutlookAccessToken(
     }
 
     if (!options.refresh) return null;
-    return refreshAccessToken(
+    // Await so network failures are handled by this function's existing
+    // error boundary instead of leaking a raw rejected fetch promise.
+    return await refreshAccessToken(
       ownerId,
       decrypt(credential.refresh_token_ciphertext),
     );
