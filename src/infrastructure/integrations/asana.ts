@@ -288,12 +288,11 @@ export async function refreshAsanaCredentials(credentials: AsanaCredentials): Pr
   }
 
   const refreshed = normalizeTokenSet(await response.json());
-  // A successful refresh can return only a new access token. Keep the
-  // original long-lived refresh token unless Asana explicitly rotates it.
-  // Otherwise the status route persists a cookie that cannot renew again.
   return {
     subjectId: credentials.subjectId,
     ...refreshed,
+    // An OAuth refresh response can omit a replacement refresh token.
+    // Keep the existing token until the provider explicitly rotates it.
     refreshToken: refreshed.refreshToken ?? credentials.refreshToken,
   };
 }
