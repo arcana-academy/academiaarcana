@@ -1,0 +1,58 @@
+name: CP10 SharePoint Cross-Account Boundary
+on:
+  push:
+    branches:
+      - test/cp10-sharepoint-ownership-boundaries-20261011
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cp10-sharepoint-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  route-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout disposable test branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Enforce pinned PR598 and secret-free boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 63f21d5a9e2af40e8fee5852c752ca14761eae75 HEAD
+          git fetch --no-tags origin refs/pull/598/head
+          test "$(git ls-remote origin refs/pull/598/head | cut -f1)" = "63f21d5a9e2af40e8fee5852c752ca14761eae75"
+          for name in DATABASE_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_DB_PASSWORD SUPABASE_ACCESS_TOKEN MICROSOFT_CLIENT_SECRET MICROSOFT_GRAPH_ACCESS_TOKEN RENDER_API_KEY; do
+            if [[ -n "${!name:-}" ]]; then
+              echo "::error::CP10 sensitive credential unexpectedly present"
+              exit 1
+            fi
+          done
+          node scripts/verify-supply-chain-workflows.cjs
+          echo "CP10_EXACT_SHA=$(git rev-parse HEAD)"
+      - name: Install test dependencies
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild unrs-resolver --ignore-scripts=false
+      - name: Typecheck newly added contract tests
+        run: npm run typecheck
+      - name: Test SharePoint route isolation only
+        run: npm exec -- vitest run src/app/api/integrations/microsoft-sharepoint/cp10-route-isolation.test.ts
+      - name: No provider access, data modification or deployment
+        if: always()
+        run: |
+          echo "CP10 tests only: synthetic credentials, no Graph, Supabase, deploy or branch merge."
+          git status --short

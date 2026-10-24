@@ -1,3 +1,4 @@
+import type { MestreArcanoHelpLevel } from "@/domains/intelligence";
 import { getRuntimeSecret } from "@/infrastructure/runtime-secrets";
 
 import {
@@ -7,6 +8,8 @@ import {
 
 const OPENAI_API_ORIGIN = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-5.6-sol";
+
+export const MESTRE_ARCANO_INSTRUCTION_POLICY_VERSION = "2026-10-09-v1";
 
 export type MestreArcanoResult = {
   readonly output: string;
@@ -165,11 +168,39 @@ function normalizeMestreArcanoInput(input: string): string {
   return normalizedInput;
 }
 
+/** Returns the extra tutoring instruction selected explicitly by the learner. */
+function getHelpLevelInstruction(
+  helpLevel: MestreArcanoHelpLevel,
+): string | null {
+  switch (helpLevel) {
+    case "hint":
+      return "O estudante escolheu ajuda em nível de pista: comece com uma pista ou pergunta-guia e evite entregar a solução completa inicialmente.";
+    case "decomposition":
+      return "O estudante escolheu decomposição: divida o problema em passos ou perguntas menores e conduza o raciocínio sem saltar imediatamente para a resposta final.";
+    case "direct-answer":
+      return "O estudante escolheu resposta direta: respeite essa escolha, responda diretamente e, quando útil, ofereça depois uma verificação breve de compreensão sem obrigá-la.";
+    case "unspecified":
+      return null;
+  }
+}
+
 /** Builds the fixed security and tutoring instructions for the agent. */
-function buildMestreArcanoInstructions(): string {
+function buildMestreArcanoInstructions(
+  helpLevel: MestreArcanoHelpLevel,
+): string {
+  const helpLevelInstruction = getHelpLevelInstruction(helpLevel);
+
   return [
     "Você é o Mestre Arcano da Academia Arcana.",
+    `Política pedagógica: ${MESTRE_ARCANO_INSTRUCTION_POLICY_VERSION}.`,
     "Atue como tutor e orquestrador educacional: seja claro, acolhedor, preciso e orientado à aprendizagem.",
+    "Em tarefas de aprendizagem, preserve oportunidades de esforço cognitivo: quando apropriado, favoreça uma tentativa do estudante antes de entregar uma solução completa.",
+    "Quando o estudante buscar uma resposta pronta para uma tarefa que pode praticar e não tiver escolhido resposta direta, ofereça primeiro uma pista, pergunta-guia ou decomposição curta; se ele insistir, precisar da resposta direta ou tiver escolhido esse nível de ajuda, responda sem coerção e proponha uma verificação breve de compreensão.",
+    "Use feedback metacognitivo sem moralizar: deixe claro, quando relevante, que delegar a resposta à IA pode reduzir a oportunidade de prática e permita que o estudante escolha o nível de ajuda.",
+    "Não trate engajamento, confiança percebida ou desempenho com assistência como prova de aprendizagem independente; diferencie essas medidas ao comentar progresso.",
+    "Ao sugerir revisão, favoreça recuperação espaçada quando adequada, mas não prometa transferência para tarefas novas sem evidência.",
+    "Trate qualquer adaptação educacional como hipótese revisável e explique o sinal disponível que sustentou a recomendação.",
+    ...(helpLevelInstruction ? [helpLevelInstruction] : []),
     "Quando precisar de dados do aluno, use somente as ferramentas autorizadas.",
     "Nunca invente progresso, notas, tarefas, XP, streaks, missões ou dados pessoais.",
     "Se uma ferramenta não fornecer uma informação, diga explicitamente que ela não está disponível.",
@@ -394,14 +425,16 @@ export async function runMestreArcano(
   {
     fetchImpl = fetch,
     toolContext,
+    helpLevel = "unspecified",
   }: {
     readonly fetchImpl?: OpenAIFetch;
     readonly toolContext: import("@/domains/intelligence").MestreArcanoToolContext;
+    readonly helpLevel?: MestreArcanoHelpLevel;
   },
 ): Promise<MestreArcanoResult> {
   const normalizedInput = normalizeMestreArcanoInput(input);
   const model = getModel();
-  const instructions = buildMestreArcanoInstructions();
+  const instructions = buildMestreArcanoInstructions(helpLevel);
   const result = await runMestreArcanoLoop({
     initialInput: normalizedInput,
     model,

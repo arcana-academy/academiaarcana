@@ -183,4 +183,40 @@ describe("adaptive P1 signals", () => {
     expect(review.due).toBe(false);
     expect(review.nextReviewAt).toBeNull();
   });
+
+  it("selects the latest instant across UTC offsets without reordering the input", () => {
+    const attempts = [
+      { ...attempt("older", 1, "strong", "21"), createdAt: "2026-09-21T10:00:00+03:00" },
+      { ...attempt("latest", 0.2, "insufficient", "21"), createdAt: "2026-09-21T08:00:00Z" },
+      { ...attempt("oldest", 0.6, "partial", "20"), createdAt: "2026-09-20T23:00:00Z" },
+    ];
+    const original = structuredClone(attempts);
+
+    expect(buildReviewRecommendation(item, attempts, new Date("2026-09-22T08:00:00Z")))
+      .toMatchObject({ due: true, nextReviewAt: "2026-09-22T08:00:00.000Z" });
+    expect(attempts).toEqual(original);
+  });
+
+  it.each([
+    ["strong", "2026-10-04T23:30:00.000Z"],
+    ["partial", "2026-09-30T23:30:00.000Z"],
+    ["insufficient", "2026-09-28T23:30:00.000Z"],
+  ] as const)("opens a %s review exactly at its UTC boundary", (outcome, nextReviewAt) => {
+    const attempts = [{ ...attempt("valid", 0.6, outcome, "27"), createdAt: "2026-09-27T23:30:00Z" }];
+    expect(buildReviewRecommendation(item, attempts, new Date(Date.parse(nextReviewAt) - 1)))
+      .toMatchObject({ due: false, nextReviewAt });
+    expect(buildReviewRecommendation(item, attempts, new Date(nextReviewAt)))
+      .toMatchObject({ due: true, nextReviewAt });
+  });
+
+  it("ignores a newer persisted attempt with an unknown outcome", () => {
+    const invalid = { ...attempt("invalid", 1, "strong", "30"), outcome: "unknown" } as unknown as PracticeAttempt;
+    const valid = attempt("valid", 0.6, "partial", "20");
+
+    expect(buildReviewRecommendation(item, [invalid, valid], new Date("2026-09-24T00:00:00Z")))
+      .toMatchObject({ due: true, nextReviewAt: "2026-09-23T00:00:00.000Z" });
+    expect(buildReviewRecommendation(item, [invalid])).toMatchObject({
+      practiceItemId: item.id, pageId: item.pageId, due: false, nextReviewAt: null,
+    });
+  });
 });

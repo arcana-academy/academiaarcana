@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
+import { safeExternalUrl } from "@/lib/security/external-url";
 
 type OutlookEvent = {
   id: string;
@@ -42,6 +43,14 @@ function formatDueAt(value: string | null, browserHydrated: boolean): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
+/** Show the native local date/time value consistently in Brazilian notation. */
+function formatDraftDueAtPtBR(value: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  return `${day}/${month}/${year} às ${hour}:${minute}`;
+}
+
 /** Outlook Graph may provide a UTC wall time without an explicit offset. */
 function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone?: string | null): string {
   if (typeof timeZone !== "string" || !timeZone.trim()) return "Data indisponível";
@@ -52,6 +61,13 @@ function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone
   return formatDueAt(utcWithoutOffset ? `${value}Z` : value, browserHydrated);
 }
 
+/**
+ * Render study tasks with creation, completion, and external provider actions.
+ * Reconcile successful local changes with new tasks array snapshots: creations
+ * remain until acknowledged; completions stay hidden until absent from a snapshot,
+ * allowing later reopened tasks to appear. Action failures are shown as alerts.
+ * outlookEventsUnavailable distinguishes a calendar load failure from no events.
+ */
 export function StudyTaskBoard({
   tasks,
   outlookConnected = false,
@@ -105,6 +121,7 @@ export function StudyTaskBoard({
   }, [tasks, locallyCreated, locallyCompleted, acknowledgment.createdSeen, acknowledgment.completedAbsent]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
+  const selectedDueAtPtBR = formatDraftDueAtPtBR(dueAt);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Guard the callbacks synchronously, before disabled controls rerender.
@@ -121,6 +138,11 @@ export function StudyTaskBoard({
   const completedSchedules = useRef(new Set<string>());
   const [schedulingIds, setSchedulingIds] = useState<Set<string>>(() => new Set());
   const [scheduledIds, setScheduledIds] = useState<Set<string>>(() => new Set());
+  /**
+   * Create a task unless the title is blank or a submission is pending.
+   * Convert the local deadline to ISO or null, then add the returned task and clear
+   * the form on success. Date conversion and callback errors become a retryable alert.
+   */
   const submit = async () => {
     if (createPending.current || !title.trim()) return;
     createPending.current = true;
@@ -139,6 +161,10 @@ export function StudyTaskBoard({
     }
   };
 
+  /**
+   * Reserve a provider/task pair and mark it pending. Return its key, or null if
+   * already pending or successfully sent during this component's lifetime.
+   */
   const beginSend = (provider: "todoist" | "asana", id: string) => {
     const key = `${provider}:${id}`;
     if (activeSends.current.has(key) || successfulSends.current.has(key)) return null;
@@ -147,6 +173,7 @@ export function StudyTaskBoard({
     return key;
   };
 
+  /** Clear a send's pending state without clearing its successful-send guard. */
   const endSend = (key: string) => {
     activeSends.current.delete(key);
     setSendingKeys((current) => {
@@ -156,6 +183,11 @@ export function StudyTaskBoard({
     });
   };
 
+  /**
+   * Send a Todoist copy once per task during this component's lifetime.
+   * Skip pending or successful sends; show connection guidance for HTTP 401/409
+   * and an alert for other failures, leaving failed sends retryable.
+   */
   const sendToTodoist = async (task: StudyTask) => {
     const key = beginSend("todoist", task.id);
     if (!key) return;
@@ -192,6 +224,11 @@ export function StudyTaskBoard({
     }
   };
 
+  /**
+   * Send an Asana copy using the deadline's date portion, if present.
+   * Skip pending or successful sends during this component's lifetime; show
+   * connection guidance for HTTP 401/409 and retryable alerts for other failures.
+   */
   const sendToAsana = async (task: StudyTask) => {
     const key = beginSend("asana", task.id);
     if (!key) return;
@@ -228,6 +265,12 @@ export function StudyTaskBoard({
     }
   };
 
+  /**
+   * Schedule a task through the optional callback and open its returned web link.
+   * Skip pending or previously successful schedules during this component's lifetime.
+   * Callback errors become alerts, with specific guidance for a missing schedule;
+   * failed callback requests can be retried.
+   */
   const scheduleInOutlook = async (id: string) => {
     if (
       !onScheduleInOutlook ||
@@ -242,7 +285,8 @@ export function StudyTaskBoard({
       const event = await onScheduleInOutlook(id);
       completedSchedules.current.add(id);
       setScheduledIds((current) => new Set([...current, id]));
-      if (event.webLink) window.open(event.webLink, "_blank", "noopener,noreferrer");
+      const eventUrl = safeExternalUrl(event.webLink);
+      if (eventUrl) window.open(eventUrl, "_blank", "noopener,noreferrer");
     } catch (cause) {
       setError(
         cause instanceof Error && cause.message === "STUDY_TASK_WITHOUT_SCHEDULE"
@@ -258,6 +302,11 @@ export function StudyTaskBoard({
       });
     }
   };
+  /**
+   * Complete a task once per pending request and hide it locally after success.
+   * A reopened task starts a new acknowledgment cycle when completed again.
+   * Callback errors become alerts and leave the task available for retry.
+   */
   const complete = async (id: string) => {
     if (completingPending.current.has(id)) return;
     completingPending.current.add(id);
@@ -304,6 +353,40 @@ export function StudyTaskBoard({
           </div>
         </div>
       </header>
+
+      <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
+        <div className="aa-surface-header">
+          <div><p className="aa-eyebrow">Novo passo</p><h2 id="new-task-title">Adicionar tarefa de estudo</h2></div>
+        </div>
+        <form
+          className="aa-planning-form"
+          aria-labelledby="new-task-title"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
+          <div className="aa-planning-form-row">
+            <div className="aa-field">
+              <label htmlFor="study-task-title">Tarefa</label>
+              <input className="aa-input" id="study-task-title" value={title} onChange={(event) => setTitle(event.target.value)} disabled={isSubmitting} placeholder="Ex.: Revisar capítulo 2" />
+            </div>
+            <div className="aa-field">
+              <label htmlFor="study-task-due">Prazo</label>
+              <input className="aa-input" id="study-task-due" type="datetime-local" lang="pt-BR" aria-describedby="study-task-due-preview" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
+              <p id="study-task-due-preview" className="aa-field-description" aria-live="polite">
+                {selectedDueAtPtBR
+                  ? `Prazo selecionado: ${selectedDueAtPtBR}.`
+                  : "Formato brasileiro: DD/MM/AAAA às HH:MM."}
+              </p>
+            </div>
+            <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
+              {isSubmitting ? "Criando…" : "Criar tarefa"}
+            </button>
+          </div>
+          {error ? <p role="alert" className="aa-field-error">{error}</p> : null}
+        </form>
+      </section>
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="outlook-title">
         <div className="aa-surface-header">
@@ -372,10 +455,10 @@ export function StudyTaskBoard({
                       {formatOutlookDateTime(event.start.dateTime, browserHydrated, event.start.timeZone)} · até {formatOutlookDateTime(event.end.dateTime, browserHydrated, event.end.timeZone)}
                     </small>
                   </div>
-                  {event.webLink ? (
+                  {safeExternalUrl(event.webLink) ? (
                     <a
                       className="aa-button aa-button-secondary aa-button-sm"
-                      href={event.webLink}
+                      href={safeExternalUrl(event.webLink)!}
                       rel="noreferrer"
                       target="_blank"
                     >
@@ -388,35 +471,6 @@ export function StudyTaskBoard({
           )}
         </section>
       ) : null}
-
-      <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
-        <div className="aa-surface-header">
-          <div><p className="aa-eyebrow">Novo passo</p><h2 id="new-task-title">Adicionar tarefa de estudo</h2></div>
-        </div>
-        <form
-          className="aa-planning-form"
-          aria-labelledby="new-task-title"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <div className="aa-planning-form-row">
-            <div className="aa-field">
-              <label htmlFor="study-task-title">Tarefa</label>
-              <input className="aa-input" id="study-task-title" value={title} onChange={(event) => setTitle(event.target.value)} disabled={isSubmitting} placeholder="Ex.: Revisar capítulo 2" />
-            </div>
-            <div className="aa-field">
-              <label htmlFor="study-task-due">Prazo</label>
-              <input className="aa-input" id="study-task-due" type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
-            </div>
-            <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
-              {isSubmitting ? "Criando…" : "Criar tarefa"}
-            </button>
-          </div>
-          {error ? <p role="alert" className="aa-field-error">{error}</p> : null}
-        </form>
-      </section>
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="upcoming-tasks-title">
         <div className="aa-surface-header">

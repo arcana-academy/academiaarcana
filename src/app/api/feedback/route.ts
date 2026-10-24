@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createFeedback } from "@/infrastructure/supabase/feedback-repository";
+import { consumeApiRateLimit } from "@/application/security/api-rate-limit";
+import {
+  createFeedback,
+  FeedbackAuthenticationError,
+} from "@/infrastructure/supabase/feedback-repository";
+import { SupabaseApiRateLimitRepository } from "@/infrastructure/supabase/security/api-rate-limit-repository";
+import { apiRateLimitResponse } from "@/lib/http/api-rate-limit-response";
+import { createClient } from "@/lib/supabase/server";
 
 const FeedbackSchema = z.object({
   name: z.string().trim().max(120).transform((value) => value || null),
@@ -9,24 +16,58 @@ const FeedbackSchema = z.object({
   feedback: z.string().trim().min(1).max(2000),
 });
 
+const NO_STORE_HEADERS = { "Cache-Control": "no-store" };
+
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Revise os campos do formulário." },
+      { status: 400, headers: NO_STORE_HEADERS },
+    );
+  }
+
+  try {
     const input = FeedbackSchema.parse(body);
+
+    // Validate shape before spending quota. Feedback remains fail-open when the
+    // limiter itself is unavailable so an infrastructure outage cannot silence
+    // students; authentication is still enforced by createFeedback.
+    const supabase = await createClient();
+    const limitResponse = apiRateLimitResponse(
+      await consumeApiRateLimit(
+        new SupabaseApiRateLimitRepository(supabase),
+        "feedback",
+      ),
+    );
+    if (limitResponse) return limitResponse;
+
     const record = await createFeedback(input);
     return NextResponse.json(
       { id: record.id, createdAt: record.createdAt },
-      { status: 201, headers: { "Cache-Control": "no-store" } },
+      { status: 201, headers: NO_STORE_HEADERS },
     );
   } catch (error) {
-    const message =
-      error instanceof z.ZodError
-        ? "Revise os campos do formulário."
-        : error instanceof Error
-          ? error.message
-          : "Não foi possível salvar o feedback.";
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Revise os campos do formulário." },
+        { status: 400, headers: NO_STORE_HEADERS },
+      );
+    }
 
-    const status = message.includes("autentic") || message.includes("sessão") ? 401 : 400;
-    return NextResponse.json({ error: message }, { status });
+    if (error instanceof FeedbackAuthenticationError) {
+      return NextResponse.json(
+        { error: "Entre na sua conta para enviar feedback." },
+        { status: 401, headers: NO_STORE_HEADERS },
+      );
+    }
+
+    // Never return the original exception, database details or credentials.
+    return NextResponse.json(
+      { error: "Não foi possível salvar o feedback." },
+      { status: 500, headers: NO_STORE_HEADERS },
+    );
   }
 }

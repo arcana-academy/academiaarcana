@@ -1,6 +1,7 @@
 // @vitest-environment node
 
-import { EventEmitter } from "node:events";
+import { EventEmitter, once } from "node:events";
+import { PassThrough } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ createServer: vi.fn(), request: vi.fn(), readFileSync: vi.fn(), listen: vi.fn() }));
@@ -66,6 +67,55 @@ describe("local Supabase HTTPS proxy boundaries", () => {
     mocks.request.mock.calls[0][1](upstreamResponse);
     expect(response.writeHead).toHaveBeenCalledWith(201, upstreamResponse.headers);
     expect(upstreamResponse.pipe).toHaveBeenCalledWith(response);
+  });
+
+  it("preserves actual request and response bytes across the local HTTPS bridge", async () => {
+    await run();
+    const handler = mocks.createServer.mock.calls[0][1];
+    const browserRequest = new PassThrough();
+    Object.assign(browserRequest, {
+      method: "POST",
+      url: "/auth/v1/token?grant_type=password",
+      headers: {
+        host: "127.0.0.1:54443",
+        "content-type": "application/json",
+        apikey: "synthetic-publishable-key",
+      },
+    });
+    const browserResponse = new PassThrough();
+    browserResponse.writeHead = vi.fn();
+
+    const upstreamRequest = new PassThrough();
+    const receivedByUpstream = [];
+    upstreamRequest.on("data", (chunk) => receivedByUpstream.push(chunk));
+    mocks.request.mockReturnValue(upstreamRequest);
+
+    handler(browserRequest, browserResponse);
+    browserRequest.end('{"synthetic":"credentials"}');
+    await once(upstreamRequest, "finish");
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      hostname: "127.0.0.1",
+      port: "54321",
+      method: "POST",
+      path: "/auth/v1/token?grant_type=password",
+      headers: { ...browserRequest.headers, host: "127.0.0.1:54321" },
+    }, expect.any(Function));
+    expect(Buffer.concat(receivedByUpstream).toString("utf8")).toBe('{"synthetic":"credentials"}');
+
+    const upstreamResponse = new PassThrough();
+    Object.assign(upstreamResponse, {
+      statusCode: 201,
+      headers: { "content-type": "application/json" },
+    });
+    const receivedByBrowser = [];
+    browserResponse.on("data", (chunk) => receivedByBrowser.push(chunk));
+    mocks.request.mock.calls[0][1](upstreamResponse);
+    upstreamResponse.end('{"created":true}');
+    await once(browserResponse, "finish");
+
+    expect(browserResponse.writeHead).toHaveBeenCalledWith(201, upstreamResponse.headers);
+    expect(Buffer.concat(receivedByBrowser).toString("utf8")).toBe('{"created":true}');
   });
 
   it.each([false, true])("ends an upstream failure safely when headersSent=%s", async (headersSent) => {

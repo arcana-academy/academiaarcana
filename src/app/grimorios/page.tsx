@@ -11,7 +11,18 @@ import { pageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata = pageMetadata("/grimorios");
 
-export default async function GrimoiresPage() {
+type GrimoiresPageProps = {
+  searchParams?: Promise<{ q?: string | string[] }>;
+};
+
+function normalizeSearchText(value: string): string {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+}
+
+export default async function GrimoiresPage({ searchParams }: GrimoiresPageProps) {
+  const queryParam = (await searchParams)?.q;
+  const query = typeof queryParam === "string" ? queryParam.trim().slice(0, 100) : "";
+  const normalizedQuery = normalizeSearchText(query);
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
   const repositoryClient = supabase as unknown as Parameters<
@@ -26,6 +37,12 @@ export default async function GrimoiresPage() {
   } catch {
     loadError = true;
   }
+
+  const visibleGrimoires = normalizedQuery
+    ? grimoires.filter((grimoire) =>
+        normalizeSearchText([grimoire.title, grimoire.description ?? ""].join(" ")).includes(normalizedQuery),
+      )
+    : grimoires;
 
   return (
     <AuthenticatedShell currentPath="/grimorios">
@@ -82,8 +99,37 @@ export default async function GrimoiresPage() {
               </Link>
             </header>
 
+            <form action="/grimorios" method="get" role="search" className="aa-field">
+              <label htmlFor="grimoires-search">Buscar grimórios</label>
+              <input
+                className="aa-input"
+                id="grimoires-search"
+                type="search"
+                name="q"
+                maxLength={100}
+                defaultValue={query}
+                placeholder="Título ou descrição"
+              />
+              <div className="aa-card-actions">
+                <button className="aa-button aa-button-secondary" type="submit">Buscar</button>
+                {query ? (
+                  <Link className="aa-button aa-button-ghost" href="/grimorios">
+                    Limpar busca
+                  </Link>
+                ) : null}
+              </div>
+            </form>
+
+            {query ? (
+              <p className="aa-state-copy" role="status">
+                {visibleGrimoires.length} {visibleGrimoires.length === 1 ? "resultado" : "resultados"} de {grimoires.length} {grimoires.length === 1 ? "grimório" : "grimórios"}.
+              </p>
+            ) : null}
+            {query && visibleGrimoires.length === 0 ? (
+              <p className="aa-state-copy">Nenhum grimório corresponde à busca. Tente outro termo ou limpe a busca.</p>
+            ) : null}
             <ul className="grimoires-library-list" aria-label="Seus grimórios">
-              {grimoires.map((grimoire) => (
+              {visibleGrimoires.map((grimoire) => (
                 <li className="grimoires-library-item" key={grimoire.id}>
                   <article className="aa-surface grimoires-library-card">
                     <div className="aa-grimoire-item-visual" aria-hidden="true">
@@ -101,6 +147,7 @@ export default async function GrimoiresPage() {
                     </div>
                     <Link
                       className="aa-button aa-button-ghost grimoires-library-open"
+                      aria-label={`Abrir grimório: ${grimoire.title}`}
                       href={getWorkspaceCanonicalHref({
                         grimoireId: grimoire.id,
                         notebookId: null,

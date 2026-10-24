@@ -3,6 +3,7 @@ import type {
   Grimoire,
   Notebook,
   Page,
+  PageProgressStatus,
   WorkspaceState,
 } from "@/domains/learning";
 import { createChapterRepository } from "@/infrastructure/supabase/workspace/chapter-repository";
@@ -119,24 +120,76 @@ export default async function WorkspacePage({
   const chapterRepository = createChapterRepository(repositoryClient);
   const pageRepository = createPageRepository(repositoryClient);
 
-  const tree = await loadWorkspaceTree(
-    grimoireRepository,
-    notebookRepository,
-    chapterRepository,
-    pageRepository,
-    claims.sub,
-  );
+  let tree: WorkspaceTree;
+  let initialPageProgress: Record<string, PageProgressStatus>;
 
-  const allPageIds = tree.flatMap((grimoire) =>
-    grimoire.notebooks.flatMap((notebook) =>
-      notebook.chapters.flatMap((chapter) => chapter.pages.map((page) => page.id)),
-    ),
-  );
-  const pageProgressRepository = new SupabasePageProgressRepository(supabase);
-  const pageProgressRows = await pageProgressRepository.listByPages(claims.sub, allPageIds);
-  const initialPageProgress = Object.fromEntries(
-    pageProgressRows.map((item) => [item.pageId, item.status]),
-  );
+  try {
+    tree = await loadWorkspaceTree(
+      grimoireRepository,
+      notebookRepository,
+      chapterRepository,
+      pageRepository,
+      claims.sub,
+    );
+
+    const allPageIds = tree.flatMap((grimoire) =>
+      grimoire.notebooks.flatMap((notebook) =>
+        notebook.chapters.flatMap((chapter) => chapter.pages.map((page) => page.id)),
+      ),
+    );
+    const pageProgressRepository = new SupabasePageProgressRepository(supabase);
+    const pageProgressRows = await pageProgressRepository.listByPages(claims.sub, allPageIds);
+    initialPageProgress = Object.fromEntries(
+      pageProgressRows.map((item) => [item.pageId, item.status]),
+    );
+  } catch {
+    return (
+      <AuthenticatedShell currentPath="/workspace">
+        <main className="aa-page aa-workspace-page" aria-labelledby="workspace-title">
+          <header className="aa-card aa-card-elevated">
+            <h1 id="workspace-title">Workspace</h1>
+            <p className="aa-state-copy">
+              Organize seus Grimórios, Cadernos, Capítulos e Páginas no seu ritmo.
+            </p>
+          </header>
+          <section
+            className="aa-card aa-card-default"
+            role="alert"
+            aria-labelledby="workspace-load-error-title"
+          >
+            <h2 id="workspace-load-error-title">
+              Não foi possível carregar seu Workspace
+            </h2>
+            <p className="aa-state-copy">
+              Não foi possível consultar seus materiais agora. Essa falha não significa
+              que seus conteúdos foram removidos.
+            </p>
+            <form action="/workspace" method="get">
+              <input type="hidden" name="view" value="tree" />
+              {params.grimoire ? (
+                <input type="hidden" name="grimoire" value={params.grimoire} />
+              ) : null}
+              {params.notebook ? (
+                <input type="hidden" name="notebook" value={params.notebook} />
+              ) : null}
+              {params.chapter ? (
+                <input type="hidden" name="chapter" value={params.chapter} />
+              ) : null}
+              {params.page ? (
+                <input type="hidden" name="page" value={params.page} />
+              ) : null}
+              <button className="aa-button aa-button-secondary" type="submit">
+                Tentar novamente
+              </button>
+            </form>
+            <a className="aa-button aa-button-secondary" href="/academia">
+              Voltar à Academia
+            </a>
+          </section>
+        </main>
+      </AuthenticatedShell>
+    );
+  }
 
   const initialState: WorkspaceState = resolveWorkspaceState(
     { grimoires: tree },

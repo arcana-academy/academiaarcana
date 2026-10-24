@@ -112,9 +112,22 @@ export type TrelloConnectionVerification = {
 };
 
 export class TrelloConnectionError extends Error {
-  constructor(message = "Trello não está configurado ou autorizado.") {
+  constructor(
+    message = "Trello não está configurado ou autorizado.",
+    readonly httpStatus?: number,
+  ) {
     super(message);
     this.name = "TrelloConnectionError";
+  }
+}
+
+export class TrelloRefreshError extends TrelloConnectionError {
+  constructor(
+    readonly httpStatus?: number,
+    readonly oauthError?: "invalid_grant",
+  ) {
+    super("Não foi possível renovar a autorização do Trello.");
+    this.name = "TrelloRefreshError";
   }
 }
 
@@ -291,9 +304,10 @@ async function trelloRequest<T>(path: string, token: string, init: RequestInit =
     if (response.status === 401 || response.status === 403) {
       throw new TrelloConnectionError(
         "A autorização do Trello expirou ou foi revogada. Reconecte a conta.",
+        response.status,
       );
     }
-    throw new TrelloConnectionError(`Trello API respondeu com HTTP ${response.status}.`);
+    throw new TrelloConnectionError(`Trello API respondeu com HTTP ${response.status}.`, response.status);
   }
 
   if (response.status === 204) return undefined as T;
@@ -358,7 +372,17 @@ export async function refreshTrelloCredentials(
     }),
   });
 
-  if (!response.ok) throw new TrelloConnectionError("Não foi possível renovar a autorização do Trello.");
+  if (!response.ok) {
+    let oauthError: "invalid_grant" | undefined;
+    if (response.status === 400) {
+      const payload: unknown = await response.json().catch(() => null);
+      if (payload !== null && typeof payload === "object" &&
+          "error" in payload && payload.error === "invalid_grant") {
+        oauthError = "invalid_grant";
+      }
+    }
+    throw new TrelloRefreshError(response.status, oauthError);
+  }
 
   const payload = (await response.json()) as {
     access_token?: string;

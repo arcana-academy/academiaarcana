@@ -1,23 +1,17 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
-  ASANA_CREDENTIALS_COOKIE, decryptAsanaCredentials, closeAsanaTask,
-  createAsanaTask, getAsanaTasks,
+  closeAsanaTask,
+  createAsanaTask,
+  getAsanaTasks,
 } from "@/infrastructure/integrations/asana";
-import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { getAsanaCredentialsContext } from "../_lib";
 
 export const dynamic = "force-dynamic";
 
-async function credentialsForUser() {
-  const claims = await requireAuthenticatedUser();
-  const cookieStore = await cookies();
-  const credentials = await decryptAsanaCredentials(cookieStore.get(ASANA_CREDENTIALS_COOKIE)?.value);
-  return credentials?.subjectId === claims.sub ? credentials : null;
-}
-
 export async function GET(request: Request) {
-  const credentials = await credentialsForUser();
-  if (!credentials) return NextResponse.json({ providerId: "asana", status: "disconnected", tasks: [] }, {
+  const { credentials, status } = await getAsanaCredentialsContext();
+  if (!credentials) return NextResponse.json({ providerId: "asana", status, tasks: [] }, {
+    status: status === "request_failed" ? 502 : 200,
     headers: { "Cache-Control": "private, no-store" },
   });
   const projectId = new URL(request.url).searchParams.get("projectId") ?? undefined;
@@ -32,8 +26,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const credentials = await credentialsForUser();
-  if (!credentials) return NextResponse.json({ providerId: "asana", status: "disconnected" }, { status: 401 });
+  const { credentials, status } = await getAsanaCredentialsContext();
+  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: status === "request_failed" ? 502 : 401, headers: { "Cache-Control": "private, no-store" } });
 
   try {
     const body = await request.json() as {
@@ -53,8 +47,8 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const credentials = await credentialsForUser();
-  if (!credentials) return NextResponse.json({ providerId: "asana", status: "disconnected" }, { status: 401 });
+  const { credentials, status } = await getAsanaCredentialsContext();
+  if (!credentials) return NextResponse.json({ providerId: "asana", status }, { status: status === "request_failed" ? 502 : 401, headers: { "Cache-Control": "private, no-store" } });
 
   try {
     const body = await request.json() as { taskId?: string };

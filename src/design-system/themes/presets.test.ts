@@ -92,6 +92,7 @@ const requiredTokenPaths = [
 
 const approvedThemeIds = [
   "mago-classico",
+  "pergaminho-claro",
   "escuro",
   "estudioso",
   "natural",

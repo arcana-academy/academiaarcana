@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => {
     browserDebug: vi.fn(),
     serverConfigure,
     serverDebug: vi.fn(),
-    setupHoneybadger: vi.fn((config) => ({ ...config, honeybadger: true })),
+    withHoneybadgerConfig: vi.fn((config) => ({ ...config, honeybadger: true })),
   };
 });
 
@@ -29,7 +29,7 @@ vi.mock("@honeybadger-io/js", () => ({
 }));
 
 vi.mock("@honeybadger-io/nextjs", () => ({
-  setupHoneybadger: mocks.setupHoneybadger,
+  withHoneybadgerConfig: mocks.withHoneybadgerConfig,
 }));
 
 describe("Honeybadger runtime configuration", () => {
@@ -138,13 +138,14 @@ describe("Honeybadger runtime configuration", () => {
   it("wraps strict-mode Next.js configuration exactly once", async () => {
     const { default: nextConfig } = await import("./next.config");
 
-    expect(mocks.setupHoneybadger).toHaveBeenCalledOnce();
-    expect(mocks.setupHoneybadger).toHaveBeenCalledWith(
+    expect(mocks.withHoneybadgerConfig).toHaveBeenCalledOnce();
+    expect(mocks.withHoneybadgerConfig).toHaveBeenCalledWith(
       expect.objectContaining({
         reactStrictMode: true,
         poweredByHeader: false,
         headers: expect.any(Function),
       }),
+      { disableSourceMapUpload: true },
     );
     expect(nextConfig).toEqual(
       expect.objectContaining({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import {
@@ -107,6 +107,10 @@ export function WorkspaceShell({
 
   const [state, setState] = useState<WorkspaceState>(initialState);
 
+  // Next.js can replace the browser URL while applying a server-action
+  // revalidation even when the selected hierarchy item does not change. Run
+  // after every shell render so mutations such as page saves reassert the
+  // canonical, reloadable selection URL as well as explicit selections do.
   useEffect(() => {
     const canonicalHref = getWorkspaceCanonicalHref(state);
     const currentHref =
@@ -115,7 +119,7 @@ export function WorkspaceShell({
     if (currentHref !== canonicalHref) {
       window.history.replaceState(window.history.state, "", canonicalHref);
     }
-  }, [state]);
+  });
   const [pages, setPages] = useState<Record<string, Page>>({});
   const [pageProgress, setPageProgress] = useState<Record<string, PageProgressStatus>>(initialPageProgress);
   const [renamedGrimoires, setRenamedGrimoires] = useState<Record<string, string>>({});
@@ -137,6 +141,16 @@ export function WorkspaceShell({
   const [createdPages, setCreatedPages] = useState<Record<string, Page[]>>({});
   const [reorderedPages, setReorderedPages] = useState<Record<string, number>>({});
   const [deletedPageIds, setDeletedPageIds] = useState<string[]>([]);
+  const [deletionFeedback, setDeletionFeedback] = useState("");
+  const restoreFocusAfterDelete = useRef(false);
+
+  // The keyed PageEditor unmounts after successful deletion. Return focus
+  // to the surviving editor region, never to a now-detached delete button.
+  useEffect(() => {
+    if (!restoreFocusAfterDelete.current) return;
+    restoreFocusAfterDelete.current = false;
+    if (!state.pageId) document.getElementById("current")?.focus();
+  }, [state.pageId, deletedPageIds]);
 
   const workspaceTree = useMemo<WorkspaceTree>(() => ({
     grimoires: [
@@ -353,6 +367,8 @@ export function WorkspaceShell({
   /** Delete a page, clear its local state, and keep the chapter selected. */
   const deletePage = async (id: string) => {
     await onDeletePage(id);
+    restoreFocusAfterDelete.current = state.pageId === id;
+    setDeletionFeedback("Página excluída. Retorno ao capítulo.");
     setDeletedPageIds((current) =>
       current.includes(id) ? current : [...current, id],
     );
@@ -401,6 +417,7 @@ export function WorkspaceShell({
       state={state}
       title={title}
       selectedPage={selectedPage}
+      deletionFeedback={deletionFeedback}
       canMovePageUp={pageMovement.canMoveUp}
       canMovePageDown={pageMovement.canMoveDown}
       onOpenGrimoire={(id) => setState((current) => openGrimoire(current, id))}
@@ -409,8 +426,14 @@ export function WorkspaceShell({
       onRenameNotebook={renameNotebook}
       onRenameChapter={renameChapter}
       onOpenNotebook={(id) => setState((current) => openNotebook(current, id))}
-      onOpenChapter={(id) => setState((current) => openChapter(current, id))}
-      onOpenPage={(id) => setState((current) => openPage(current, id))}
+      onOpenChapter={(id) => {
+        setDeletionFeedback("");
+        setState((current) => openChapter(current, id));
+      }}
+      onOpenPage={(id) => {
+        setDeletionFeedback("");
+        setState((current) => openPage(current, id));
+      }}
       onCreateNotebook={createNotebook}
       onCreateChapter={createChapter}
       onCreatePage={createPage}

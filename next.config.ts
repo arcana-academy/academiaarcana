@@ -1,4 +1,4 @@
-import { setupHoneybadger } from "@honeybadger-io/nextjs";
+import { withHoneybadgerConfig } from "@honeybadger-io/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -35,24 +35,18 @@ const nextConfig: NextConfig = {
 
 const honeybadgerApiKey = process.env.NEXT_PUBLIC_HONEYBADGER_API_KEY;
 const honeybadgerAssetsUrl = process.env.NEXT_PUBLIC_HONEYBADGER_ASSETS_URL;
-const honeybadgerConfigured = Boolean(honeybadgerApiKey && honeybadgerAssetsUrl);
+const honeybadgerConfigured = Boolean(
+  honeybadgerApiKey && honeybadgerAssetsUrl,
+);
 
-const honeybadgerConfig = {
-  disableSourceMapUpload: !honeybadgerConfigured,
-  webpackPluginOptions: {
-    ...(honeybadgerConfigured
-      ? {
-          apiKey: honeybadgerApiKey,
-          assetsUrl: honeybadgerAssetsUrl,
-          revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
-        }
-      : {}),
-  },
-};
+// @honeybadger-io/nextjs v6 moved build configuration from the removed
+// setupHoneybadger/webpackPluginOptions API to withHoneybadgerConfig.
+const honeybadgerConfig = honeybadgerConfigured
+  ? {
+      apiKey: honeybadgerApiKey,
+      assetsUrl: honeybadgerAssetsUrl,
+      revision: process.env.NEXT_PUBLIC_HONEYBADGER_REVISION,
+    }
+  : { disableSourceMapUpload: true };
 
-const honeybadgerArgs =
-  process.env.NODE_ENV === "test" || !honeybadgerConfigured
-    ? [nextConfig]
-    : [nextConfig, honeybadgerConfig];
-
-export default setupHoneybadger(...(honeybadgerArgs as [NextConfig]));
+export default withHoneybadgerConfig(nextConfig, honeybadgerConfig);

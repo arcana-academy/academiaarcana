@@ -39,10 +39,13 @@ describe("global error boundary", () => {
 
     expect(document.documentElement).toHaveAttribute("lang", "pt-BR");
     expect(
-      screen.getByRole("heading", { name: "Something went wrong!" }),
+      screen.getByRole("heading", { name: "Não foi possível carregar a Academia Arcana" }),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(screen.getByRole("alert")).toHaveAttribute("aria-labelledby", "global-error-title");
+    expect(screen.getByRole("button", { name: "Tentar novamente" })).toHaveAttribute("type", "button");
+
+    fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(reset).toHaveBeenCalledOnce();
   });
 

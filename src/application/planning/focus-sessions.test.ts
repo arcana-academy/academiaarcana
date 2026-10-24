@@ -76,4 +76,18 @@ describe("FocusSessionService", () => {
 
     expect(repository.complete).not.toHaveBeenCalled();
   });
+
+  it.each(["", "   "])("rejects an absent owner %j before starting a focus session", async (ownerId) => {
+    const repository = { start: vi.fn(), complete: vi.fn() };
+    const service = new FocusSessionService(repository);
+    await expect(service.start({ ownerId, durationSeconds: 1500 })).rejects.toThrow("Proprietário da sessão de foco inválido.");
+    expect(repository.start).not.toHaveBeenCalled();
+  });
+
+  it.each(["", "   "])("rejects an absent owner %j before completing a focus session", async (ownerId) => {
+    const repository = { start: vi.fn(), complete: vi.fn() };
+    const service = new FocusSessionService(repository);
+    await expect(service.complete(ownerId, "synthetic-session")).rejects.toThrow("Proprietário da sessão de foco inválido.");
+    expect(repository.complete).not.toHaveBeenCalled();
+  });
 });

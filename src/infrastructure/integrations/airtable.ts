@@ -106,5 +106,24 @@ export async function createAirtableRecords(tableIdOrName: string, records: Read
     AIRTABLE_API_BASE_URL + "/" + encodeURIComponent(getAirtableBaseId()) + "/" + encodeURIComponent(table),
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ records }) },
   );
-  return { providerId: AIRTABLE_PROVIDER_ID, tool: "create_records", output: output.records ?? [] };
+  const confirmed = output?.records;
+  if (
+    !Array.isArray(confirmed) ||
+    confirmed.length !== records.length ||
+    !confirmed.every(
+      (record) =>
+        record !== null &&
+        typeof record.id === "string" &&
+        Boolean(record.id.trim()) &&
+        record.fields !== null &&
+        typeof record.fields === "object" &&
+        !Array.isArray(record.fields),
+    )
+  ) {
+    throw new AirtableConnectionError(
+      "Airtable não confirmou os registros criados.",
+    );
+  }
+
+  return { providerId: AIRTABLE_PROVIDER_ID, tool: "create_records", output: confirmed };
 }

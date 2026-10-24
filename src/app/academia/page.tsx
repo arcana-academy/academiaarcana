@@ -1,10 +1,11 @@
 import Link from "next/link";
 
+import { getSanctuary } from "@/application/sanctuary/get-sanctuary";
+import { AcademyJourney } from "@/components/academy/AcademyJourney";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
+import { SupabaseSanctuaryRepository } from "@/infrastructure/sanctuary/supabase-sanctuary-repository";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
-import { pageMetadata } from "@/lib/seo/site-metadata";
-
-export const metadata = pageMetadata("/academia");
+import { createClient } from "@/lib/supabase/server";
 
 const learningPaths = [
   {
@@ -56,6 +57,26 @@ const learningPaths = [
         title: "Prática",
         description: "Acesse suas atividades de prática.",
       },
+      {
+        href: "/roteiro-estudo",
+        title: "Roteiro de estudo",
+        description: "Organize até cinco páginas salvas em uma sequência temporária.",
+      },
+      {
+        href: "/comparar-conceitos",
+        title: "Comparação de conceitos",
+        description: "Construa relações entre duas páginas salvas em uma reflexão temporária.",
+      },
+      {
+        href: "/lacunas-estudo",
+        title: "Prática de lacunas",
+        description: "Recupere palavras ocultadas de trechos reais das suas páginas salvas.",
+      },
+      {
+        href: "/ordenar-estudo",
+        title: "Sequência de estudo",
+        description: "Reorganize blocos das suas páginas salvas sem alterar seu progresso.",
+      },
     ],
   },
   {
@@ -78,7 +99,11 @@ const learningPaths = [
 ] as const;
 
 export default async function AcademiaPage() {
-  await requireAuthenticatedUser();
+  const claims = await requireAuthenticatedUser();
+  const supabase = await createClient();
+  const journey = await getSanctuary(new SupabaseSanctuaryRepository(supabase), {
+    user: { id: claims.sub },
+  });
 
   return (
     <AuthenticatedShell currentPath="/academia">
@@ -92,6 +117,8 @@ export default async function AcademiaPage() {
             </p>
           </div>
         </header>
+
+        <AcademyJourney journey={journey} />
 
         <section className="academy-paths" aria-labelledby="academia-paths-title">
           <header className="academy-paths-header">

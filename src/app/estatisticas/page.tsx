@@ -1,5 +1,6 @@
 import { getEducationalOverview } from "@/application/education/p1";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
+import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { getProgression } from "@/domains/gamification";
 import { SupabaseEducationalPracticeRepository } from "@/infrastructure/supabase/education/practice-repository";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
@@ -22,12 +23,39 @@ export default async function EstatisticasPage() {
   const repository = new SupabaseGamificationRepository(supabase);
   const educationalRepository = new SupabaseEducationalPracticeRepository(supabase);
 
-  const [profile, missions, educational] = await Promise.all([
+  let snapshot: Awaited<ReturnType<typeof loadStatistics>> | null = null;
+
+  async function loadStatistics() {
+    return Promise.all([
     repository.getProfile(claims.sub),
     repository.listDailyMissions(claims.sub, todayUtc()),
     getEducationalOverview(educationalRepository, claims.sub),
-  ]);
+    ]);
+  }
 
+  try {
+    snapshot = await loadStatistics();
+  } catch {
+    // A failed read is not evidence of zero progress or absent learning.
+  }
+
+  if (snapshot === null) {
+    return (
+      <AuthenticatedShell currentPath="/estatisticas">
+        <ArcanaPage eyebrow="Progresso" title="Estatísticas" description="Indicadores baseados em dados verificáveis.">
+          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="statistics-unavailable-title">
+            <h2 id="statistics-unavailable-title">Não foi possível carregar suas estatísticas</h2>
+            <p>Os indicadores estão temporariamente indisponíveis. Tente novamente para consultar seu progresso.</p>
+            <form action="/estatisticas" method="get">
+              <button className="aa-button aa-button-secondary" type="submit">Tentar novamente</button>
+            </form>
+          </section>
+        </ArcanaPage>
+      </AuthenticatedShell>
+    );
+  }
+
+  const [profile, missions, educational] = snapshot;
   const progression = getProgression(profile, missions);
   const denominator = Math.max(
     1,

@@ -39,4 +39,16 @@ describe("Dropbox integration", () => {
       /Dropbox não está configurado/,
     );
   });
+  it.each([
+    ["missing account id", {}],
+    ["blank account id", { account_id: "  " }],
+    ["non-string account id", { account_id: 42 }],
+  ])("rejects successful Dropbox responses with %s", async (_case, payload) => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(payload), { status: 200 })));
+    await expect(verifyDropboxConnection("synthetic-token")).rejects.toThrow(
+      "Dropbox retornou uma identificação de conta inválida.",
+    );
+    vi.unstubAllGlobals();
+  });
+
 });

@@ -34,6 +34,23 @@ type CreatePageInput = {
   content: PageContent;
 };
 
+// Append within the current parent collection instead of repeatedly using 0.
+function assertValidPosition(position: number): void {
+  if (!Number.isSafeInteger(position) || position < 0) {
+    throw new Error("Posição inválida.");
+  }
+}
+
+function nextPosition(siblings: ReadonlyArray<{ position: number }>): number {
+  const highest = siblings.reduce((max, sibling) => {
+    assertValidPosition(sibling.position);
+    return Math.max(max, sibling.position);
+  }, -1);
+  const position = highest + 1;
+  assertValidPosition(position);
+  return position;
+}
+
 export class WorkspaceService {
   constructor(private readonly repositories: WorkspaceServiceDependencies) {}
 
@@ -46,6 +63,7 @@ export class WorkspaceService {
       throw new Error("Grimoire not found");
     }
 
+    const siblings = await this.repositories.notebookRepository.listByGrimoire(input.grimoireId);
     const now = new Date().toISOString();
 
     return this.repositories.notebookRepository.create({
@@ -55,7 +73,7 @@ export class WorkspaceService {
       ...(input.description !== undefined
         ? { description: input.description }
         : {}),
-      position: 0,
+      position: nextPosition(siblings),
       createdAt: now,
       updatedAt: now,
     });
@@ -70,13 +88,14 @@ export class WorkspaceService {
       throw new Error("Notebook not found");
     }
 
+    const siblings = await this.repositories.chapterRepository.listByNotebook(input.notebookId);
     const now = new Date().toISOString();
 
     return this.repositories.chapterRepository.create({
       id: crypto.randomUUID(),
       notebookId: input.notebookId,
       title: input.title,
-      position: 0,
+      position: nextPosition(siblings),
       createdAt: now,
       updatedAt: now,
     });
@@ -91,6 +110,7 @@ export class WorkspaceService {
       throw new Error("Chapter not found");
     }
 
+    const siblings = await this.repositories.pageRepository.listByChapter(input.chapterId);
     const now = new Date().toISOString();
 
     return this.repositories.pageRepository.create({
@@ -98,7 +118,7 @@ export class WorkspaceService {
       chapterId: input.chapterId,
       title: input.title,
       content: input.content,
-      position: 0,
+      position: nextPosition(siblings),
       createdAt: now,
       updatedAt: now,
     });
@@ -185,6 +205,7 @@ export class WorkspaceService {
   }
 
   async reorderNotebook(id: string, position: number): Promise<void> {
+    assertValidPosition(position);
     const notebook = await this.repositories.notebookRepository.getById(id);
 
     if (!notebook) {
@@ -195,6 +216,7 @@ export class WorkspaceService {
   }
 
   async reorderChapter(id: string, position: number): Promise<void> {
+    assertValidPosition(position);
     const chapter = await this.repositories.chapterRepository.getById(id);
 
     if (!chapter) {
@@ -205,6 +227,7 @@ export class WorkspaceService {
   }
 
   async reorderPage(id: string, position: number): Promise<void> {
+    assertValidPosition(position);
     const page = await this.repositories.pageRepository.getById(id);
 
     if (!page) {

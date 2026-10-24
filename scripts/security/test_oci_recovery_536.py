@@ -157,6 +157,19 @@ class OciOfflineTests(unittest.TestCase):
                 digest = fixture(self.path, user=user)
                 self.assertEqual(verify.verify(self.path, digest)["user"], user)
 
+    def test_rejects_root_uid_or_name_with_group(self):
+        for user in ("0:0", "0:node", "000:users", "+0:1000", "root:node", "ROOT:node", ":node"):
+            with self.subTest(user=user):
+                digest = fixture(self.path, user=user)
+                with self.assertRaises(verify.IntegrityError):
+                    verify.verify(self.path, digest)
+
+    def test_accepts_explicit_non_root_principal_with_group(self):
+        for user in ("node:node", "1000:1000"):
+            with self.subTest(user=user):
+                digest = fixture(self.path, user=user)
+                self.assertEqual(verify.verify(self.path, digest)["result"], "PASS")
+
     def test_rejects_mutable_tags(self):
         with self.assertRaises(verify.IntegrityError):
             verify.check_sha("latest")

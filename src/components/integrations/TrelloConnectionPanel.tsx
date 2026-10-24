@@ -11,6 +11,7 @@ import {
   Search,
   Unplug,
 } from "lucide-react";
+import { safeExternalUrl } from "@/lib/security/external-url";
 
 type TrelloBoard = { id: string; name: string; url: string; closed: boolean };
 type TrelloList = { id: string; idBoard: string; name: string; pos: number; closed: boolean };
@@ -430,7 +431,7 @@ export function TrelloConnectionPanel() {
                 </div>
                 <a
                   className="aa-button aa-button-secondary aa-button-sm"
-                  href={boardData.board.url}
+                  href={safeExternalUrl(boardData.board.url) ?? "https://trello.com/"}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={`Abrir board ${boardData.board.name} no Trello`}
@@ -482,7 +483,7 @@ export function TrelloConnectionPanel() {
                               </button>
                               <a
                                 className="aa-button aa-button-secondary aa-button-sm"
-                                href={card.url}
+                                href={safeExternalUrl(card.url) ?? "https://trello.com/"}
                                 target="_blank"
                                 rel="noreferrer"
                                 aria-label={`Abrir card ${card.name} no Trello`}
@@ -619,7 +620,7 @@ export function TrelloConnectionPanel() {
               {(searchResults.boards ?? []).map((board) => (
                 <a
                   className="aa-card aa-card-default"
-                  href={board.url}
+                  href={safeExternalUrl(board.url) ?? "https://trello.com/"}
                   target="_blank"
                   rel="noreferrer"
                   key={`board-${board.id}`}
@@ -631,7 +632,7 @@ export function TrelloConnectionPanel() {
               {(searchResults.cards ?? []).map((card) => (
                 <a
                   className="aa-card aa-card-default"
-                  href={card.url}
+                  href={safeExternalUrl(card.url) ?? "https://trello.com/"}
                   target="_blank"
                   rel="noreferrer"
                   key={`card-${card.id}`}

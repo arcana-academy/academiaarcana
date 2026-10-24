@@ -1,13 +1,8 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
-
-import {
-  isVisualBaselineWriteEnabled,
-  writeVisualBaselines,
-} from "./support/visual-baselines";
 
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
@@ -16,8 +11,12 @@ type Baselines = Record<string, string>;
 const baselinePath = join(process.cwd(), "tests/e2e/cronograma-pilot-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
 
-async function screenshotHash(locator: Locator): Promise<string> {
+async function screenshotHash(locator: Locator, evidencePath?: string): Promise<string> {
   const bytes = await locator.screenshot({ animations: "disabled" });
+  if (evidencePath) {
+    mkdirSync(dirname(evidencePath), { recursive: true });
+    writeFileSync(evidencePath, bytes);
+  }
   return createHash("sha256").update(bytes).digest("hex");
 }
 
@@ -194,6 +193,13 @@ test("StudyTaskBoard remains usable when decorative assets fail", async ({ page 
 
 test("Cronograma pilot records performance evidence without inventing a budget", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
+  // Theme tokens apply after hydration, so button color transitions started by
+  // the initial paint must settle before measuring steady-state motion.
+  await page.waitForFunction(
+    () => document.getAnimations().every((animation) => animation.playState !== "running"),
+    null,
+    { timeout: 10_000 },
+  );
   const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
     descendants: node.querySelectorAll("*").length,
     images: node.querySelectorAll("img").length,
@@ -220,28 +226,33 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
     { width: 1280, height: 900, label: "desktop" },
   ]) {
     await page.setViewportSize(viewport);
-    // Render both variants through the real React pilot, including SSR and
-    // hydration. Directly rewriting the DOM was not a faithful tablet control:
-    // C44's first run matched mobile/desktop but retained tablet divergence.
-    // Neither production data nor the immutable visual baselines are changed.
-    await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default&copy=legacy");
-    const reference = page.locator(".aa-study-task-board");
-    await expect(reference.locator("#upcoming-tasks-title")).toHaveText("Tarefas futuras");
-    await settleVisualSurface(page, reference);
-    referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(reference);
-
     await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=default");
-    const current = page.locator(".aa-study-task-board");
-    await expect(current.locator("#upcoming-tasks-title")).toHaveText("Tarefas pendentes");
-    await settleVisualSurface(page, current);
-    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(current);
+    const board = page.locator(".aa-study-task-board");
+    await expect(board).toBeVisible();
+    await settleVisualSurface(page, board);
+    actual[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(
+      board, join(process.cwd(), "test-results", "aa-cronograma-c43", `${viewport.label}-novo.png`),
+    );
+
+    // Comparison-only control: revert exactly the changed heading wording,
+    // not CSS, layout or app data, and compare with the previously approved
+    // immutable visual hashes. No production code or snapshots are altered.
+    await board.locator("#upcoming-tasks-title").evaluate((heading) => {
+      heading.textContent = "Tarefas futuras";
+    });
+    await settleVisualSurface(page, board);
+    referenceCopy[`cronograma:mago-classico:${viewport.label}`] = await screenshotHash(
+      board, join(process.cwd(), "test-results", "aa-cronograma-c43", `${viewport.label}-referencia.png`),
+    );
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
-  if (isVisualBaselineWriteEnabled()) {
-    writeVisualBaselines(baselinePath, actual);
-    return;
+  console.log(`AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON=${JSON.stringify(referenceCopy)}`);
+  // Original approved baselines remain unchanged. Only the confirmed text
+  // change may alter the live pixels; rendering its prior wording must
+  // reproduce all three previously reviewed screenshots byte-for-byte.
+  expect(referenceCopy).toEqual(baselines);
+  for (const key of Object.keys(actual)) {
+    expect(actual[key], `Visible heading copy must change: ${key}`).not.toBe(referenceCopy[key]);
   }
-
-  expect(actual).toEqual(baselines);
 });

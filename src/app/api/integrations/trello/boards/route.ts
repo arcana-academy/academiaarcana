@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { createTrelloBoard, getTrelloBoards } from "@/infrastructure/integrations/trello";
+import {
+  createTrelloBoard,
+  getTrelloBoards,
+  TrelloConnectionError,
+} from "@/infrastructure/integrations/trello";
 import { getTrelloCredentialsContext } from "../_lib";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +14,7 @@ export async function GET() {
   if (!credentials) {
     return NextResponse.json(
       { status },
-      { status: status === "reauthorization_required" ? 401 : 200 },
+      { status: status === "request_failed" ? 502 : status === "reauthorization_required" ? 401 : 200, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 
@@ -20,8 +24,21 @@ export async function GET() {
       { status: "connected", boards: result.output },
       { status: 200, headers: { "Cache-Control": "private, no-store" } },
     );
-  } catch {
-    return NextResponse.json({ status: "reauthorization_required" }, { status: 401 });
+  } catch (error) {
+    const authorizationRejected =
+      error instanceof TrelloConnectionError &&
+      (error.httpStatus === 401 || error.httpStatus === 403);
+    return NextResponse.json(
+      {
+        status: authorizationRejected
+          ? "reauthorization_required"
+          : "trello_request_failed",
+      },
+      {
+        status: authorizationRejected ? 401 : 502,
+        headers: { "Cache-Control": "private, no-store" },
+      },
+    );
   }
 }
 
@@ -30,7 +47,7 @@ export async function POST(request: Request) {
   if (!credentials) {
     return NextResponse.json(
       { error: status },
-      { status: status === "reauthorization_required" ? 401 : 409 },
+      { status: status === "request_failed" ? 502 : status === "reauthorization_required" ? 401 : 409, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 

@@ -160,26 +160,63 @@ async function refreshAccessToken(ownerId: string, refreshToken: string) {
   );
 
   if (!response.ok) {
-    await clearOutlookTokens(ownerId);
+    // Only an explicit invalid_grant response establishes that the stored
+    // refresh token was revoked or expired. Rate limits, server outages and
+    // unrelated OAuth errors must not destroy recoverable credentials.
+    const errorPayload = (await response.json().catch(() => null)) as
+      | { error?: unknown }
+      | null;
+    if (response.status === 400 && errorPayload?.error === "invalid_grant") {
+      await clearOutlookTokens(ownerId);
+      throw new OutlookCalendarError(
+        "A autorização do Outlook expirou. Conecte novamente sua conta.",
+        response.status,
+      );
+    }
+
     throw new OutlookCalendarError(
-      "A autorização do Outlook expirou. Conecte novamente sua conta.",
+      "Não foi possível renovar a conexão do Outlook. Tente novamente.",
       response.status,
     );
   }
 
-  const payload = (await response.json()) as {
-    access_token: string;
-    refresh_token?: string;
-    expires_in: number;
-  };
+  // HTTP 200 alone does not make external JSON a valid token response.
+  // Validate before any credential write to avoid replacing a usable session
+  // with an empty access token, invalid expiration or rotated refresh token.
+  const payload = (await response.json().catch(() => null)) as
+    | { access_token?: unknown; refresh_token?: unknown; expires_in?: unknown }
+    | null;
+  const accessToken = payload?.access_token;
+  const expiresIn = payload?.expires_in;
+  const rotatedRefreshToken = payload?.refresh_token;
+  if (
+    typeof accessToken !== "string" ||
+    !accessToken.trim() ||
+    typeof expiresIn !== "number" ||
+    !Number.isSafeInteger(expiresIn) ||
+    expiresIn <= 0 ||
+    (rotatedRefreshToken !== undefined &&
+      (typeof rotatedRefreshToken !== "string" || !rotatedRefreshToken.trim()))
+  ) {
+    throw new OutlookCalendarError(
+      "Não foi possível renovar a conexão do Outlook. Tente novamente.",
+    );
+  }
+
+  const expiresAtMs = Date.now() + expiresIn * 1000;
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs > 8_640_000_000_000_000) {
+    throw new OutlookCalendarError(
+      "Não foi possível renovar a conexão do Outlook. Tente novamente.",
+    );
+  }
 
   await storeOutlookTokens(ownerId, {
-    accessToken: payload.access_token,
-    refreshToken: payload.refresh_token ?? refreshToken,
-    expiresAt: new Date(Date.now() + payload.expires_in * 1000).toISOString(),
+    accessToken,
+    refreshToken: typeof rotatedRefreshToken === "string" ? rotatedRefreshToken : refreshToken,
+    expiresAt: new Date(expiresAtMs).toISOString(),
   });
 
-  return payload.access_token;
+  return accessToken;
 }
 
 export async function getOutlookAccessToken(
@@ -198,7 +235,9 @@ export async function getOutlookAccessToken(
     }
 
     if (!options.refresh) return null;
-    return refreshAccessToken(
+    // Await so network failures are handled by this function's existing
+    // error boundary instead of leaking a raw rejected fetch promise.
+    return await refreshAccessToken(
       ownerId,
       decrypt(credential.refresh_token_ciphertext),
     );

@@ -1,6 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 import { signOut } from "@/lib/auth/actions";
+import { AccessibilityPanel } from "@/components/accessibility/AccessibilityPanel";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
+import { SanctuaryMobileDock } from "@/components/layout/SanctuaryMobileDock";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { navigationItems, type AuthenticatedRouteHref } from "@/config/navigation";
 
@@ -32,14 +35,20 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
             <span>{currentNavigationItem?.label ?? "Jornada de aprendizagem"}</span>
           </div>
 
+          <div className="aa-topbar-actions">
+            <AccessibilityPanel variant="quick" />
+            <Link className="aa-topbar-route" href="/grimorios">Meus grimórios</Link>
+            <Link className="aa-topbar-route" href="/perfil">Meu perfil</Link>
           <form action={signOut}>
             <button className="aa-button aa-button-ghost aa-button-sm" type="submit">
               Sair
             </button>
           </form>
+          </div>
         </header>
 
         <div className="aa-main-content">{children}</div>
+        {currentPath === "/santuario" ? <SanctuaryMobileDock /> : null}
       </div>
     </div>
   );

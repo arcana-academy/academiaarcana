@@ -168,6 +168,22 @@ describe("synthetic runner orchestration and cleanup", () => {
     expect(mocks.rmSync).toHaveBeenCalledTimes(1);
   });
 
+  it("surfaces a concise subprocess failure annotation in GitHub Actions", async () => {
+    mocks.spawnSync.mockReturnValueOnce({ status: 0, signal: null });
+    mocks.spawnSync.mockReturnValueOnce({
+      status: 1,
+      signal: null,
+      stdout: "1 failed\nError: expected URL to match /santuario/\nReceived: /login\n",
+      stderr: "",
+    });
+
+    await expect(run()).rejects.toThrow("Authenticated Next.js E2E failed");
+
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("::error title=Authenticated Next.js E2E failure::Error: expected URL"),
+    );
+  });
+
   it.each([
     ["build", { status: 1, signal: null }],
     ["build", { status: null, signal: "SIGTERM" }],

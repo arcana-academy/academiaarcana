@@ -54,7 +54,7 @@ export async function GET(
   const raw = cookieStore.get(MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE)?.value;
   const credentials = await decryptMicrosoftSharePointCredentials(raw);
 
-  if (!credentials || credentials.subjectId !== user.id) {
+  if (!credentials || credentials.subjectId !== user.sub) {
     return NextResponse.json(
       { error: "microsoft_sharepoint_not_connected" },
       { status: 401 },
@@ -90,7 +90,7 @@ export async function GET(
     const supabase = await createClient();
     const document = await getMicrosoftSharePointDocumentContext(sourceId, {
       supabase,
-      ownerId: user.id,
+      ownerId: user.sub,
       credentials: validCredentials,
     });
 

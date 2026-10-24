@@ -1,0 +1,45 @@
+name: CP05 Asana Malformed Refresh Contract
+on:
+  push:
+    branches:
+      - fix/cp05-asana-malformed-refresh-review-20261010
+
+permissions:
+  contents: read
+
+jobs:
+  malformed-json:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout reviewed SHA with no retained Git credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Preflight NO-GO and exact PR612 ancestor
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 7ae39f9c047047b6b48ee136f843e667b16863c1 HEAD
+          for key in ASANA_CLIENT_SECRET ASANA_ACCESS_TOKEN ASANA_REFRESH_TOKEN SUPABASE_SERVICE_ROLE_KEY DATABASE_URL RENDER_API_KEY OPENAI_API_KEY; do
+            if [[ -n "${!key:-}" ]]; then echo "::error::sensitive runtime credential present"; exit 1; fi
+          done
+          node scripts/verify-supply-chain-workflows.cjs
+          echo "CP05_EXACT_SHA=$(git rev-parse HEAD)"
+      - name: Install targeted test dependencies
+        run: |
+          npm install --global npm@11.19.1 --ignore-scripts
+          npm ci --ignore-scripts
+          npm rebuild unrs-resolver --ignore-scripts=false
+      - name: Run modified credentials boundary test only
+        run: npm exec -- vitest run src/app/api/integrations/asana/_lib.test.ts
+      - name: No production or shared branch changes
+        if: always()
+        run: git status --short

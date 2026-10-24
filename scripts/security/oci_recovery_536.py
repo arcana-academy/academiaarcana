@@ -56,6 +56,8 @@ def verify(path, digest, archive_digest=None):
     structural_directories = set()
     with tarfile.open(path, "r|*") as tar:
         for member in tar:
+            # OCI tar archives can contain safe structural directories and a
+            # single leading './' added by standard tar packing commands.
             name = member.name
             if member.isdir():
                 # OCI tars may include these exact structural directory entries.

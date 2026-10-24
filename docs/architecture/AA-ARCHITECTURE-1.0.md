@@ -896,7 +896,7 @@ commit
   ↓
 GitHub Actions — pre-deploy Quality Gate
   ↓
-Render — checksPass promotion
+Render — commit promotion (main only receives gated merges)
   ↓
 Application runtime
   ↓
@@ -904,6 +904,8 @@ Production Smoke — post-deploy verification
 ```
 
 Production Smoke is evidence about the deployed runtime; it is not an input to the same Render promotion decision. Any future change that introduces a reverse dependency must be treated as an architecture regression and explicitly reviewed.
+
+> **Implementation note (2026-10-23).** Render's `checksPass` trigger makes every check on the commit an input to the promotion decision, which includes Production Smoke and therefore reverses this ordering. The reverse dependency reproduced on `b808779`: the smoke saw the previous deployment, failed, and Render then withheld the deploy permanently. The Blueprint now uses `autoDeployTrigger: commit`, which is the only trigger that matches the canonical semantics above. See `docs/engineering/2026-10-23-render-promotion-deadlock.md`.
 
 
 ## 26. Current canonical state

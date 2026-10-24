@@ -1,6 +1,7 @@
 export type PageContentBlock = {
     type: string;
     content: string;
+    accessibility?: { description?: string; decorative?: boolean };
   };
   
   export type PageContent = {

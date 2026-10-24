@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
+import { PageFrameStyleView } from "./PageFrameStyleView";
+import { PagePaperStyleView } from "./PagePaperStyleView";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { WorkspaceTitleEditor } from "./WorkspaceTitleEditor";
+import { WorkspaceJourneyGuide } from "./WorkspaceJourneyGuide";
 import { useMobileDisclosure } from "./useMobileDisclosure";
 
 type WorkspaceProps = {
@@ -13,6 +16,7 @@ type WorkspaceProps = {
   state: WorkspaceState;
   title: string;
   selectedPage: Page | null;
+  deletionFeedback?: string;
   onOpenGrimoire: (id: string) => void;
   onOpenNotebook: (id: string) => void;
   onOpenChapter: (id: string) => void;
@@ -288,6 +292,7 @@ export function Workspace({
   state,
   title,
   selectedPage,
+  deletionFeedback = "",
   onOpenGrimoire,
   onOpenNotebook,
   onOpenChapter,
@@ -308,6 +313,24 @@ export function Workspace({
   onSetPageProgress = async () => undefined,
 }: WorkspaceProps) {
   const [isContextExpanded, setIsContextExpanded] = useMobileDisclosure();
+  const focusEditorAfterSelection = useRef(false);
+
+  // Focus moves only after an explicit page selection; initial deep links
+  // must not steal the user's keyboard or screen-reader focus.
+  useEffect(() => {
+    if (!focusEditorAfterSelection.current || !state.pageId) return;
+    document.getElementById("current")?.focus();
+    focusEditorAfterSelection.current = false;
+  }, [state.pageId]);
+
+  const selectPage = (id: string) => {
+    if (id === state.pageId) {
+      document.getElementById("current")?.focus();
+      return;
+    }
+    focusEditorAfterSelection.current = true;
+    onOpenPage(id);
+  };
 
   const focusGrimoireCreation = () => {
     document.getElementById("workspace-new-grimoire-title")?.focus();
@@ -316,6 +339,8 @@ export function Workspace({
   return (
     <div className="workspace-shell">
       <WorkspaceHeader title={title} />
+      <p role="status" aria-live="polite" aria-atomic="true">{deletionFeedback}</p>
+      <a className="aa-workspace-skip-link" href="#current">Ir para o editor da página</a>
 
       <div className="workspace-regions">
         <WorkspaceTree
@@ -324,7 +349,7 @@ export function Workspace({
           onOpenGrimoire={onOpenGrimoire}
           onOpenNotebook={onOpenNotebook}
           onOpenChapter={onOpenChapter}
-          onOpenPage={onOpenPage}
+          onOpenPage={selectPage}
         />
 
         <section
@@ -337,6 +362,8 @@ export function Workspace({
             <span className="workspace-region-kicker">Editor</span>
             <h2 id="workspace-editor-heading">Área de trabalho</h2>
           </div>
+
+          <WorkspaceJourneyGuide state={state} />
 
           <div className="workspace-create-panel">
             <GrimoireCreationForm onCreateGrimoire={onCreateGrimoire} />
@@ -406,19 +433,21 @@ export function Workspace({
           ) : null}
 
           {selectedPage ? (
-            <div className="workspace-page-editor">
-              <PageEditor
-                key={selectedPage.id}
-                page={selectedPage}
-                canMoveUp={canMovePageUp}
-                canMoveDown={canMovePageDown}
-                onMove={onMovePage}
-                onDelete={onDeletePage}
-                onSave={onSavePage}
-                progressStatus={pageProgressStatus}
-                onSetProgress={onSetPageProgress}
-              />
-            </div>
+            <PagePaperStyleView pageId={selectedPage.id}>
+              <PageFrameStyleView pageId={selectedPage.id}>
+                <PageEditor
+                  key={selectedPage.id}
+                  page={selectedPage}
+                  canMoveUp={canMovePageUp}
+                  canMoveDown={canMovePageDown}
+                  onMove={onMovePage}
+                  onDelete={onDeletePage}
+                  onSave={onSavePage}
+                  progressStatus={pageProgressStatus}
+                  onSetProgress={onSetPageProgress}
+                />
+              </PageFrameStyleView>
+            </PagePaperStyleView>
           ) : (
             <div className="workspace-empty-state" role="status">
               <strong>

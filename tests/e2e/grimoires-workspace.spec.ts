@@ -58,7 +58,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await page.goto("/grimorios");
     await expect(page.getByRole("heading", { name: "Grimórios" })).toBeVisible();
 
-    const openGrimoire = page.getByRole("link", { name: "Abrir grimório" }).first();
+    const openGrimoire = page.getByRole("link", { name: /^Abrir grimório: .+/ }).first();
 
     if (!(await openGrimoire.count())) {
       await expect(
@@ -128,7 +128,9 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await page.getByLabel("Senha").fill(isolatedPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
     await expect(page).toHaveURL(/\/santuario(?:[/?#]|$)/);
-    await expect(page.getByRole("heading", { name: "Seu Santuário de aprendizagem" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Seu Santuário de aprendizagem" }),
+    ).toBeVisible();
     await captureSyntheticVisualEvidence(page, "01-santuario-inicial-desktop.png");
 
     await page.goto("/grimorios");
@@ -148,19 +150,63 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     const pageBody = `Conteúdo de estudo sintético ${prefix}`;
 
     const createGrimoire = page.getByRole("form", { name: "Criar grimório" });
+    const workspaceActionDetails: string[] = [];
+    const workspaceActionTasks: Promise<void>[] = [];
+    const recordWorkspaceAction = (response: import("@playwright/test").Response) => {
+      const request = response.request();
+      const responseUrl = new URL(response.url());
+      if (
+        request.method() === "POST" &&
+        responseUrl.origin === "http://127.0.0.1:3000" &&
+        responseUrl.pathname === "/workspace"
+      ) {
+        workspaceActionTasks.push((async () => {
+          const requestHeaders = await request.allHeaders();
+          const body = response.status() === 403 ? await response.text() : "";
+          const reason = body.includes("cross_origin_request_blocked")
+            ? "; reason=cross_origin_request_blocked"
+            : "";
+          workspaceActionDetails.push(
+            `HTTP ${response.status()} origin=${requestHeaders.origin ?? "none"} target=${responseUrl.origin}${reason}`,
+          );
+        })());
+      }
+    };
+    page.on("response", recordWorkspaceAction);
     await createGrimoire.getByRole("textbox", { name: "Novo grimório" }).fill(grimoireTitle);
     await createGrimoire.getByRole("button", { name: "Criar grimório" }).click();
-    await expect(page.getByRole("form", { name: "Criar caderno" })).toBeVisible();
+    const createNotebookForm = page.getByRole("form", { name: "Criar caderno" });
+    try {
+      await expect(createNotebookForm).toBeVisible();
+      await expect(page).toHaveURL(
+        /\/workspace\?view=tree&grimoire=[^#]+#current$/,
+      );
+    } catch (error) {
+      await Promise.all(workspaceActionTasks);
+      const alerts = await page.getByRole("alert").allTextContents();
+      throw new Error(
+        `Grimoire creation did not reach its canonical selected state; URL=${page.url()}; action responses=${workspaceActionDetails.join(" | ") || "none"}; visible alerts=${alerts.join(" | ") || "none"}`,
+        { cause: error },
+      );
+    } finally {
+      page.off("response", recordWorkspaceAction);
+    }
 
     const createNotebook = page.getByRole("form", { name: "Criar caderno" });
     await createNotebook.getByRole("textbox", { name: "Novo caderno" }).fill(notebookTitle);
     await createNotebook.getByRole("button", { name: "Criar caderno" }).click();
     await expect(page.getByRole("form", { name: "Criar capítulo" })).toBeVisible();
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&notebook=[^#]+#current$/,
+    );
 
     const createChapter = page.getByRole("form", { name: "Criar capítulo" });
     await createChapter.getByRole("textbox", { name: "Novo capítulo" }).fill(chapterTitle);
     await createChapter.getByRole("button", { name: "Criar capítulo" }).click();
     await expect(page.getByRole("form", { name: "Criar página" })).toBeVisible();
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&chapter=[^#]+#current$/,
+    );
 
     const createPage = page.getByRole("form", { name: "Criar página" });
     await createPage.getByRole("textbox", { name: "Nova página" }).fill(pageTitle);
@@ -168,6 +214,9 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
 
     const editor = page.getByRole("article", { name: "Editor da página" });
     await expect(editor).toBeVisible();
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&page=[^#]+#current$/,
+    );
     await expect(editor.getByRole("textbox", { name: "Título", exact: true })).toHaveValue(pageTitle);
     await editor.getByRole("button", { name: "Adicionar bloco" }).click();
     await editor.getByRole("textbox", { name: "Bloco 1" }).fill(pageBody);
@@ -175,8 +224,13 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await expect(editor.getByText("Página salva.")).toBeVisible();
     await captureSyntheticVisualEvidence(page, "03-workspace-pagina-salva-desktop.png");
 
+    // Revalidation from the save action may briefly refresh the current RSC
+    // tree. Wait for the client shell to restore its canonical selection before
+    // capturing the reload URL instead of racing that synchronization effect.
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&page=[^#]+#current$/,
+    );
     const selectedUrl = page.url();
-    expect(selectedUrl).toMatch(/\/workspace\?view=tree&page=[^#]+#current$/);
     await page.reload();
     await expect(page).toHaveURL(selectedUrl);
     const persistedEditor = page.getByRole("article", { name: "Editor da página" });
@@ -192,12 +246,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     // completed progress for the synthetic user's only learning page.
     await page.goto("/santuario");
     await expect(page.getByRole("heading", { name: "Seu progresso" })).toBeVisible();
-    // Scope to the progress panel below its visible heading: other transient
-    // render trees can expose a second identically labelled region.
-    const progress = page.getByRole("heading", { name: "Seu progresso" })
-      .locator("..")
-      .getByRole("region", { name: "Progresso" });
-    await expect(progress).toHaveCount(1);
+    const progress = page.locator('[aria-labelledby="sanctuary-progress"]');
     await expect(progress).toContainText("1 de 1 páginas concluídas");
     await captureSyntheticVisualEvidence(page, "04-santuario-progresso-desktop.png");
     if (process.env.AA_C54_SYNTHETIC_VISUAL === "1") {

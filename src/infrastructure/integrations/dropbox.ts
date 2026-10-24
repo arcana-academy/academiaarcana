@@ -76,6 +76,12 @@ export async function verifyDropboxConnection(
     getServerToken(token),
   );
 
+  if (typeof account?.account_id !== "string" || !account.account_id.trim()) {
+    throw new DropboxConnectionError(
+      "Dropbox retornou uma identificação de conta inválida.",
+    );
+  }
+
   return {
     providerId: DROPBOX_PROVIDER_ID,
     pluginName: DROPBOX_PLUGIN_NAME,

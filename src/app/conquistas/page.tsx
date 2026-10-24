@@ -22,10 +22,45 @@ export default async function ConquistasPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
   const repository = new SupabaseGamificationRepository(supabase);
-  const profile = await repository.getProfile(claims.sub);
-  const missions = await repository.listDailyMissions(claims.sub, todayUtc());
-  const progression = getProgression(profile, missions);
-  const achievements = getAchievements(profile, missions);
+  type AchievementSnapshot = {
+    profile: Awaited<ReturnType<typeof repository.getProfile>>;
+    missions: Awaited<ReturnType<typeof repository.listDailyMissions>>;
+  };
+
+  let snapshot: AchievementSnapshot | null = null;
+
+  try {
+    const profile = await repository.getProfile(claims.sub);
+    const missions = await repository.listDailyMissions(claims.sub, todayUtc());
+    snapshot = { profile, missions };
+  } catch {
+    // A temporary read failure is not evidence that the learner has zero progress.
+  }
+
+  if (snapshot === null) {
+    return (
+      <AuthenticatedShell currentPath="/conquistas">
+        <ArcanaPage
+          eyebrow="Reconhecimento"
+          title="Conquistas"
+          description="Marcos derivados de progresso verificável, sem inventar conquistas para preencher a interface."
+        >
+          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="conquistas-unavailable-title">
+            <h2 id="conquistas-unavailable-title">Não foi possível carregar suas conquistas</h2>
+            <p>Seu progresso não pôde ser consultado agora. Tente novamente para conferir seus marcos.</p>
+            <form action="/conquistas" method="get">
+              <button className="aa-button aa-button-secondary" type="submit">
+                Tentar novamente
+              </button>
+            </form>
+          </section>
+        </ArcanaPage>
+      </AuthenticatedShell>
+    );
+  }
+
+  const progression = getProgression(snapshot.profile, snapshot.missions);
+  const achievements = getAchievements(snapshot.profile, snapshot.missions);
   const unlocked = achievements.filter((achievement) => achievement.unlocked);
 
   return (

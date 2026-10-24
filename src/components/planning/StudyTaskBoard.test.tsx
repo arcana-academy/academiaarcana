@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -43,23 +43,38 @@ describe("StudyTaskBoard", () => {
   });
 
   it.each([
-    ["2026-10-17T13:45:00", "utc", "2026-10-17T13:45:00Z"],
-    ["2026-10-17T13:45:00Z", "UTC", "2026-10-17T13:45:00Z"],
-    ["2026-10-17T13:45:00-03:00", "UTC", "2026-10-17T16:45:00Z"],
-    ["2026-10-17T13:45:00+02:00", "UTC", "2026-10-17T11:45:00Z"],
-  ])("formats Outlook time %s (%s) in a non-UTC browser zone", (dateTime, timeZone, instant) => {
-    const DateTimeFormat = Intl.DateTimeFormat;
-    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(function (locales, options) {
-      return new DateTimeFormat(locales, { ...options, timeZone: "America/Sao_Paulo" });
-    });
-    render(<StudyTaskBoard tasks={[]} outlookConnected outlookEvents={[{
-      id: "event-offset", subject: "Evento externo",
-      start: { dateTime, timeZone }, end: { dateTime, timeZone },
-    }]} onCreate={vi.fn()} onComplete={vi.fn()} />);
-    const expected = new DateTimeFormat("pt-BR", {
-      dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo",
-    }).format(new Date(instant));
-    expect(screen.getByText(`${expected} · até ${expected}`)).toBeInTheDocument();
+    ["2026-10-17T13:45:00", "utc"],
+    ["2026-10-17T13:45:00.0000000", "UTC"],
+    ["2026-10-17T13:45:00Z", "UTC"],
+    ["2026-10-17T10:45:00-03:00", "UTC"],
+    ["2026-10-17T15:45:00+02:00", "Europe/Paris"],
+  ])("renders equivalent Outlook timestamp %s (%s) as the same instant", (dateTime, timeZone) => {
+    render(<StudyTaskBoard tasks={[]} outlookConnected onCreate={vi.fn()} onComplete={vi.fn()}
+      outlookEvents={[{
+        id: "equivalent-event", subject: "Revisão externa",
+        start: { dateTime, timeZone },
+        end: { dateTime: "2026-10-17T14:45:00Z", timeZone: "UTC" },
+      }]} />);
+    const events = within(screen.getByRole("region", { name: "Eventos do Outlook" }));
+    const formatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" });
+    expect(events.getByText(`${formatter.format(new Date("2026-10-17T13:45:00Z"))} · até ${formatter.format(new Date("2026-10-17T14:45:00Z"))}`))
+      .toBeInTheDocument();
+  });
+
+  it("replaces an Outlook outage with recovered events on the next server snapshot", () => {
+    const props = { tasks: [task], outlookConnected: true, onCreate: vi.fn(), onComplete: vi.fn() };
+    const events = [{
+      id: "recovered-event", subject: "Revisão recuperada",
+      start: { dateTime: "2026-10-17T13:45:00Z", timeZone: "UTC" },
+      end: { dateTime: "2026-10-17T14:45:00Z", timeZone: "UTC" },
+    }];
+    const { rerender } = render(<StudyTaskBoard {...props} outlookEventsUnavailable outlookEvents={events} />);
+    expect(screen.getByRole("status")).toHaveTextContent("Não foi possível carregar");
+    expect(screen.queryByText("Revisão recuperada")).not.toBeInTheDocument();
+    rerender(<StudyTaskBoard {...props} outlookEventsUnavailable={false} outlookEvents={events} />);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByText("Revisão recuperada")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
   });
 
   it("creates a task and adds it to the visible schedule through the labeled form", async () => {
@@ -88,6 +103,35 @@ describe("StudyTaskBoard", () => {
     );
     expect(await screen.findByText("Nova revisão")).toBeInTheDocument();
     expect(document.querySelector('img[src="/assets/icons/aa-cronograma.svg"]')).toBeInTheDocument();
+  });
+
+  it("previews the selected deadline in Brazilian notation without changing the saved instant", async () => {
+    const localValue = "2028-02-29T09:05";
+    const created = { ...task, id: "task-local-date", dueAt: new Date(localValue).toISOString() };
+    const onCreate = vi.fn().mockResolvedValue(created);
+
+    render(
+      <StudyTaskBoard
+        tasks={[]}
+        onCreate={onCreate}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    const deadline = screen.getByLabelText("Prazo");
+    expect(deadline).toHaveAttribute("type", "datetime-local");
+    expect(deadline).toHaveAttribute("aria-describedby", "study-task-due-preview");
+    expect(screen.getByText("Formato brasileiro: DD/MM/AAAA às HH:MM.")).toBeInTheDocument();
+
+    fireEvent.change(deadline, { target: { value: localValue } });
+    expect(screen.getByText("Prazo selecionado: 29/02/2028 às 09:05.")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: "Revisar grimório" } });
+    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
+    await waitFor(() => expect(onCreate).toHaveBeenCalledWith({
+      title: "Revisar grimório",
+      dueAt: new Date(localValue).toISOString(),
+    }));
   });
 
   it("offers a direct route to the task form when the schedule is empty", () => {

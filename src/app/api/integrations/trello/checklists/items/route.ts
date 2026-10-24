@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   if (!credentials) {
     return NextResponse.json(
       { error: status },
-      { status: status === "reauthorization_required" ? 401 : 409 },
+      { status: status === "request_failed" ? 502 : status === "reauthorization_required" ? 401 : 409, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 
@@ -41,7 +41,7 @@ export async function PATCH(request: Request) {
   if (!credentials) {
     return NextResponse.json(
       { error: status },
-      { status: status === "reauthorization_required" ? 401 : 409 },
+      { status: status === "request_failed" ? 502 : status === "reauthorization_required" ? 401 : 409, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 

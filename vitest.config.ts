@@ -25,6 +25,11 @@ export default defineConfig({
       // testDir "./tests/e2e"). Anchored with "**/" so no copy of the tree can
       // smuggle a spec file back into the Vitest run.
       "**/tests/e2e/**",
+      // The C96 contrast proof is a dedicated Playwright project.
+      "**/tests/c96/**",
+      // Native node:test suites run through their isolated workflow rather than
+      // Vitest, which cannot observe node:test registrations.
+      "**/scripts/qa/c03-synthetic-isolation.test.mjs",
       // Run native node:test canaries only with the dedicated isolated workflow.
       "**/scripts/security/test-build-secret-isolation-536.test.cjs",
     ],

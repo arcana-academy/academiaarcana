@@ -1,19 +1,14 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import {
-  ASANA_CREDENTIALS_COOKIE, decryptAsanaCredentials, getAsanaProjects,
-} from "@/infrastructure/integrations/asana";
-import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { getAsanaProjects } from "@/infrastructure/integrations/asana";
+import { getAsanaCredentialsContext } from "../_lib";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const claims = await requireAuthenticatedUser();
-  const cookieStore = await cookies();
-  const credentials = await decryptAsanaCredentials(cookieStore.get(ASANA_CREDENTIALS_COOKIE)?.value);
-  if (!credentials || credentials.subjectId !== claims.sub) {
-    return NextResponse.json({ providerId: "asana", status: "disconnected", projects: [] }, {
-      status: 200, headers: { "Cache-Control": "private, no-store" },
+  const { credentials, status } = await getAsanaCredentialsContext();
+  if (!credentials) {
+    return NextResponse.json({ providerId: "asana", status, projects: [] }, {
+      status: status === "request_failed" ? 502 : 200, headers: { "Cache-Control": "private, no-store" },
     });
   }
 
