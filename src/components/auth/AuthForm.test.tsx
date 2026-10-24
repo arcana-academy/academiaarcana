@@ -161,6 +161,42 @@ describe("AuthForm", () => {
     );
   });
 
+  it("shows approved signup and recovery designs with real navigation", () => {
+    const { unmount } = render(<AuthForm mode="signup" />);
+    expect(screen.getByRole("heading", { name: "Comece sua jornada" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirmar senha")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Entrar" })).toHaveAttribute("href", "/login");
+    unmount();
+    render(<AuthForm mode="recover" />);
+    expect(screen.getByRole("heading", { name: "Recuperar acesso" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Voltar ao Login" })).toHaveAttribute("href", "/login");
+    expect(screen.getByText(/não confirmamos se um endereço está cadastrado/i)).toBeInTheDocument();
+  });
+
+  it("blocks signup when password confirmation differs without calling Supabase", async () => {
+    render(<AuthForm mode="signup" />);
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "student@example.com" } });
+    fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "correct-password" } });
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "other-password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+    expect(signUp).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("As senhas precisam ser iguais.");
+  });
+
+  it("uses the existing Supabase signup when passwords match", async () => {
+    render(<AuthForm mode="signup" />);
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "student@example.com" } });
+    fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "correct-password" } });
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "correct-password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+    await waitFor(() => {
+      expect(signUp).toHaveBeenCalledWith(expect.objectContaining({
+        email: "student@example.com", password: "correct-password",
+        options: expect.objectContaining({ emailRedirectTo: expect.stringContaining("/auth/callback?next=/") }),
+      }));
+    });
+  });
+
   it("rejects a password shorter than eight characters during signup", async () => {
     render(<AuthForm mode="signup" />);
 

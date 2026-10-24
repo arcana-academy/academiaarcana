@@ -364,3 +364,78 @@
   min-width: 2.75rem;
   padding-inline: 0;
 }
+
+/* C106 — Owner-approved signup, recovery, settings and mobile Sanctuary. Visual only except validated signup confirmation. */
+.aa-auth-signup .aa-auth-story, .aa-auth-recover .aa-auth-story { background-position: 52% center; }
+.aa-auth-signup .aa-auth-story-copy strong, .aa-auth-recover .aa-auth-story-copy strong { max-width: 26rem; }
+.aa-auth-signup .aa-auth-card, .aa-auth-recover .aa-auth-card {
+  width: min(88%, 31rem);
+  border-color: rgb(205 169 115 / .55);
+}
+.aa-auth-authlink { text-align: center; margin: 1.2rem 0 0; color: #D8CADC; }
+.aa-auth-authlink a { color: #F0D3A4; text-underline-offset: .3rem; }
+.aa-auth-form [role="alert"] { color: #FFD6D8; border-left: 3px solid #F4A0A5; padding: .5rem .75rem; background: #301923; border-radius: .2rem; }
+.aa-c106-settings-tabs { display: flex; flex-wrap: wrap; gap: .6rem; }
+.aa-c106-settings-tabs a {
+  padding: .65rem 1rem; min-height: 2.75rem; display: inline-flex; align-items: center;
+  border: 1px solid #A18A9F; border-radius: .55rem;
+  text-decoration: none; color: #EFE0EB; background: #291D34;
+}
+.aa-c106-settings-tabs a:hover, .aa-c106-settings-tabs a:focus-visible { border-color: #E5C391; background: #3E2C4B; }
+.aa-c106-settings-group { min-width: 0; scroll-margin-top: 6rem; }
+.aa-c106-settings-group > article { height: 100%; }
+.aa-c106-settings-group .aa-feature-card-content { display: grid; gap: .85rem; }
+.aa-c106-settings-group .aa-feature-card-content > a { justify-self: start; }
+.aa-c106-theme-swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+.aa-c106-swatch { display: grid; place-items: end center; min-height: 6.5rem; border: 1px solid #A48B9C; border-radius: .5rem; padding: .6rem .25rem; font-size: .77rem; color: #FFF3E6; }
+.aa-c106-swatch-arcane { background: linear-gradient(160deg, #120D19, #604474); }
+.aa-c106-swatch-amethyst { background: linear-gradient(160deg, #271B40, #705587); }
+.aa-c106-swatch-sepia { background: linear-gradient(160deg, #38251E, #896348); }
+.aa-c106-mobile-dock { display: none; }
+@media (max-width: 48rem) {
+  .aa-auth-signup .aa-auth-card, .aa-auth-recover .aa-auth-card { width: min(100% - 1.5rem, 31rem); margin: -1.3rem auto 1.5rem; position: relative; z-index: 1; }
+  .aa-auth-signup, .aa-auth-recover { grid-template-columns: 1fr; }
+  .aa-c106-settings-tabs { flex-wrap: nowrap; overflow-x: auto; padding-block: .2rem .5rem; }
+  .aa-c106-settings-tabs a { flex: 0 0 auto; }
+  .aa-shell:has(.aa-c106-mobile-dock) .aa-main-content { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+  .aa-shell .aa-sanctuary-hero {
+    min-height: 15rem;
+    background: linear-gradient(90deg, rgb(22 12 31 / .92), rgb(24 13 32 / .52)),
+      url('/assets/visual/aa-sanctuary-ambiente-approved.webp') 55% center / cover no-repeat;
+  }
+  .aa-shell .aa-sanctuary-hero h1 { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+  .aa-shell .aa-sanctuary-shortcuts-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .aa-c106-mobile-dock {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: var(--aa-z-index-sticky);
+    display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .15rem;
+    padding: .45rem .4rem calc(.4rem + env(safe-area-inset-bottom, 0px));
+    background: #190F23; border-top: 1px solid #C09D72;
+    box-shadow: 0 -8px 22px rgb(0 0 0 / .3);
+  }
+  .aa-c106-mobile-dock a {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+    min-width: 0; min-height: 2.75rem; padding: .2rem;
+    color: #E8D9E8; border-radius: .45rem; text-decoration: none; font-size: .72rem;
+  }
+  .aa-c106-mobile-dock a[aria-current="page"] { background: #463051; color: #FFE2B7; }
+  .aa-c106-mobile-dock a svg { color: #E2C08D; }
+}
+@media (max-width: 24rem) {
+  .aa-c106-mobile-dock a { font-size: .66rem; }
+  .aa-c106-settings-group .aa-feature-card-content > a { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .aa-c106-mobile-dock * { transition: none; } }
+
+
+/* C106 desktop screenshot remediation: match approved two-column settings composition. */
+.aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+  align-items: stretch;
+  gap: 1rem;
+}
+.aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-grid > * { min-width: 0; }
+.aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-card { height: 100%; }
+@media (max-width: 64rem) {
+  .aa-shell .aa-page:has(.aa-c106-settings-tabs) .aa-feature-grid { grid-template-columns: minmax(0,1fr); }
+}
