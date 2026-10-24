@@ -191,3 +191,14 @@ Reconectar o GitHub nesta sessão com token de **admin do repositório** (fine-g
 *Dependabot alerts: Read and write*, *Security events: Read*, *Actions: Read and write*),
 ou executar os comandos do §5 localmente com `gh auth login` de uma conta admin. Nenhuma
 mudança administrativa foi aplicada nesta sessão.
+
+### 8.5 Adendo C3 — nova tentativa (mesma data, branch `arena/7de2d874`)
+
+- Todas as operações A1–A8 + `workflow_dispatch` do Scorecard foram **retestadas**: mesmas
+  respostas `403 Forbidden` (token inalterado; `X-OAuth-Scopes` vazio). **Nada aplicado.**
+- **A9 revalidado**: CodeQL databases `javascript` e `actions` reconstruídas no HEAD atual
+  `5b77740` (advanced ativo).
+- **Scorecard**: run `40110775116` (push, success) no HEAD atual `5b77740` às 16:16:13Z —
+  o re-run pós-merge #810 foi disparado pelo próprio push ao `main`; o dispatch manual
+  segue bloqueado (403). Pontuação numérica continua ilegível deste sandbox
+  (`GET /code-scanning/alerts` → 403; artefatos/logs com redirect bloqueado).
