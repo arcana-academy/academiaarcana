@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -16,9 +16,9 @@ type Baselines = Record<string, string>;
 const baselinePath = join(process.cwd(), "tests/e2e/visual-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
 
-async function screenshotHash(locator: Locator): Promise<string> {
+async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
   const bytes = await locator.screenshot({ animations: "disabled" });
-  return createHash("sha256").update(bytes).digest("hex");
+  return { hash: createHash("sha256").update(bytes).digest("hex"), bytes };
 }
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
@@ -34,6 +34,7 @@ test("all 40 themes match deterministic visual baselines", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
 
   const actual: Baselines = {};
+  const captureDir = process.env.AA_VISUAL_REVIEW_CAPTURE_DIR;
 
   for (const themeId of THEME_IDS) {
     await page.goto(`/design-system?theme=${themeId}`);
@@ -43,7 +44,14 @@ test("all 40 themes match deterministic visual baselines", async ({ page }) => {
     await expect(showcase).toBeVisible();
     await assertNoHorizontalOverflow(page, themeId);
 
-    actual[`theme:${themeId}:desktop`] = await screenshotHash(showcase);
+    const key = `theme:${themeId}:desktop`;
+    const capture = await screenshotHash(showcase);
+    actual[key] = capture.hash;
+    // Collect evidence for discrepancies only; never modify approved baselines.
+    if (captureDir && capture.hash !== baselines[key]) {
+      mkdirSync(captureDir, { recursive: true });
+      writeFileSync(join(captureDir, `design-system-${themeId}-desktop.png`), capture.bytes);
+    }
   }
 
   // Kept intentionally machine-readable so the first reviewed run can seed
