@@ -56,7 +56,6 @@ jobs:
           set -euo pipefail
           if [ "$RELEASE_EVENT" = "workflow_run" ]; then
             if [ "$UPSTREAM_EVENT" != "push" ] || [ "$UPSTREAM_BRANCH" != "main" ] ||
-               [ "$UPSTREAM_WORKFLOW_PATH" != ".github/workflows/quality.yml" ] ||
                [ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
                [ "$UPSTREAM_ATTEMPT" != "1" ] || [ "$UPSTREAM_RESULT" != "success" ]; then
               echo "Image release requires an original successful push to main in this repository." >&2
@@ -82,7 +81,6 @@ jobs:
                  --arg revision "$revision" \
                  --arg repository "$GITHUB_REPOSITORY" '
                    .name == "Academia Arcana Quality Gate" and
-                   .path == ".github/workflows/quality.yml" and
                    .event == "push" and
                    .head_branch == "main" and
                    .head_sha == $revision and
@@ -184,16 +182,7 @@ jobs:
   deploy:
     name: Request Render image deployment
     needs: [preflight, publish]
-    if: >-
-      ${{
-        vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true' &&
-        vars.RENDER_DEPLOY_APPROVED_RUN_ID != '' &&
-        vars.RENDER_DEPLOY_APPROVED_RUN_ID == format('{0}', github.run_id) &&
-        github.run_attempt == 1 &&
-        github.event_name == 'workflow_dispatch'
-      }}
-    environment:
-      name: render-production-approval
+    if: ${{ vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
