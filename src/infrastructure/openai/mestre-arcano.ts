@@ -7,6 +7,9 @@ import {
 
 const OPENAI_API_ORIGIN = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-5.6-sol";
+const MAX_OUTPUT_TOKENS = 4096;
+const OPENAI_TIMEOUT_MS = 25_000;
+const MAX_FUNCTION_CALLS_PER_ITERATION = 4;
 
 export type MestreArcanoResult = {
   readonly output: string;
@@ -93,6 +96,7 @@ async function openAIRequest(
         ...(init.headers ?? {}),
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(OPENAI_TIMEOUT_MS),
     });
   } catch {
     throw new Error("OpenAI could not be reached from the server.");
@@ -250,7 +254,6 @@ function extractFunctionCalls(
 /** Requests one OpenAI Responses API iteration and parses its payload. */
 async function requestMestreArcanoResponse(
   responseInput: unknown,
-  responseId: string | null,
   model: string,
   instructions: string,
   fetchImpl: OpenAIFetch,
@@ -264,7 +267,9 @@ async function requestMestreArcanoResponse(
         instructions,
         input: responseInput,
         tools: MESTRE_ARCANO_TOOLS,
-        ...(responseId ? { previous_response_id: responseId } : {}),
+        store: false,
+        include: ["reasoning.encrypted_content"],
+        max_output_tokens: MAX_OUTPUT_TOKENS,
       }),
     },
     fetchImpl,
@@ -355,14 +360,14 @@ async function runMestreArcanoLoop({
   readonly fetchImpl: OpenAIFetch;
   readonly toolContext: import("@/domains/intelligence").MestreArcanoToolContext;
 }): Promise<MestreArcanoLoopResult> {
-  let responseInput: unknown = initialInput;
+  // Stateless tool loop: retain only this request's context in memory.
+  let responseInput: unknown[] = [{ role: "user", content: initialInput }];
   let responseId: string | null = null;
   let privateDataInContext = false;
 
   for (let iteration = 0; iteration < 5; iteration += 1) {
     const payload = await requestMestreArcanoResponse(
       responseInput,
-      responseId,
       model,
       instructions,
       fetchImpl,
@@ -370,19 +375,23 @@ async function runMestreArcanoLoop({
     responseId = getNextResponseId(payload, responseId);
 
     const functionCalls = extractFunctionCalls(payload.output);
+    if (functionCalls.length > MAX_FUNCTION_CALLS_PER_ITERATION) {
+      throw new Error("Mestre Arcano excedeu o limite de ferramentas por iteração.");
+    }
     if (functionCalls.length === 0) {
       return { payload, responseId };
     }
 
-    responseInput = await executeMestreArcanoCalls(
+    const readsPrivateData = functionCalls.some((call) => isPrivateDataTool(call.name));
+    const toolOutputs = await executeMestreArcanoCalls(
       functionCalls,
       toolContext,
-      !privateDataInContext,
+      !privateDataInContext && !readsPrivateData,
     );
 
-    if (functionCalls.some((call) => isPrivateDataTool(call.name))) {
-      privateDataInContext = true;
-    }
+    // Replay assistant calls, reasoning items and their outputs without server-side response storage.
+    responseInput = [...responseInput, ...(Array.isArray(payload.output) ? payload.output : []), ...toolOutputs];
+    privateDataInContext ||= readsPrivateData;
   }
 
   throw new Error("Mestre Arcano excedeu o limite de iterações.");
