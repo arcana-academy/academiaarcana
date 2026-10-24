@@ -578,4 +578,22 @@ describe("workspace application service", () => {
       persistenceError,
     );
   });
+  it.each([
+    ["notebook", notebookRepository],
+    ["chapter", chapterRepository],
+    ["page", pageRepository],
+  ] as const)("rejects invalid %s reorder positions before persistence", async (kind, repository) => {
+    const invalidPositions = [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY];
+    vi.mocked(repository.getById).mockResolvedValue({ id: "item-1" } as never);
+    const reorder = {
+      notebook: (position: number) => service.reorderNotebook("item-1", position),
+      chapter: (position: number) => service.reorderChapter("item-1", position),
+      page: (position: number) => service.reorderPage("item-1", position),
+    }[kind];
+    for (const position of invalidPositions) {
+      await expect(reorder(position)).rejects.toThrow("Posição inválida.");
+    }
+    expect(repository.reorder).not.toHaveBeenCalled();
+  });
+
 });

@@ -34,6 +34,12 @@ type CreatePageInput = {
   content: PageContent;
 };
 
+function assertValidPosition(position: number): void {
+  if (!Number.isSafeInteger(position) || position < 0) {
+    throw new Error("Posição inválida.");
+  }
+}
+
 export class WorkspaceService {
   constructor(private readonly repositories: WorkspaceServiceDependencies) {}
 
@@ -185,6 +191,7 @@ export class WorkspaceService {
   }
 
   async reorderNotebook(id: string, position: number): Promise<void> {
+    assertValidPosition(position);
     const notebook = await this.repositories.notebookRepository.getById(id);
 
     if (!notebook) {
@@ -195,6 +202,7 @@ export class WorkspaceService {
   }
 
   async reorderChapter(id: string, position: number): Promise<void> {
+    assertValidPosition(position);
     const chapter = await this.repositories.chapterRepository.getById(id);
 
     if (!chapter) {
@@ -205,6 +213,7 @@ export class WorkspaceService {
   }
 
   async reorderPage(id: string, position: number): Promise<void> {
+    assertValidPosition(position);
     const page = await this.repositories.pageRepository.getById(id);
 
     if (!page) {
