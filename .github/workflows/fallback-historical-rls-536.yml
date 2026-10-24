@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - chore/536-fallback-validation-20261009
+      - integration/p0-536-release-train-20261009
 
 permissions:
   contents: read

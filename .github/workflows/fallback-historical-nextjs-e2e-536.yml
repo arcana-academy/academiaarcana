@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chore/536-fallback-validation-20261009
+      - integration/p0-536-release-train-20261009
+      - test/aa360-c34-historical-browser-536-20261019
+      - test/aa360-c35-browser-cookie-storage-jwt-20261019
 
 permissions:
   contents: read

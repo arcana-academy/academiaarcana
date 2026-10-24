@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - chore/536-fallback-validation-20261009
+      - integration/p0-536-release-train-20261009
 
 permissions:
   contents: read
@@ -11,7 +12,7 @@ permissions:
 jobs:
   validate-stable-source:
     name: Validate isolated legacy fallback image
-    if: ${{ github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/chore/536-fallback-validation-20261009' }}
+    if: ${{ github.repository == 'arcana-academy/academiaarcana' && (github.ref == 'refs/heads/chore/536-fallback-validation-20261009' || github.ref == 'refs/heads/integration/p0-536-release-train-20261009') }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -179,6 +180,6 @@ jobs:
             echo "Local image configuration SHA-256: \`$image_id\`"
             echo "Platform: \`linux/amd64\` | runtime user: \`node\`"
             echo "Registry manifest digest: **NOT AVAILABLE — IMAGE NOT PUBLISHED**"
-            echo "Supabase browser values: **PUBLIC PLACEHOLDERS ONLY**; no real remote integration demonstrated."
+            echo "Supabase browser values: **verified production-public GitHub vars (URL + publishable key only)**; no authenticated remote integration demonstrated."
             echo "This fallback image exists only inside this isolated CI runner; no GHCR push, artifact upload, Render hook or deploy."
           } >> "$GITHUB_STEP_SUMMARY"

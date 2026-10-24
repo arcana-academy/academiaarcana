@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { chromium, expect } from "@playwright/test";
 
 for (const name of ["SUPABASE_ACCESS_TOKEN", "DATABASE_URL", "SUPABASE_SECRET_KEY",
@@ -60,6 +61,15 @@ try {
     const first = await guest.goto(app + "/login");
     assert.equal(first.status(), 200);
     assert.ok(first.headers()["content-security-policy"]?.includes("connect-src"));
+    // Check the initial HTTP response, not just a client-side URL change.
+    const guestProtected = await guestContext.request.get(app + "/academia", {
+      maxRedirects: 0,
+    });
+    assert.ok([301, 302, 303, 307, 308].includes(guestProtected.status()),
+      "Unauthenticated /academia must return an HTTP redirect, not a page or server error");
+    const destination = new URL(guestProtected.headers().location ?? "", app);
+    assert.equal(destination.origin, new URL(app).origin);
+    assert.equal(destination.pathname, "/login");
     await guest.goto(app + "/academia");
     await expect(guest).toHaveURL(/\/login(?:[?#]|$)/, { timeout: 30000 });
     console.log("PASS: Next.js public login and server-side anonymous protected-route redirect");
@@ -78,6 +88,11 @@ try {
         "Real browser must persist Supabase auth cookies");
       const loaded = await page.goto(app + "/grimorios");
       assert.equal(loaded.status(), 200);
+      const initialHtml = await loaded.text();
+      assert.ok(initialHtml.includes(mine),
+        "Initial server-rendered HTML must contain the owner's grimoire");
+      assert.ok(!initialHtml.includes(foreign),
+        "Initial server-rendered HTML must not leak a foreign grimoire");
       await expect(page.getByText(mine, { exact: true })).toBeVisible();
       await expect(page.getByText(foreign, { exact: true })).toHaveCount(0);
       return page;
@@ -90,6 +105,36 @@ try {
     await expect(pageA.getByText(titleB, { exact: true })).toHaveCount(0);
     console.log("PASS: historical SSR cookie persists across a real Chromium page reload");
 
+    // Derive JWTs from the actual Playwright browser cookies created by
+    // AuthForm. Never use the separate signup client's JWT for Storage proof.
+    async function verifiedBrowserToken(context, expectedUserId) {
+      const browserCookies = await context.cookies(app);
+      assert.ok(browserCookies.some(cookie => cookie.name.includes("auth-token")));
+      const ssr = createServerClient(api.toString(), config.ANON_KEY, {
+        cookies: {
+          getAll: () => browserCookies.map(({ name, value }) => ({ name, value })),
+          setAll: () => {
+            throw new Error("Unexpected session refresh during read-only browser cookie proof");
+          },
+        },
+        auth: { autoRefreshToken: false, detectSessionInUrl: false },
+      });
+      const session = await ssr.auth.getSession();
+      assert.ifError(session.error);
+      const accessToken = session.data.session?.access_token;
+      assert.ok(accessToken, "Authenticated Chromium cookie must contain a session");
+      // Server-side validation with local GoTrue prevents trusting a forged
+      // cookie's user payload. No tokens or cookies are printed.
+      const verified = await client().auth.getUser(accessToken);
+      assert.ifError(verified.error);
+      assert.equal(verified.data.user?.id, expectedUserId);
+      return accessToken;
+    }
+    const browserJwtA = await verifiedBrowserToken(contextA, ownerA);
+    const browserJwtB = await verifiedBrowserToken(contextB, ownerB);
+    assert.notEqual(browserJwtA, browserJwtB, "Browser sessions must remain distinct");
+    console.log("PASS: both browser cookie sessions resolve to verified local GoTrue identities");
+
     const png = Buffer.from(
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLqUQAAAABJRU5ErkJggg==",
       "base64",
@@ -101,19 +146,22 @@ try {
     const location = new URL("storage/v1/object/authenticated/grimoire-covers/" + path, api).toString();
     const headers = { apikey: config.ANON_KEY };
     const own = await contextA.request.get(location, { headers: {
-      ...headers, Authorization: "Bearer " + signupA.data.session.access_token,
+      ...headers, Authorization: "Bearer " + browserJwtA,
     } });
     const foreign = await contextB.request.get(location, { headers: {
-      ...headers, Authorization: "Bearer " + signupB.data.session.access_token,
+      ...headers, Authorization: "Bearer " + browserJwtB,
     } });
     const guestRead = await guestContext.request.get(location, { headers: {
       ...headers, Authorization: "Bearer " + config.ANON_KEY,
     } });
     assert.equal(own.status(), 200);
     assert.deepEqual(Buffer.from(await own.body()), png);
-    assert.ok(!foreign.ok() && !guestRead.ok());
+    for (const [identity, result] of [["foreign", foreign], ["guest", guestRead]]) {
+      assert.ok([400, 401, 403, 404].includes(result.status()),
+        `${identity} Storage denial must be an expected HTTP 4xx, not a 5xx or other failure (got ${result.status()})`);
+    }
     assert.ifError((await a.storage.from("grimoire-covers").remove([path])).error);
-    console.log("PASS: browser-context HTTP Storage isolation with synthetic local JWTs");
+    console.log("PASS: private Storage isolation with JWTs from verified Chromium sessions");
 
     await pageA.getByRole("button", { name: "Sair", exact: true }).click();
     await expect(pageA).toHaveURL(/\/login(?:[?#]|$)/, { timeout: 45000 });
