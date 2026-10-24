@@ -150,7 +150,16 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     const createGrimoire = page.getByRole("form", { name: "Criar grimório" });
     await createGrimoire.getByRole("textbox", { name: "Novo grimório" }).fill(grimoireTitle);
     await createGrimoire.getByRole("button", { name: "Criar grimório" }).click();
-    await expect(page.getByRole("form", { name: "Criar caderno" })).toBeVisible();
+    const createNotebookForm = page.getByRole("form", { name: "Criar caderno" });
+    try {
+      await expect(createNotebookForm).toBeVisible();
+    } catch (error) {
+      const alerts = await page.getByRole("alert").allTextContents();
+      throw new Error(
+        `Notebook creation form did not appear after creating a grimoire; URL=${page.url()}; visible alerts=${alerts.join(" | ") || "none"}`,
+        { cause: error },
+      );
+    }
 
     const createNotebook = page.getByRole("form", { name: "Criar caderno" });
     await createNotebook.getByRole("textbox", { name: "Novo caderno" }).fill(notebookTitle);
