@@ -93,6 +93,19 @@ Não foram executados comandos `supabase start`, migrations, SQL, chamadas HTTP/
 
 **Comandos:** `command -v docker/podman/supabase/psql`; `readlink /proc/self/ns/net`; `ip -brief address`; `ip route`; nomes de variáveis via `env | cut -d= -f1` (sem ler valores); `unshare --net true`.
 
+## Addendum — checagem no branch `arena/1040adc9-academiaarcana` (2026-10-24)
+
+**Resultado: BLOCKED antes de migrations e testes.** A verificação foi repetida neste branch ativo, conforme as instruções desta sessão:
+
+- `docker`, `podman`, `supabase` e `psql`: `NOT_FOUND`.
+- Namespace de rede atual `net:[4026531840]`, interface `eth0` (`169.254.0.21/30`) e rota default via `169.254.0.22`; portanto o tráfego do ambiente não está comprovadamente restrito a loopback.
+- `unshare --net true` falhou com `Operation not permitted`; não foi possível criar namespace isolado.
+- Nomes de variáveis do ambiente relacionados a Supabase/database/Postgres: nenhum encontrado. Isso não prova inexistência de credenciais ou URLs em arquivos, processos ou serviços externos.
+
+**Parada conforme solicitado:** não iniciei runner, não executei migrations, SQL, chamadas API/HTTP ou testes, não criei identidades sintéticas e não acessei serviços hospedados. Nenhuma falha foi reproduzida, correção foi feita, nem dado/configuração de autenticação, retenção ou LGPD foi alterado. Sem evidência de isolamento e runner local, não há resultado RED→GREEN.
+
+**Comandos executados:** `command -v` para ferramentas; `readlink /proc/self/ns/net`; `ip -brief address`; `ip route`; `env | cut -d= -f1` filtrando apenas nomes; `unshare --net true`.
+
 ## 🚀 Próximo prompt
 
 “Disponibilize um runner descartável com Docker/Supabase CLI e permissão para um namespace de rede isolado. Demonstre antes que as chamadas de rede estão limitadas ao próprio runner/loopback e que nenhuma credencial ou URL de projeto produtivo está disponível. Se qualquer condição falhar, pare em BLOCKED. Só então aplique migrations do zero, execute testes negativos com duas identidades sintéticas para RLS, RPC, Storage e sessões revogadas, registre RED→GREEN e corrija apenas em branch autorizada; não use serviços hospedados.”
