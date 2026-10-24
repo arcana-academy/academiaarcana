@@ -12,6 +12,9 @@ import {
   MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE,
 } from "@/infrastructure/integrations/microsoft-sharepoint";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { consumeApiRateLimit } from "@/application/security/api-rate-limit";
+import { SupabaseApiRateLimitRepository } from "@/infrastructure/supabase/security/api-rate-limit-repository";
+import { apiRateLimitResponse } from "@/lib/http/api-rate-limit-response";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +82,20 @@ export async function POST(request: Request) {
       } catch {
         microsoftSharePointCredentials = null;
       }
+    }
+
+    // Metered surface: only validated requests that would actually reach the
+    // model consume the quota, and an unbounded request is refused when the
+    // limiter cannot answer.
+    const limitResponse = apiRateLimitResponse(
+      await consumeApiRateLimit(
+        new SupabaseApiRateLimitRepository(supabase),
+        "mestre-arcano",
+      ),
+    );
+
+    if (limitResponse) {
+      return limitResponse;
     }
 
     const toolContext = createMestreArcanoToolContext({

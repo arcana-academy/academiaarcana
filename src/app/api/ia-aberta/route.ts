@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { invokeOpenSourceAi, type GatewayRequest } from "@/infrastructure/integrations/open-source-ai-gateway";
 import { getOpenSourceAiIntegration, getOpenSourceAiStatus, openSourceAiIntegrations } from "@/infrastructure/integrations/open-source-ai";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
+import { consumeApiRateLimit } from "@/application/security/api-rate-limit";
+import { SupabaseApiRateLimitRepository } from "@/infrastructure/supabase/security/api-rate-limit-repository";
+import { apiRateLimitResponse } from "@/lib/http/api-rate-limit-response";
 
 export async function GET() {
   return NextResponse.json({
@@ -27,6 +30,15 @@ export async function POST(request: Request) {
     }
     const integration = getOpenSourceAiIntegration(body.provider);
     if (!integration) return NextResponse.json({ error: "Provider não suportado." }, { status: 400 });
+
+    // Metered surface: the quota is consumed right before the gateway call.
+    const limitResponse = apiRateLimitResponse(
+      await consumeApiRateLimit(
+        new SupabaseApiRateLimitRepository(supabase),
+        "open-source-ai",
+      ),
+    );
+    if (limitResponse) return limitResponse;
 
     const result = await invokeOpenSourceAi({
       provider: body.provider,
