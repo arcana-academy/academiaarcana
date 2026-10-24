@@ -45,7 +45,9 @@ export function validateSupabaseProductionConfiguration(
     );
   }
 
-  const projectRef = parsedUrl.hostname.replace(/\.supabase\.co$/, "");
+  const isSupabaseProjectHostname = /^[a-z0-9]{20}\.supabase\.co$/.test(
+    parsedUrl.hostname,
+  );
 
   if (
     parsedUrl.protocol !== "https:" ||
@@ -55,7 +57,7 @@ export function validateSupabaseProductionConfiguration(
     parsedUrl.pathname !== "/" ||
     parsedUrl.search ||
     parsedUrl.hash ||
-    !/^[a-z0-9]{20}$/.test(projectRef)
+    !isSupabaseProjectHostname
   ) {
     throw new Error(
       "NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS Supabase project URL.",
