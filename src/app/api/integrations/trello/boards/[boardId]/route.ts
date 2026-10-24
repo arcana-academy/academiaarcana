@@ -17,7 +17,7 @@ export async function GET(
   if (!credentials) {
     return NextResponse.json(
       { status },
-      { status: status === "reauthorization_required" ? 401 : 200 },
+      { status: status === "request_failed" ? 502 : status === "reauthorization_required" ? 401 : 200, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 

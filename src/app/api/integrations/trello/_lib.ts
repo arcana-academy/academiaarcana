@@ -6,6 +6,7 @@ import {
   refreshTrelloCredentials,
   shouldRefreshTrelloCredentials,
   TRELLO_CREDENTIALS_COOKIE,
+  TrelloRefreshError,
   type TrelloCredentials,
 } from "@/infrastructure/integrations/trello";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
@@ -43,12 +44,20 @@ export async function getTrelloCredentialsContext() {
     try {
       credentials = await refreshTrelloCredentials(credentials);
       await persistTrelloCredentials(cookieStore, credentials);
-    } catch {
-      cookieStore.delete(TRELLO_CREDENTIALS_COOKIE);
+    } catch (error) {
+      // Provider outages cannot prove revocation of the user's credential.
+      const rejected =
+        error instanceof TrelloRefreshError &&
+        (error.httpStatus === 401 ||
+          error.httpStatus === 403 ||
+          error.oauthError === "invalid_grant");
+      if (rejected) cookieStore.delete(TRELLO_CREDENTIALS_COOKIE);
       return {
         credentials: null,
         cookieStore,
-        status: "reauthorization_required" as const,
+        status: rejected
+          ? ("reauthorization_required" as const)
+          : ("request_failed" as const),
       };
     }
   }

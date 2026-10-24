@@ -121,6 +121,16 @@ export class TrelloConnectionError extends Error {
   }
 }
 
+export class TrelloRefreshError extends TrelloConnectionError {
+  constructor(
+    readonly httpStatus?: number,
+    readonly oauthError?: "invalid_grant",
+  ) {
+    super("Não foi possível renovar a autorização do Trello.");
+    this.name = "TrelloRefreshError";
+  }
+}
+
 export function getTrelloClientId(): string {
   const value = process.env.TRELLO_CLIENT_ID?.trim();
   if (!value) throw new TrelloConnectionError("TRELLO_CLIENT_ID não está configurado.");
@@ -362,7 +372,17 @@ export async function refreshTrelloCredentials(
     }),
   });
 
-  if (!response.ok) throw new TrelloConnectionError("Não foi possível renovar a autorização do Trello.");
+  if (!response.ok) {
+    let oauthError: "invalid_grant" | undefined;
+    if (response.status === 400) {
+      const payload: unknown = await response.json().catch(() => null);
+      if (payload !== null && typeof payload === "object" &&
+          "error" in payload && payload.error === "invalid_grant") {
+        oauthError = "invalid_grant";
+      }
+    }
+    throw new TrelloRefreshError(response.status, oauthError);
+  }
 
   const payload = (await response.json()) as {
     access_token?: string;
