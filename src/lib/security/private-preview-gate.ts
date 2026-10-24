@@ -7,14 +7,14 @@ export const PRIVATE_PREVIEW_USER = "arcana-preview";
  * Missing/invalid credentials must never grant access when the gate is enabled.
  */
 export function isPrivatePreviewEnabled(
-  environment: NodeJS.ProcessEnv = process.env,
+  environment: Readonly<Record<string, string | undefined>> = process.env,
 ): boolean {
   return environment.AA_PRIVATE_PREVIEW !== "disabled";
 }
 
 export function isPrivatePreviewAuthorized(
   authorization: string | null,
-  environment: NodeJS.ProcessEnv = process.env,
+  environment: Readonly<Record<string, string | undefined>> = process.env,
 ): boolean {
   const password = environment.AA_PRIVATE_PREVIEW_PASSWORD;
   // A high-entropy, preview-only secret is mandatory. Never accept a short key.
