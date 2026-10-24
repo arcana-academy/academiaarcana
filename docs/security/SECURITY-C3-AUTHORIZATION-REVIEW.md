@@ -64,6 +64,22 @@ Principais: `src/components/auth/AuthForm.tsx`, `src/app/auth/callback/route.ts`
 **SHA base do checkout:** `9f902981fcd537a10ff8d6757379b450f656abf9`.  
 **SHA-256 do arquivo:** calculado no fechamento e informado junto à entrega.
 
+## Addendum — tentativa de preparação do runner (2026-10-24)
+
+**Resultado: BLOCKED antes de qualquer migration, teste de Auth ou acesso a banco.** O pedido exige parar se o isolamento não puder ser comprovado; por isso nenhum runner foi iniciado e nenhuma alteração de aplicação/banco foi feita.
+
+Evidências coletadas sem imprimir valores de segredo:
+
+- `command -v docker`, `podman`, `supabase` e `psql`: nenhum executável encontrado.
+- Namespace de rede ativo: `net:[4026531840]`; interfaces mostram `lo` e `eth0` (`169.254.0.21/30`) com rota default via `169.254.0.22`.
+- `unshare --net true`: falhou com `Operation not permitted` (não foi possível criar namespace de rede isolado).
+- Variáveis de ambiente com nomes relacionados a Supabase/database/Postgres: nenhuma listada. Nomes de credenciais GitHub foram deliberadamente não inspecionados quanto a valores.
+- O runner não tem prova de firewall/egress fechado; o sandbox possui rede ativa. Portanto não se afirma isolamento, ausência absoluta de credenciais em arquivos, nem uso seguro de backend local.
+
+Não foram executados comandos `supabase start`, migrations, SQL, chamadas HTTP/API, criação de usuários ou testes de duas identidades. Não foram alterados dados hospedados, contas, políticas Auth, retenção ou LGPD. Também não foi criada branch auxiliar: Arena fixa a branch ativa `arena/2b0a6dab-academiaarcana`; qualquer correção futura deve aguardar runner isolado e branch autorizada.
+
+**Comandos de verificação usados:** `command -v docker/podman/supabase/psql`; `readlink /proc/self/ns/net`; `ip -brief address`; `ip route`; `ss -lnt`; nomes de variáveis via `env | cut -d= -f1` (valores não expostos); `unshare --net true`.
+
 ## 🚀 Próximo prompt
 
-“Configure um runner descartável Supabase local com Docker/CLI e isolamento de rede comprovado; execute migrações do zero e os testes de autorização com duas identidades sintéticas (incluindo Storage, RPC, tentativas, XP e sessões revogadas). Não use projeto hospedado. Reproduza e registre cada falha RED, corrija somente em branch isolada autorizada, então rode a suíte GREEN e atualize este relatório com logs, comandos e SHA.”
+“Disponibilize um runner descartável com Docker/Supabase CLI e permissão para um namespace de rede isolado. Demonstre antes que as chamadas de rede estão limitadas ao próprio runner/loopback e que nenhuma credencial ou URL de projeto produtivo está disponível. Se qualquer condição falhar, pare em BLOCKED. Só então aplique migrations do zero, execute testes negativos com duas identidades sintéticas para RLS, RPC, Storage e sessões revogadas, registre RED→GREEN e corrija apenas em branch autorizada; não use serviços hospedados.”
