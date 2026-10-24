@@ -243,6 +243,21 @@ jobs:
             --output /tmp/aa-render-image-target-guard.cjs \
             "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${EXPECTED_REVISION}/scripts/security/verify-render-image-target-536.cjs"
 
+      - name: Fetch convergence guard from approved main SHA
+        env:
+          EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! [[ "$EXPECTED_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid approved convergence guard source revision." >&2
+            exit 1
+          fi
+          # Fetch before the irreversible request from the same immutable source.
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-redirs 0 \
+            --output /tmp/aa-render-image-convergence-guard.cjs \
+            "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${EXPECTED_REVISION}/scripts/security/verify-render-image-convergence-536.cjs"
+
       - name: Request Render image deployment
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
@@ -264,6 +279,22 @@ jobs:
           # Never retry an ambiguous API outcome or split these steps.
           node /tmp/aa-render-image-target-guard.cjs
           printf '%s\n' "$IMAGE_REVISION" > /tmp/academiaarcana-deployed-revision.txt
+
+      - name: Verify the service converged to the approved image digest
+        env:
+          RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}
+          RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}
+          IMAGE_URL: ${{ needs.publish.outputs.image_url }}
+          # Keep the postcondition bounded inside the deploy job's 25-minute ceiling.
+          RENDER_CONVERGENCE_TIMEOUT_MS: "120000"
+          RENDER_CONVERGENCE_INTERVAL_MS: "5000"
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The deploy-specific API result is followed by a service-level
+          # postcondition. Every poll revalidates identity, runtime and
+          # auto-deploy and passes only for the exact approved digest.
+          node /tmp/aa-render-image-convergence-guard.cjs
 
       - name: Upload requested production revision for smoke verification
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
