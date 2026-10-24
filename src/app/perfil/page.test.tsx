@@ -45,6 +45,9 @@ describe("PerfilPage", () => {
     expect(html).toContain("taynara@example.test");
     expect(html).toContain("15 de jan. de 2026");
     expect(html).toContain('href="/configuracoes"');
+    expect(html).toContain("Consulte os dados da sua conta com segurança.");
+    expect(html).toContain("Acesse seus grimórios e continue sua jornada de estudos.");
+    expect(html).not.toContain("domínio Learning");
   });
   it("renders a retryable identity warning instead of a user ID when getUser reports an error", async () => {
     getUserMock.mockResolvedValueOnce({

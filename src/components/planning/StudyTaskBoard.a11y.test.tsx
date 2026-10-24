@@ -31,6 +31,11 @@ describe("StudyTaskBoard accessibility contract", () => {
     expect(main).toHaveClass("aa-study-task-board");
     expect(screen.getByLabelText("Tarefa")).toHaveAttribute("id", "study-task-title");
     expect(screen.getByLabelText("Prazo")).toHaveAttribute("id", "study-task-due");
+    expect(screen.getByLabelText("Prazo")).toHaveAttribute("lang", "pt-BR");
+    expect(screen.getByLabelText("Prazo")).toHaveAttribute("type", "datetime-local");
+    const taskHeading = screen.getByRole("heading", { name: "Adicionar tarefa de estudo" });
+    const outlookHeading = screen.getByRole("heading", { name: "Outlook Calendar" });
+    expect(taskHeading.compareDocumentPosition(outlookHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole("form", { name: "Adicionar tarefa de estudo" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Concluir" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Enviar ao Todoist" })).toBeInTheDocument();

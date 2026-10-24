@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccessibilityPanel } from "@/components/accessibility/AccessibilityPanel";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { Accessibility, Palette, PlugZap, ShieldCheck } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
@@ -18,6 +19,7 @@ export default async function ConfiguracoesPage() {
         title="Configurações"
         description="Controle acessibilidade, aparência, segurança e outras preferências sem misturar configurações com dados de domínio."
       >
+        <AccessibilityPanel variant="full" />
         <ArcanaFeatureGrid>
           <FeatureCard title="Acessibilidade" description="Preferências de movimento, tipografia, contraste e conforto cognitivo." icon={<Accessibility size={20} />}>
             <p className="aa-state-copy">As preferências de acessibilidade existentes continuam sendo a fonte de verdade.</p>

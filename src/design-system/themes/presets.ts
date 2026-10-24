@@ -7,6 +7,7 @@ type DeepPartial<T> = {
 
 export const THEME_IDS: readonly ThemeId[] = [
   "mago-classico",
+  "pergaminho-claro",
   "escuro",
   "estudioso",
   "natural",
@@ -89,6 +90,15 @@ const sharedStatus = {
 
 export const themePresets: Record<ThemeId, ThemePreset> = {
   "mago-classico": createPreset("mago-classico", "Mago Clássico", {}),
+  "pergaminho-claro": createPreset("pergaminho-claro", "Pergaminho Claro", {
+    surfaces: { canvas: "#F7F1E8", panel: "#F0E7DE", elevated: "#E9DED5", floating: "#E4D6CC", modal: "#EDE2D7", inset: "#FFFCF7" },
+    text: { primary: "#302338", secondary: "#4A3B52", muted: "#5A4B61", inverse: "#F7F1E8" },
+    border: { default: "#715E78", strong: "#604474" },
+    accent: { primary: "#604474", secondary: "#745A85" },
+    status: { success: "#2F6650", warning: "#765222", danger: "#943D40", info: "#375E7B" },
+    focus: { ring: "#604474" },
+    effects: { glow: "none", texture: "none" },
+  }),
   escuro: createPreset("escuro", "Escuro", { surfaces: { canvas: "#101016", panel: "#181820", elevated: "#22222C", inset: "#0C0C11" }, accent: { primary: "#A89CC0", secondary: "#706685" } }),
   estudioso: createPreset("estudioso", "Estudioso", { surfaces: { canvas: "#191714", panel: "#25201A", elevated: "#302920", inset: "#14110E" }, accent: { primary: "#B69A6A", secondary: "#8D744D" }, typography: { body: "Georgia, serif", heading: "Georgia, serif" } }),
   natural: createPreset("natural", "Natural", { surfaces: { canvas: "#151B17", panel: "#1D271F", elevated: "#263329", inset: "#101510" }, accent: { primary: "#91B59A", secondary: "#64866D" } }),

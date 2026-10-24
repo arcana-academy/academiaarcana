@@ -6,7 +6,6 @@ import type { Mission } from "@/domains/gamification";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
-import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { createClient } from "@/lib/supabase/server";
@@ -42,25 +41,14 @@ export default async function MissoesPage() {
       <ArcanaPage
         eyebrow="Gamificação"
         title="Missões"
-        description="Objetivos derivados de eventos reais de estudo, sem pressão artificial ou dados fictícios."
+        description="Acompanhe seus objetivos de estudo e as conquistas do dia."
         actions={[{ href: "/cronograma", label: "Abrir cronograma", variant: "secondary" }]}
       >
-        {loadError ? (
-          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="missions-error-title">
-            <h2 id="missions-error-title">Não foi possível carregar as missões</h2>
-            <p>Seu progresso não foi alterado. Tente carregar novamente.</p>
-            <form action="/missoes" method="get">
-              <button className="aa-button aa-button-secondary" type="submit">
-                Tentar novamente
-              </button>
-            </form>
-          </section>
-        ) : (
-        <ArcanaFeatureGrid>
+        <div className="aa-feature-grid" style={{ display: "grid", gap: "1rem" }}>
           <FeatureCard
             title="Hoje"
             description="Missões registradas para o dia atual."
-            icon={<Image src={missionDocument} alt="" width={22} height={22} />}
+            icon={<Image src={missionDocument} alt="" width={28} height={28} />}
           >
             {loadError ? (
               <div role="alert">
@@ -114,7 +102,7 @@ export default async function MissoesPage() {
           {missions.length ? (
             <FeatureCard
               title="Objetivos"
-              description="Metas de estudo que nasceram de eventos persistidos."
+              description="Acompanhe suas tarefas e conquistas de hoje."
               icon={<Target size={20} />}
             >
               <ul className="aa-list" aria-label="Missões de hoje">
@@ -132,16 +120,15 @@ export default async function MissoesPage() {
           {missions.length ? (
             <FeatureCard
               title="Progresso significativo"
-              description="Reconhecimento de avanço, nunca vergonha, culpa ou fracasso artificial."
+              description="Cada tarefa concluída representa um passo na sua jornada."
               icon={<Sparkles size={20} />}
             >
               <p className="aa-state-copy">
-                As recompensas são calculadas pela operação atômica de conclusão de tarefa.
+                Conclua suas tarefas de estudo e conquiste experiência.
               </p>
             </FeatureCard>
           ) : null}
-        </ArcanaFeatureGrid>
-        )}
+        </div>
       </ArcanaPage>
     </AuthenticatedShell>
   );

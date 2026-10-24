@@ -51,6 +51,10 @@ describe("MissoesPage", () => {
     expect(screen.getByRole("heading", { name: "Missões", level: 1 })).toBeInTheDocument();
     expect(screen.getByText(/1\/1 concluídas/)).toBeInTheDocument();
     expect(screen.getByText("Concluir uma tarefa de estudo")).toBeInTheDocument();
+    expect(screen.getByText("Acompanhe suas tarefas e conquistas de hoje.")).toBeInTheDocument();
+    expect(screen.getByText("Conclua suas tarefas de estudo e conquiste experiência.")).toBeInTheDocument();
+    expect(screen.queryByText(/eventos persistidos|operação atômica/)).not.toBeInTheDocument();
+    expect(document.querySelector(".aa-feature-grid")).toHaveStyle({ display: "grid", gap: "1rem" });
     expect(screen.getByRole("list", { name: "Missões de hoje" })).toBeInTheDocument();
     expect(document.querySelector('img[src="/assets/missions/aa-mission-document.svg"]')).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Abrir cronograma" })).toHaveAttribute("href", "/cronograma");

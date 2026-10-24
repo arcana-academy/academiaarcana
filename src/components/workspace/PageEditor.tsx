@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { GuidedPageReading } from "@/components/education/GuidedPageReading";
-import { SavedBlockStudyChecklist } from "@/components/education/SavedBlockStudyChecklist";
-import { TemporaryStudyGlossary } from "@/components/education/TemporaryStudyGlossary";
-import { StudyStrategies } from "@/components/education/StudyStrategies";
+import { useEffect, useRef, useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
+import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
+import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
 
 type PageDeleteControlProps = {
   pageId: string;
@@ -22,6 +20,60 @@ function PageDeleteControl({
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const launchButton = useRef<HTMLButtonElement>(null);
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const confirmButton = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const openedOnce = useRef(false);
+
+  useEffect(() => {
+    if (isConfirming) {
+      openedOnce.current = true;
+      if (isDeleting) {
+        dialogRef.current?.focus();
+      } else {
+        cancelButton.current?.focus();
+      }
+    } else if (openedOnce.current) {
+      launchButton.current?.focus();
+    }
+  }, [isConfirming, isDeleting]);
+
+  // The confirmation is modal for keyboard and assistive-technology users.
+  // Escape must work even if focus is moved programmatically outside it.
+  useEffect(() => {
+    if (!isConfirming) return;
+
+    const onDocumentKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isDeleting) {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsConfirming(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      const first = cancelButton.current;
+      const last = confirmButton.current;
+      if (isDeleting) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
+      if (!dialog || !first || !last) return;
+      const outsideDialog = !dialog.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || outsideDialog)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || outsideDialog)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onDocumentKeyDown, true);
+    return () => document.removeEventListener("keydown", onDocumentKeyDown, true);
+  }, [isConfirming, isDeleting]);
 
   /** Execute the confirmed deletion and report recoverable failures. */
   const remove = async () => {
@@ -40,6 +92,7 @@ function PageDeleteControl({
     return (
       <button
         type="button"
+        ref={launchButton}
         onClick={() => setIsConfirming(true)}
       >
         Excluir página
@@ -48,12 +101,20 @@ function PageDeleteControl({
   }
 
   return (
-    <div role="alertdialog" aria-label="Confirmar exclusão da página">
-      <p>
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="Confirmar exclusão da página"
+      aria-describedby="workspace-delete-page-warning"
+    >
+      <p id="workspace-delete-page-warning">
         Excluir a página &quot;{pageTitle}&quot;? Essa ação não pode ser desfeita.
       </p>
       {error ? <p role="alert">{error}</p> : null}
       <button
+        ref={cancelButton}
         type="button"
         disabled={isDeleting}
         onClick={() => setIsConfirming(false)}
@@ -61,6 +122,7 @@ function PageDeleteControl({
         Cancelar
       </button>
       <button
+        ref={confirmButton}
         type="button"
         disabled={isDeleting}
         onClick={remove}
@@ -73,31 +135,99 @@ function PageDeleteControl({
 
 type MovePageDirection = "up" | "down";
 
+type PageBlock = PageContent["blocks"][number];
 type PageBlocksProps = {
   blocks: PageContent["blocks"];
   blockKeys: string[];
-  onChange: (index: number, content: string) => void;
-  disabled?: boolean;
+  onChange: (index: number, changes: Partial<PageBlock>) => void;
+  onAccessibilityChange: (index: number, changes: NonNullable<PageBlock["accessibility"]>) => void;
 };
 
 /** Render page blocks while keeping block editing separate from PageEditor orchestration. */
-function PageBlocks({ blocks, blockKeys, onChange, disabled = false }: PageBlocksProps) {
+function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: PageBlocksProps) {
   return (
     <div aria-label="Blocos da página">
       {blocks.length === 0 ? (
         <p>Esta página ainda não possui conteúdo.</p>
       ) : (
         blocks.map((block, index) => (
-          <div key={blockKeys[index]}>
+          <div key={blockKeys[index]} className="workspace-page-block">
             <label htmlFor={`workspace-page-block-${index}`}>
               Bloco {index + 1}
             </label>
             <textarea
               id={`workspace-page-block-${index}`}
               value={block.content}
-              disabled={disabled}
-              onChange={(event) => onChange(index, event.target.value)}
+              onChange={(event) => onChange(index, { content: event.target.value })}
             />
+            <details className="workspace-block-accessibility">
+              <summary>Acessibilidade do bloco {index + 1}</summary>
+              <label htmlFor={"workspace-block-kind-" + index}>
+                Tipo do bloco {index + 1}
+              </label>
+              <select
+                className="aa-input"
+                id={"workspace-block-kind-" + index}
+                value={block.type}
+                onChange={(event) => onChange(index, { type: event.target.value })}
+              >
+                {!["paragraph", "image", "video", "formula", "diagram"].includes(block.type) ? (
+                  <option value={block.type}>Tipo existente: {block.type}</option>
+                ) : null}
+                <option value="paragraph">Texto</option>
+                <option value="image">Imagem — referência textual</option>
+                <option value="video">Vídeo — referência textual</option>
+                <option value="formula">Fórmula</option>
+                <option value="diagram">Diagrama — referência textual</option>
+              </select>
+              {block.type === "image" ? (
+                <label htmlFor={"workspace-block-decorative-" + index}>
+                  <input
+                    id={"workspace-block-decorative-" + index}
+                    type="checkbox"
+                    checked={block.accessibility?.decorative === true}
+                    onChange={(event) =>
+                      onAccessibilityChange(index, {
+                        decorative: event.target.checked,
+                        ...(event.target.checked ? { description: "" } : {}),
+                      })
+                    }
+                  />
+                  Imagem decorativa (sem informação essencial)
+                </label>
+              ) : null}
+              {block.type === "image" && block.accessibility?.decorative ? (
+                <p>Imagens decorativas não devem comunicar informações essenciais.</p>
+              ) : (
+                <>
+                  <label htmlFor={"workspace-block-description-" + index}>
+                    {block.type === "image"
+                      ? "Descrição alternativa"
+                      : block.type === "video"
+                        ? "Transcrição ou descrição"
+                        : block.type === "formula"
+                          ? "Leitura da fórmula"
+                          : block.type === "diagram"
+                            ? "Descrição do diagrama"
+                            : "Observação acessível (opcional)"}
+                  </label>
+                  <textarea
+                    id={"workspace-block-description-" + index}
+                    value={block.accessibility?.description ?? ""}
+                    onChange={(event) =>
+                      onAccessibilityChange(index, {
+                        description: event.target.value,
+                        decorative: false,
+                      })
+                    }
+                  />
+                </>
+              )}
+              {block.type !== "paragraph" ? (
+                <p>Os blocos de mídia armazenam referências textuais e alternativas.
+                  Este editor ainda não envia nem reproduz arquivos.</p>
+              ) : null}
+            </details>
           </div>
         ))
       )}
@@ -165,7 +295,7 @@ type PageSaveStatusProps = {
 function PageSaveStatus({ status }: PageSaveStatusProps) {
   const messages: Record<PageSaveState, string> = {
     idle: "",
-    saving: "",
+    saving: "Salvando página…",
     saved: "Página salva.",
     error: "Não foi possível salvar a página.",
   };
@@ -211,7 +341,8 @@ export function PageEditor({
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [starter, setStarter] = useState<PageStarterTemplate>("blank");
+  const editRevision = useRef(0);
   const [blockKeys, setBlockKeys] = useState(() =>
     page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
   );
@@ -242,16 +373,36 @@ export function PageEditor({
     }
   };
 
-  /** Update one page block while keeping the editor state local. */
-  const updateBlock = (index: number, blockContent: string) => {
-    const nextBlocks = [...content.blocks];
-    nextBlocks[index] = {
-      ...nextBlocks[index],
-      content: blockContent,
-    };
-    setContent({ ...content, blocks: nextBlocks });
-    setHasUnsavedChanges(true);
-    setStatus("idle");
+  /** Keep block edits local until the authenticated save confirms persistence. */
+  const updateBlock = (index: number, changes: Partial<PageBlock>) => {
+    editRevision.current += 1;
+    setContent((current) => ({
+      ...current,
+      blocks: current.blocks.map((block, position) =>
+        position === index
+          ? changes.type && changes.type !== block.type
+            ? { ...block, ...changes, accessibility: undefined }
+            : { ...block, ...changes }
+          : block,
+      ),
+    }));
+    setStatus((current) => current === "saving" ? current : "idle");
+  };
+
+  const updateAccessibility = (
+    index: number,
+    changes: NonNullable<PageBlock["accessibility"]>,
+  ) => {
+    editRevision.current += 1;
+    setContent((current) => ({
+      ...current,
+      blocks: current.blocks.map((block, position) =>
+        position === index
+          ? { ...block, accessibility: { ...block.accessibility, ...changes } }
+          : block,
+      ),
+    }));
+    setStatus((current) => current === "saving" ? current : "idle");
   };
 
   /** Only persist progress for saved page content, never for an uncommitted draft. */
@@ -274,6 +425,7 @@ export function PageEditor({
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
     setStatus("saving");
+    const revisionAtSave = editRevision.current;
 
     try {
       const saved = await onSave({
@@ -282,10 +434,15 @@ export function PageEditor({
         content,
       });
 
-      setTitle(saved.title);
-      setContent(saved.content);
-      setHasUnsavedChanges(false);
-      setStatus("saved");
+      if (editRevision.current === revisionAtSave) {
+        setTitle(saved.title);
+        setContent(saved.content);
+        setStatus("saved");
+      } else {
+        // The user continued editing: never replace newer local text with an
+        // older server response or falsely mark the new draft as saved.
+        setStatus("idle");
+      }
     } catch {
       setStatus("error");
     }
@@ -293,6 +450,8 @@ export function PageEditor({
 
   /** Add a new paragraph block and generate its stable local key. */
   const addBlock = () => {
+    editRevision.current += 1;
+    setStatus((current) => current === "saving" ? current : "idle");
     setContent({
       ...content,
       blocks: [...content.blocks, { type: "paragraph", content: "" }],
@@ -305,27 +464,15 @@ export function PageEditor({
     setStatus("idle");
   };
 
-  if (areStrategiesOpen) {
-    return <StudyStrategies onClose={() => setAreStrategiesOpen(false)} />;
-  }
-
-  if (isGlossaryOpen) {
-    return <TemporaryStudyGlossary title={title} onClose={() => setIsGlossaryOpen(false)} />;
-  }
-
-  if (isChecklistOpen) {
-    return <SavedBlockStudyChecklist title={title} blocks={content.blocks} onClose={() => setIsChecklistOpen(false)} />;
-  }
-
-  if (isReading) {
-    return (
-      <GuidedPageReading
-        title={title}
-        blocks={content.blocks}
-        onClose={() => setIsReading(false)}
-      />
-    );
-  }
+  /** Templates never overwrite authored blocks or save without confirmation. */
+  const applyStarter = () => {
+    if (status === "saving" || !canApplyStarterTemplate(content)) return;
+    editRevision.current += 1;
+    const nextContent = buildStarterTemplate(starter);
+    setContent(nextContent);
+    setBlockKeys(nextContent.blocks.map((_, index) => page.id + ":template:" + index));
+    setStatus((current) => current === "saving" ? current : "idle");
+  };
 
   return (
     <article aria-label="Editor da página">
@@ -333,19 +480,45 @@ export function PageEditor({
       <input
         id="workspace-page-title"
         value={title}
-        disabled={status === "saving"}
         onChange={(event) => {
+          editRevision.current += 1;
           setTitle(event.target.value);
-          setHasUnsavedChanges(true);
-          setStatus("idle");
+          setStatus((current) => current === "saving" ? current : "idle");
         }}
       />
+
+      <ReadingToolbar />
+
+      <section aria-label="Modelos iniciais de página" className="workspace-page-template-controls">
+        <label htmlFor="workspace-page-starter">Modelo inicial</label>
+        <select
+          id="workspace-page-starter"
+          className="aa-input"
+          value={starter}
+          disabled={!canApplyStarterTemplate(content) || status === "saving"}
+          onChange={(event) => setStarter(event.target.value as PageStarterTemplate)}
+        >
+          {PAGE_STARTER_TEMPLATES.map((choice) => (
+            <option key={choice.id} value={choice.id}>{choice.label}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          disabled={!canApplyStarterTemplate(content) || status === "saving"}
+          onClick={applyStarter}
+        >Aplicar modelo</button>
+        <p className="aa-field-description">
+          Disponível somente em páginas vazias. A aplicação prepara um rascunho local;
+          use Salvar página para registrar as alterações. O modelo ilustrado cria uma
+          referência textual, não envia imagens.
+        </p>
+      </section>
 
       <PageBlocks
         blocks={content.blocks}
         blockKeys={blockKeys}
         onChange={updateBlock}
-        disabled={status === "saving"}
+        onAccessibilityChange={updateAccessibility}
       />
 
       <button type="button" onClick={addBlock} disabled={status === "saving"}>

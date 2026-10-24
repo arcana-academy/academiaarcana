@@ -92,6 +92,38 @@
 
 html { color-scheme: dark; }
 
+/*
+ * Before hydration, honor the device's light preference without JavaScript.
+ * The selector is deliberately inactive once applyTheme sets data-theme,
+ * so a manually selected dark/bright theme remains authoritative.
+ */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) {
+    color-scheme: light;
+    --aa-surfaces-canvas: #F7F1E8;
+    --aa-surfaces-panel: #F0E7DE;
+    --aa-surfaces-elevated: #E9DED5;
+    --aa-surfaces-floating: #E4D6CC;
+    --aa-surfaces-modal: #EDE2D7;
+    --aa-surfaces-inset: #FFFCF7;
+    --aa-text-primary: #302338;
+    --aa-text-secondary: #4A3B52;
+    --aa-text-muted: #5A4B61;
+    --aa-text-inverse: #F7F1E8;
+    --aa-border-default: #715E78;
+    --aa-border-strong: #604474;
+    --aa-accent-primary: #604474;
+    --aa-accent-secondary: #745A85;
+    --aa-status-success: #2F6650;
+    --aa-status-warning: #765222;
+    --aa-status-danger: #943D40;
+    --aa-status-info: #375E7B;
+    --aa-focus-ring: #604474;
+    --aa-effects-glow: none;
+    --aa-effects-texture: none;
+  }
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -2333,3 +2365,267 @@ p {
   background: var(--aa-surfaces-inset);
 }
 
+
+
+/* Brand Book 360 — accessible properties live next to the selected page block. */
+.workspace-page-block {
+  display: grid;
+  gap: var(--aa-spacing-xs);
+  margin-block: var(--aa-spacing-sm);
+  padding: var(--aa-spacing-md);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-panel);
+}
+
+.workspace-page-block .aa-input {
+  width: 100%;
+  min-height: var(--aa-sizing-control-md);
+}
+
+.workspace-block-accessibility {
+  padding: var(--aa-spacing-sm);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-inset);
+}
+
+.workspace-block-accessibility[open] {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+}
+
+.workspace-block-accessibility summary {
+  cursor: pointer;
+  min-height: var(--aa-sizing-control-md);
+  align-content: center;
+  font-weight: 650;
+  color: var(--aa-text-primary);
+}
+
+.workspace-block-accessibility summary:focus-visible,
+.workspace-page-block select:focus-visible,
+.workspace-page-block textarea:focus-visible {
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
+}
+
+.workspace-block-accessibility label {
+  display: flex;
+  align-items: center;
+  gap: var(--aa-spacing-xs);
+  flex-wrap: wrap;
+}
+
+.workspace-block-accessibility textarea {
+  width: 100%;
+  min-height: 6rem;
+}
+
+.workspace-block-accessibility p {
+  color: var(--aa-text-secondary);
+  font-size: var(--aa-type-scale-sm);
+}
+
+/* Keep native checkboxes usable: generic page-editor input rules use width: 100%. */
+.workspace-page-editor .workspace-block-accessibility input[type="checkbox"] {
+  width: auto;
+  min-height: 1.25rem;
+  min-width: 1.25rem;
+  flex: none;
+  accent-color: var(--aa-accent-primary);
+}
+
+.workspace-page-editor .workspace-block-accessibility select {
+  background: var(--aa-surfaces-inset);
+  color: var(--aa-text-primary);
+  border: 1px solid var(--aa-border-default);
+  border-radius: var(--aa-radius-md);
+}
+
+/* C93 — Optional frames are strictly limited to personal grimoire pages. */
+.workspace-frame-controls {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  margin-block: var(--aa-spacing-md);
+  max-width: 35rem;
+}
+.workspace-frame-controls select { min-height: var(--aa-sizing-control-md); }
+.workspace-frame-controls select:focus-visible {
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
+}
+.workspace-page-frame > article { position: relative; }
+.workspace-page-frame[data-aa-frame-style="medieval"] > article {
+  padding: var(--aa-spacing-xl);
+  box-shadow: inset 0 0 0 3px #B99D78, inset 0 0 0 8px #604474;
+}
+.workspace-page-frame[data-aa-frame-style="alchemy"] > article {
+  padding: var(--aa-spacing-xl);
+  box-shadow: inset 0 0 0 2px #96809E, inset 0 0 0 7px #B99D78;
+}
+.workspace-page-frame[data-aa-frame-style="ornamental"] > article {
+  padding: var(--aa-spacing-xl);
+  box-shadow: inset 0 0 0 3px #B99D78, inset 0 0 0 9px #D5C7D7;
+}
+.workspace-page-frame[data-aa-frame-style="minimal"] > article {
+  padding: var(--aa-spacing-lg);
+  box-shadow: inset 0 0 0 1px var(--aa-border-strong);
+}
+@media (max-width: 48rem) {
+  .workspace-page-frame[data-aa-frame-style]:not([data-aa-frame-style="none"]) > article {
+    padding: var(--aa-spacing-lg);
+  }
+}
+html[data-aa-contrast="high"] .workspace-page-frame[data-aa-frame-style]:not([data-aa-frame-style="none"]) > article {
+  box-shadow: inset 0 0 0 2px var(--aa-border-strong);
+}
+
+/*
+ * Brand Book 360 — approved academic type roles, reusing official source PR #770.
+ * The logo/lettering is an independent canonical image and is never recreated.
+ * Existing semantic theme typography tokens remain unchanged for UI readability.
+ */
+.aa-page-header h1 {
+  font-family: var(--font-arcana-grenze), var(--aa-typography-heading);
+}
+.workspace-page-editor textarea,
+.workspace-page-block textarea {
+  font-family: var(--font-arcana-literata), Georgia, serif;
+}
+.aa-editorial-highlight {
+  font-family: var(--font-arcana-cormorant), Georgia, serif;
+}
+.aa-arcane-inscription {
+  font-family: var(--font-arcana-smythe), Georgia, serif;
+}
+
+/* Four opt-in student paper styles: scoped to the selected page's editor.
+   The unselected/legacy page retains its current appearance. */
+.workspace-paper-controls {
+  display: grid;
+  gap: var(--aa-spacing-sm);
+  margin-bottom: var(--aa-spacing-md);
+  max-width: 35rem;
+}
+.workspace-paper-controls .aa-input { max-width: 100%; }
+.workspace-paper-controls p { margin: 0; }
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article {
+  --aa-surfaces-panel: var(--aa-paper-bg);
+  --aa-surfaces-inset: var(--aa-paper-field);
+  --aa-surfaces-elevated: var(--aa-paper-field);
+  --aa-text-primary: var(--aa-paper-text);
+  --aa-text-secondary: var(--aa-paper-text);
+  --aa-border-default: var(--aa-paper-border);
+  --aa-focus-ring: var(--aa-paper-focus, var(--aa-paper-border));
+  padding: var(--aa-spacing-lg);
+  border-radius: var(--aa-radius-lg);
+  border: 2px solid var(--aa-paper-border);
+  background: var(--aa-paper-bg);
+  color: var(--aa-paper-text);
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) .workspace-page-frame[data-aa-frame-style="medieval"] > article,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) .workspace-page-frame[data-aa-frame-style="alchemy"] > article,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) .workspace-page-frame[data-aa-frame-style="ornamental"] > article {
+  padding: var(--aa-spacing-xl);
+}
+@media (max-width: 48rem) {
+  .workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) .workspace-page-frame[data-aa-frame-style]:not([data-aa-frame-style="none"]) > article {
+    padding: var(--aa-spacing-lg);
+  }
+}
+.workspace-page-editor[data-aa-paper-style="pergaminho-antigo"] {
+  --aa-paper-bg: #EDE3D9;
+  --aa-paper-text: #302338;
+  --aa-paper-border: #604474;
+  --aa-paper-field: #FAF5EF;
+  --aa-paper-focus: #302338;
+}
+.workspace-page-editor[data-aa-paper-style="arcano-escuro"] {
+  --aa-paper-bg: #251C2C;
+  --aa-paper-text: #F4EDF5;
+  --aa-paper-border: #D5C7D7;
+  --aa-paper-field: #302338;
+  --aa-paper-focus: #F4EDF5;
+}
+.workspace-page-editor[data-aa-paper-style="lilas"] {
+  --aa-paper-bg: #D5C7D7;
+  --aa-paper-text: #302338;
+  --aa-paper-border: #604474;
+  --aa-paper-field: #F4EDF4;
+  --aa-paper-focus: #302338;
+}
+.workspace-page-editor[data-aa-paper-style="alquimista-antigo"] {
+  --aa-paper-bg: #E3D0B5;
+  --aa-paper-text: #302338;
+  --aa-paper-border: #604474;
+  --aa-paper-field: #F9F0E5;
+  --aa-paper-focus: #302338;
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article label,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article p,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article a,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article summary {
+  color: var(--aa-paper-text);
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article .workspace-page-block,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article .workspace-block-accessibility {
+  background: var(--aa-paper-field);
+  color: var(--aa-paper-text);
+  border-color: var(--aa-paper-border);
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article input,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article textarea,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article select {
+  background: var(--aa-paper-field);
+  color: var(--aa-paper-text);
+  border: 2px solid var(--aa-paper-border);
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article button,
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article a[href^="/pratica"] {
+  border: 2px solid var(--aa-paper-border);
+  color: var(--aa-paper-text);
+  background: var(--aa-paper-field);
+}
+.workspace-page-editor[data-aa-paper-style]:not([data-aa-paper-style="inherit"]) article :focus-visible {
+  outline: var(--aa-focus-width) solid var(--aa-paper-focus, var(--aa-paper-border));
+  outline-offset: var(--aa-focus-offset);
+}
+/* A deliberate accessibility override outranks decorative paper choices. */
+html[data-aa-contrast="high"] .workspace-page-editor[data-aa-paper-style] {
+  --aa-paper-bg: #101014;
+  --aa-paper-text: #FFFFFF;
+  --aa-paper-border: #FFFFFF;
+  --aa-paper-field: #1A1A20;
+  --aa-paper-focus: #FFFFFF;
+}
+.workspace-paper-controls select:focus-visible { outline: var(--aa-focus-width) solid var(--aa-focus-ring); outline-offset: var(--aa-focus-offset); }
+
+/* C04 keyboard escape hatch to the canonical Workspace editor.
+   Visible while focused; never overlays controls when unfocused. */
+.aa-workspace-skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.aa-workspace-skip-link:focus-visible {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  padding: var(--aa-spacing-sm) var(--aa-spacing-md);
+  border-radius: var(--aa-radius-md);
+  background: var(--aa-surfaces-elevated);
+  color: var(--aa-text-primary);
+  outline: 3px solid var(--aa-focus-ring);
+  outline-offset: 2px;
+}
+.workspace-editor-region:focus {
+  outline: 3px solid var(--aa-focus-ring);
+  outline-offset: 2px;
+}

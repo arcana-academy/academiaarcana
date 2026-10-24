@@ -54,5 +54,6 @@ export function applyTheme(theme: ThemeId, element?: HTMLElement): ThemePreset {
   }
 
   target.dataset.theme = theme;
+  target.style.colorScheme = theme === "pergaminho-claro" ? "light" : "dark";
   return preset;
 }

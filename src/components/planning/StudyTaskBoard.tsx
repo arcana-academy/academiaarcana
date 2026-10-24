@@ -42,6 +42,14 @@ function formatDueAt(value: string | null, browserHydrated: boolean): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
+/** Show the native local date/time value consistently in Brazilian notation. */
+function formatDraftDueAtPtBR(value: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  return `${day}/${month}/${year} às ${hour}:${minute}`;
+}
+
 /** Outlook Graph may provide a UTC wall time without an explicit offset. */
 function formatOutlookDateTime(value: string, browserHydrated: boolean, timeZone?: string | null): string {
   if (typeof timeZone !== "string" || !timeZone.trim()) return "Data indisponível";
@@ -112,6 +120,7 @@ export function StudyTaskBoard({
   }, [tasks, locallyCreated, locallyCompleted, acknowledgment.createdSeen, acknowledgment.completedAbsent]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
+  const selectedDueAtPtBR = formatDraftDueAtPtBR(dueAt);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Guard the callbacks synchronously, before disabled controls rerender.
@@ -343,6 +352,40 @@ export function StudyTaskBoard({
         </div>
       </header>
 
+      <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
+        <div className="aa-surface-header">
+          <div><p className="aa-eyebrow">Novo passo</p><h2 id="new-task-title">Adicionar tarefa de estudo</h2></div>
+        </div>
+        <form
+          className="aa-planning-form"
+          aria-labelledby="new-task-title"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
+          <div className="aa-planning-form-row">
+            <div className="aa-field">
+              <label htmlFor="study-task-title">Tarefa</label>
+              <input className="aa-input" id="study-task-title" value={title} onChange={(event) => setTitle(event.target.value)} disabled={isSubmitting} placeholder="Ex.: Revisar capítulo 2" />
+            </div>
+            <div className="aa-field">
+              <label htmlFor="study-task-due">Prazo</label>
+              <input className="aa-input" id="study-task-due" type="datetime-local" lang="pt-BR" aria-describedby="study-task-due-preview" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
+              <p id="study-task-due-preview" className="aa-field-description" aria-live="polite">
+                {selectedDueAtPtBR
+                  ? `Prazo selecionado: ${selectedDueAtPtBR}.`
+                  : "Formato brasileiro: DD/MM/AAAA às HH:MM."}
+              </p>
+            </div>
+            <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
+              {isSubmitting ? "Criando…" : "Criar tarefa"}
+            </button>
+          </div>
+          {error ? <p role="alert" className="aa-field-error">{error}</p> : null}
+        </form>
+      </section>
+
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="outlook-title">
         <div className="aa-surface-header">
           <div>
@@ -426,35 +469,6 @@ export function StudyTaskBoard({
           )}
         </section>
       ) : null}
-
-      <section className="aa-surface aa-sanctuary-section" aria-labelledby="new-task-title">
-        <div className="aa-surface-header">
-          <div><p className="aa-eyebrow">Novo passo</p><h2 id="new-task-title">Adicionar tarefa de estudo</h2></div>
-        </div>
-        <form
-          className="aa-planning-form"
-          aria-labelledby="new-task-title"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <div className="aa-planning-form-row">
-            <div className="aa-field">
-              <label htmlFor="study-task-title">Tarefa</label>
-              <input className="aa-input" id="study-task-title" value={title} onChange={(event) => setTitle(event.target.value)} disabled={isSubmitting} placeholder="Ex.: Revisar capítulo 2" />
-            </div>
-            <div className="aa-field">
-              <label htmlFor="study-task-due">Prazo</label>
-              <input className="aa-input" id="study-task-due" type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} disabled={isSubmitting} />
-            </div>
-            <button className="aa-button aa-button-primary" type="submit" disabled={isSubmitting || !title.trim()}>
-              {isSubmitting ? "Criando…" : "Criar tarefa"}
-            </button>
-          </div>
-          {error ? <p role="alert" className="aa-field-error">{error}</p> : null}
-        </form>
-      </section>
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="upcoming-tasks-title">
         <div className="aa-surface-header">

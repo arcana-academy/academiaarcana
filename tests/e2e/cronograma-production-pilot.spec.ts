@@ -198,6 +198,13 @@ test("StudyTaskBoard remains usable when decorative assets fail", async ({ page 
 
 test("Cronograma pilot records performance evidence without inventing a budget", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
+  // Theme tokens apply after hydration, so button color transitions started by
+  // the initial paint must settle before measuring steady-state motion.
+  await page.waitForFunction(
+    () => document.getAnimations().every((animation) => animation.playState !== "running"),
+    null,
+    { timeout: 10_000 },
+  );
   const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
     descendants: node.querySelectorAll("*").length,
     images: node.querySelectorAll("img").length,
