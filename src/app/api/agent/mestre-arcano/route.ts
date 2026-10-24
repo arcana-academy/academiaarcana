@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { executeMestreArcano } from "@/application/intelligence/execute-mestre-arcano";
+import { resolveMestreArcanoHelpLevel } from "@/domains/intelligence";
 import { createClient } from "@/lib/supabase/server";
 import { runMestreArcano } from "@/infrastructure/openai/mestre-arcano";
 import { createMestreArcanoToolContext } from "@/infrastructure/openai/mestre-arcano-tool-context";
@@ -15,7 +16,10 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 
 export const dynamic = "force-dynamic";
 
-type RequestBody = { readonly input?: unknown };
+type RequestBody = {
+  readonly input?: unknown;
+  readonly helpLevel?: unknown;
+};
 
 export async function POST(request: Request) {
   const claims = await requireAuthenticatedUser();
@@ -38,6 +42,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "A mensagem excede o limite permitido." },
       { status: 413 },
+    );
+  }
+
+  const helpLevel = resolveMestreArcanoHelpLevel(body.helpLevel);
+  if (helpLevel === null) {
+    return NextResponse.json(
+      { error: "Nível de ajuda inválido." },
+      { status: 400 },
     );
   }
 
@@ -92,6 +104,7 @@ export async function POST(request: Request) {
         execute: (input) =>
           runMestreArcano(input, {
             toolContext,
+            helpLevel,
           }),
       },
       body.input,
