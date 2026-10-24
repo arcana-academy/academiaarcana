@@ -3,8 +3,11 @@
 # No real credentials, production services, migrations, deploys, or GHCR.
 set -Eeuo pipefail
 
-if [[ "$(node -p 'process.versions.node.split(".")[0]')" != "24" ]]; then
-  echo "ERROR: Node.js 24 required by package.json/.nvmrc." >&2
+if ! node -e '
+const [major, minor, patch] = process.versions.node.split(".").map(Number);
+process.exit(major === 24 && (minor > 22 || (minor === 22 && patch >= 1)) ? 0 : 1);
+'; then
+  echo "ERROR: Node.js >=24.22.1 <25 required by package.json/.nvmrc." >&2
   exit 1
 fi
 
