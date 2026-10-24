@@ -44,9 +44,17 @@ vi.mock("next/server", async () => {
   class MockResponse {
     cookies = new MockCookies();
     headers = new MockHeaders();
+    redirectUrl: URL | null = null;
 
     static next() {
       return new MockResponse();
+    }
+
+    static redirect(url: URL) {
+      const response = new MockResponse();
+      response.redirectUrl = url;
+      response.headers.set("Location", url.toString());
+      return response;
     }
   }
 
@@ -163,5 +171,82 @@ describe("updateSupabaseSession", () => {
       ],
     ]);
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  const request = {
+    url: "https://academia.example.org/santuario",
+    cookies: {
+      getAll: () => [],
+      set: () => {},
+    },
+  } as never;
+
+  it("does not redirect when the session guard is not required", async () => {
+    const response = await updateSupabaseSession(request);
+
+    expect(
+      (response as unknown as { redirectUrl: URL | null }).redirectUrl,
+    ).toBeNull();
+  });
+
+  it("redirects to login for a gated route without claims", async () => {
+    const response = await updateSupabaseSession(request, undefined, {
+      requireSession: true,
+    });
+
+    const redirectUrl = (response as unknown as { redirectUrl: URL | null })
+      .redirectUrl;
+
+    expect(redirectUrl?.pathname).toBe("/login");
+    expect(redirectUrl?.origin).toBe("https://academia.example.org");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it("redirects instead of trusting a failed claim check", async () => {
+    mocks.getClaims.mockResolvedValue({
+      data: { claims: null },
+      error: new Error("auth unavailable"),
+    });
+
+    const response = await updateSupabaseSession(request, undefined, {
+      requireSession: true,
+    });
+
+    expect(
+      (response as unknown as { redirectUrl: URL | null }).redirectUrl
+        ?.pathname,
+    ).toBe("/login");
+  });
+
+  it("forwards an authenticated request to the gated page", async () => {
+    mocks.getClaims.mockResolvedValue({
+      data: { claims: { sub: "user-123" } },
+      error: null,
+    });
+
+    const response = await updateSupabaseSession(request, undefined, {
+      requireSession: true,
+    });
+
+    expect(
+      (response as unknown as { redirectUrl: URL | null }).redirectUrl,
+    ).toBeNull();
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it("treats an answered claims call without a subject as anonymous", async () => {
+    mocks.getClaims.mockResolvedValue({
+      data: { claims: { role: "authenticated" } },
+      error: null,
+    });
+
+    const response = await updateSupabaseSession(request, undefined, {
+      requireSession: true,
+    });
+
+    expect(
+      (response as unknown as { redirectUrl: URL | null }).redirectUrl
+        ?.pathname,
+    ).toBe("/login");
   });
 });

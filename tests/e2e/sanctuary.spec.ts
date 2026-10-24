@@ -56,6 +56,13 @@ async function expectWorkspaceContext(page: import("@playwright/test").Page) {
 }
 
 test("unauthenticated Sanctuary redirects to login", async ({ page }) => {
+  // Sanctuary streams a loading skeleton, so an unauthenticated visitor must be
+  // rejected by the proxy with a redirect rather than a 200 document.
+  const guarded = await page.request.get("/santuario", { maxRedirects: 0 });
+
+  expect(guarded.status()).toBe(307);
+  expect(guarded.headers()["location"]).toBe("/login");
+
   await page.goto("/santuario");
 
   await expect(page).toHaveURL(/\/login/);

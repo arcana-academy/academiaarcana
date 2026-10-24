@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  updateSession: vi.fn(async (_request?: unknown, _headers?: Headers) => ({
-    headers: new Headers(),
-  })),
+  updateSession: vi.fn(
+    async (
+      _request?: unknown,
+      _headers?: Headers,
+      _options?: { requireSession?: boolean },
+    ) => ({
+      headers: new Headers(),
+    }),
+  ),
   next: vi.fn((_options?: { request?: { headers?: Headers } }) => ({
     headers: new Headers(),
   })),
@@ -69,10 +75,94 @@ describe("proxy liveness isolation", () => {
     expect(mocks.updateSession).toHaveBeenCalledTimes(2);
   });
 
+  it("requires a session for gated routes before the shell is streamed", async () => {
+    await proxy(request("/santuario"));
+    await proxy(request("/pratica"));
+    await proxy(request("/integracoes/asana"));
+
+    expect(
+      mocks.updateSession.mock.calls.map((call) => call[2]),
+    ).toEqual([
+      { requireSession: true },
+      { requireSession: true },
+      { requireSession: true },
+    ]);
+  });
+
+  it("leaves public routes without a session requirement", async () => {
+    for (const path of [
+      "/",
+      "/login",
+      "/cadastro",
+      "/recuperar-senha",
+      "/integracoes",
+      "/integracoes/ia-aberta",
+    ]) {
+      await proxy(request(path));
+    }
+
+    expect(
+      mocks.updateSession.mock.calls.every(
+        (call) => (call[2] as { requireSession?: boolean }).requireSession === false,
+      ),
+    ).toBe(true);
+  });
+
+  it("does not gate look-alike paths or health/readiness endpoints", async () => {
+    await proxy(request("/santuarios"));
+    await proxy(request("/api/ready"));
+
+    expect(
+      mocks.updateSession.mock.calls.map((call) => call[2]),
+    ).toEqual([{ requireSession: false }, { requireSession: false }]);
+  });
+
+  it("returns the login redirect produced by the session guard", async () => {
+    mocks.updateSession.mockImplementation(async () => {
+      const headers = new Headers();
+      headers.set("Location", "https://academia.example.org/login");
+      return { headers } as unknown as { headers: Headers };
+    });
+
+    const response = await proxy(request("/santuario"));
+
+    expect(response.headers.get("Location")).toBe(
+      "https://academia.example.org/login",
+    );
+    // The nonce policy is still applied to the redirect itself.
+    expect(response.headers.get("Content-Security-Policy")).toContain("script-src");
+  });
+
   it("does not swallow session failures on protected routes", async () => {
     mocks.updateSession.mockRejectedValue(new Error("auth unavailable"));
     await expect(proxy(request("/santuario"))).rejects.toThrow("auth unavailable");
     expect(mocks.next).not.toHaveBeenCalled();
+  });
+
+  it("does not crash on a request without nextUrl or a valid URL", async () => {
+    const malformed = { headers: new Headers() } as never;
+
+    const response = await proxy(malformed);
+
+    expect(response.headers.get("Content-Security-Policy")).toContain("script-src");
+    expect(
+      (mocks.updateSession.mock.calls[0]?.[2] as { requireSession?: boolean })
+        .requireSession,
+    ).toBe(false);
+  });
+
+  it("reads the pathname from the URL when nextUrl is absent", async () => {
+    const urlOnly = {
+      headers: new Headers(),
+      url: "https://academia.example.org/santuario",
+    } as never;
+
+    await proxy(urlOnly);
+
+    expect(
+      (mocks.updateSession.mock.calls[0]?.[2] as { requireSession?: boolean })
+        .requireSession,
+    ).toBe(true);
   });
 
   it("keeps existing non-asset matcher coverage for health and protected paths", () => {
