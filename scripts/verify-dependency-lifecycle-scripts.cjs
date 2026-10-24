@@ -25,18 +25,20 @@ const installScriptPackages = [];
 for (const [packagePath, metadata] of Object.entries(packages)) {
   if (!packagePath) continue;
 
+  if (metadata.link === true) continue;
+
   if (
-    typeof metadata.resolved === "string" &&
-    !metadata.resolved.startsWith("https://registry.npmjs.org/")
+    typeof metadata.resolved !== "string" ||
+    typeof metadata.integrity !== "string"
   ) {
     throw new Error(
-      `Non-registry dependency source is not allowlisted: ${packagePath} -> ${metadata.resolved}`,
+      `Dependency entry is missing resolved or integrity metadata: ${packagePath}`,
     );
   }
 
-  if (metadata.resolved && !metadata.integrity) {
+  if (!metadata.resolved.startsWith("https://registry.npmjs.org/")) {
     throw new Error(
-      `Resolved dependency is missing integrity metadata: ${packagePath}`,
+      `Non-registry dependency source is not allowlisted: ${packagePath} -> ${metadata.resolved}`,
     );
   }
 
