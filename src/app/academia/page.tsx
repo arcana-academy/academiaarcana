@@ -72,6 +72,11 @@ const learningPaths = [
         title: "Prática de lacunas",
         description: "Recupere palavras ocultadas de trechos reais das suas páginas salvas.",
       },
+      {
+        href: "/ordenar-estudo",
+        title: "Sequência de estudo",
+        description: "Reorganize blocos das suas páginas salvas sem alterar seu progresso.",
+      },
     ],
   },
   {
