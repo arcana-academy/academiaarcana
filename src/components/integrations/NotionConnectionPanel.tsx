@@ -21,7 +21,7 @@ type NotionSearchResult = {
 };
 
 export function NotionConnectionPanel() {
-  const [status, setStatus] = useState<NotionStatus>({ status: "disconnected" });
+  const [status, setStatus] = useState<NotionStatus | null>(null);
   const [results, setResults] = useState<NotionSearchResult[]>([]);
   const [query, setQuery] = useState("");
   const [parentPageId, setParentPageId] = useState("");
@@ -43,6 +43,7 @@ export function NotionConnectionPanel() {
       if (!response.ok) throw new Error();
       setStatus((await response.json()) as NotionStatus);
     } catch {
+      setStatus(null);
       setError("Não foi possível consultar o estado do Notion.");
     } finally {
       setLoading(false);
@@ -138,6 +139,22 @@ export function NotionConnectionPanel() {
     return (
       <section className="aa-surface" aria-busy="true">
         <p>Consultando conexão do Notion…</p>
+      </section>
+    );
+  }
+
+  if (!status) {
+    return (
+      <section className="aa-surface" aria-labelledby="notion-status-unavailable-title">
+        <h2 id="notion-status-unavailable-title">Verificação do Notion indisponível</h2>
+        <p role="alert">{error ?? "Não foi possível confirmar a conexão do Notion agora."}</p>
+        <button
+          type="button"
+          className="aa-button aa-button-secondary"
+          onClick={() => void loadStatus()}
+        >
+          Tentar novamente
+        </button>
       </section>
     );
   }
