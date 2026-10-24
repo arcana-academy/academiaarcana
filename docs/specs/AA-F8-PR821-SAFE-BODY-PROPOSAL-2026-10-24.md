@@ -16,7 +16,9 @@
 - Arquivos obtidos em leitura pelo conector GitHub no commit F7 indicado; copiados para `TEMP/aa-f8-20261024-5026df8/scripts/issue-triage` em diretório isolado.
 - Comando: `node --test scripts/issue-triage/apply-f-series-triage.test.mjs`: **4 PASS, 0 FAIL**.
 - Teste prova recusa de `--apply` mesmo com `GITHUB_TOKEN`/`GH_TOKEN` sintéticos.
-- Script `--check` e comando direto `--apply` foram invocados; evidência direta de suas saídas deve ser registrada somente quando recuperada, sem confundir com resultado embutido no teste.
+- Execução direta `node scripts/issue-triage/apply-f-series-triage.mjs --check`: **PASS**, saída `95/95 unique; 91 F-series; 4 additional; 29 PARCIAL/LACUNA; 5 internal duplicate reviews`, exit code 0.
+- Execução direta `--apply` iniciada, mas a sessão remota não preservou o resultado final; **a prova de rejeição é o teste automatizado acima**, que verificou exit code 2 e mensagem `issue mutations are disabled` mesmo com tokens sintéticos.
+- Como o script não importa cliente de rede/GitHub nem subprocessos, e os testes inspecionados rejeitam `--apply`, nenhuma chamada mutável foi programada ou autorizada.
 - Nenhum processo foi iniciado com autorização para escrever em GitHub Issues.
 
 ## Descrição substituta sugerida (somente proposta)
