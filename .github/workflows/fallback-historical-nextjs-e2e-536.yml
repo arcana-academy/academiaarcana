@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - chore/536-fallback-validation-20261009
-      - integration/p0-536-release-train-20261009
-      - integration/aa360-c38-logout-refresh-proof-20261019
-      - integration/aa360-c36-release-browser-storage-20261019
 
 permissions:
   contents: read
