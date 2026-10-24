@@ -53,13 +53,13 @@
     "zod": "^4.6.7"
   },
   "engines": {
-    "node": "24.x",
+    "node": ">=24.22.1 <25",
     "npm": "11.19.1"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "24.x",
+      "version": ">=24.22.1 <25",
       "onFail": "error"
     },
     "packageManager": {
