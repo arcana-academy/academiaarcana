@@ -26,9 +26,32 @@ function ConnectionActionUnavailable() {
 export default async function AmigosPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
-  const connections = await new SupabaseSocialRepository(
-    supabase,
-  ).listConnections(claims.sub);
+  let connections: Awaited<ReturnType<SupabaseSocialRepository["listConnections"]>> | null = null;
+  try {
+    connections = await new SupabaseSocialRepository(supabase).listConnections(claims.sub);
+  } catch {
+    // A temporary read failure does not mean the user has no connections.
+  }
+
+  if (connections === null) {
+    return (
+      <AuthenticatedShell currentPath="/amigos">
+        <ArcanaPage
+          eyebrow="Social"
+          title="Amigos"
+          description="Conecte-se com outras pessoas de forma consciente, contextual e permissionada."
+        >
+          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="friends-unavailable-title">
+            <h2 id="friends-unavailable-title">Não foi possível carregar suas conexões</h2>
+            <p>Suas amizades e solicitações estão temporariamente indisponíveis. Tente novamente.</p>
+            <form action="/amigos" method="get">
+              <button className="aa-button aa-button-secondary" type="submit">Tentar novamente</button>
+            </form>
+          </section>
+        </ArcanaPage>
+      </AuthenticatedShell>
+    );
+  }
 
   const accepted = connections.filter(
     (connection) => connection.status === "accepted",
