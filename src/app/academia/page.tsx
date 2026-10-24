@@ -67,6 +67,11 @@ const learningPaths = [
         title: "Comparação de conceitos",
         description: "Construa relações entre duas páginas salvas em uma reflexão temporária.",
       },
+      {
+        href: "/lacunas-estudo",
+        title: "Prática de lacunas",
+        description: "Recupere palavras ocultadas de trechos reais das suas páginas salvas.",
+      },
     ],
   },
   {
