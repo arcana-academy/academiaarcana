@@ -63,6 +63,16 @@ const viewModel: SanctuaryViewModel = {
 };
 
 describe("Sanctuary", () => {
+    it("offers real study routes without fictitious dashboard progress", () => {
+        render(<Sanctuary viewModel={viewModel} />);
+        const section = screen.getByRole("region", { name: "Explore seus espaços de estudo" });
+        expect(section.querySelector('a[href="/grimorios"]')).not.toBeNull();
+        expect(section.querySelector('a[href="/academia"]')).not.toBeNull();
+        expect(section.querySelector('a[href="/missoes"]')).not.toBeNull();
+        expect(section.querySelector('a[href="/cronograma"]')).not.toBeNull();
+        expect(section.textContent).not.toMatch(/1\.250 XP|62%/);
+    });
+
     it("renders the sanctuary shell from a view model", () => {
         render(<Sanctuary viewModel={viewModel} />);
 

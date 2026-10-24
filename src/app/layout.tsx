@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
-import "./accessibility.css";
+import "./arcana-visual-approved.css";
 
 import { arcanaGrenze, arcanaLiterata, arcanaCormorant, arcanaSmythe } from "./fonts";
 import { ApplicationProviders } from "@/application/providers/ApplicationProviders";

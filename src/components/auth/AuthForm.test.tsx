@@ -26,6 +26,15 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("AuthForm", () => {
+  it("shows approved visual login layout without replacing authentication actions", () => {
+    render(<AuthForm mode="login" />);
+    expect(screen.getByRole("heading", { name: "Entre no seu santuário de estudos" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Esqueci minha senha" }).getAttribute("href")).toBe("/recuperar-senha");
+    expect(screen.getByRole("link", { name: "Criar conta" }).getAttribute("href")).toBe("/cadastro");
+    expect(screen.getByRole("button", { name: "Entrar" })).toBeTruthy();
+    expect(signInWithPassword).not.toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 

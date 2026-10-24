@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { signOut } from "@/lib/auth/actions";
 import { AccessibilityPanel } from "@/components/accessibility/AccessibilityPanel";
 import { MobileNavigation } from "@/components/layout/MobileNavigation";
@@ -33,13 +34,15 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
             <span>{currentNavigationItem?.label ?? "Jornada de aprendizagem"}</span>
           </div>
 
-          <AccessibilityPanel variant="quick" />
-
+          <div className="aa-topbar-actions">
+            <Link className="aa-topbar-route" href="/grimorios">Meus grimórios</Link>
+            <Link className="aa-topbar-route" href="/perfil">Meu perfil</Link>
           <form action={signOut}>
             <button className="aa-button aa-button-ghost aa-button-sm" type="submit">
               Sair
             </button>
           </form>
+          </div>
         </header>
 
         <div className="aa-main-content">{children}</div>

@@ -60,19 +60,15 @@ export function Sidebar({ currentPath }: SidebarProps) {
                   title={item.label}
                   aria-current={active ? "page" : undefined}
                 >
-                  <span className="aa-sidebar-icon" aria-hidden="true">
-                    <Icon size={20} />
-                  </span>
-                  <span className="aa-sidebar-link-copy">
-                    <strong>{item.label}</strong>
-                    <span>{item.description}</span>
-                  </span>
+                  <Icon size={19} aria-hidden="true" />
+                  <span>{item.label}</span>
                 </Link>
               </li>
             );
           })}
         </ul>
       </nav>
+      <p className="aa-sidebar-motto">Conhecimento também é uma forma de magia.</p>
     </div>
   );
 }
