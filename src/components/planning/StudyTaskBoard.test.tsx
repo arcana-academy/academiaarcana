@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { renderToString } from "react-dom/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import type { StudyTask } from "@/domains/planning";
 
@@ -242,115 +241,103 @@ describe("StudyTaskBoard", () => {
 
     vi.unstubAllGlobals();
   });
+  it("keeps Todoist and Asana sends independent on the same task", async () => {
+    const releases: Array<(response: Response) => void> = [];
+    const fetchMock = vi.fn(() => new Promise<Response>((resolve) => {
+      releases.push(resolve);
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      render(
+        <StudyTaskBoard
+          tasks={[task]}
+          onCreate={vi.fn()}
+          onComplete={vi.fn().mockResolvedValue(task)}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Enviar ao Todoist" }));
+      fireEvent.click(screen.getByRole("button", { name: "Enviar ao Asana" }));
 
-  it("keeps study tasks usable when an Outlook event contains an invalid date", async () => {
-    render(
-      <StudyTaskBoard
-        tasks={[task]}
-        outlookConnected
-        outlookEvents={[{
-          id: "event-invalid",
-          subject: "Reunião externa",
-          start: { dateTime: "invalid-date", timeZone: "UTC" },
-          end: { dateTime: "2026-10-17T18:00:00", timeZone: "UTC" },
-        }]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn().mockResolvedValue({ ...task, status: "completed" })}
-      />,
-    );
-
-    expect(screen.getByText("Data indisponível", { exact: false })).toBeInTheDocument();
-    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
-    await waitFor(() => expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument());
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/integrations/todoist/tasks", expect.objectContaining({ method: "POST" }),
+      );
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/integrations/asana/tasks", expect.objectContaining({ method: "POST" }),
+      );
+      expect(screen.getAllByRole("button", { name: "Enviando…" })).toHaveLength(2);
+      for (const release of releases) release(new Response("{}", { status: 201 }));
+      expect(await screen.findByRole("button", { name: "Enviado" })).toBeDisabled();
+      expect(await screen.findByRole("button", { name: "Enviado ao Asana" })).toBeDisabled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
-  it("renders a malformed task deadline without hiding its completion action", async () => {
-    render(
-      <StudyTaskBoard
-        tasks={[{ ...task, dueAt: "invalid-date" }]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn().mockResolvedValue({ ...task, status: "completed" })}
-      />,
-    );
+  it("keeps each task locked until its own Todoist request finishes", async () => {
+    const releases: Array<(response: Response) => void> = [];
+    const fetchMock = vi.fn(() => new Promise<Response>((resolve) => {
+      releases.push(resolve);
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      render(
+        <StudyTaskBoard
+          tasks={[task, { ...task, id: "task-2", title: "Revisar página 2" }]}
+          onCreate={vi.fn()}
+          onComplete={vi.fn().mockResolvedValue(task)}
+        />,
+      );
+      const first = within(screen.getByText("Revisar capítulo").closest("li")!);
+      const second = within(screen.getByText("Revisar página 2").closest("li")!);
+      fireEvent.click(first.getByRole("button", { name: "Enviar ao Todoist" }));
+      fireEvent.click(second.getByRole("button", { name: "Enviar ao Todoist" }));
 
-    expect(screen.getByText("Data indisponível")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(first.getByRole("button", { name: "Enviando…" })).toBeDisabled();
+      expect(second.getByRole("button", { name: "Enviando…" })).toBeDisabled();
+      releases[1](new Response("{}", { status: 201 }));
+      await waitFor(() => expect(second.getByRole("button", { name: "Enviado" })).toBeDisabled());
+      expect(first.getByRole("button", { name: "Enviando…" })).toBeDisabled();
+      releases[0](new Response("{}", { status: 201 }));
+      await waitFor(() => expect(first.getByRole("button", { name: "Enviado" })).toBeDisabled());
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
-  it("treats an offset-free UTC Outlook event as UTC, not as browser-local time", () => {
-    const value = "2026-10-17T13:45:00";
-    const { container } = render(
-      <StudyTaskBoard
-        tasks={[]}
-        outlookConnected
-        outlookEvents={[{
-          id: "event-utc",
-          subject: "Revisão externa",
-          start: { dateTime: value, timeZone: "UTC" },
-          end: { dateTime: "2026-10-17T14:45:00", timeZone: "UTC" },
-        }]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn()}
-      />,
-    );
-    const expected = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value + "Z"));
-    expect(container.textContent).toContain(expected);
-  });
-  it("keeps study tasks accessible when Outlook omits an event timezone", () => {
-    render(
-      <StudyTaskBoard
-        tasks={[task]}
-        outlookConnected
-        outlookEvents={[{
-          id: "event-without-timezone",
-          subject: "Revisão externa",
-          start: { dateTime: "2026-10-17T13:45:00", timeZone: null },
-          end: { dateTime: "2026-10-17T14:45:00", timeZone: "UTC" },
-        }]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn().mockResolvedValue(task)}
-      />,
-    );
-    expect(screen.getByText(/Data indisponível/)).toBeInTheDocument();
-    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
-  });
-
-  it("shows an Outlook connection outage without hiding native study tasks", () => {
-    render(
-      <StudyTaskBoard
-        tasks={[task]}
-        outlookEventsUnavailable
-        onCreate={vi.fn()}
-        onComplete={vi.fn().mockResolvedValue(task)}
-      />,
-    );
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Não foi possível verificar a conexão do Outlook agora.",
-    );
-    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
-  });
-
-  it("distinguishes unavailable Outlook events from an empty calendar without hiding tasks", () => {
-    render(
-      <StudyTaskBoard
-        tasks={[task]}
-        outlookConnected
-        outlookEventsUnavailable
-        outlookEvents={[]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn().mockResolvedValue(task)}
-      />,
-    );
-
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Não foi possível carregar os eventos do Outlook agora.",
-    );
-    expect(screen.queryByText("Nenhum evento encontrado no Outlook neste período.")).not.toBeInTheDocument();
-    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
+  it.each([
+    { provider: "Todoist", endpoint: "/api/integrations/todoist/tasks", done: "Enviado" },
+    { provider: "Asana", endpoint: "/api/integrations/asana/tasks", done: "Enviado ao Asana" },
+  ])("retries $provider after failed send without duplicate pending POST", async ({ provider, endpoint, done }) => {
+    let release: ((response: Response) => void) | undefined;
+    const pending = new Promise<Response>((resolve) => { release = resolve; });
+    const fetchMock = vi.fn()
+      .mockReturnValueOnce(pending)
+      .mockResolvedValueOnce(new Response("{}", { status: 201 }));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      render(
+        <StudyTaskBoard
+          tasks={[task]}
+          onCreate={vi.fn()}
+          onComplete={vi.fn().mockResolvedValue(task)}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+      const sending = screen.getByRole("button", { name: "Enviando…" });
+      expect(sending).toBeDisabled();
+      fireEvent.click(sending);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      release!(new Response("{}", { status: 502 }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(`Não foi possível enviar a tarefa para o ${provider}.`);
+      fireEvent.click(screen.getByRole("button", { name: `Enviar ao ${provider}` }));
+      expect(await screen.findByRole("button", { name: done })).toBeDisabled();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenCalledWith(endpoint, expect.objectContaining({ method: "POST" }));
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
 });

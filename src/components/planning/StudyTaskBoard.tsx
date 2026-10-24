@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
@@ -104,10 +104,8 @@ export function StudyTaskBoard({
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Guard the callbacks synchronously, before disabled controls rerender.
-  const createPending = useRef(false);
-  const completingPending = useRef(new Set<string>());
-  const [completingIds, setCompletingIds] = useState<Set<string>>(() => new Set());
+  // Synchronous guard prevents duplicate provider POSTs before React rerenders.
+  // Each provider/task pair remains independent while the request is pending.
   const activeSends = useRef(new Set<string>());
   const successfulSends = useRef(new Set<string>());
   const [sendingKeys, setSendingKeys] = useState<Set<string>>(() => new Set());
