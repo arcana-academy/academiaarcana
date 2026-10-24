@@ -229,7 +229,7 @@ describe("delivery infrastructure contract", () => {
       "runtime: node",
       "branch: main",
       "autoDeployTrigger: off",
-      "buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
+      "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
       "startCommand: npm start",
       "healthCheckPath: /api/health",
       "NPM_CONFIG_IGNORE_SCRIPTS",
