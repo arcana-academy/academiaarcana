@@ -7,6 +7,11 @@ import {
 
 const OPENAI_API_ORIGIN = "https://api.openai.com/v1";
 const DEFAULT_MODEL = "gpt-5.6-sol";
+const MAX_OUTPUT_TOKENS = 4096;
+const MAX_TOOL_CALLS_PER_RESPONSE = 3;
+const MAX_TOOL_CALLS_PER_TURN = 8;
+const EXTERNAL_EGRESS_BLOCKED_ERROR =
+  "Pesquisa externa bloqueada após acesso a dados privados nesta execução.";
 
 export type MestreArcanoResult = {
   readonly output: string;
@@ -93,6 +98,7 @@ async function openAIRequest(
         ...(init.headers ?? {}),
       },
       cache: "no-store",
+      signal: init.signal ?? AbortSignal.timeout(60_000),
     });
   } catch {
     throw new Error("OpenAI could not be reached from the server.");
@@ -264,6 +270,7 @@ async function requestMestreArcanoResponse(
         instructions,
         input: responseInput,
         tools: MESTRE_ARCANO_TOOLS,
+        max_output_tokens: MAX_OUTPUT_TOKENS,
         ...(responseId ? { previous_response_id: responseId } : {}),
       }),
     },
@@ -296,7 +303,7 @@ async function executeMestreArcanoCall(
   try {
     if (!externalEgressAllowed && isExternalEgressTool(call.name)) {
       throw new Error(
-        "Pesquisa externa bloqueada após acesso a dados privados nesta execução.",
+        EXTERNAL_EGRESS_BLOCKED_ERROR,
       );
     }
 
@@ -316,8 +323,8 @@ async function executeMestreArcanoCall(
       call_id: call.call_id,
       output: JSON.stringify({
         error:
-          error instanceof Error
-            ? error.message
+          error instanceof Error && error.message === EXTERNAL_EGRESS_BLOCKED_ERROR
+            ? EXTERNAL_EGRESS_BLOCKED_ERROR
             : "Ferramenta indisponível.",
       }),
     };
@@ -358,6 +365,7 @@ async function runMestreArcanoLoop({
   let responseInput: unknown = initialInput;
   let responseId: string | null = null;
   let privateDataInContext = false;
+  let executedToolCalls = 0;
 
   for (let iteration = 0; iteration < 5; iteration += 1) {
     const payload = await requestMestreArcanoResponse(
@@ -373,6 +381,13 @@ async function runMestreArcanoLoop({
     if (functionCalls.length === 0) {
       return { payload, responseId };
     }
+    if (
+      functionCalls.length > MAX_TOOL_CALLS_PER_RESPONSE ||
+      executedToolCalls + functionCalls.length > MAX_TOOL_CALLS_PER_TURN
+    ) {
+      throw new Error("Mestre Arcano excedeu o limite de ferramentas.");
+    }
+    executedToolCalls += functionCalls.length;
 
     responseInput = await executeMestreArcanoCalls(
       functionCalls,
