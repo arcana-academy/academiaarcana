@@ -436,16 +436,66 @@ describe("temporary glossary integration", () => {
   });
 });
 
-describe("study strategy integration", () => {
-  test("opens study guidance without saving and returns to the editor", () => {
-    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({ ...page, title: input.title, content: input.content }));
-    render(<PageEditor {...movementProps} page={page} onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
-    fireEvent.click(screen.getByRole("button", { name: "Explorar estratégias de estudo" }));
-    expect(screen.getByRole("heading", { name: "Estratégias para compreender o conteúdo" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("radio", { name: "Explicar com suas palavras" }));
-    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
-    expect(onSave).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Explorar estratégias de estudo" }));
-    expect(screen.getByText("Selecione uma estratégia para ver as orientações.")).toBeInTheDocument();
+
+describe("progress actions while the editor has unsaved content", () => {
+  test("prevents completion before saving and restores the action after a successful save", async () => {
+    const onSetProgress = vi.fn(async () => undefined);
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({
+      ...page,
+      title: input.title,
+      content: input.content,
+    }));
+
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+        onSetProgress={onSetProgress}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Concluir página" })).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Bloco 1"), {
+      target: { value: "Alteração ainda não salva" },
+    });
+
+    expect(screen.getByRole("button", { name: "Concluir página" })).toBeDisabled();
+    expect(screen.getByText("Salve a página antes de atualizar o progresso de estudo.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Concluir página" }));
+    expect(onSetProgress).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Concluir página" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Concluir página" }));
+    await waitFor(() => expect(onSetProgress).toHaveBeenCalledExactlyOnceWith("completed"));
+  });
+
+  test("keeps progress unavailable after a failed save, including for an already completed page", async () => {
+    const onSetProgress = vi.fn(async () => undefined);
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        progressStatus="completed"
+        onDelete={vi.fn(async () => undefined)}
+        onSave={vi.fn(async () => { throw new Error("synthetic save failure"); })}
+        onSetProgress={onSetProgress}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Rascunho não salvo" },
+    });
+    expect(screen.getByRole("button", { name: "Marcar como em andamento" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Não foi possível salvar a página.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Marcar como em andamento" })).toBeDisabled();
+    expect(onSetProgress).not.toHaveBeenCalled();
   });
 });
