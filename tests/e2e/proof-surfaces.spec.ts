@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync, statSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -17,9 +17,9 @@ type Baselines = Record<string, string>;
 const baselinePath = join(process.cwd(), "tests/e2e/proof-visual-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
 
-async function screenshotHash(locator: Locator): Promise<string> {
+async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
   const bytes = await locator.screenshot({ animations: "disabled" });
-  return createHash("sha256").update(bytes).digest("hex");
+  return { hash: createHash("sha256").update(bytes).digest("hex"), bytes };
 }
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
@@ -167,6 +167,7 @@ test("proof visual matrix matches deterministic A/B/C baselines", async ({ page 
   await page.emulateMedia({ reducedMotion: "reduce" });
 
   const actual: Baselines = {};
+  const captureDir = process.env.AA_VISUAL_REVIEW_CAPTURE_DIR;
 
   for (const viewport of [
     { width: 375, height: 812, label: "mobile" },
@@ -179,7 +180,13 @@ test("proof visual matrix matches deterministic A/B/C baselines", async ({ page 
     for (const proofId of PROOF_IDS) {
       for (const variant of ["current", "target", "negative"] as const) {
         const locator = page.getByTestId(`proof-${proofId}-${variant}`);
-        actual[`${proofId}:${variant}:${viewport.label}`] = await screenshotHash(locator);
+        const key = `${proofId}:${variant}:${viewport.label}`;
+        const capture = await screenshotHash(locator);
+        actual[key] = capture.hash;
+        if (captureDir && capture.hash !== baselines[key]) {
+          mkdirSync(captureDir, { recursive: true });
+          writeFileSync(join(captureDir, `${proofId}-${variant}-${viewport.label}.png`), capture.bytes);
+        }
       }
     }
   }
