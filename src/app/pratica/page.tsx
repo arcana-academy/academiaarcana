@@ -364,11 +364,57 @@ export default async function PraticaPage({
   const supabase = await createClient();
   const repository = new SupabaseEducationalPracticeRepository(supabase);
 
-  const [pages, items, attempts] = await Promise.all([
-    repository.listPages(claims.sub),
-    repository.listPracticeItems(claims.sub),
-    repository.listPracticeAttempts(claims.sub),
-  ]);
+  let pages: Awaited<ReturnType<typeof repository.listPages>>;
+  let items: Awaited<ReturnType<typeof repository.listPracticeItems>>;
+  let attempts: Awaited<ReturnType<typeof repository.listPracticeAttempts>>;
+
+  try {
+    [pages, items, attempts] = await Promise.all([
+      repository.listPages(claims.sub),
+      repository.listPracticeItems(claims.sub),
+      repository.listPracticeAttempts(claims.sub),
+    ]);
+  } catch {
+    return (
+      <AuthenticatedShell currentPath="/pratica">
+        <main className="aa-page" aria-labelledby="practice-title">
+          <header className="aa-card aa-card-elevated">
+            <p className="aa-eyebrow">Núcleo educacional P1</p>
+            <h1 id="practice-title">Prática e recuperação</h1>
+            <p className="aa-state-copy">
+              Continue seus estudos sem perder o contexto da sua jornada.
+            </p>
+          </header>
+          <section
+            className="aa-card aa-card-default"
+            role="alert"
+            aria-labelledby="practice-load-error-title"
+          >
+            <h2 id="practice-load-error-title">
+              Não foi possível carregar suas atividades de prática
+            </h2>
+            <p className="aa-state-copy">
+              Os dados de prática estão temporariamente indisponíveis.
+              Nenhum resultado foi considerado vazio ou perdido.
+            </p>
+            <form action="/pratica" method="get">
+              <button className="aa-button aa-button-secondary" type="submit">
+                Tentar novamente
+              </button>
+            </form>
+            <nav aria-label="Navegação educacional" className="aa-action-row">
+              <Link className="aa-button aa-button-secondary" href="/workspace">
+                Voltar ao Workspace
+              </Link>
+              <Link className="aa-button aa-button-secondary" href="/academia">
+                Voltar à Academia
+              </Link>
+            </nav>
+          </section>
+        </main>
+      </AuthenticatedShell>
+    );
+  }
   const requestedPage = pages.find((page) => page.id === params.pagina) ?? null;
 
   if (
