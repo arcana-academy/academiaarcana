@@ -343,4 +343,52 @@ describe("PageEditor", () => {
     );
   });
 
+  test("opens guided reading only from saved text and returns to the editor", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({
+      ...page,
+      title: input.title,
+      content: input.content,
+    }));
+    render(
+      <PageEditor
+        {...movementProps}
+        page={page}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={onSave}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar leitura guiada" }));
+    expect(screen.getByRole("heading", { name: "Modo de leitura guiada" })).toBeInTheDocument();
+    expect(screen.getByText("Conteúdo inicial.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Salvar página" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+
+    fireEvent.change(screen.getByLabelText("Bloco 1"), {
+      target: { value: "Texto novo agora salvo." },
+    });
+    expect(screen.getByRole("button", { name: "Iniciar leitura guiada" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Iniciar leitura guiada" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar leitura guiada" }));
+    expect(screen.getByText("Texto novo agora salvo.")).toBeInTheDocument();
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  test("disables guided reading for an empty or whitespace-only page", () => {
+    render(
+      <PageEditor
+        {...movementProps}
+        page={{ ...page, content: { type: "document", blocks: [
+          { type: "paragraph", content: "   " },
+        ] } }}
+        onDelete={vi.fn(async () => undefined)}
+        onSave={vi.fn(async () => page)}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Iniciar leitura guiada" })).toBeDisabled();
+    expect(screen.getByText(/Adicione conteúdo a esta página e salve/)).toBeInTheDocument();
+  });
+
 });

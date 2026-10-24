@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { GuidedPageReading } from "@/components/education/GuidedPageReading";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 
 type PageDeleteControlProps = {
@@ -215,6 +216,7 @@ export function PageEditor({
   const [moveError, setMoveError] = useState<string | null>(null);
   const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [isReading, setIsReading] = useState(false);
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -296,6 +298,16 @@ export function PageEditor({
     setStatus("idle");
   };
 
+  if (isReading) {
+    return (
+      <GuidedPageReading
+        title={title}
+        blocks={content.blocks}
+        onClose={() => setIsReading(false)}
+      />
+    );
+  }
+
   return (
     <article aria-label="Editor da página">
       <label htmlFor="workspace-page-title">Título</label>
@@ -324,6 +336,17 @@ export function PageEditor({
       <button type="button" disabled={status === "saving"} onClick={save}>
         {getSaveLabel(status)}
       </button>
+      <button
+        type="button"
+        className="aa-button aa-button-secondary"
+        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        onClick={() => setIsReading(true)}
+      >
+        Iniciar leitura guiada
+      </button>
+      {!content.blocks.some((block) => block.content.trim()) ? (
+        <p className="aa-state-copy">Adicione conteúdo a esta página e salve antes de iniciar a leitura.</p>
+      ) : null}
 
       <button
         type="button"
