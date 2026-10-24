@@ -65,8 +65,14 @@ export default async function CronogramaPage() {
     );
   }
 
-  const outlookConnected = await isOutlookCalendarConnected();
+  let outlookConnected = false;
   let outlookEventsUnavailable = false;
+  try {
+    outlookConnected = await isOutlookCalendarConnected();
+  } catch {
+    // An unavailable credential store must not hide native study tasks.
+    outlookEventsUnavailable = true;
+  }
   let outlookEvents: Awaited<
     ReturnType<OutlookCalendarClient["listEvents"]>
   > = [];
