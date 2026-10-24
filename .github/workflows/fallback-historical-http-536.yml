@@ -5,6 +5,7 @@ on:
     branches:
       - chore/536-fallback-validation-20261009
       - integration/p0-536-release-train-20261009
+      - test/aa360-c06-536-cross-owner-delete-20261016
 
 permissions:
   contents: read
