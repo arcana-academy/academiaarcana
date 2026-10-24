@@ -104,6 +104,11 @@ export function StudyTaskBoard({
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Guard immediately before React updates the disabled submit button.
+  const createPending = useRef(false);
+  // Complete actions have separate pending locks for each task.
+  const completingPending = useRef(new Set<string>());
+  const [completingIds, setCompletingIds] = useState<Set<string>>(() => new Set());
   // Synchronous guard prevents duplicate provider POSTs before React rerenders.
   // Each provider/task pair remains independent while the request is pending.
   const activeSends = useRef(new Set<string>());
@@ -475,7 +480,12 @@ export function StudyTaskBoard({
                           : "Agendar no Outlook"}
                     </button>
                   ) : null}
-                  <button className="aa-button aa-button-secondary aa-button-sm" type="button" onClick={() => void complete(task.id)} disabled={completingIds.has(task.id)}>
+                  <button
+                    className="aa-button aa-button-secondary aa-button-sm"
+                    type="button"
+                    onClick={() => void complete(task.id)}
+                    disabled={completingIds.has(task.id)}
+                  >
                     {completingIds.has(task.id) ? "Concluindo…" : "Concluir"}
                   </button>
                 </div>
