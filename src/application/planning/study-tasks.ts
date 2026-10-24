@@ -13,13 +13,18 @@ export class StudyTaskService {
     const title = input.title.trim();
     if (!title) throw new Error("O título da tarefa é obrigatório.");
 
+    const dueAt = input.dueAt ?? null;
+    if (dueAt !== null && !Number.isFinite(Date.parse(dueAt))) {
+      throw new Error("Prazo da tarefa inválido.");
+    }
+
     const now = new Date().toISOString();
 
     return this.repository.create({
       id: globalThis.crypto.randomUUID(),
       ownerId: input.ownerId,
       title,
-      dueAt: input.dueAt ?? null,
+      dueAt,
       status: "pending",
       completedAt: null,
       createdAt: now,
