@@ -118,8 +118,8 @@ test("objective confirmation, due review, gaps and low-confidence signals remain
   );
 
   await page.getByTestId("statistics-pilot-scenario-select").selectOption("low-confidence");
-  await expect(page.locator(".statistics-view__profile")).toContainText("confiança Insuficiente");
-  await expect(page.locator(".statistics-view__profile")).toContainText("1 tentativa(s)");
+  await expect(page.locator('[data-statistics-region="profile-signals"]')).toContainText("confiança Insuficiente");
+  await expect(page.locator('[data-statistics-region="profile-signals"]')).toContainText("1 tentativa(s)");
 });
 
 test("all 40 themes keep composed contrast, evidence boundaries and no overflow", async ({ page }) => {
@@ -135,9 +135,9 @@ test("all 40 themes keep composed contrast, evidence boundaries and no overflow"
 
     const surfaces = await page.evaluate(() => {
       const selectors = [
-        ".statistics-view__educational-statistics",
-        ".statistics-view__self-reported",
-        ".statistics-view__objective",
+        '[data-statistics-region="educational-overview"]',
+        '[data-statistics-region="self-reported-evidence"]',
+        '[data-statistics-region="objective-evidence"]',
       ];
       return selectors.map((selector) => {
         const surface = document.querySelector(selector)!;
