@@ -1,130 +1,74 @@
-# Triagem das 148 issues abertas — 2026-10-24
+# Triagem das 148 issues abertas — checkpoint F7 (2026-10-24)
 
-**Projeto:** Academia Arcana · **Baseline:** `af012a2d04dd14be734ee234e26aaf201d954ea6` (`main`)
-**Escopo:** classificação de **todas** as issues abertas, com decisão de disposição e evidência associada.
-**Regra aplicada:** uma issue só é encerrada quando o critério de aceite é demonstrável no repositório.
-O que depende de decisão humana, acesso a provedor ou contrato pago **não** é encerrado — recebe estado.
+**Projeto:** Academia Arcana · **Base histórica da PR #821:** `af012a2d04dd14be734ee234e26aaf201d954ea6` (`main` à época da PR).
+**PR #821 HEAD inspecionado:** `70e9198eb9d393cfe7a6729d84da7394e668f01e`.
+**Regra F7:** documentação e rastreamento não equivalem a implementação, teste, aprovação ou execução operacional.
+**Este checkpoint não autoriza merge, comentários, fechamento de issue ou deploy.**
 
-## 1. Inventário
+## 1. Inventário (GitHub Search `is:issue is:open`, oito páginas de 20)
 
-| Grupo | Quantidade | Natureza |
-|---|---:|---|
-| Série F1–F6 (spec/constitucional) | 108 | corpo da issue é a própria especificação; 5 já fechadas antes |
-| Série P (produto) | 28 | épicos de roadmap (P0/P1/P2) |
-| Segurança / governança | 9 | #530, #534, #535, #536, #537, #588, #589, #594, #595 |
-| Gate visual | 1 | #678 |
-| Evidência operacional | 1 | #268 |
-| **Total** | **148** | |
+| Grupo | Quantidade |
+|---|---:|
+| F1–F6 (28 + 8 + 16 + 22 + 17 + 17) | 108 |
+| Produto P0/P1/P2, incluindo #31 e #33 | **29** |
+| Segurança/governança (#530, #534–#537, #588, #589, #594, #595) | 9 |
+| Gate visual #678 | 1 |
+| Evidência operacional #268 | 1 |
+| **Total** | **148** |
 
-## 2. Documentos canônicos produzidos nesta triagem
+A versão anterior informava 28 issues de Produto e apresentava uma soma de 147, embora o total informado fosse 148. Corrigido para 29, sem mover ou excluir issue.
 
-| Documento | Cobre |
-|---|---|
-| `docs/specs/AA-SPEC-F1-MODULE-BOUNDARIES.md` | F1.1–F1.26 (28 issues) |
-| `docs/specs/AA-SPEC-F2-DOMAIN-MODEL.md` | F2.1–F2.8 (8) |
-| `docs/specs/AA-SPEC-F3-CONTRACTS.md` | F3.1–F3.16 (16) |
-| `docs/specs/AA-SPEC-F4-TEST-STRATEGY.md` | F4.1–F4.19 (22) |
-| `docs/specs/AA-SPEC-F5-IMPLEMENTATION.md` | F5.1–F5.17 (17) |
-| `docs/specs/AA-SPEC-F6-INFRASTRUCTURE.md` | F6.1–F6.19 abertas (17) + #268 |
-| `docs/specs/AA-SPEC-GAP-REGISTER.md` | 22 lacunas rastreadas com ID estável |
+## 2. Reconciliação das 95 referências de fechamento
 
-## 3. Duplicatas identificadas
+- Corpo da PR #821: 95 linhas `Closes #N`, identificadores únicos.
+- Todas as 95 issues correspondentes permaneciam abertas na consulta F7.
+- 91 identificadores pertencem à série F1–F5; as quatro referências adicionais são #53, #55, #56, #186.
+- Inventário `f-series-resolution.json` após correção: 62 `CANÔNICO`, 21 `PARCIAL`, 8 `LACUNA` (91 itens).
+- Estados desses documentos são descrições de escopo/contrato, **não** atestações novas de implementação ou execução.
+- A lista individual e as decisões de revisão estão em `AA-F7-CLOSURE-RECONCILIATION-2026-10-24.md`.
 
-| Tema | Manter | Encerrar como duplicata |
+## 3. Revisão de duplicatas e títulos inconsistentes
+
+| Referências | Constatação por corpo da issue | Decisão F7 |
 |---|---|---|
-| F1.16 evento — ciclo de vida | #92 | #93 |
-| F1.18 leitura/escrita/mutação | #95 | #96 |
-| F4.11 testes assíncronos | #139 | #140 |
-| F4.14 privacidade e segurança | #143 | #144 |
-| F4.15 UI e acessibilidade | #145 | #146 |
-| F5.15 rollout e rollback | #167 | #168 |
-| F6.14 resiliência | #185 (já fechada) | #186 |
-| P2.7 integração/ecossistema | #52 | #53 |
-| P2.8 importação/exportação | #54 | #55, #56 |
+| #93 → #92; #96 → #95; #140 → #139; #144 → #143; #146 → #145 | Corpos idênticos em cada par | Revisar como duplicatas exatas; não fechar automaticamente |
+| #55 e #56 → #54 | Corpos idênticos | Revisar como duplicatas exatas; preservar #54 |
+| #53 → #52 | Mesmo tema P2.7, porém textos **não idênticos** e critérios não organizados de forma igual | Manter aberta até consolidar todos os requisitos na #52 |
+| #168 → #167 | **Não** duplicatas: #167 contém texto F5.14 (migrações); #168 contém F5.15 (rollout/rollback) | Preservar ambas; documentar divergência de título da #167 |
+| #186 → #185 | **Não** duplicatas: #185 tem título F6.14 mas corpo F6.13 (backup); #186 contém resiliência F6.14 | Preservar #186 e não considerá-la atendida por #185 |
 
-## 4. Disposição por grupo
+## 4. Critérios de estado e fechamento
 
-### 4.1 Série F1–F5 — **ENCERRADA com evidência documental**
-
-Critério: a entrega pedida pela issue é a **definição canônica** de fronteira/contrato/teste/implementação.
-Cada issue tem seção própria no documento correspondente, ancorada em arquivo de código existente, e as
-lacunas reais foram movidas para o registro único com ID estável. Encerrar a issue **não** declara a lacuna
-resolvida.
-
-### 4.2 Série F6 — **MANTIDA ABERTA** (exceto duplicata #186)
-
-Motivo: `docs/superpowers/reports/operational-evidence-baseline.md` e #268 fixam que documentação não é
-evidência de execução. Backup, DR, observabilidade e operação exigem exercício datado e/ou acesso a provedor.
-`AA-SPEC-F6-INFRASTRUCTURE.md` registra o estado real de cada item (VERIFIED / DOCUMENTED / EXTERNAL).
-
-### 4.3 Série P — **MANTIDA ABERTA**, com estado atualizado
-
-São épicos de produto plurirrequisito. Encerrar exigiria implementação integral de cada capacidade. O que
-existe está mapeado em `AA-SPEC-F5` §F5.17 e `AA-SPEC-F4` §F4.17; o que não existe está no registro de
-lacunas. Duplicatas de P2.7/P2.8 são encerradas.
-
-### 4.4 Segurança e governança — **MANTIDAS ABERTAS**
-
-| Issue | Bloqueio real | Evidência |
+| Estado F7 | Significado | Política de fechamento |
 |---|---|---|
-| #536 | valores de credencial ainda em Environment Variables do Render | não há acesso ao provedor nesta sessão; `gh api` administrativo responde 403 |
-| #534 / #537 | permissões de GitHub Apps instalados e bypass de branch protection não são legíveis/alteráveis | `GET /branches/main/protection` → 403; `GET /rulesets` → `[]` |
-| #535 | advisory dev-only de `braces` sem versão corrigida publicada | `braces` já está em `3.0.3` (última publicada) |
-| #588 / #530 | política de retenção exige Produto + Privacidade/Jurídico nomeados | decisão humana |
-| #589 | revisão humana independente da PR #587 | decisão humana |
-| #594 | custódia OCI independente + DR testado | acesso a provedor |
-| #595 | designação de decisores DEP-C17-01…08 | decisão humana |
+| DOCUMENTADO | Existe contrato ou especificação rastreável | Revisão manual de aceite, sem fechamento automático |
+| IMPLEMENTADO | Código/recurso identificado por evidência específica | Não presumir a partir do documento |
+| TESTADO | Teste real identificado e pertinente ao requisito | Não presumir a partir de lint/typecheck |
+| BLOCKED | Lacuna, título divergente, evidência ausente ou aprovação pendente | Manter aberto |
+| NÃO APLICÁVEL | Requisito explicitamente rejeitado por decisão competente | Só encerrar mediante decisão rastreável |
 
-Nenhum desses é encerrado, coerente com o texto das próprias issues ("do not close until…").
+F7 não promoveu nenhum item a `IMPLEMENTADO`/`TESTADO` apenas por consulta documental. O status `CANÔNICO` significa que a definição foi registrada; não equivale à homologação de operação.
 
-### 4.5 #678 — **MANTIDA ABERTA**
+## 5. Proteção contra encerramento indevido
 
-Gate visual exige os JPGs originais e assinatura de responsável visual autorizado. Não há decisão de mérito
-nesta triagem.
+- `scripts/issue-triage/apply-f-series-triage.mjs` é **somente leitura**; `--apply` falha fechado sem chamar API do GitHub.
+- O `f-series-resolution.json` fixa `autoClose: false`, valida 91 entradas e mais quatro referências adicionais.
+- O script gera a decisão para 95/95 como `DOCUMENTED_REVIEW_ONLY`, `BLOCKED_*` ou `REVIEW_DUPLICATE_ONLY`.
+- **O corpo da PR #821 ainda contém 95 linhas `Closes`. Mesclá-la sem remover essas referências pode fechar as issues pelo próprio GitHub**, independentemente do script.
+- A PR #821 deve permanecer aberta/intacta enquanto a descrição e os critérios de aceite não forem revisados por pessoa autorizada.
 
-### 4.6 #268 — **MANTIDA ABERTA**
+## 6. Pendências fora da triagem documental
 
-É o rastreador de evidência operacional e continua válido; recebe referência cruzada ao documento F6.
+- F6 e #268: restauração, backup, DR, observabilidade, rollback, alertas e evidências de operação real.
+- Segurança/governança: #530, #534–#537, #588, #589, #594, #595 permanecem sem declaração de GO.
+- Produto (29 issues): épicos de múltiplos critérios permanecem abertos, incluindo as duplicatas sob revisão.
+- #678: aprovação visual continua pendente.
+- `issues: write`: relato anterior de HTTP 403 para comentar/fechar. F7 não realizou uma tentativa de escrita para testar permissões.
 
-## 5. Execução no GitHub — bloqueio de permissão
+## 7. Evidência e limites de F7
 
-A execução automática (comentário + encerramento) foi implementada em
-`scripts/issue-triage/apply-f-series-triage.mjs`, com o mapeamento issue → seção em
-`scripts/issue-triage/f-series-resolution.json` (91 entradas).
+- Verificação em leitura via GitHub: total 148, 95 referências únicas, 95 abertas, 91 entradas originais e títulos/corpos relevantes.
+- Correções versionadas somente na branch isolada `work/aa-f7-closure-guard-20261024-head70e9198`.
+- Sem alteração da `main`, da PR #821, de issues, secrets, serviços ou ambientes produtivos.
+- Testes de contrato locais/GitHub serão registrados no checkpoint final; não reaproveitar `typecheck`/`lint` anteriores como teste do script F7.
 
-Na sessão em que este documento foi produzido, o token do GitHub App disponível tinha `pull`, `push`,
-`triage`, `maintain` e `admin` no repositório, **mas não `issues: write`**:
-
-```
-POST /repos/arcana-academy/academiaarcana/issues/77/comments
--> 403 Resource not accessible by integration
-```
-
-Portanto **nenhuma issue foi comentada ou encerrada por esta sessão**. A lacuna é de credencial, não de
-conteúdo: o mapeamento está pronto e a execução é idempotente.
-
-Para aplicar:
-
-```bash
-node scripts/issue-triage/apply-f-series-triage.mjs          # dry-run, não escreve
-node scripts/issue-triage/apply-f-series-triage.mjs --apply  # comenta + encerra
-```
-
-Pré-requisitos: `gh` autenticado com uma credencial que possua `issues: write` (ou a GitHub App
-correspondente instalada com a permissão de Issues), e o `main` contendo `docs/specs/`.
-
-## 6. Verificação desta entrega
-
-| Verificação | Resultado |
-|---|---|
-| `npm run typecheck` | verde (execução local no baseline) |
-| `npm run lint` | verde (execução local no baseline) |
-| Alteração de código de produção | **nenhuma** — apenas documentação |
-| Migrações, deploy, segredo ou produção | **nenhum** toque |
-| Issues encerradas | apenas com critério demonstrável (série F1–F5 + duplicatas) |
-
-## 6. O que permanece e por quê
-
-As 22 lacunas do registro não são fecháveis por um agente nesta sessão: exigem (a) decisão humana nomeada,
-(b) acesso a Render/GitHub App/OCI, ou (c) implementação de capacidade nova que muda escopo de produto.
-Todas estão rastreadas, com dono sugerido e evidência necessária.
