@@ -23,6 +23,7 @@ permissions:
 concurrency:
   group: image-release-${{ github.event.workflow_run.head_branch || github.ref_name }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   preflight:
@@ -56,7 +57,7 @@ jobs:
           set -euo pipefail
           if [ "$RELEASE_EVENT" = "workflow_run" ]; then
             if [ "$UPSTREAM_EVENT" != "push" ] || [ "$UPSTREAM_BRANCH" != "main" ] ||
-               [ "$UPSTREAM_WORKFLOW_PATH" != ".github/workflows/quality.yml" ] ||
+               [[ ! "$UPSTREAM_WORKFLOW_PATH" =~ ^\.github/workflows/quality\.yml(@(refs/heads/)?main)?$ ]] ||
                [ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ] ||
                [ "$UPSTREAM_ATTEMPT" != "1" ] || [ "$UPSTREAM_RESULT" != "success" ]; then
               echo "Image release requires an original successful push to main in this repository." >&2
@@ -82,7 +83,9 @@ jobs:
                  --arg revision "$revision" \
                  --arg repository "$GITHUB_REPOSITORY" '
                    .name == "Academia Arcana Quality Gate" and
-                   .path == ".github/workflows/quality.yml" and
+                   (.path == ".github/workflows/quality.yml" or
+                    .path == ".github/workflows/quality.yml@main" or
+                    .path == ".github/workflows/quality.yml@refs/heads/main") and
                    .event == "push" and
                    .head_branch == "main" and
                    .head_sha == $revision and
@@ -187,18 +190,28 @@ jobs:
     if: >-
       ${{
         vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true' &&
-        vars.RENDER_DEPLOY_APPROVED_RUN_ID != '' &&
-        vars.RENDER_DEPLOY_APPROVED_RUN_ID == format('{0}', github.run_id) &&
         github.run_attempt == 1 &&
         github.event_name == 'workflow_dispatch'
       }}
     environment:
       name: render-production-approval
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 25
     permissions: {}
 
     steps:
+      - name: Require approved dispatch run ID after environment gate
+        env:
+          APPROVED_RUN_ID: ${{ vars.RENDER_DEPLOY_APPROVED_RUN_ID }}
+          ACTUAL_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$ACTUAL_RUN_ID" =~ ^[1-9][0-9]*$ ]] || [ "$APPROVED_RUN_ID" != "$ACTUAL_RUN_ID" ]; then
+            echo "Render deployment needs post-dispatch approval for this exact run." >&2
+            exit 1
+          fi
+
       - name: Reject stale main revision before deployment
         env:
           EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}
@@ -230,41 +243,26 @@ jobs:
             --output /tmp/aa-render-image-target-guard.cjs \
             "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${EXPECTED_REVISION}/scripts/security/verify-render-image-target-536.cjs"
 
-      - name: Verify live Render image-backed service and approved target
+      - name: Request Render image deployment
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}
+          # Separate write-capable credential; missing secret blocks the deploy job.
+          RENDER_DEPLOY_API_KEY: ${{ secrets.RENDER_DEPLOY_API_KEY }}
           RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}
           IMAGE_URL: ${{ needs.publish.outputs.image_url }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          # A secret hook alone does not establish service type. Use an
-          # authenticated GET (read-only) to reject Git-backed targets.
-          node /tmp/aa-render-image-target-guard.cjs
-      - name: Request deployment of the immutable image
-        env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           IMAGE_REVISION: ${{ needs.preflight.outputs.release_sha }}
-          IMAGE_URL: ${{ needs.publish.outputs.image_url }}
         shell: bash
         run: |
           set -euo pipefail
-          if ! [[ "$IMAGE_URL" =~ ^ghcr\.io/arcana-academy/academiaarcana@sha256:[0-9a-f]{64}$ ]]; then
-            echo "Deployment requires an immutable GHCR image digest." >&2
+          if ! [[ "$IMAGE_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Unexpected deployment revision." >&2
             exit 1
           fi
-          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
-            echo "Render image deployment is enabled but its deploy hook secret is missing."
-            exit 1
-          fi
-          if [[ "$RENDER_DEPLOY_HOOK_URL" != https://api.render.com/deploy/* ]]; then
-            echo "Render deploy hook must use HTTPS on api.render.com." >&2
-            exit 1
-          fi
-          curl --fail --silent --show-error --proto "=https" --max-redirs 0 --get \
-            --data-urlencode "imgURL=$IMAGE_URL" \
-            "$RENDER_DEPLOY_HOOK_URL" >/dev/null
+          # One fail-closed operation: live service GET, then exactly one
+          # authenticated POST /deploys requiring 201 with its unique ID.
+          # Never retry an ambiguous API outcome or split these steps.
+          node /tmp/aa-render-image-target-guard.cjs
           printf '%s\n' "$IMAGE_REVISION" > /tmp/academiaarcana-deployed-revision.txt
 
       - name: Upload requested production revision for smoke verification

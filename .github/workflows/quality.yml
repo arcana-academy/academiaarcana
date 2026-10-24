@@ -146,4 +146,4 @@ jobs:
           name: academiaarcana-image-${{ github.sha }}
           path: /tmp/academiaarcana-image.tar
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 30

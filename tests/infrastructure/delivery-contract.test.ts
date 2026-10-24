@@ -11,6 +11,33 @@ const root = process.cwd();
 
 const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
+// Indentation-scoped extraction: only live YAML and shell lines count as controls.
+const releaseBlock = (source: string, heading: string, indentation: number) => {
+  const lines = source.replaceAll("\r\n", "\n").split("\n");
+  const first = lines.findIndex((line) => line === " ".repeat(indentation) + heading);
+  if (first < 0) return "";
+
+  const end = lines.findIndex(
+    (line, index) =>
+      index > first &&
+      line.trim() !== "" &&
+      !line.trimStart().startsWith("#") &&
+      (line.match(/^ */)?.[0].length ?? 0) <= indentation,
+  );
+  return lines
+    .slice(first + 1, end < 0 ? lines.length : end)
+    .filter((line) => !line.trimStart().startsWith("#"))
+    .join("\n");
+};
+
+const releaseJob = (workflow: string, name: string) =>
+  releaseBlock(releaseBlock(workflow, "jobs:", 0), name + ":", 2);
+
+const releaseStep = (job: string, name: string) =>
+  releaseBlock(releaseBlock(job, "steps:", 4), "- name: " + name, 6);
+
+const releaseRun = (step: string) => releaseBlock(step, "run: |", 8);
+
 describe("delivery infrastructure contract", () => {
   it("retains git-source smoke until the image deployment switch is enabled", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml").replaceAll(
@@ -29,6 +56,11 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Academia Arcana Image Release'");
     expect(workflow).toContain("academiaarcana-deploy-request");
+    expect(workflow).toContain("name: Confirm image deployment really occurred");
+    expect(workflow).toContain("needs: image_deployment");
+    expect(workflow).toContain("needs.image_deployment.outputs.deployed == 'true'");
+    expect(workflow).toContain('select(.name == "Request Render image deployment" and .conclusion == "success")');
+    expect(workflow).toContain('select(.name == "academiaarcana-deploy-request" and .expired == false)');
   });
 
   it("keeps independent production smoke attempts from cancelling one another", () => {
@@ -119,16 +151,33 @@ describe("delivery infrastructure contract", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
 
     expect(workflow).toContain('workflows: ["Academia Arcana Quality Gate"]');
-    expect(workflow).toContain("UPSTREAM_RESULT: ${{ github.event.workflow_run.conclusion }}");
-    expect(workflow).toContain("UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}");
-    expect(workflow).toContain("UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}");
-    expect(workflow).toContain("UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}");
-    expect(workflow).toContain("UPSTREAM_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}");
+    expect(workflow).toContain('UPSTREAM_RESULT: ${{ github.event.workflow_run.conclusion }}');
+    expect(workflow).toContain('[ "$UPSTREAM_RESULT" != "success" ]');
+    expect(workflow).toContain('UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}');
+    expect(workflow).toContain('[ "$UPSTREAM_EVENT" != "push" ]');
+    expect(workflow).toContain('UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}');
+    expect(workflow).toContain('[ "$UPSTREAM_BRANCH" != "main" ]');
+    expect(workflow).toContain('UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}');
+    expect(workflow).toContain('[ "$UPSTREAM_REPOSITORY" != "$GITHUB_REPOSITORY" ]');
+    expect(workflow).toContain('UPSTREAM_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}');
+    expect(workflow).toContain('[ "$UPSTREAM_ATTEMPT" != "1" ]');
+    expect(workflow).toContain("queue: max");
+    expect(workflow).toContain('[[ ! "$UPSTREAM_WORKFLOW_PATH" =~ ^\\.github/workflows/quality\\.yml(@(refs/heads/)?main)?$ ]]');
+    expect(workflow).toContain('.path == ".github/workflows/quality.yml@main"');
+    expect(workflow).toContain('.path == ".github/workflows/quality.yml@refs/heads/main"');
+    expect(workflow).toContain("name: Require approved dispatch run ID after environment gate");
+    expect(workflow).toContain("APPROVED_RUN_ID: ${{ vars.RENDER_DEPLOY_APPROVED_RUN_ID }}");
+    expect(workflow).toContain('[ "$APPROVED_RUN_ID" != "$ACTUAL_RUN_ID" ]');
+    expect(workflow).toContain("vars.GHCR_PUBLISH_APPROVED_SHA != ''");
+    expect(workflow).toContain("vars.GHCR_PUBLISH_APPROVED_SHA == needs.preflight.outputs.release_sha");
     expect(workflow).toContain("needs: preflight");
     expect(workflow).toContain("Reject stale main revision before publishing");
     expect(workflow).toContain("Reject stale main revision before deployment");
-    expect(workflow).toContain("https://api.render.com/deploy/*");
-    expect(workflow).toContain('--proto "=https"');
+    expect(workflow).toContain("node /tmp/aa-render-image-target-guard.cjs");
+    expect(workflow).toContain("RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}");
+    expect(workflow).toContain("RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}");
+    expect(workflow).toContain("- name: Request Render image deployment");
+    expect(workflow).not.toContain("--data-urlencode");
     expect(workflow).toContain("academiaarcana-deploy-request");
     expect(workflow).toContain("packages: write");
     expect(workflow).toContain("steps.publish_image.outputs.image_url");
@@ -137,87 +186,169 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain("digest: (sha256:[0-9a-f]{64})");
     expect(workflow).toContain("image_url=%s@%s");
     expect(workflow).toContain("IMAGE_URL: ${{ needs.publish.outputs.image_url }}");
-    expect(workflow).toContain("imgURL=$IMAGE_URL");
     expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
     expect(workflow).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
     expect(workflow).not.toContain("docker build");
   });
 
-  it("requires a nonempty exact main source SHA approval before GHCR publishing", () => {
+  it("rejects workflow_dispatch unless the trusted main ref is checked in preflight", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
-    const publishJob = workflow.split("\n  publish:\n")[1]?.split("\n  deploy:\n")[0];
-
-    expect(publishJob).toBeDefined();
-    expect(publishJob).toContain("needs: preflight");
-    expect(publishJob).toContain("vars.GHCR_PUBLISH_APPROVED_SHA != ''");
-    expect(publishJob).toContain(
-      "vars.GHCR_PUBLISH_APPROVED_SHA == needs.preflight.outputs.release_sha",
+    const step = releaseStep(
+      releaseJob(workflow, "preflight"),
+      "Verify trusted source for event or explicit promotion",
     );
-    expect(publishJob).toContain("needs.preflight.result == 'success'");
-    expect(publishJob).toContain("packages: write");
+    expect(step).not.toBe("");
 
-    // A missing approval variable must result in a skipped publisher.
-    // Deploy authorization is a separate, additional gate.
-    expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
-    expect(workflow).toContain("needs: [preflight, publish]");
+    const env = releaseBlock(step, "env:", 8);
+    const run = releaseRun(step);
+    expect(env).toMatch(/^\s*RELEASE_EVENT:\s*\x24\{\{ github\.event_name \}\}\s*$/m);
+    expect(env).toMatch(/^\s*RELEASE_REF:\s*\x24\{\{ github\.ref \}\}\s*$/m);
+    expect(run).toMatch(
+      /elif \[ "\$RELEASE_EVENT" = "workflow_dispatch" \]; then\s+if \[ "\$RELEASE_REF" != "refs\/heads\/main" \]; then[\s\S]*?\bexit 1\s+fi/,
+    );
   });
 
-  it("requires a separate run-specific gate for every Render deployment", () => {
+  it("validates the original Quality Gate API run SHA, attempt, and conclusion", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
-    const deployJob = workflow.split("\n  deploy:\n")[1];
-
-    expect(deployJob).toBeDefined();
-    expect(deployJob).toContain("needs: [preflight, publish]");
-    expect(deployJob).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED == 'true'");
-    expect(deployJob).toContain("vars.RENDER_DEPLOY_APPROVED_RUN_ID != ''");
-    expect(deployJob).toContain(
-      "vars.RENDER_DEPLOY_APPROVED_RUN_ID == format('{0}', github.run_id)",
+    const step = releaseStep(
+      releaseJob(workflow, "preflight"),
+      "Verify trusted source for event or explicit promotion",
     );
-    expect(deployJob).toContain("github.run_attempt == 1");
-    expect(deployJob).toContain("github.event_name == 'workflow_dispatch'");
-    expect(deployJob).toContain("name: render-production-approval");
-    expect(deployJob).toContain("permissions: {}");
-    expect(deployJob).toContain("secrets.RENDER_DEPLOY_HOOK_URL");
+    const run = releaseRun(step);
+    expect(run).toMatch(
+      /run_json="\$\(gh api "\/repos\/\x24\{GITHUB_REPOSITORY\}\/actions\/runs\/\x24\{run_id\}"\)"/,
+    );
+    const filter = run.match(
+      /\|\s*jq -e\s*\\\s*--arg revision "\$revision"\s*\\\s*--arg repository "\$GITHUB_REPOSITORY"\s+'([\s\S]*?)'\s*>\/dev\/null;\s*then/,
+    )?.[1] ?? "";
+    expect(filter).not.toBe("");
+    expect(filter).toMatch(/^\s*\.head_sha == \$revision and\s*$/m);
+    expect(filter).toMatch(/^\s*\.run_attempt == 1 and\s*$/m);
+    expect(filter).toMatch(/^\s*\.conclusion == "success"\s*$/m);
   });
 
-  it("promotes only an authenticated original push-to-main Quality Gate artifact", () => {
+  it("downloads the immutable public preflight without redirects or GitHub tokens", () => {
     const workflow = readRepoFile(".github/workflows/image-release.yml");
-    const preflight = workflow.split("\n  preflight:\n")[1]?.split("\n  publish:\n")[0];
-    const publisher = workflow.split("\n  publish:\n")[1]?.split("\n  deploy:\n")[0];
-    const deployer = workflow.split("\n  deploy:\n")[1];
+    const deploy = releaseJob(workflow, "deploy");
+    const step = releaseStep(
+      deploy,
+      "Fetch immutable public preflight from approved main SHA",
+    );
+    expect(step).not.toBe("");
+    expect(deploy).toMatch(/^ {4}permissions: \{\}\s*$/m);
 
-    expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).toContain("approved_revision:");
-    expect(workflow).toContain("quality_run_id:");
-    expect(preflight).toContain("actions: read");
-    expect(preflight).toContain('if [ "$RELEASE_EVENT" = "workflow_run" ]; then');
-    expect(preflight).toContain('elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then');
-    expect(preflight).toContain('if [ "$RELEASE_REF" != "refs/heads/main" ]; then');
-    expect(preflight).toContain('gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}"');
-    expect(preflight).toContain("UPSTREAM_WORKFLOW_PATH: ${{ github.event.workflow_run.path }}");
-    const automatic = preflight?.split('if [ "$RELEASE_EVENT" = "workflow_run" ]; then')[1]?.split(
-      'elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then',
-    )[0];
-    const manual = preflight?.split('elif [ "$RELEASE_EVENT" = "workflow_dispatch" ]; then')[1];
-    // Same-name workflows must never be accepted as the canonical Quality Gate.
-    expect(automatic).toContain('[ "$UPSTREAM_WORKFLOW_PATH" != ".github/workflows/quality.yml" ]');
-    expect(manual).toContain('.path == ".github/workflows/quality.yml"');
-    expect(manual).toContain('.name == "Academia Arcana Quality Gate"');
-    expect(preflight).toContain('.event == "push"');
-    expect(preflight).toContain('.head_branch == "main"');
-    expect(preflight).toContain('.head_sha == $revision');
-    expect(preflight).toContain('.head_repository.full_name == $repository');
-    expect(preflight).toContain('.repository.full_name == $repository');
-    expect(preflight).toContain('.run_attempt == 1');
-    expect(preflight).toContain('.conclusion == "success"');
-    expect(preflight).toContain('upstream_run_id=%s');
-    expect(publisher).toContain("name: academiaarcana-image-${{ needs.preflight.outputs.release_sha }}");
-    expect(publisher).toContain("run-id: ${{ needs.preflight.outputs.upstream_run_id }}");
-    expect(publisher).toContain("IMAGE_REVISION: ${{ needs.preflight.outputs.release_sha }}");
-    expect(publisher).toContain("UPSTREAM_RUN_ID: ${{ needs.preflight.outputs.upstream_run_id }}");
-    expect(deployer).toContain("needs: [preflight, publish]");
-    expect(deployer).toContain("EXPECTED_REVISION: ${{ needs.preflight.outputs.release_sha }}");
-    expect(workflow).not.toContain("docker build");
+    const env = releaseBlock(step, "env:", 8);
+    const run = releaseRun(step);
+    expect(env).toMatch(/^\s*EXPECTED_REVISION:\s*\x24\{\{ needs\.preflight\.outputs\.release_sha \}\}\s*$/m);
+    const download = run.match(
+      /^\s*curl --fail[^\n]*\\\s*--output \S+\s*\\\s*"https:\/\/raw\.githubusercontent\.com\/\x24\{GITHUB_REPOSITORY\}\/\x24\{EXPECTED_REVISION\}\/scripts\/security\/verify-render-image-target-536\.cjs"/m,
+    )?.[0] ?? "";
+    expect(download).not.toBe("");
+    expect(download).toMatch(/(?:^|\s)--max-redirs\s+0(?:\s|\\)/);
+    expect(download).toContain("--proto '=https'");
+    expect(env + run).not.toMatch(/\b(?:GITHUB_TOKEN|GH_TOKEN)\b/);
+  });
+
+  it("gates only the deploy job on an explicit workflow_dispatch", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const deploy = releaseJob(workflow, "deploy");
+    expect(deploy).not.toBe("");
+    expect(deploy).toMatch(/^ {4}timeout-minutes: 25\s*$/m);
+    const condition = releaseBlock(deploy, "if: >-", 4);
+    expect(condition).not.toBe("");
+    expect(condition).toMatch(/^\s*github\.event_name == 'workflow_dispatch'\s*$/m);
+    expect(condition).not.toMatch(/\|\||\bworkflow_run\b/);
+  });
+
+  it("ignores security checks preserved only as comments or in other jobs", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const commented = workflow
+      .replace(
+        '            if [ "$RELEASE_REF" != "refs/heads/main" ]; then',
+        '            # if [ "$RELEASE_REF" != "refs/heads/main" ]; then',
+      )
+      .replace(
+        "                   .head_sha == $revision and",
+        "                   # .head_sha == $revision and",
+      );
+    const run = releaseRun(
+      releaseStep(
+        releaseJob(commented, "preflight"),
+        "Verify trusted source for event or explicit promotion",
+      ),
+    );
+    expect(run).not.toMatch(/^\s*if \[ "\$RELEASE_REF" != "refs\/heads\/main" \]; then/m);
+    expect(run).not.toMatch(/^\s*\.head_sha == \$revision and/m);
+    expect(
+      releaseStep(
+        releaseJob(workflow, "publish"),
+        "Fetch immutable public preflight from approved main SHA",
+      ),
+    ).toBe("");
+  });
+
+  it("invokes the verified Render guard only inside the deploy request step", () => {
+    const workflow = readRepoFile(".github/workflows/image-release.yml");
+    const deploy = releaseJob(workflow, "deploy");
+    const request = releaseStep(deploy, "Request Render image deployment");
+
+    expect(request).not.toBe("");
+    expect(request).toMatch(/^\s*node \/tmp\/aa-render-image-target-guard\.cjs\s*$/m);
+    expect(request).toContain("RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}");
+    expect(request).toContain("RENDER_SERVICE_READ_API_KEY: ${{ secrets.RENDER_SERVICE_READ_API_KEY }}");
+    expect(request).toContain("RENDER_DEPLOY_API_KEY: ${{ secrets.RENDER_DEPLOY_API_KEY }}");
+    expect(request).toContain("RENDER_IMAGE_SERVICE_ID: ${{ vars.RENDER_IMAGE_SERVICE_ID }}");
+    expect(request).not.toMatch(/\bcurl\b/);
+  });
+
+  it("uses Render's authenticated deploy API with exact 201 ID, never a hook lookup", () => {
+    const guard = readRepoFile("scripts/security/verify-render-image-target-536.cjs");
+    const request = releaseStep(
+      releaseJob(readRepoFile(".github/workflows/image-release.yml"), "deploy"),
+      "Request Render image deployment",
+    );
+    expect(guard).toContain('"https://api.render.com/v1/services/" + inputs.approvedServiceId + "/deploys"');
+    expect(guard).toContain('method: "POST"');
+    expect(guard).toContain("Authorization: \"Bearer \" + inputs.deployApiKey");
+    expect(guard).toContain('body: JSON.stringify({ imageUrl: inputs.imageUrl, clearCache: "do_not_clear" })');
+    expect(guard).toContain("response.status !== 201");
+    expect(guard).toContain("response?.status === 202");
+    expect(guard).not.toContain("hook.searchParams.set");
+    expect(guard).not.toContain("fetchService(hook.toString()");
+    expect(request).toContain("RENDER_DEPLOY_API_KEY");
+    expect(guard).toContain("Create exactly one deployment through the authenticated API.");
+    expect(request).not.toMatch(/fetch\([^\n]*\/deploy\//);
+  });
+
+  it("preserves the documented 30-day approved image promotion window", () => {
+    const quality = readRepoFile(".github/workflows/quality.yml");
+    const upload = quality.split("      - name: Upload production image artifact\n")[1]
+      ?.split("\n      - name:")[0] ?? "";
+    expect(upload).toContain('name: academiaarcana-image-${{ github.sha }}');
+    expect(upload).toMatch(/^\s*retention-days: 30\s*$/m);
+    const instructions = readRepoFile("docs/deployment/render.md");
+    expect(instructions).toContain("30-day promotion window");
+    expect(instructions).toContain("are **not** extended retroactively");
+  });
+
+  it("documents all explicit GHCR and Render manual promotion gates", () => {
+    const instructions = readRepoFile("docs/deployment/render.md");
+    for (const key of [
+      "GHCR_PUBLISH_APPROVED_SHA",
+      "RENDER_IMAGE_DEPLOY_ENABLED",
+      "RENDER_IMAGE_SERVICE_ID",
+      "RENDER_DEPLOY_APPROVED_RUN_ID",
+      "RENDER_DEPLOY_HOOK_URL",
+      "RENDER_SERVICE_READ_API_KEY",
+      "RENDER_DEPLOY_API_KEY",
+      "approved_revision",
+      "quality_run_id",
+      "render-production-approval",
+    ]) {
+      expect(instructions).toContain(`\`${key}\``);
+    }
+    expect(instructions).toContain("after dispatch");
+    expect(instructions).toContain("NO-GO remains in force");
   });
 
   it("defines one canonical provider for each infrastructure responsibility", () => {

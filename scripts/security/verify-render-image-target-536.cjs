@@ -1,7 +1,9 @@
 "use strict";
 
-// Read-only guard. No Render deploy request may run until the hook's service
-// identity, backing mode, and registered image repository are proven.
+// Fail-closed Render target guard. Verify the live service and use the
+// authenticated Render Deploy API, which supplies a deployment ID on 201.
+// A 202 or an ambiguous network failure must never be correlated by time,
+// digest, or nearby deploy records; neither outcome authorizes success.
 const IMAGE_REPOSITORY = "ghcr.io/arcana-academy/academiaarcana";
 const IMAGE_DIGEST = /^ghcr\.io\/arcana-academy\/academiaarcana@sha256:[a-f0-9]{64}$/;
 const SERVICE_ID = /^srv-[a-z0-9]+$/;
@@ -33,7 +35,7 @@ function registeredImageRepo(value) {
 
 /** Require live authenticated Render metadata, never a caller's asserted kind.
  * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, imageUrl:string,
- * fetchService?:typeof fetch}} inputs
+ * fetchService?:typeof fetch, waitForNextPoll?:(delayMs:number)=>Promise<void>}} inputs
  */
 async function verifyRenderImageTarget(inputs) {
   const { hookUrl, approvedServiceId, apiKey, imageUrl, fetchService = fetch } = inputs;
@@ -66,28 +68,199 @@ async function verifyRenderImageTarget(inputs) {
   try { service = await response.json(); } catch {
     throw new Error("Render service metadata is invalid; refusing image deployment.");
   }
-  if (!service || service.id !== hookId || service.serviceDetails?.runtime !== "image") {
+  if (!service || service.id !== hookId || service.type !== "web_service" ||
+      service.serviceDetails?.runtime !== "image") {
     throw new Error("Render target is not a verified image-backed service; refusing imgURL.");
   }
-  if (!registeredImageRepo(service.imagePath)) {
+  // Render's current API exposes imagePath at the top level; also accept
+  // serviceDetails.imagePath when that is the only configured path returned.
+  // Contradictory paths must fail closed rather than select either value.
+  const topLevelImagePath = service.imagePath;
+  const detailsImagePath = service.serviceDetails.imagePath;
+  if (topLevelImagePath !== undefined && detailsImagePath !== undefined &&
+      topLevelImagePath !== detailsImagePath) {
+    throw new Error("Render target reports conflicting image repositories; refusing image deployment.");
+  }
+  if (!registeredImageRepo(detailsImagePath ?? topLevelImagePath)) {
     throw new Error("Render image-backed target registry/repository is not the approved GHCR image.");
   }
-  if (service.autoDeployTrigger !== "off") {
+  // Render may return the current autoDeployTrigger or the legacy autoDeploy.
+  // A legacy-only response with "no" is safe; any enabled, missing, or
+  // contradictory value fails closed.
+  const hasTrigger = Object.prototype.hasOwnProperty.call(service, "autoDeployTrigger");
+  const hasLegacy = Object.prototype.hasOwnProperty.call(service, "autoDeploy");
+  if ((!hasTrigger && !hasLegacy) ||
+      (hasTrigger && service.autoDeployTrigger !== "off") ||
+      (hasLegacy && service.autoDeploy !== "no")) {
     throw new Error("Render target must keep automatic deployment disabled for controlled release.");
   }
   return true;
 }
 
-module.exports = { checkedHookServiceId, registeredImageRepo, verifyRenderImageTarget };
+/** Recheck live Render metadata immediately before requesting this image deploy.
+ * Callers must not split this operation into separate CI steps.
+ * @param {{hookUrl:string, approvedServiceId:string, apiKey:string, deployApiKey:string,
+ * imageUrl:string, fetchService?:typeof fetch, waitForNextPoll?:(delayMs:number)=>Promise<void>}} inputs
+ */
+async function requestVerifiedRenderImageDeployment(inputs) {
+  const fetchService = inputs.fetchService || fetch;
+  // The read credential must not authorize deployment implicitly. The
+  // separately approved write credential is required before any network call.
+  if (typeof inputs.deployApiKey !== "string" || !inputs.deployApiKey.trim()) {
+    throw new Error("Separately approved Render deploy API credential is missing.");
+  }
+  await verifyRenderImageTarget({ ...inputs, fetchService });
+
+  // Create exactly one deployment through the authenticated API. Unlike the
+  // hook's HTTP 200, an HTTP 201 provides a top-level, request-specific ID.
+  // Do not retry a POST after network errors, timeout, or HTTP 202: the
+  // request might have been accepted and could later alter production.
+  let response;
+  try {
+    response = await fetchService(
+      "https://api.render.com/v1/services/" + inputs.approvedServiceId + "/deploys", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + inputs.deployApiKey,
+        },
+        body: JSON.stringify({ imageUrl: inputs.imageUrl, clearCache: "do_not_clear" }),
+        redirect: "error",
+        signal: AbortSignal.timeout(15000),
+      },
+    );
+  } catch {
+    throw new Error(
+      "Render deploy API outcome unknown; rollout may still occur; " +
+      "manual reconciliation required. Do not retry.",
+    );
+  }
+  if (response?.status === 202) {
+    throw new Error(
+      "Render API accepted a queued deployment (HTTP 202) without a request-specific ID; " +
+      "rollout may still occur; manual reconciliation required. Do not retry.",
+    );
+  }
+  if (!response || response.status !== 201) {
+    throw new Error("Render deploy API did not return HTTP 201; rollout is not confirmed.");
+  }
+  let started;
+  try { started = await response.json(); } catch {
+    throw new Error("Render deploy API returned invalid deployment identity; do not retry.");
+  }
+  const deployId = started?.id;
+  if (typeof deployId !== "string" || !/^dep-[a-z0-9]+$/.test(deployId) ||
+      started.trigger !== "api" || started.image?.ref !== inputs.imageUrl) {
+    throw new Error("Render deploy API did not prove a unique approved deploy identity; do not retry.");
+  }
+
+  const waitForNextPoll = inputs.waitForNextPoll ||
+    (delayMs => new Promise(resolve => setTimeout(resolve, delayMs)));
+  const deadline = Date.now() + 20 * 60 * 1000;
+  const pause = async delayMs => {
+    if (!Number.isFinite(delayMs) || delayMs < 0 || Date.now() + delayMs > deadline) {
+      throw new Error("Render deploy confirmation exceeded the bounded 20-minute window.");
+    }
+    await waitForNextPoll(delayMs);
+  };
+
+  // Verify the *specific* new deploy, not the already-live alias or merely
+  // the source SHA: a previous deployment of the same SHA may still be live.
+  const expectedDigest = inputs.imageUrl.split("@")[1];
+  const digestHex = expectedDigest.slice("sha256:".length);
+  // 120 polls at 10 seconds apart allow roughly 20 minutes for Render\'s
+  // documented 15-minute start-command allowance and rollout overhead.
+  // The deploy job is independently bounded at 25 minutes.
+  for (let attempt = 0; attempt < 120 && Date.now() < deadline; attempt++) {
+    let current;
+    try {
+      current = await fetchService(
+        "https://api.render.com/v1/services/" + inputs.approvedServiceId +
+          "/deploys/" + deployId,
+        {
+          method: "GET",
+          headers: { Accept: "application/json", Authorization: "Bearer " + inputs.apiKey },
+          redirect: "error",
+          signal: AbortSignal.timeout(15000),
+        },
+      );
+    } catch {
+      if (attempt === 119) {
+        throw new Error("Cannot check Render deployment status; retries exhausted.");
+      }
+      await pause(10000);
+      continue;
+    }
+    if (!current || current.status !== 200) {
+      // Transient Render API throttling/outages are retried after accepting
+      // the deploy API. A nontransient response still fails immediately.
+      if (current && [429, 500, 502, 503, 504].includes(current.status) &&
+          attempt < 119) {
+        const rawRetryAfter = current.headers?.get?.("retry-after");
+        let retryMs = 10000;
+        if (typeof rawRetryAfter === "string") {
+          if (/^[0-9]+$/.test(rawRetryAfter)) {
+            retryMs = Math.max(retryMs, Number(rawRetryAfter) * 1000);
+          } else {
+            const retryDate = Date.parse(rawRetryAfter);
+            if (Number.isFinite(retryDate)) {
+              retryMs = Math.max(retryMs, retryDate - Date.now());
+            }
+          }
+        }
+        await pause(retryMs);
+        continue;
+      }
+      throw new Error("Render deploy lookup failed; rollout is not confirmed.");
+    }
+    let details;
+    try { details = await current.json(); } catch {
+      throw new Error("Render deploy lookup returned invalid JSON.");
+    }
+    if (!details || details.id !== deployId) {
+      throw new Error("Render deploy lookup returned a different deployment ID.");
+    }
+    if (details.status === "live") {
+      const image = details.image;
+      const hasRef = typeof image?.ref === "string" && image.ref.length > 0;
+      const hasSha = typeof image?.sha === "string" && image.sha.length > 0;
+      if (!image || (!hasRef && !hasSha) ||
+          (hasRef && image.ref !== inputs.imageUrl) ||
+          (hasSha && image.sha !== expectedDigest && image.sha !== digestHex)) {
+        throw new Error("Live Render deployment does not match approved image digest.");
+      }
+      return true;
+    }
+    if (["canceled", "deactivated", "build_failed", "update_failed", "pre_deploy_failed"]
+      .includes(details.status)) {
+      throw new Error("Render deployment failed or was canceled before becoming live.");
+    }
+    if (!["created", "queued", "build_in_progress", "update_in_progress",
+      "pre_deploy_in_progress"].includes(details.status)) {
+      throw new Error("Render deployment returned an unrecognized status.");
+    }
+    if (attempt < 119) await pause(10000);
+  }
+  throw new Error("Render deployment did not reach live within the bounded confirmation window.");
+}
+
+module.exports = {
+  checkedHookServiceId,
+  registeredImageRepo,
+  verifyRenderImageTarget,
+  requestVerifiedRenderImageDeployment,
+};
 
 if (require.main === module) {
-  verifyRenderImageTarget({
+  requestVerifiedRenderImageDeployment({
     hookUrl: process.env.RENDER_DEPLOY_HOOK_URL,
     approvedServiceId: process.env.RENDER_IMAGE_SERVICE_ID,
     apiKey: process.env.RENDER_SERVICE_READ_API_KEY,
+    deployApiKey: process.env.RENDER_DEPLOY_API_KEY,
     imageUrl: process.env.IMAGE_URL,
   }).then(() => {
-    process.stdout.write("Render image-backed target verification: PASS\n");
+    process.stdout.write("Render image deployment confirmed live after target verification.\n");
   }).catch(error => {
     // Errors intentionally contain no hooks, tokens, API payloads or image digests.
     process.stderr.write(error.message + "\n");
