@@ -1,0 +1,43 @@
+/* Scoped, optional seasonal presentation. Never overrides canonical --aa-* tokens. */
+.aa-event-preview {
+  --event-accent: #cda96d;
+  --event-surface: #172032;
+  --event-ink: #f6f0e7;
+  --event-outline: #b89c72;
+  background: var(--event-surface);
+  border: 1px solid var(--event-outline);
+  border-radius: var(--aa-radius-lg, 0.875rem);
+  color: var(--event-ink);
+  padding: clamp(1rem, 3vw, 2rem);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.18);
+}
+.aa-event-preview[data-aa-event-theme="halloween-arcano"] {
+  --event-accent: #f6b568;
+  --event-surface: #261828;
+  --event-outline: #ba8056;
+}
+.aa-event-preview[data-aa-event-theme="natal-arcano"] {
+  --event-accent: #e4c88c;
+  --event-surface: #102923;
+  --event-outline: #8bba9e;
+}
+.aa-event-preview[data-aa-event-theme="ano-novo-arcano"] {
+  --event-accent: #dad0ff;
+  --event-surface: #171637;
+  --event-outline: #8a79cf;
+}
+.aa-event-preview[data-aa-event-theme="volta-as-aulas"] {
+  --event-accent: #f9d28f;
+  --event-surface: #182d39;
+  --event-outline: #83b3c4;
+}
+.aa-event-preview :is(h2, h3, strong) { color: var(--event-accent); }
+.aa-event-preview a { color: var(--event-accent); text-underline-offset: 0.2em; }
+.aa-event-preview :focus-visible {
+  outline: 3px solid var(--event-accent);
+  outline-offset: 4px;
+}
+.aa-event-preview__grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.aa-event-preview__panel { background: rgb(0 0 0 / 0.18); border: 1px solid var(--event-outline); border-radius: 0.75rem; padding: 0.9rem; }
+.aa-event-preview__muted { color: var(--event-ink); opacity: 0.92; }
+@media (prefers-reduced-motion: reduce) { .aa-event-preview *, .aa-event-preview *::before, .aa-event-preview *::after { animation: none !important; transition: none !important; } }

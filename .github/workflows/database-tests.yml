@@ -56,6 +56,9 @@ jobs:
       - name: Run P0 authorization and RLS behavior tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/authorization_rls_p0.test.sql
 
+      - name: Run isolated teacher-class authorization contract tests (Ciclo 16)
+        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/teacher_class_contract_c16.test.sql
+
       - name: Run Feedback Hub database privilege tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_hub_privileges.test.sql
 
