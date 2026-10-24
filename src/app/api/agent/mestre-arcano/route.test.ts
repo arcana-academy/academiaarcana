@@ -1,107 +1,84 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const {
-  mockCookies,
-  mockCreateClient,
-  mockCreateToolContext,
-  mockDecryptSharePointCredentials,
-  mockRequireAuthenticatedUser,
-  mockRunMestreArcano,
-} = vi.hoisted(() => ({
-  mockCookies: vi.fn(),
-  mockCreateClient: vi.fn(),
-  mockCreateToolContext: vi.fn(),
-  mockDecryptSharePointCredentials: vi.fn(),
-  mockRequireAuthenticatedUser: vi.fn(),
-  mockRunMestreArcano: vi.fn(),
-}));
-
-vi.mock("next/headers", () => ({
-  cookies: mockCookies,
-}));
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+import { createClient } from "@/lib/supabase/server";
+import { POST } from "./route";
 
 vi.mock("@/lib/auth/require-authenticated-user", () => ({
-  requireAuthenticatedUser: mockRequireAuthenticatedUser,
+  requireAuthenticatedUser: vi.fn(),
 }));
-
-vi.mock("@/lib/supabase/server", () => ({
-  createClient: mockCreateClient,
+vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+vi.mock("next/headers", () => ({ cookies: vi.fn() }));
+vi.mock("@/application/intelligence/execute-mestre-arcano", () => ({
+  executeMestreArcano: vi.fn(),
 }));
-
 vi.mock("@/infrastructure/openai/mestre-arcano", () => ({
-  runMestreArcano: mockRunMestreArcano,
+  runMestreArcano: vi.fn(),
 }));
-
 vi.mock("@/infrastructure/openai/mestre-arcano-tool-context", () => ({
-  createMestreArcanoToolContext: mockCreateToolContext,
+  createMestreArcanoToolContext: vi.fn(),
 }));
-
 vi.mock("@/infrastructure/integrations/microsoft-sharepoint", () => ({
-  MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE: "sharepoint-test",
-  decryptMicrosoftSharePointCredentials: mockDecryptSharePointCredentials,
+  MICROSOFT_SHAREPOINT_CREDENTIALS_COOKIE: "synthetic-sharepoint-cookie",
+  decryptMicrosoftSharePointCredentials: vi.fn(),
   encryptMicrosoftSharePointCredentials: vi.fn(),
   getValidMicrosoftSharePointCredentials: vi.fn(),
 }));
 
-import { POST } from "./route";
+async function postRawJson(raw: string) {
+  return POST(
+    new Request("http://localhost/api/agent/mestre-arcano", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: raw,
+    }),
+  );
+}
 
-describe("Mestre Arcano agent route", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockRequireAuthenticatedUser.mockResolvedValue({ sub: "user-1" });
-    mockCreateClient.mockResolvedValue({ client: true });
-    mockCookies.mockResolvedValue({
-      get: () => undefined,
-      set: vi.fn(),
-    });
-    mockDecryptSharePointCredentials.mockResolvedValue(null);
-    mockCreateToolContext.mockReturnValue({ context: true });
-    mockRunMestreArcano.mockResolvedValue({
-      output: "Resposta.",
-      responseId: "resp_test",
-      model: "gpt-5.6-sol",
-    });
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(requireAuthenticatedUser).mockResolvedValue({
+    sub: "synthetic-learner",
+  } as Awaited<ReturnType<typeof requireAuthenticatedUser>>);
+});
 
-  it("rejects unsupported help levels before creating runtime context", async () => {
-    const response = await POST(
-      new Request("https://example.com/api/agent/mestre-arcano", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input: "Ajude-me.",
-          helpLevel: "full-solution",
-        }),
-      }),
-    );
+describe("Mestre Arcano POST JSON validation", () => {
+  it.each([
+    ["null", "null"],
+    ["array", "[]"],
+    ["numeric primitive", "42"],
+    ["boolean primitive", "false"],
+    ["string primitive", '"hello"'],
+    ["missing input", "{}"],
+    ["null input", '{"input":null}'],
+    ["whitespace input", '{"input":"  "}'],
+  ])("returns 400 for %s without starting inference", async (_name, raw) => {
+    const response = await postRawJson(raw);
 
     expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toEqual({
-      error: "Nível de ajuda inválido.",
+    expect(await response.json()).toEqual({
+      error: "Informe uma mensagem para o Mestre Arcano.",
     });
-    expect(mockCreateClient).not.toHaveBeenCalled();
-    expect(mockRunMestreArcano).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
   });
 
-  it("passes an explicit supported help level to the runtime", async () => {
-    const response = await POST(
-      new Request("https://example.com/api/agent/mestre-arcano", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input: "Quero uma pista.",
-          helpLevel: "hint",
-        }),
-      }),
+  it("returns 400 for malformed JSON without starting inference", async () => {
+    const response = await postRawJson("{not-json");
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "JSON inválido." });
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it("rejects an overlong message before accessing provider state", async () => {
+    const response = await postRawJson(
+      JSON.stringify({ input: "a".repeat(8001) }),
     );
 
-    expect(response.status).toBe(200);
-    expect(mockRunMestreArcano).toHaveBeenCalledWith(
-      "Quero uma pista.",
-      expect.objectContaining({
-        toolContext: { context: true },
-        helpLevel: "hint",
-      }),
-    );
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({
+      error: "A mensagem excede o limite permitido.",
+    });
+    expect(createClient).not.toHaveBeenCalled();
   });
 });

@@ -16,29 +16,33 @@ import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user"
 
 export const dynamic = "force-dynamic";
 
-type RequestBody = {
-  readonly input?: unknown;
-  readonly helpLevel?: unknown;
-};
-
 export async function POST(request: Request) {
   const claims = await requireAuthenticatedUser();
 
-  let body: RequestBody;
+  let body: unknown;
   try {
-    body = (await request.json()) as RequestBody;
+    body = await request.json();
   } catch {
     return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
   }
 
-  if (typeof body.input !== "string" || !body.input.trim()) {
+  // JSON may be null, an array, or a primitive. Never dereference until validated.
+  const input =
+    typeof body === "object" &&
+    body !== null &&
+    !Array.isArray(body) &&
+    "input" in body
+      ? body.input
+      : undefined;
+
+  if (typeof input !== "string" || !input.trim()) {
     return NextResponse.json(
       { error: "Informe uma mensagem para o Mestre Arcano." },
       { status: 400 },
     );
   }
 
-  if (body.input.length > 8000) {
+  if (input.length > 8000) {
     return NextResponse.json(
       { error: "A mensagem excede o limite permitido." },
       { status: 413 },
@@ -107,7 +111,7 @@ export async function POST(request: Request) {
             helpLevel,
           }),
       },
-      body.input,
+      input,
     );
     return NextResponse.json(result, {
       status: 200,
