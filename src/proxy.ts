@@ -18,7 +18,16 @@ function isCrossOriginMutation(request: NextRequest): boolean {
   if (!origin) return false;
 
   try {
-    return new URL(origin).origin !== request.nextUrl.origin;
+    const originUrl = new URL(origin);
+    if (originUrl.origin === request.nextUrl.origin) return false;
+
+    // Behind a reverse proxy, Next.js can normalize nextUrl to an internal host
+    // while the browser's Origin still names the public Host sent to the app.
+    // The request Host is part of the actual connection target, unlike Origin.
+    const host = request.headers.get("host");
+    if (!host) return true;
+    const hostOrigin = new URL(`${request.nextUrl.protocol}//${host}`).origin;
+    return originUrl.origin !== hostOrigin;
   } catch {
     return true;
   }

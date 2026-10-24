@@ -150,17 +150,43 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     const pageBody = `Conteúdo de estudo sintético ${prefix}`;
 
     const createGrimoire = page.getByRole("form", { name: "Criar grimório" });
+    const workspaceActionDetails: string[] = [];
+    const workspaceActionTasks: Promise<void>[] = [];
+    const recordWorkspaceAction = (response: import("@playwright/test").Response) => {
+      const request = response.request();
+      const responseUrl = new URL(response.url());
+      if (
+        request.method() === "POST" &&
+        responseUrl.origin === "http://127.0.0.1:3000" &&
+        responseUrl.pathname === "/workspace"
+      ) {
+        workspaceActionTasks.push((async () => {
+          const requestHeaders = await request.allHeaders();
+          const body = response.status() === 403 ? await response.text() : "";
+          const reason = body.includes("cross_origin_request_blocked")
+            ? "; reason=cross_origin_request_blocked"
+            : "";
+          workspaceActionDetails.push(
+            `HTTP ${response.status()} origin=${requestHeaders.origin ?? "none"} target=${responseUrl.origin}${reason}`,
+          );
+        })());
+      }
+    };
+    page.on("response", recordWorkspaceAction);
     await createGrimoire.getByRole("textbox", { name: "Novo grimório" }).fill(grimoireTitle);
     await createGrimoire.getByRole("button", { name: "Criar grimório" }).click();
     const createNotebookForm = page.getByRole("form", { name: "Criar caderno" });
     try {
       await expect(createNotebookForm).toBeVisible();
     } catch (error) {
+      await Promise.all(workspaceActionTasks);
       const alerts = await page.getByRole("alert").allTextContents();
       throw new Error(
-        `Notebook creation form did not appear after creating a grimoire; URL=${page.url()}; visible alerts=${alerts.join(" | ") || "none"}`,
+        `Notebook creation form did not appear after creating a grimoire; URL=${page.url()}; action responses=${workspaceActionDetails.join(" | ") || "none"}; visible alerts=${alerts.join(" | ") || "none"}`,
         { cause: error },
       );
+    } finally {
+      page.off("response", recordWorkspaceAction);
     }
 
     const createNotebook = page.getByRole("form", { name: "Criar caderno" });

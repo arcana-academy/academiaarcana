@@ -29,61 +29,78 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
+        id: setup_node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
       - name: Setup Supabase CLI
+        id: setup_supabase_cli
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: 2.118.0
 
       - name: Start local Supabase
+        id: start_local_supabase
         run: supabase db start
 
       - name: Apply local migrations
+        id: apply_local_migrations
         run: supabase migration up --local --include-all
 
       - name: Run gamification database tests
+        id: gamification_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/gamification_atomic.test.sql
 
       - name: Run workspace page movement database tests
+        id: workspace_movement_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/move_workspace_page_test.sql
 
       - name: Run focus and social privilege database tests
+        id: focus_social_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/focus_social_privileges.test.sql
 
       - name: Run P0 authorization and RLS behavior tests
+        id: authorization_rls_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/authorization_rls_p0.test.sql
 
       - name: Run isolated teacher-class authorization contract tests (Ciclo 16)
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/teacher_class_contract_c16.test.sql
 
       - name: Run Feedback Hub database privilege tests
+        id: feedback_privileges_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_hub_privileges.test.sql
 
       - name: Test Feedback deletion cascade only in disposable local database
+        id: feedback_cascade_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/feedback_fk_cascade_p0.test.sql
 
       - name: Run integration credential security tests
+        id: integration_credentials_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/integration_credentials_security.test.sql
 
       - name: Run external document source privilege tests
+        id: external_document_sources_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/external_document_sources_privileges.test.sql
 
       - name: Run P1 educational core database tests
+        id: educational_core_privileges_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_core_p1_privileges.test.sql
 
       - name: Run P1 educational core RLS and atomicity tests
+        id: educational_core_rls_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_core_p1_rls.test.sql
 
       - name: Run P1.5 objective evidence privilege tests
+        id: objective_evidence_privileges_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_objective_evidence_p15_privileges.test.sql
 
       - name: Run P1.5 objective evidence RLS and RPC tests
+        id: objective_evidence_rls_tests
         run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/educational_objective_evidence_p15_rls.test.sql
 
       - name: Run durable AI rate-limit privileges and account-isolation tests
+        id: ai_rate_limit_tests
         run: |
           log_file="$RUNNER_TEMP/ai-rate-limit-pgtap.log"
           set +e
@@ -106,7 +123,32 @@ jobs:
           exit "$result"
 
       - name: Run private grimoire-cover Storage RLS tests
-        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/grimoire_covers_storage_rls.test.sql
+        id: storage_rls_tests
+        run: |
+          log_file="$RUNNER_TEMP/grimoire-cover-storage-pgtap.log"
+          set +e
+          supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/grimoire_covers_storage_rls.test.sql >"$log_file" 2>&1
+          result=$?
+          set -e
+          cat "$log_file"
+          if [ "$result" -ne 0 ]; then
+            node --input-type=module - "$log_file" <<'NODE'
+          import { readFileSync } from "node:fs";
+          const lines = readFileSync(process.argv[2], "utf8").split(/\r?\n/);
+          const relevant = lines.filter((line) => /not ok|fail|error|exception|syntax|constraint|expected|looks like/i.test(line)).slice(-20);
+          const details = relevant.length ? relevant : ["Storage RLS pgTAP failed; consult this job's step log."];
+          for (const line of details) {
+            const escaped = line.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+            console.log(`::error title=Private Storage RLS database test::${escaped}`);
+          }
+          NODE
+          fi
+          exit "$result"
+
+      - name: Report database workflow stage outcomes
+        if: failure()
+        run: |
+          echo "::error title=Database workflow stage outcomes::node=${{ steps.setup_node.outcome }}; setup-cli=${{ steps.setup_supabase_cli.outcome }}; start=${{ steps.start_local_supabase.outcome }}; migrations=${{ steps.apply_local_migrations.outcome }}; gamification=${{ steps.gamification_tests.outcome }}; workspace=${{ steps.workspace_movement_tests.outcome }}; focus-social=${{ steps.focus_social_tests.outcome }}; authorization-rls=${{ steps.authorization_rls_tests.outcome }}; feedback-privileges=${{ steps.feedback_privileges_tests.outcome }}; feedback-cascade=${{ steps.feedback_cascade_tests.outcome }}; integration-credentials=${{ steps.integration_credentials_tests.outcome }}; external-documents=${{ steps.external_document_sources_tests.outcome }}; education-privileges=${{ steps.educational_core_privileges_tests.outcome }}; education-rls=${{ steps.educational_core_rls_tests.outcome }}; objective-privileges=${{ steps.objective_evidence_privileges_tests.outcome }}; objective-rls=${{ steps.objective_evidence_rls_tests.outcome }}; ai-rate-limit=${{ steps.ai_rate_limit_tests.outcome }}; storage-rls=${{ steps.storage_rls_tests.outcome }}"
 
       - name: Stop local Supabase
         if: always()
