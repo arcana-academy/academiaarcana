@@ -517,4 +517,74 @@ describe("StudyTaskBoard", () => {
     expect(onScheduleInOutlook).toHaveBeenCalledTimes(2);
   });
 
+  it("shows tasks received after a server-side refresh without remounting the board", async () => {
+    const second = { ...task, id: "task-2", title: "Revisar feitiços" };
+    const onCreate = vi.fn();
+    const onComplete = vi.fn();
+    const { rerender } = render(
+      <StudyTaskBoard tasks={[task]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(screen.queryByText("Revisar feitiços")).not.toBeInTheDocument();
+    rerender(
+      <StudyTaskBoard tasks={[task, second]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(await screen.findByText("Revisar feitiços")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tarefas futuras" }).parentElement?.parentElement).toHaveTextContent("2");
+  });
+
+  it("updates details and removes tasks omitted by a newer server snapshot", async () => {
+    const second = { ...task, id: "task-2", title: "Revisar poções" };
+    const updated = { ...task, title: "Revisar capítulo revisado" };
+    const onCreate = vi.fn();
+    const onComplete = vi.fn();
+    const { rerender } = render(
+      <StudyTaskBoard tasks={[task, second]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    rerender(
+      <StudyTaskBoard tasks={[updated]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(await screen.findByText("Revisar capítulo revisado")).toBeInTheDocument();
+    expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
+    expect(screen.queryByText("Revisar poções")).not.toBeInTheDocument();
+  });
+
+  it("preserves a locally confirmed creation when a stale server snapshot arrives", async () => {
+    const created = { ...task, id: "task-local", title: "Estudar glifos" };
+    const onCreate = vi.fn().mockResolvedValue(created);
+    const onComplete = vi.fn();
+    const { rerender } = render(
+      <StudyTaskBoard tasks={[task]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    fireEvent.change(screen.getByLabelText("Tarefa"), { target: { value: "Estudar glifos" } });
+    fireEvent.submit(screen.getByRole("form", { name: "Adicionar tarefa de estudo" }));
+    expect(await screen.findByText("Estudar glifos")).toBeInTheDocument();
+
+    rerender(
+      <StudyTaskBoard tasks={[{ ...task }]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(screen.getByText("Estudar glifos")).toBeInTheDocument();
+    rerender(
+      <StudyTaskBoard tasks={[{ ...task }, created]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    await waitFor(() => expect(screen.getAllByText("Estudar glifos")).toHaveLength(1));
+  });
+
+  it("does not resurrect a locally completed task when the server refresh is stale", async () => {
+    const onComplete = vi.fn().mockResolvedValue({ ...task, status: "completed" });
+    const onCreate = vi.fn();
+    const { rerender } = render(
+      <StudyTaskBoard tasks={[task]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument());
+    rerender(
+      <StudyTaskBoard tasks={[{ ...task }]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
+    rerender(
+      <StudyTaskBoard tasks={[]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(await screen.findByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
+  });
+
 });

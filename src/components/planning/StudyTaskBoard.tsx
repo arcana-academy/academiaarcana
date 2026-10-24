@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { CalendarDays, Send } from "lucide-react";
 import type { StudyTask } from "@/domains/planning";
@@ -59,47 +59,38 @@ export function StudyTaskBoard({
   onComplete,
   onScheduleInOutlook,
 }: StudyTaskBoardProps) {
-  const browserHydrated = useBrowserHydrated();
-  // Changes returned by the server are authoritative, while local creations
-  // and completions remain visible/hidden until acknowledged by a new snapshot.
+  // Server snapshots are authoritative, but can lag behind locally confirmed
+  // creates/completions during a partial refresh of the Cronograma page.
   const [locallyCreated, setLocallyCreated] = useState<StudyTask[]>([]);
   const [locallyCompleted, setLocallyCompleted] = useState<Set<string>>(() => new Set());
+  // Track acknowledgments as React state, not a ref read during render.
+  // Guarded adjustment handles a new server snapshot without an effect loop.
   const [acknowledgment, setAcknowledgment] = useState(() => ({
     serverTasks: tasks,
     localCreates: locallyCreated,
-    createdSeen: new Set<string>(),
-    completedAbsent: new Set<string>(),
+    ids: new Set<string>(),
   }));
-
   if (acknowledgment.serverTasks !== tasks || acknowledgment.localCreates !== locallyCreated) {
     const serverIds = new Set(tasks.map((task) => task.id));
-    const createdSeen = new Set(acknowledgment.createdSeen);
+    const ids = new Set(acknowledgment.ids);
     for (const created of locallyCreated) {
-      if (serverIds.has(created.id)) createdSeen.add(created.id);
+      if (serverIds.has(created.id)) ids.add(created.id);
     }
-    const completedAbsent = new Set(acknowledgment.completedAbsent);
-    if (acknowledgment.serverTasks !== tasks) {
-      for (const id of locallyCompleted) {
-        if (!serverIds.has(id)) completedAbsent.add(id);
-      }
-    }
-    setAcknowledgment({ serverTasks: tasks, localCreates: locallyCreated, createdSeen, completedAbsent });
+    setAcknowledgment({ serverTasks: tasks, localCreates: locallyCreated, ids });
   }
 
   const items = useMemo(() => {
     const serverIds = new Set(tasks.map((task) => task.id));
     return [
-      ...tasks.filter(
-        (task) => !locallyCompleted.has(task.id) || acknowledgment.completedAbsent.has(task.id),
-      ),
+      ...tasks.filter((task) => !locallyCompleted.has(task.id)),
       ...locallyCreated.filter(
         (task) =>
           !serverIds.has(task.id) &&
-          !acknowledgment.createdSeen.has(task.id) &&
+          !acknowledgment.ids.has(task.id) &&
           !locallyCompleted.has(task.id),
       ),
     ];
-  }, [tasks, locallyCreated, locallyCompleted, acknowledgment.createdSeen, acknowledgment.completedAbsent]);
+  }, [tasks, locallyCreated, locallyCompleted, acknowledgment.ids]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +120,9 @@ export function StudyTaskBoard({
     setIsSubmitting(true);
     try {
       const created = await onCreate({ title, dueAt: dueAt ? new Date(dueAt).toISOString() : null });
-      setLocallyCreated((current) => current.some((task) => task.id === created.id) ? current : [...current, created]);
+      setLocallyCreated((current) =>
+        current.some((task) => task.id === created.id) ? current : [...current, created],
+      );
       setTitle("");
       setDueAt("");
     } catch {
@@ -266,13 +259,6 @@ export function StudyTaskBoard({
     setError(null);
     try {
       await onComplete(id);
-      // A second completion of a legitimately reopened task starts a new cycle.
-      setAcknowledgment((current) => {
-        if (!current.completedAbsent.has(id)) return current;
-        const completedAbsent = new Set(current.completedAbsent);
-        completedAbsent.delete(id);
-        return { ...current, completedAbsent };
-      });
       setLocallyCompleted((current) => new Set([...current, id]));
     } catch {
       setError("Não foi possível concluir a tarefa.");
