@@ -11,12 +11,72 @@ export type GatewayRequest = {
   maxTokens?: number;
 };
 
-function endpointFor(provider: OpenSourceAiId) {
+const PROVIDER_TIMEOUT_MS = 30_000;
+const MAX_PROVIDER_RESPONSE_BYTES = 1024 * 1024;
+
+function endpointFor(provider: OpenSourceAiId): string {
   const integration = getOpenSourceAiIntegration(provider);
-  if (!integration?.endpointEnv) throw new Error("Provider " + provider + " não possui endpoint de inference configurável.");
-  const baseUrl = process.env[integration.endpointEnv];
-  if (!baseUrl) throw new Error("Integração " + provider + " não está configurada.");
-  return baseUrl.replace(/\/$/, "");
+  if (!integration?.endpointEnv) throw new Error("provider_endpoint_not_configured");
+  const configuredEndpoint = process.env[integration.endpointEnv];
+  if (!configuredEndpoint) throw new Error("provider_endpoint_not_configured");
+
+  let endpoint: URL;
+  try {
+    endpoint = new URL(configuredEndpoint);
+  } catch {
+    throw new Error("provider_endpoint_invalid");
+  }
+
+  if (
+    (endpoint.protocol !== "https:" && endpoint.protocol !== "http:") ||
+    endpoint.username ||
+    endpoint.password ||
+    endpoint.search ||
+    endpoint.hash
+  ) {
+    throw new Error("provider_endpoint_invalid");
+  }
+
+  return endpoint.toString().replace(/\/$/, "");
+}
+
+async function readProviderResponse(response: Response): Promise<unknown> {
+  const contentLength = Number(response.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_PROVIDER_RESPONSE_BYTES) {
+    throw new Error("provider_response_too_large");
+  }
+  if (!response.body) throw new Error("provider_response_invalid");
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_PROVIDER_RESPONSE_BYTES) {
+        await reader.cancel();
+        throw new Error("provider_response_too_large");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    throw new Error("provider_response_invalid");
+  }
 }
 
 export async function invokeOpenSourceAi(request: GatewayRequest) {
@@ -38,16 +98,23 @@ export async function invokeOpenSourceAi(request: GatewayRequest) {
       max_tokens: request.maxTokens ?? 1200,
     }),
     cache: "no-store",
+    // A gateway should not redirect a request carrying a server-side API key.
+    redirect: "error",
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error("Open Source AI gateway error (" + response.status + "): " + detail.slice(0, 500));
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error("provider_request_failed");
   }
 
-  const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  const payload = (await readProviderResponse(response)) as {
+    choices?: Array<{ message?: { content?: unknown } }>;
+  };
   const content = payload.choices?.[0]?.message?.content;
-  if (!content) throw new Error("O provider não retornou conteúdo de mensagem.");
+  if (typeof content !== "string" || !content) {
+    throw new Error("provider_response_invalid");
+  }
 
   return { provider: request.provider, model: request.model, content };
 }

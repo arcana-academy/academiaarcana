@@ -7,7 +7,30 @@ import {
 } from "@/lib/security/csp";
 import { updateSession } from "@/lib/supabase/proxy";
 
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function isCrossOriginMutation(request: NextRequest): boolean {
+  if (SAFE_METHODS.has(request.method.toUpperCase())) return false;
+
+  const origin = request.headers.get("origin");
+  // Non-browser clients may omit Origin; browsers include it on unsafe methods.
+  if (!origin) return false;
+
+  try {
+    return new URL(origin).origin !== request.nextUrl.origin;
+  } catch {
+    return true;
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  if (isCrossOriginMutation(request)) {
+    return NextResponse.json(
+      { error: "cross_origin_request_blocked" },
+      { status: 403, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const nonce = Buffer.from(randomUUID()).toString("base64");
   const requestHeaders = new Headers(request.headers);
   const isDevelopment = process.env.NODE_ENV === "development";

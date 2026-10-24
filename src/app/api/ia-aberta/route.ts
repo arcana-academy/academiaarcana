@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
-import { invokeOpenSourceAi, type GatewayRequest } from "@/infrastructure/integrations/open-source-ai-gateway";
-import { getOpenSourceAiIntegration, getOpenSourceAiStatus, openSourceAiIntegrations } from "@/infrastructure/integrations/open-source-ai";
+import {
+  invokeOpenSourceAi,
+} from "@/infrastructure/integrations/open-source-ai-gateway";
+import {
+  openSourceAiIntegrations,
+  getOpenSourceAiStatus,
+} from "@/infrastructure/integrations/open-source-ai";
+import {
+  readBoundedJsonRequest,
+  validateOpenSourceAiRequest,
+} from "@/infrastructure/integrations/open-source-ai-request";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
 
 export async function GET() {
@@ -19,25 +28,39 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
-    const body = (await request.json()) as Partial<GatewayRequest>;
-    if (!body.provider || !body.model || body.model.length > 200 || !Array.isArray(body.messages) || body.messages.length === 0 || body.messages.length > 20) {
-      return NextResponse.json({ error: "provider, model e messages são obrigatórios." }, { status: 400 });
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
     }
-    const integration = getOpenSourceAiIntegration(body.provider);
-    if (!integration) return NextResponse.json({ error: "Provider não suportado." }, { status: 400 });
 
-    const result = await invokeOpenSourceAi({
-      provider: body.provider,
-      model: body.model,
-      messages: body.messages.map((message) => ({ role: message.role, content: String(message.content).slice(0, 12000) })),
-      temperature: body.temperature,
-      maxTokens: body.maxTokens,
+    const parsedBody = await readBoundedJsonRequest(request);
+    if (!parsedBody.ok) {
+      return NextResponse.json(
+        { error: parsedBody.status === 413 ? "Solicitação excede o limite permitido." : "JSON inválido." },
+        { status: parsedBody.status },
+      );
+    }
+
+    const body = validateOpenSourceAiRequest(parsedBody.value);
+    if (!body) {
+      return NextResponse.json(
+        { error: "Revise o provider, modelo, mensagens e limites solicitados." },
+        { status: 400 },
+      );
+    }
+
+    const result = await invokeOpenSourceAi(body);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "private, no-store" },
     });
-    return NextResponse.json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Falha inesperada no gateway.";
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    // Do not echo provider error bodies, endpoint details, or runtime configuration.
+    return NextResponse.json(
+      { error: "Não foi possível concluir a solicitação ao provider." },
+      { status: 502, headers: { "Cache-Control": "no-store" } },
+    );
   }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BookOpen, ExternalLink, FilePlus2, RefreshCw, Unplug } from "lucide-react";
+import { safeExternalUrl } from "@/lib/security/external-url";
 
 type NotionStatus =
   | { status: "disconnected" }
@@ -249,10 +250,10 @@ export function NotionConnectionPanel() {
                       >
                         Usar como página pai
                       </button>
-                      {result.url ? (
+                      {safeExternalUrl(result.url) ? (
                         <a
                           className="aa-button aa-button-secondary aa-button-sm"
-                          href={result.url}
+                          href={safeExternalUrl(result.url)!}
                           target="_blank"
                           rel="noreferrer"
                           aria-label={`Abrir ${result.title} no Notion`}
