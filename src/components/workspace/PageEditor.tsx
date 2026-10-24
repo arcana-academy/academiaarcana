@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
+import { AccessiblePageReadingPreview } from "./AccessiblePageReadingPreview";
 import { PAGE_STARTER_TEMPLATES, buildStarterTemplate, canApplyStarterTemplate, type PageStarterTemplate } from "./page-templates";
 
 type PageDeleteControlProps = {
@@ -146,7 +147,7 @@ type PageBlocksProps = {
 /** Render page blocks while keeping block editing separate from PageEditor orchestration. */
 function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: PageBlocksProps) {
   return (
-    <div aria-label="Blocos da página">
+    <div role="group" aria-label="Blocos da página">
       {blocks.length === 0 ? (
         <p>Esta página ainda não possui conteúdo.</p>
       ) : (
@@ -521,7 +522,12 @@ export function PageEditor({
         onAccessibilityChange={updateAccessibility}
       />
 
-      <button type="button" onClick={addBlock} disabled={status === "saving"}>
+      <details className="workspace-reading-preview-disclosure">
+        <summary>Ver prévia de leitura acessível (rascunho local)</summary>
+        <AccessiblePageReadingPreview content={content} />
+      </details>
+
+      <button type="button" onClick={addBlock}>
         Adicionar bloco
       </button>
 
