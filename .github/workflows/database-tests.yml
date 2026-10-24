@@ -121,7 +121,26 @@ jobs:
 
       - name: Run private grimoire-cover Storage RLS tests
         id: storage_rls_tests
-        run: supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/grimoire_covers_storage_rls.test.sql
+        run: |
+          log_file="$RUNNER_TEMP/grimoire-cover-storage-pgtap.log"
+          set +e
+          supabase test db --db-url "postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres" supabase/tests/database/grimoire_covers_storage_rls.test.sql >"$log_file" 2>&1
+          result=$?
+          set -e
+          cat "$log_file"
+          if [ "$result" -ne 0 ]; then
+            node --input-type=module - "$log_file" <<'NODE'
+          import { readFileSync } from "node:fs";
+          const lines = readFileSync(process.argv[2], "utf8").split(/\r?\n/);
+          const relevant = lines.filter((line) => /not ok|fail|error|exception|syntax|constraint|expected|looks like/i.test(line)).slice(-20);
+          const details = relevant.length ? relevant : ["Storage RLS pgTAP failed; consult this job's step log."];
+          for (const line of details) {
+            const escaped = line.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+            console.log(`::error title=Private Storage RLS database test::${escaped}`);
+          }
+          NODE
+          fi
+          exit "$result"
 
       - name: Report database workflow stage outcomes
         if: failure()
