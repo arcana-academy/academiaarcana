@@ -112,7 +112,10 @@ export type TrelloConnectionVerification = {
 };
 
 export class TrelloConnectionError extends Error {
-  constructor(message = "Trello não está configurado ou autorizado.") {
+  constructor(
+    message = "Trello não está configurado ou autorizado.",
+    readonly httpStatus?: number,
+  ) {
     super(message);
     this.name = "TrelloConnectionError";
   }
@@ -291,9 +294,10 @@ async function trelloRequest<T>(path: string, token: string, init: RequestInit =
     if (response.status === 401 || response.status === 403) {
       throw new TrelloConnectionError(
         "A autorização do Trello expirou ou foi revogada. Reconecte a conta.",
+        response.status,
       );
     }
-    throw new TrelloConnectionError(`Trello API respondeu com HTTP ${response.status}.`);
+    throw new TrelloConnectionError(`Trello API respondeu com HTTP ${response.status}.`, response.status);
   }
 
   if (response.status === 204) return undefined as T;
