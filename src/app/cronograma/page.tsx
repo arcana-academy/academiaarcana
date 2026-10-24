@@ -96,6 +96,7 @@ export default async function CronogramaPage() {
   return (
     <AuthenticatedShell currentPath="/cronograma">
       <StudyTaskBoard
+        key={claims.sub}
         tasks={tasks}
         outlookConnected={outlookConnected}
         outlookEvents={outlookEvents}
