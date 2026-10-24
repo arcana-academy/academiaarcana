@@ -19,18 +19,35 @@ export function GuidedRecallSession({ items }: { items: GuidedRecallItem[] }) {
   const [position, setPosition] = useState(0);
   const [ratings, setRatings] = useState<Record<string, RecallRating>>({});
   const [round, setRound] = useState(0);
+  const [focusedItemIds, setFocusedItemIds] = useState<string[] | null>(null);
 
   if (items.length === 0) {
     return <p>Nenhuma atividade disponível para esta sessão.</p>;
   }
 
-  const item = items[position]!;
+  const activeItems = focusedItemIds
+    ? items.filter((entry) => focusedItemIds.includes(entry.id))
+    : items;
+  const item = activeItems[position]!;
   const rating = ratings[item.id];
-  const finished = position === items.length - 1 && Boolean(rating);
-  const remembered = Object.values(ratings).filter((value) => value === "remembered").length;
-  const toReview = Object.values(ratings).filter((value) => value === "review").length;
+  const finished = position === activeItems.length - 1 && Boolean(rating);
+  const remembered = activeItems.filter((entry) => ratings[entry.id] === "remembered").length;
+  const toReview = activeItems.filter((entry) => ratings[entry.id] === "review").length;
 
   function restart() {
+    setFocusedItemIds(null);
+    setRatings({});
+    setPosition(0);
+    setRound((current) => current + 1);
+  }
+
+  function retryDifficultItems() {
+    if (!finished) return;
+    const selectedIds = activeItems
+      .filter((entry) => ratings[entry.id] === "review")
+      .map((entry) => entry.id);
+    if (selectedIds.length === 0) return;
+    setFocusedItemIds(selectedIds);
     setRatings({});
     setPosition(0);
     setRound((current) => current + 1);
@@ -45,7 +62,7 @@ export function GuidedRecallSession({ items }: { items: GuidedRecallItem[] }) {
       </p>
 
       <p aria-live="polite" role="status">
-        Atividade {position + 1} de {items.length}
+        {focusedItemIds ? "Rodada de reforço" : "Rodada completa"} · Atividade {position + 1} de {activeItems.length}
       </p>
       <article className="aa-card aa-card-default" aria-labelledby="guided-recall-prompt">
         <p className="aa-eyebrow">{item.pageTitle}</p>
@@ -86,7 +103,7 @@ export function GuidedRecallSession({ items }: { items: GuidedRecallItem[] }) {
               Anterior
             </button>
           ) : null}
-          {position < items.length - 1 ? (
+          {position < activeItems.length - 1 ? (
             <button
               className="aa-button aa-button-primary"
               type="button"
@@ -105,9 +122,16 @@ export function GuidedRecallSession({ items }: { items: GuidedRecallItem[] }) {
             Nesta tela: {remembered} lembrança(s) satisfatória(s) e {toReview} item(ns) para revisar.
             Esses números não representam progresso registrado.
           </p>
-          <button type="button" className="aa-button aa-button-secondary" onClick={restart}>
-            Recomeçar sem salvar
-          </button>
+          <div className="aa-action-row">
+            {toReview > 0 ? (
+              <button type="button" className="aa-button aa-button-primary" onClick={retryDifficultItems}>
+                Refazer somente itens para revisar
+              </button>
+            ) : null}
+            <button type="button" className="aa-button aa-button-secondary" onClick={restart}>
+              Recomeçar sem salvar
+            </button>
+          </div>
         </section>
       ) : null}
     </section>
