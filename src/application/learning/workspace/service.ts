@@ -34,10 +34,9 @@ type CreatePageInput = {
   content: PageContent;
 };
 
-function assertValidPosition(position: number): void {
-  if (!Number.isSafeInteger(position) || position < 0) {
-    throw new Error("Posição inválida.");
-  }
+// Append within the current parent collection instead of repeatedly using 0.
+function nextPosition(siblings: ReadonlyArray<{ position: number }>): number {
+  return siblings.reduce((max, sibling) => Math.max(max, sibling.position), -1) + 1;
 }
 
 export class WorkspaceService {
@@ -52,6 +51,7 @@ export class WorkspaceService {
       throw new Error("Grimoire not found");
     }
 
+    const siblings = await this.repositories.notebookRepository.listByGrimoire(input.grimoireId);
     const now = new Date().toISOString();
 
     return this.repositories.notebookRepository.create({
@@ -61,7 +61,7 @@ export class WorkspaceService {
       ...(input.description !== undefined
         ? { description: input.description }
         : {}),
-      position: 0,
+      position: nextPosition(siblings),
       createdAt: now,
       updatedAt: now,
     });
@@ -76,13 +76,14 @@ export class WorkspaceService {
       throw new Error("Notebook not found");
     }
 
+    const siblings = await this.repositories.chapterRepository.listByNotebook(input.notebookId);
     const now = new Date().toISOString();
 
     return this.repositories.chapterRepository.create({
       id: crypto.randomUUID(),
       notebookId: input.notebookId,
       title: input.title,
-      position: 0,
+      position: nextPosition(siblings),
       createdAt: now,
       updatedAt: now,
     });
@@ -97,6 +98,7 @@ export class WorkspaceService {
       throw new Error("Chapter not found");
     }
 
+    const siblings = await this.repositories.pageRepository.listByChapter(input.chapterId);
     const now = new Date().toISOString();
 
     return this.repositories.pageRepository.create({
@@ -104,7 +106,7 @@ export class WorkspaceService {
       chapterId: input.chapterId,
       title: input.title,
       content: input.content,
-      position: 0,
+      position: nextPosition(siblings),
       createdAt: now,
       updatedAt: now,
     });
