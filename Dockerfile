@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:24-bookworm-slim AS builder
+FROM --platform=linux/amd64 node:25-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ RUN npm run build \
   && npm prune --omit=dev --ignore-scripts \
   && mkdir -p .next/cache
 
-FROM --platform=linux/amd64 node:24-bookworm-slim AS runtime
+FROM --platform=linux/amd64 node:25-bookworm-slim AS runtime
 
 WORKDIR /app
 
