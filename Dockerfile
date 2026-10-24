@@ -1,4 +1,9 @@
-FROM --platform=linux/amd64 node:24-bookworm-slim AS builder
+FROM --platform=linux/amd64 node:24.22.1-bookworm-slim AS builder
+
+RUN apt-get update \
+  && apt-get install --yes --no-install-recommends ca-certificates \
+  && update-ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -38,7 +43,12 @@ RUN npm run build \
   && npm prune --omit=dev --ignore-scripts \
   && mkdir -p .next/cache
 
-FROM --platform=linux/amd64 node:24-bookworm-slim AS runtime
+FROM --platform=linux/amd64 node:24.22.1-bookworm-slim AS runtime
+
+RUN apt-get update \
+  && apt-get install --yes --no-install-recommends ca-certificates \
+  && update-ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
