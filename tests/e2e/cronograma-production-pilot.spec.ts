@@ -197,6 +197,14 @@ test("Cronograma pilot records performance evidence without inventing a budget",
   // initial paint, which can briefly report zero animations before transitions start.
   await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "connected");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
+  // data-theme can already match server HTML before React effects run.
+  // The inline theme tokens are set by applyTheme() only after hydration;
+  // wait for that observable boundary before checking for active transitions.
+  await page.waitForFunction(
+    () => document.documentElement.style.getPropertyValue("--aa-surfaces-panel").trim().length > 0,
+    null,
+    { timeout: 10_000 },
+  );
   await page.evaluate(async () => { await document.fonts.ready; });
   // The budget applies to the settled page: allow all finite transitions
   // to finish, then sample again after two paint frames.
