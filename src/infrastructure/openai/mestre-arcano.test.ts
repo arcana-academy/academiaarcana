@@ -209,6 +209,70 @@ describe("Mestre Arcano OpenAI integration", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
+  it("replays encrypted reasoning and tool outputs without server-side response storage", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+    const fetchImpl = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({
+          id: "resp_reasoning",
+          output: [
+            { type: "reasoning", id: "reasoning_mock", summary: [], encrypted_content: "synthetic-encrypted-context" },
+            { type: "function_call", call_id: "read_profile", name: "get_gamification_profile", arguments: "{}" },
+          ],
+        }), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: "resp_done", output_text: "Seu perfil foi consultado." }), { status: 200 }),
+      );
+
+    await runMestreArcano("Como está meu progresso?", {
+      fetchImpl,
+      toolContext: createToolContext(),
+    });
+
+    const [, request] = fetchImpl.mock.calls[1] ?? [];
+    const body = JSON.parse(String(request?.body)) as Record<string, unknown>;
+    expect(body.store).toBe(false);
+    expect(body).not.toHaveProperty("previous_response_id");
+    expect(JSON.stringify(body.input)).toContain("synthetic-encrypted-context");
+    expect(JSON.stringify(body.input)).toContain("read_profile");
+    expect(JSON.stringify(body.input)).toContain("function_call_output");
+  });
+
+  it("fails safely when the provider returns invalid JSON", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response("not-json", { status: 200 }),
+    );
+    await expect(
+      runMestreArcano("Olá", { fetchImpl, toolContext: createToolContext() }),
+    ).rejects.toThrow("OpenAI returned an invalid JSON response.");
+  });
+
+  it("does not include provider error content or synthetic credentials in failures", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-secret");
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response("PROVIDER-SYNTHETIC-SECRET-DETAIL", { status: 500 }),
+    );
+    const rejection = runMestreArcano("Olá", {
+      fetchImpl,
+      toolContext: createToolContext(),
+    });
+    await expect(rejection).rejects.toThrow("OpenAI Responses API failed with HTTP 500.");
+  });
+
+  it("normalizes timeout-like transport failures without leaking exception messages", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "test-secret");
+    const fetchImpl = vi.fn<typeof fetch>().mockRejectedValue(
+      new Error("synthetic low-level transport secret"),
+    );
+    await expect(
+      runMestreArcano("Olá", { fetchImpl, toolContext: createToolContext() }),
+    ).rejects.toThrow("OpenAI could not be reached from the server.");
+    const [, request] = fetchImpl.mock.calls[0] ?? [];
+    expect(request?.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("verifies the configured model", async () => {
     vi.stubEnv("OPENAI_API_KEY", "test-secret");
     vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
