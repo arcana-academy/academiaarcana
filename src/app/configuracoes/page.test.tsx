@@ -28,8 +28,8 @@ describe("ConfiguracoesPage", () => {
     expect(screen.getAllByText(/Acessibilidade/)[0]).toBeInTheDocument();
     expect(screen.getAllByText(/Aparência/)[0]).toBeInTheDocument();
     expect(screen.getByText(/Segurança/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ajustar movimento" })).toHaveAttribute("href", "/personalizar");
-    expect(screen.getByRole("link", { name: "Personalizar tema" })).toHaveAttribute("href", "/personalizar");
+    expect(screen.getByRole("link", { name: "Ajustar movimento" })).toHaveAttribute("href", "/personalizar#motion-select");
+    expect(screen.getByRole("link", { name: "Escolher tema" })).toHaveAttribute("href", "/personalizar#theme-select");
     expect(screen.getByRole("link", { name: "Gerenciar Asana" })).toHaveAttribute("href", "/integracoes/asana");
   });
 });

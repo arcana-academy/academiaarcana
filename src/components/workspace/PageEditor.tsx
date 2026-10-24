@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { GuidedPageReading } from "@/components/education/GuidedPageReading";
+import { SavedBlockStudyChecklist } from "@/components/education/SavedBlockStudyChecklist";
+import { StudyStrategies } from "@/components/education/StudyStrategies";
+import { TemporaryStudyGlossary } from "@/components/education/TemporaryStudyGlossary";
 import type { Page, PageContent, PageProgressStatus } from "@/domains/learning";
 import { ReadingToolbar } from "@/components/accessibility/AccessibilityPanel";
 import { AccessiblePageReadingPreview } from "./AccessiblePageReadingPreview";
@@ -175,15 +179,12 @@ function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: Page
                 value={block.type}
                 onChange={(event) => onChange(index, { type: event.target.value })}
               >
-                {!["paragraph", "image", "audio", "video", "formula", "diagram"].includes(block.type) ? (
+                {!isKnownBlockType(block.type) ? (
                   <option value={block.type}>Tipo existente: {block.type}</option>
                 ) : null}
-                <option value="paragraph">Texto</option>
-                <option value="image">Imagem — referência textual</option>
-                <option value="audio">Áudio — referência textual</option>
-                <option value="video">Vídeo — referência textual</option>
-                <option value="formula">Fórmula</option>
-                <option value="diagram">Diagrama — referência textual</option>
+                {KNOWN_BLOCK_TYPES.map(({ id, label }) => (
+                  <option key={id} value={id}>{label}</option>
+                ))}
               </select>
               {block.type === "image" ? (
                 <label htmlFor={"workspace-block-decorative-" + index}>
@@ -206,17 +207,7 @@ function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: Page
               ) : (
                 <>
                   <label htmlFor={"workspace-block-description-" + index}>
-                    {block.type === "image"
-                      ? "Descrição alternativa"
-                      : block.type === "audio"
-                        ? "Transcrição ou descrição do áudio"
-                        : block.type === "video"
-                          ? "Transcrição ou descrição"
-                        : block.type === "formula"
-                          ? "Leitura da fórmula"
-                          : block.type === "diagram"
-                            ? "Descrição do diagrama"
-                            : "Observação acessível (opcional)"}
+                    {accessibilityFieldLabel(block.type)}
                   </label>
                   <textarea
                     id={"workspace-block-description-" + index}
@@ -348,6 +339,7 @@ export function PageEditor({
   const [title, setTitle] = useState(page.title);
   const [content, setContent] = useState(page.content);
   const [status, setStatus] = useState<PageSaveState>("idle");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [starter, setStarter] = useState<PageStarterTemplate>("blank");
   const editRevision = useRef(0);
   const [blockKeys, setBlockKeys] = useState(() =>
@@ -383,6 +375,7 @@ export function PageEditor({
   /** Keep block edits local until the authenticated save confirms persistence. */
   const updateBlock = (index: number, changes: Partial<PageBlock>) => {
     editRevision.current += 1;
+    setHasUnsavedChanges(true);
     setContent((current) => ({
       ...current,
       blocks: current.blocks.map((block, position) =>
@@ -401,6 +394,7 @@ export function PageEditor({
     changes: NonNullable<PageBlock["accessibility"]>,
   ) => {
     editRevision.current += 1;
+    setHasUnsavedChanges(true);
     setContent((current) => ({
       ...current,
       blocks: current.blocks.map((block, position) =>
@@ -444,6 +438,7 @@ export function PageEditor({
       if (editRevision.current === revisionAtSave) {
         setTitle(saved.title);
         setContent(saved.content);
+        setHasUnsavedChanges(false);
         setStatus("saved");
       } else {
         // The user continued editing: never replace newer local text with an
@@ -475,11 +470,45 @@ export function PageEditor({
   const applyStarter = () => {
     if (status === "saving" || !canApplyStarterTemplate(content)) return;
     editRevision.current += 1;
+    setHasUnsavedChanges(true);
     const nextContent = buildStarterTemplate(starter);
     setContent(nextContent);
     setBlockKeys(nextContent.blocks.map((_, index) => page.id + ":template:" + index));
     setStatus((current) => current === "saving" ? current : "idle");
   };
+
+  if (areStrategiesOpen) {
+    return <StudyStrategies onClose={() => setAreStrategiesOpen(false)} />;
+  }
+
+  if (isGlossaryOpen) {
+    return (
+      <TemporaryStudyGlossary
+        title={title}
+        onClose={() => setIsGlossaryOpen(false)}
+      />
+    );
+  }
+
+  if (isChecklistOpen) {
+    return (
+      <SavedBlockStudyChecklist
+        title={title}
+        blocks={content.blocks}
+        onClose={() => setIsChecklistOpen(false)}
+      />
+    );
+  }
+
+  if (isReading) {
+    return (
+      <GuidedPageReading
+        title={title}
+        blocks={content.blocks}
+        onClose={() => setIsReading(false)}
+      />
+    );
+  }
 
   return (
     <article aria-label="Editor da página">
@@ -489,6 +518,7 @@ export function PageEditor({
         value={title}
         onChange={(event) => {
           editRevision.current += 1;
+          setHasUnsavedChanges(true);
           setTitle(event.target.value);
           setStatus((current) => current === "saving" ? current : "idle");
         }}

@@ -243,6 +243,9 @@ describe("AuthForm", () => {
     fireEvent.change(screen.getByLabelText("Senha"), {
       target: { value: "secure-password" },
     });
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), {
+      target: { value: "secure-password" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
 
     await waitFor(() => {
@@ -259,6 +262,9 @@ describe("AuthForm", () => {
       target: { value: "student@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Senha"), {
+      target: { value: "secure-password" },
+    });
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), {
       target: { value: "secure-password" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));

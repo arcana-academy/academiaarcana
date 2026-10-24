@@ -1,25 +1,30 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { setupHoneybadger, wrappedConfig } = vi.hoisted(() => ({
-  setupHoneybadger: vi.fn(),
-  wrappedConfig: { honeybadger: true, reactStrictMode: true, poweredByHeader: false },
+const { withHoneybadgerConfig, wrappedConfig } = vi.hoisted(() => ({
+  withHoneybadgerConfig: vi.fn(),
+  wrappedConfig: {
+    honeybadger: true,
+    reactStrictMode: true,
+    poweredByHeader: false,
+  },
 }));
 
 vi.mock("@honeybadger-io/nextjs", () => ({
-  setupHoneybadger: setupHoneybadger.mockReturnValue(wrappedConfig),
+  withHoneybadgerConfig: withHoneybadgerConfig.mockReturnValue(wrappedConfig),
 }));
 
 describe("Next.js configuration", () => {
   it("wraps strict-mode configuration with Honeybadger and security headers", async () => {
     const { default: nextConfig } = await import("./next.config");
 
-    expect(setupHoneybadger).toHaveBeenCalledOnce();
-    expect(setupHoneybadger).toHaveBeenCalledWith(
+    expect(withHoneybadgerConfig).toHaveBeenCalledOnce();
+    expect(withHoneybadgerConfig).toHaveBeenCalledWith(
       expect.objectContaining({
         reactStrictMode: true,
         poweredByHeader: false,
         headers: expect.any(Function),
       }),
+      { disableSourceMapUpload: true },
     );
     expect(nextConfig).toBe(wrappedConfig);
   });

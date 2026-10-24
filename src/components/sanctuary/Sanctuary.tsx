@@ -63,7 +63,7 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
         <div className="aa-sanctuary-shortcuts-grid">
           {sanctuaryShortcuts.map(({ href, title, detail, icon: Icon }) => (
             <Link className="aa-sanctuary-shortcut" href={href} key={href}>
-              <Icon size={22} aria-hidden="true" />
+              <Icon size={24} aria-hidden="true" />
               <strong>{title}</strong>
               <span>{detail}</span>
               <span className="aa-sanctuary-shortcut-arrow" aria-hidden="true">↗</span>

@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { mkdirSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
 
@@ -127,10 +128,15 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await page.getByLabel("Senha").fill(isolatedPassword);
     await page.getByRole("button", { name: "Entrar" }).click();
     await expect(page).toHaveURL(/\/santuario(?:[/?#]|$)/);
+    await expect(
+      page.getByRole("heading", { name: "Seu Santuário de aprendizagem" }),
+    ).toBeVisible();
+    await captureSyntheticVisualEvidence(page, "01-santuario-inicial-desktop.png");
 
     await page.goto("/grimorios");
     await expect(page.getByRole("heading", { name: "Grimórios" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Nenhum grimório ainda" })).toBeVisible();
+    await captureSyntheticVisualEvidence(page, "02-grimorios-vazio-desktop.png");
     await page.getByRole("link", { name: "Criar primeiro grimório" }).click();
     await expect(page.getByRole("form", { name: "Criar grimório" })).toBeVisible();
 
@@ -178,6 +184,7 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await editor.getByRole("textbox", { name: "Bloco 1" }).fill(pageBody);
     await editor.getByRole("button", { name: "Salvar página" }).click();
     await expect(editor.getByText("Página salva.")).toBeVisible();
+    await captureSyntheticVisualEvidence(page, "03-workspace-pagina-salva-desktop.png");
 
     const selectedUrl = page.url();
     expect(selectedUrl).toMatch(/\/workspace\?view=tree&page=[^#]+#current$/);
@@ -196,7 +203,14 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     // completed progress for the synthetic user's only learning page.
     await page.goto("/santuario");
     await expect(page.getByRole("heading", { name: "Seu progresso" })).toBeVisible();
-    await expect(page.locator('[aria-labelledby="sanctuary-progress"]')).toContainText("1 de 1 páginas concluídas");
+    const progress = page.locator('[aria-labelledby="sanctuary-progress"]');
+    await expect(progress).toContainText("1 de 1 páginas concluídas");
+    await captureSyntheticVisualEvidence(page, "04-santuario-progresso-desktop.png");
+    if (process.env.AA_C54_SYNTHETIC_VISUAL === "1") {
+      await page.setViewportSize({ width: 375, height: 812 });
+      await expect(progress).toContainText("1 de 1 páginas concluídas");
+      await captureSyntheticVisualEvidence(page, "05-santuario-progresso-mobile.png");
+    }
   });
 
 });

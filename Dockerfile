@@ -9,7 +9,7 @@ COPY scripts/verify-dependency-lifecycle-scripts.cjs ./scripts/verify-dependency
 
 RUN node scripts/verify-dependency-lifecycle-scripts.cjs \
   && npm ci --ignore-scripts \
-  && npm rebuild esbuild unrs-resolver --ignore-scripts=false
+  && npm rebuild unrs-resolver --ignore-scripts=false
 
 COPY . .
 

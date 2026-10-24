@@ -36,6 +36,7 @@ export function AuthenticatedShell({ currentPath, children }: AuthenticatedShell
           </div>
 
           <div className="aa-topbar-actions">
+            <AccessibilityPanel variant="quick" />
             <Link className="aa-topbar-route" href="/grimorios">Meus grimórios</Link>
             <Link className="aa-topbar-route" href="/perfil">Meu perfil</Link>
           <form action={signOut}>

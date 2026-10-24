@@ -18,7 +18,7 @@ jobs:
           node-version: '24'
       - run: npm install --global npm@11.19.1 --ignore-scripts
       - run: npm ci --ignore-scripts
-      - run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - run: npm rebuild unrs-resolver --ignore-scripts=false
       - name: Build isolated synthetic preview
         run: npm run build
         env:

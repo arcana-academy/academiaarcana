@@ -45,14 +45,9 @@ def fixture(path, corrupt=False, extra=None, user="node", directories=False):
                 directory.mode = 0o755
                 tar.addfile(directory)
         for name, content in sorted(blobs.items()):
-            info = tarfile.TarInfo("./" + name if prefix_files else name)
+            info = tarfile.TarInfo(name)
             info.size = len(content)
             tar.addfile(info, io.BytesIO(content))
-        if extra_link:
-            info = tarfile.TarInfo(extra_link)
-            info.type = tarfile.SYMTYPE
-            info.linkname = "oci-layout"
-            tar.addfile(info)
     return digest
 
 

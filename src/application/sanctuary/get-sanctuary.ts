@@ -9,13 +9,15 @@ import {
   resolveProgressAvailability,
 } from "@/domains/sanctuary";
 
-import type { SanctuaryGrimoire, SanctuaryUser, SanctuaryViewModel } from "@/domains/sanctuary";
 import type {
+  SanctuaryGrimoire,
   SanctuaryMissionProjection,
   SanctuaryProgressProjection,
-  SanctuaryRepository,
+  SanctuaryProjectionPort,
   SanctuaryTaskProjection,
-} from "./sanctuary-repository";
+  SanctuaryUser,
+  SanctuaryViewModel,
+} from "@/domains/sanctuary";
 
 export type SanctuarySessionContext = { user: SanctuaryUser };
 
@@ -95,9 +97,32 @@ function mapMissions(missions: SanctuaryMissionProjection[]): SanctuaryViewModel
   };
 }
 
-export async function getSanctuary(repository: SanctuaryProjectionPort, sessionContext: SanctuarySessionContext): Promise<SanctuaryViewModel> {
-  let grimoires: SanctuaryGrimoire[] = [];
-  try { grimoires = await repository.getLearningHierarchy(); } catch { grimoires = []; }
+/**
+ * Map Sanctuary section states into evidence-safe adaptive signals.
+ * Zero is emitted only when a source was observed and yielded zero items;
+ * null means that the evidence is unavailable or unknown.
+ */
+export function buildAdaptiveSignal(
+  progress: SanctuaryViewModel["progress"],
+  missions: SanctuaryViewModel["missions"],
+  schedule: SanctuaryViewModel["schedule"],
+): AdaptiveSignal {
+  return {
+    progressPercentage: progress.status === "ready" ? progress.data.percentage : null,
+    openMissionCount:
+      missions.status === "ready"
+        ? missions.data.filter((mission) => !mission.isCompleted).length
+        : missions.status === "empty"
+          ? 0
+          : null,
+    scheduledTaskCount:
+      schedule.status === "ready"
+        ? schedule.data.length
+        : schedule.status === "empty"
+          ? 0
+          : null,
+  };
+}
 
 export async function getSanctuary(repository: SanctuaryProjectionPort, sessionContext: SanctuarySessionContext): Promise<SanctuaryViewModel> {
   let grimoires: SanctuaryGrimoire[] = [];

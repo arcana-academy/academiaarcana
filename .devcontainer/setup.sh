@@ -27,7 +27,7 @@ fi
 node scripts/verify-supply-chain-workflows.cjs
 node scripts/verify-dependency-lifecycle-scripts.cjs
 npm ci --ignore-scripts --no-audit --no-fund
-npm rebuild esbuild unrs-resolver --ignore-scripts=false --no-audit --no-fund
+npm rebuild unrs-resolver --ignore-scripts=false --no-audit --no-fund
 
 echo "Cloud development dependencies installed. No build, E2E, credentials, or deploy was run."
 echo "For the existing CI-approved test sequence, use the GitHub Actions Quality Gate."

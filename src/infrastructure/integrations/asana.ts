@@ -287,7 +287,17 @@ export async function refreshAsanaCredentials(credentials: AsanaCredentials): Pr
     throw new AsanaConnectionError("A autorização do Asana expirou ou foi revogada. Reconecte a conta.", "reauthorization_required");
   }
 
-  const refreshed = normalizeTokenSet(await response.json());
+  let payload: { access_token?: string; refresh_token?: string; expires_in?: number };
+  try {
+    payload = await response.json();
+  } catch {
+    throw new AsanaConnectionError(
+      "A renovação Asana devolveu uma resposta inválida.",
+      "request_failed",
+    );
+  }
+
+  const refreshed = normalizeTokenSet(payload);
   return {
     subjectId: credentials.subjectId,
     ...refreshed,

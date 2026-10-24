@@ -70,7 +70,7 @@ describe("GrimoriosPage", () => {
       },
     ]);
 
-    const html = renderToStaticMarkup(await GrimoriosPage());
+    const html = renderToStaticMarkup(await GrimoriosPage({}));
 
     expect(html).toContain('aria-label="Abrir grimório: Fisiologia"');
     expect(html).toContain('aria-label="Abrir grimório: Anatomia"');

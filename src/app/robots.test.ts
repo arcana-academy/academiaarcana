@@ -34,15 +34,17 @@ describe("public crawl boundaries", () => {
     }
   });
 
-  it("discourages crawlers from authorization and API endpoints", () => {
+  it("blocks callback and API endpoints while keeping public auth pages crawlable", () => {
     const rules = robots().rules;
     if (!Array.isArray(rules)) throw new Error("Expected explicit crawl rules");
     const blocked = Array.isArray(rules[0].disallow)
       ? rules[0].disallow
       : [rules[0].disallow];
     expect(blocked).toEqual(
-      expect.arrayContaining(["/api/", "/auth/", "/login", "/cadastro"]),
+      expect.arrayContaining(["/api/", "/auth/"]),
     );
+    expect(blocked).not.toContain("/login");
+    expect(blocked).not.toContain("/cadastro");
     expect(blocked).not.toContain("/_next/");
   });
 });

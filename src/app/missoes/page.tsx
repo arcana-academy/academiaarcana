@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sparkles, Target } from "lucide-react";
 
-import type { Mission } from "@/domains/gamification";
 import { SupabaseGamificationRepository } from "@/infrastructure/supabase/gamification/gamification-repository";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
@@ -22,19 +21,25 @@ const missionDocument = "/assets/missions/aa-mission-document.svg";
 export default async function MissoesPage() {
   const claims = await requireAuthenticatedUser();
   const supabase = await createClient();
-  // A failed read is not an empty day. Preserve the authenticated route and
-  // show a retry rather than hiding previously recorded missions.
-  let missions: Awaited<ReturnType<SupabaseGamificationRepository["listDailyMissions"]>> = [];
+
+  // A failed read is not an empty day. Keep the route available and offer a
+  // retry instead of hiding previously recorded missions behind an empty state.
+  let missions: Awaited<
+    ReturnType<SupabaseGamificationRepository["listDailyMissions"]>
+  > = [];
   let loadError = false;
+
   try {
-    missions = await new SupabaseGamificationRepository(supabase).listDailyMissions(
-      claims.sub,
-      todayUtc(),
-    );
+    missions = await new SupabaseGamificationRepository(
+      supabase,
+    ).listDailyMissions(claims.sub, todayUtc());
   } catch {
     loadError = true;
   }
-  const completed = missions.filter((mission) => mission.status === "completed").length;
+
+  const completed = missions.filter(
+    (mission) => mission.status === "completed",
+  ).length;
 
   return (
     <AuthenticatedShell currentPath="/missoes">
@@ -42,19 +47,40 @@ export default async function MissoesPage() {
         eyebrow="Gamificação"
         title="Missões"
         description="Acompanhe seus objetivos de estudo e as conquistas do dia."
-        actions={[{ href: "/cronograma", label: "Abrir cronograma", variant: "secondary" }]}
+        actions={[
+          {
+            href: "/cronograma",
+            label: "Abrir cronograma",
+            variant: "secondary",
+          },
+        ]}
       >
-        <div className="aa-feature-grid" style={{ display: "grid", gap: "1rem" }}>
+        <div
+          className="aa-feature-grid"
+          style={{ display: "grid", gap: "1rem" }}
+        >
           <FeatureCard
             title="Hoje"
             description="Missões registradas para o dia atual."
-            icon={<Image src={missionDocument} alt="" width={28} height={28} />}
+            icon={
+              <Image src={missionDocument} alt="" width={28} height={28} />
+            }
           >
             {loadError ? (
               <div role="alert">
-                <p>Não foi possível carregar as missões. Seus registros não foram alterados.</p>
-                <form action="/missoes" method="get" className="aa-card-actions">
-                  <button className="aa-button aa-button-secondary aa-button-sm" type="submit">
+                <p>
+                  Não foi possível carregar as missões. Seus registros não
+                  foram alterados.
+                </p>
+                <form
+                  action="/missoes"
+                  method="get"
+                  className="aa-card-actions"
+                >
+                  <button
+                    className="aa-button aa-button-secondary aa-button-sm"
+                    type="submit"
+                  >
                     Tentar novamente
                   </button>
                 </form>
@@ -66,39 +92,19 @@ export default async function MissoesPage() {
                   : "Nenhuma missão registrada hoje."}
               </p>
             )}
+
             {!loadError && !missions.length ? (
               <p className="aa-card-actions">
-                <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">
+                <Link
+                  className="aa-button aa-button-secondary aa-button-sm"
+                  href="/cronograma"
+                >
                   Planejar um estudo
                 </Link>
               </p>
-              {!missions.length ? (
-                <p className="aa-card-actions">
-                  <Link className="aa-button aa-button-secondary aa-button-sm" href="/cronograma">
-                    Planejar um estudo
-                  </Link>
-                </p>
-              ) : null}
-            </FeatureCard>
-            {missions.length ? (
-              <FeatureCard
-                title="Objetivos"
-                description="Metas de estudo que nasceram de eventos persistidos."
-                icon={<Target size={20} />}
-              >
-                <ul className="aa-list" aria-label="Missões de hoje">
-                  {missions.map((mission) => (
-                    <li className="aa-list-item aa-surface" key={mission.id}>
-                      <div>
-                        <strong>{mission.title}</strong>
-                        <p>{mission.rewardXp} XP · {mission.status === "completed" ? "concluída" : "em aberto"}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </FeatureCard>
             ) : null}
           </FeatureCard>
+
           {missions.length ? (
             <FeatureCard
               title="Objetivos"
@@ -107,16 +113,25 @@ export default async function MissoesPage() {
             >
               <ul className="aa-list" aria-label="Missões de hoje">
                 {missions.map((mission) => (
-                  <li className="aa-list-item aa-surface" key={mission.id}>
+                  <li
+                    className="aa-list-item aa-surface"
+                    key={mission.id}
+                  >
                     <div>
                       <strong>{mission.title}</strong>
-                      <p>{mission.rewardXp} XP · {mission.status === "completed" ? "concluída" : "em aberto"}</p>
+                      <p>
+                        {mission.rewardXp} XP ·{" "}
+                        {mission.status === "completed"
+                          ? "concluída"
+                          : "em aberto"}
+                      </p>
                     </div>
                   </li>
                 ))}
               </ul>
             </FeatureCard>
           ) : null}
+
           {missions.length ? (
             <FeatureCard
               title="Progresso significativo"

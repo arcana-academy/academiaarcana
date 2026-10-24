@@ -4,11 +4,6 @@ import { dirname, join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-import {
-  isVisualBaselineWriteEnabled,
-  writeVisualBaselines,
-} from "./support/visual-baselines";
-
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
 type Baselines = Record<string, string>;

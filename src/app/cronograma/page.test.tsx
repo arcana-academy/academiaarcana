@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getOutlookAccessToken, isOutlookCalendarConnected } from "@/infrastructure/integrations/outlook-calendar-session";
@@ -45,6 +46,26 @@ beforeEach(() => {
 });
 
 describe("CronogramaPage Outlook state", () => {
+  it("offers an accessible retry when native tasks cannot be loaded", async () => {
+    listPendingForBoardMock.mockRejectedValueOnce(
+      new Error("private-database-host-and-credentials"),
+    );
+
+    render(await CronogramaPage());
+
+    expect(
+      screen.getByRole("alert"),
+    ).toHaveTextContent("Não foi possível carregar as tarefas do Cronograma");
+    const retry = screen.getByRole("button", { name: "Tentar novamente" });
+    expect(retry.closest("form")).toHaveAttribute("action", "/cronograma");
+    expect(retry.closest("form")).toHaveAttribute("method", "get");
+    expect(
+      screen.getByRole("link", { name: "Voltar à Academia" }),
+    ).toHaveAttribute("href", "/academia");
+    expect(screen.queryByText(/private-database-host-and-credentials/)).not.toBeInTheDocument();
+    expect(isOutlookCalendarConnected).not.toHaveBeenCalled();
+  });
+
   it("does not fetch events or flag an outage when Outlook is disconnected", async () => {
     vi.mocked(isOutlookCalendarConnected).mockResolvedValue(false);
     const page = await CronogramaPage();
@@ -80,8 +101,13 @@ describe("CronogramaPage Outlook state", () => {
     vi.mocked(isOutlookCalendarConnected).mockRejectedValueOnce(new Error("credential store unavailable"));
     const page = await CronogramaPage();
     expect(page.props.children.props).toMatchObject({
-      outlookConnected: true, outlookEventsUnavailable: false, outlookEvents: events,
+      tasks,
+      outlookConnected: false,
+      outlookEventsUnavailable: true,
+      outlookEvents: [],
     });
+    expect(getOutlookAccessToken).not.toHaveBeenCalled();
+    expect(listEventsMock).not.toHaveBeenCalled();
   });
 
   it("marks a calendar query failure as unavailable, not empty", async () => {

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { AccessibilityPanel } from "@/components/accessibility/AccessibilityPanel";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { Accessibility, Palette, PlugZap, ShieldCheck } from "lucide-react";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
@@ -11,7 +10,7 @@ import { pageMetadata } from "@/lib/seo/site-metadata";
 export const metadata = pageMetadata("/configuracoes");
 
 /** Presentation-only content shared with isolated visual fixtures; auth remains in route. */
-export function ConfiguracoesContent() {
+function ConfiguracoesContent() {
   return (
       <ArcanaPage
         eyebrow="Controle pessoal"
@@ -34,13 +33,13 @@ export function ConfiguracoesContent() {
               <span className="aa-c106-swatch aa-c106-swatch-sepia">Sépia</span>
             </div>
             <p className="aa-state-copy">Os temas selecionáveis e a preferência de movimento permanecem centralizados em Personalizar.</p>
-            <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar">Escolher tema</Link>
+            <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar#theme-select">Escolher tema</Link>
           </FeatureCard>
           </section>
           <section id="acessibilidade" className="aa-c106-settings-group" aria-label="Acessibilidade">
           <FeatureCard title="Acessibilidade" description="Preferências de movimento, tipografia, contraste e conforto cognitivo." icon={<Accessibility size={20} />}>
             <p className="aa-state-copy">Redução de movimento e conforto visual usam as preferências já disponíveis.</p>
-            <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar">Ajustar acessibilidade</Link>
+            <Link className="aa-button aa-button-secondary aa-button-sm" href="/personalizar#motion-select">Ajustar movimento</Link>
           </FeatureCard>
           </section>
           <section id="conta" className="aa-c106-settings-group" aria-label="Conta">

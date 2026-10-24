@@ -1,38 +1,30 @@
 import type { MetadataRoute } from "next";
 
+import {
+  NON_CRAWLABLE_PREFIXES,
+  listNonIndexableRoutes,
+  resolveSiteUrl,
+} from "@/lib/seo/site-metadata";
+
 /**
- * Crawl guidance for public pages. Authorization still belongs to the
- * application's server-side guards; robots.txt is not an access control.
+ * Session-gated routes are excluded from crawling, and the sitemap advertises
+ * only public routes. The origin is runtime configuration, so the file is
+ * rendered per request.
  */
+export const dynamic = "force-dynamic";
+
 export default function robots(): MetadataRoute.Robots {
+  const siteUrl = resolveSiteUrl();
+
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: [
-          "/api/",
-          "/auth/",
-          "/login",
-          "/cadastro",
-          "/design-system/",
-          "/santuario",
-          "/academia",
-          "/grimorios",
-          "/workspace",
-          "/pratica",
-          "/cronograma",
-          "/missoes",
-          "/foco",
-          "/streak",
-          "/estatisticas",
-          "/conquistas",
-          "/amigos",
-          "/perfil",
-          "/personalizar",
-          "/configuracoes",
-        ],
+        disallow: [...listNonIndexableRoutes(), ...NON_CRAWLABLE_PREFIXES],
       },
     ],
+    sitemap: new URL("/sitemap.xml", siteUrl).toString(),
+    host: siteUrl.origin,
   };
 }

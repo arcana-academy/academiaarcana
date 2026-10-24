@@ -74,7 +74,7 @@ jobs:
         working-directory: historical
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
-          npm rebuild esbuild unrs-resolver --ignore-scripts=false
+          npm rebuild unrs-resolver --ignore-scripts=false
 
       - name: Install Chromium
         working-directory: historical

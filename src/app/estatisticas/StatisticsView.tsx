@@ -271,6 +271,7 @@ function EvidenceSection({ educational }: { educational: EducationalOverview }) 
     <section
       className={`aa-card aa-card-default ${styles.analysisSection}`}
       data-statistics-region="self-reported-evidence"
+      data-evidence-kind="self-reported"
       aria-labelledby="mastery-title"
     >
       <h2 id="mastery-title">Evidência autorreportada por conteúdo</h2>

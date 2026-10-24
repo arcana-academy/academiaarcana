@@ -100,7 +100,7 @@ jobs:
 
       - name: Rebuild only reviewed native dependencies
         working-directory: stable
-        run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+        run: npm rebuild unrs-resolver --ignore-scripts=false
 
       - name: Audit stable production dependencies
         working-directory: stable

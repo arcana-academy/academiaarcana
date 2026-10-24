@@ -59,7 +59,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Rebuild reviewed native dependencies
-        run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+        run: npm rebuild unrs-resolver --ignore-scripts=false
 
       - name: Production dependency security audit
         run: npm audit --omit=dev --audit-level=high

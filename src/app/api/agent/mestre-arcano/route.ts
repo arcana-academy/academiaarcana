@@ -27,13 +27,11 @@ export async function POST(request: Request) {
   }
 
   // JSON may be null, an array, or a primitive. Never dereference until validated.
-  const input =
-    typeof body === "object" &&
-    body !== null &&
-    !Array.isArray(body) &&
-    "input" in body
-      ? body.input
-      : undefined;
+  const payload =
+    typeof body === "object" && body !== null && !Array.isArray(body)
+      ? (body as Record<string, unknown>)
+      : null;
+  const input = payload?.input;
 
   if (typeof input !== "string" || !input.trim()) {
     return NextResponse.json(
@@ -49,7 +47,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const helpLevel = resolveMestreArcanoHelpLevel(body.helpLevel);
+  const helpLevel = resolveMestreArcanoHelpLevel(payload?.helpLevel);
   if (helpLevel === null) {
     return NextResponse.json(
       { error: "Nível de ajuda inválido." },

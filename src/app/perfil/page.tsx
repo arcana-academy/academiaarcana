@@ -44,9 +44,42 @@ export default async function PerfilPage() {
         actions={[{ href: "/configuracoes", label: "Configurações", variant: "secondary" }]}
       >
         <ArcanaFeatureGrid>
-          <FeatureCard title="Identidade" description="Consulte os dados da sua conta com segurança." icon={<UserRound size={20} />}>
-            <p className="aa-state-copy">Conta: {email}</p>{createdAt ? <p className="aa-state-copy">Conta criada em {createdAt}.</p> : null}
-          </FeatureCard>
+          {identityLoadError ? (
+            <section
+              className="aa-card aa-card-elevated"
+              role="alert"
+              aria-labelledby="profile-identity-error-title"
+            >
+              <h2 id="profile-identity-error-title">
+                Não foi possível confirmar os dados da conta
+              </h2>
+              <p className="aa-state-copy">
+                Não foi possível consultar seu perfil neste momento. Nenhuma
+                informação foi alterada.
+              </p>
+              <form action="/perfil" method="get">
+                <button className="aa-button aa-button-primary" type="submit">
+                  Tentar novamente
+                </button>
+              </form>
+              <Link className="aa-button aa-button-secondary" href="/academia">
+                Ir para a Academia
+              </Link>
+            </section>
+          ) : (
+            <FeatureCard
+              title="Identidade"
+              description="Consulte os dados da sua conta com segurança."
+              icon={<UserRound size={20} />}
+            >
+              <p className="aa-state-copy">
+                Conta: {email ?? "E-mail não informado"}
+              </p>
+              {createdAt ? (
+                <p className="aa-state-copy">Conta criada em {createdAt}.</p>
+              ) : null}
+            </FeatureCard>
+          )}
           <FeatureCard title="Jornada" description="Acesse seus grimórios e continue sua jornada de estudos." icon={<BookOpen size={20} />}>
             <Link className="aa-button aa-button-secondary aa-button-sm" href="/grimorios">Abrir grimórios</Link>
           </FeatureCard>
