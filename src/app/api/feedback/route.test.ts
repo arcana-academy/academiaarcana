@@ -1,85 +1,124 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockCreateFeedback } = vi.hoisted(() => ({ mockCreateFeedback: vi.fn() }));
+const { createFeedback } = vi.hoisted(() => ({
+  createFeedback: vi.fn(),
+}));
 
 vi.mock("@/infrastructure/supabase/feedback-repository", () => ({
-  createFeedback: mockCreateFeedback,
-  FeedbackAuthenticationError: class FeedbackAuthenticationError extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = "FeedbackAuthenticationError";
-    }
-  },
+  createFeedback,
+  FeedbackAuthenticationError: class FeedbackAuthenticationError extends Error {},
 }));
 
 import { FeedbackAuthenticationError } from "@/infrastructure/supabase/feedback-repository";
 import { POST } from "./route";
 
-const valid = JSON.stringify({
-  name: "",
-  email: "student@example.com",
-  feedback: "Sugestão.",
-});
-function makeRequest(body: string) {
+function feedbackRequest(body: unknown) {
   return new Request("https://example.com/api/feedback", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body,
+    body: JSON.stringify(body),
   });
 }
-describe("POST /api/feedback", () => {
-  beforeEach(() => mockCreateFeedback.mockReset());
 
-  it("returns 201 on successful persistence", async () => {
-    mockCreateFeedback.mockResolvedValue({ id: "feedback-1", createdAt: "2026-10-10T12:00:00Z" });
-    const response = await POST(makeRequest(valid));
+const validInput = {
+  name: "",
+  email: "student@example.com",
+  feedback: "Gostei do Santuário.",
+};
+
+describe("POST /api/feedback", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("persists valid feedback without caching", async () => {
+    createFeedback.mockResolvedValue({
+      id: "feedback-1",
+      createdAt: "2026-10-11T10:00:00.000Z",
+    });
+
+    const response = await POST(feedbackRequest(validInput));
+
     expect(response.status).toBe(201);
     expect(response.headers.get("cache-control")).toBe("no-store");
     await expect(response.json()).resolves.toEqual({
-      id: "feedback-1", createdAt: "2026-10-10T12:00:00Z",
+      id: "feedback-1",
+      createdAt: "2026-10-11T10:00:00.000Z",
     });
-    expect(mockCreateFeedback).toHaveBeenCalledWith({
-      name: null, email: "student@example.com", feedback: "Sugestão.",
+    expect(createFeedback).toHaveBeenCalledWith({
+      name: null,
+      email: validInput.email,
+      feedback: validInput.feedback,
     });
   });
 
-  it("rejects invalid fields with 400 before persistence", async () => {
-    const response = await POST(makeRequest(JSON.stringify({
-      name: "", email: "wrong", feedback: "",
-    })));
+  it("rejects invalid input without persisting it", async () => {
+    const response = await POST(feedbackRequest({
+      name: "",
+      email: "invalid-email",
+      feedback: "",
+    }));
+
     expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toEqual({ error: "Revise os campos do formulário." });
-    expect(mockCreateFeedback).not.toHaveBeenCalled();
-  });
-
-  it("rejects malformed JSON with safe 400", async () => {
-    const response = await POST(makeRequest('{"email":'));
-    expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toEqual({ error: "Revise os campos do formulário." });
-    expect(mockCreateFeedback).not.toHaveBeenCalled();
-  });
-
-  it("returns 401 for typed authentication errors", async () => {
-    mockCreateFeedback.mockImplementationOnce(async () => {
-      throw new FeedbackAuthenticationError("É necessário estar autenticado para enviar feedback.");
-    });
-    const response = await POST(makeRequest(valid));
-    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     await expect(response.json()).resolves.toEqual({
-      error: "É necessário estar autenticado para enviar feedback.",
+      error: "Revise os campos do formulário.",
     });
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(createFeedback).not.toHaveBeenCalled();
   });
 
-  it("returns 500 without leaking unexpected storage error details", async () => {
-    mockCreateFeedback.mockImplementationOnce(async () => {
-      throw new Error("internal credential: private-value");
+  it("treats malformed JSON as a client input error, without persistence", async () => {
+    const request = new Request("https://example.com/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{"name":',
     });
-    const response = await POST(makeRequest(valid));
-    const body = await response.text();
-    expect(response.status).toBe(500);
-    expect(JSON.parse(body)).toEqual({ error: "Não foi possível salvar o feedback." });
-    expect(body).not.toContain("private-value");
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
     expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({
+      error: "Revise os campos do formulário.",
+    });
+    expect(createFeedback).not.toHaveBeenCalled();
+  });
+
+  it("keeps server-side SyntaxError classified as internal failure", async () => {
+    createFeedback.mockRejectedValueOnce(
+      new SyntaxError("internal parser detail must remain private"),
+    );
+    const response = await POST(feedbackRequest(validInput));
+    expect(response.status).toBe(500);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({
+      error: "Não foi possível salvar o feedback.",
+    });
+  });
+
+  it("returns 401 only for a typed authentication failure", async () => {
+    createFeedback.mockRejectedValueOnce(new FeedbackAuthenticationError());
+
+    const response = await POST(feedbackRequest(validInput));
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({
+      error: "Entre na sua conta para enviar feedback.",
+    });
+  });
+
+  it("does not disclose internal exception details to clients", async () => {
+    createFeedback.mockRejectedValueOnce(
+      new Error("internal database host=db.private.example credential=secret"),
+    );
+
+    const response = await POST(feedbackRequest(validInput));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(body).toEqual({ error: "Não foi possível salvar o feedback." });
+    expect(JSON.stringify(body)).not.toContain("db.private.example");
+    expect(JSON.stringify(body)).not.toContain("secret");
   });
 });

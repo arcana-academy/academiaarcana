@@ -13,8 +13,17 @@ const FeedbackSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Revise os campos do formulário." },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  try {
     const input = FeedbackSchema.parse(body);
     const record = await createFeedback(input);
     return NextResponse.json(
@@ -24,7 +33,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const headers = { "Cache-Control": "no-store" };
 
-    if (error instanceof z.ZodError || error instanceof SyntaxError) {
+    if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Revise os campos do formulário." },
         { status: 400, headers },
@@ -33,11 +42,12 @@ export async function POST(request: Request) {
 
     if (error instanceof FeedbackAuthenticationError) {
       return NextResponse.json(
-        { error: error.message },
+        { error: "Entre na sua conta para enviar feedback." },
         { status: 401, headers },
       );
     }
 
+    // Never return the original exception, database details or credentials.
     return NextResponse.json(
       { error: "Não foi possível salvar o feedback." },
       { status: 500, headers },
