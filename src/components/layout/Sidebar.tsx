@@ -22,8 +22,8 @@ export function Sidebar({ currentPath }: SidebarProps) {
             />
           </span>
           <span>
-            <span className="aa-brand-kicker">Academia Arcana</span>
-            <span className="aa-brand-name">Mapa Arcano</span>
+            <span className="aa-brand-kicker">Plataforma de estudos</span>
+            <span className="aa-brand-name">Academia Arcana</span>
           </span>
         </Link>
         <div
