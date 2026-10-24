@@ -1,0 +1,35 @@
+name: C99 isolated postmerge accessibility browser proof
+on:
+  push:
+    branches:
+      - work/aa-c99-a11y-browser-proof-20261024
+permissions:
+  contents: read
+jobs:
+  c99:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Pin npm
+        run: npm install --global npm@11.19.1 --ignore-scripts
+      - name: Install locked dependencies without scripts
+        run: npm ci --ignore-scripts
+      - name: Rebuild reviewed native tooling
+        run: npm rebuild esbuild unrs-resolver --ignore-scripts=false
+      - name: Only C99 contracts affected by postmerge composition
+        run: npm exec -- vitest run src/components/workspace/C99MediaContracts.test.tsx src/components/workspace/AccessibleBlockContractsC99.test.tsx
+      - name: Lint diagnostic route and browser spec
+        run: npm exec -- eslint src/app/c99-accessibility-proof/page.tsx tests/c99/accessible-editor.spec.ts
+      - name: Typecheck composed source
+        run: npm exec -- tsc --noEmit
+      - name: Only new C99 browser keyboard and export scenario
+        run: npm exec -- playwright test --config=tests/c99-browser.config.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
