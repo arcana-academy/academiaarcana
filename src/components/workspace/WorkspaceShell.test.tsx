@@ -412,13 +412,16 @@ describe("WorkspaceShell", () => {
       .not.toBeDisabled();
   });
 
-  test("reflects a saved page title in the Workspace tree", async () => {
-    const onSavePage = vi.fn(() =>
-      Promise.resolve({
+  test("reflects a saved page title and restores its canonical URL after revalidation", async () => {
+    const onSavePage = vi.fn(async () => {
+      // Reproduce the URL replacement that Next.js may apply while consuming a
+      // server-action revalidation response for the current route.
+      window.history.replaceState(window.history.state, "", "/workspace");
+      return {
         ...createdPage,
         title: "Página renomeada",
-      }),
-    );
+      };
+    });
     const tree = createTree();
     tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [createdPage];
 
@@ -455,7 +458,13 @@ describe("WorkspaceShell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
 
     expect(await screen.findByRole("button", { name: "Página renomeada" })).toBeTruthy();
+    await waitFor(() =>
+      expect(
+        window.location.pathname + window.location.search + window.location.hash,
+      ).toBe("/workspace?view=tree&page=p1#current"),
+    );
   });
+
   test("canonicalizes a normalized initial selection without creating a new history entry", async () => {
     window.history.replaceState(
       { preserved: true },

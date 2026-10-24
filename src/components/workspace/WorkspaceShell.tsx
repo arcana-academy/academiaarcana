@@ -107,6 +107,10 @@ export function WorkspaceShell({
 
   const [state, setState] = useState<WorkspaceState>(initialState);
 
+  // Next.js can replace the browser URL while applying a server-action
+  // revalidation even when the selected hierarchy item does not change. Run
+  // after every shell render so mutations such as page saves reassert the
+  // canonical, reloadable selection URL as well as explicit selections do.
   useEffect(() => {
     const canonicalHref = getWorkspaceCanonicalHref(state);
     const currentHref =
@@ -115,7 +119,7 @@ export function WorkspaceShell({
     if (currentHref !== canonicalHref) {
       window.history.replaceState(window.history.state, "", canonicalHref);
     }
-  }, [state]);
+  });
   const [pages, setPages] = useState<Record<string, Page>>({});
   const [pageProgress, setPageProgress] = useState<Record<string, PageProgressStatus>>(initialPageProgress);
   const [renamedGrimoires, setRenamedGrimoires] = useState<Record<string, string>>({});
