@@ -8,5 +8,8 @@ export const DEPLOYMENT_CONTRACT = {
   buildCommand: "npm ci && npm run build",
   startCommand: "npm start",
   healthCheckPath: "/api/health",
-  autoDeployTrigger: "off",
+  // Promotion must not wait on Production Smoke: that check can only pass once
+  // the new revision is already serving, so gating the deploy on it deadlocks.
+  // The Quality Gate runs before a commit reaches main.
+  autoDeployTrigger: "commit",
 } as const;

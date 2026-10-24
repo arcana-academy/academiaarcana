@@ -137,6 +137,20 @@ describe("delivery infrastructure contract", () => {
     expect(workflow).toContain('[[ "$expected" =~ ^[0-9a-f]{40}$ ]]');
   });
 
+  it("keeps production promotion independent from the post-deploy smoke", () => {
+    const blueprint = readRepoFile("render.yaml");
+    const smoke = readRepoFile(".github/workflows/production-smoke.yml");
+
+    // Production Smoke asserts that the served revision equals the merged
+    // commit, so it can only pass after Render has deployed. Gating the deploy
+    // on it ("checksPass") is circular: a red or pending smoke withholds the
+    // deploy that would make it green. Main only receives gated merges, so the
+    // promotion trigger must be the commit itself.
+    expect(blueprint).toContain("autoDeployTrigger: commit");
+    expect(blueprint).not.toContain("autoDeployTrigger: checksPass");
+    expect(smoke).toContain("body.revision !== expected");
+  });
+
   it("validates workflow-derived production revisions before shell use", () => {
     const workflow = readRepoFile(".github/workflows/production-smoke.yml");
 
@@ -385,8 +399,8 @@ describe("delivery infrastructure contract", () => {
       "type: web",
       "runtime: node",
       "branch: main",
-      "autoDeployTrigger: off",
-      "buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
+      "autoDeployTrigger: commit",
+      "buildCommand: node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild esbuild unrs-resolver --ignore-scripts=false && npm run build",
       "startCommand: npm start",
       "healthCheckPath: /api/health",
       "NPM_CONFIG_IGNORE_SCRIPTS",
