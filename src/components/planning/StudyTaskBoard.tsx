@@ -95,11 +95,8 @@ export function StudyTaskBoard({
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Guard immediately before React updates the disabled submit button.
-  const createPending = useRef(false);
-  // Complete actions have separate pending locks for each task.
-  const completingPending = useRef(new Set<string>());
-  const [completingIds, setCompletingIds] = useState<Set<string>>(() => new Set());
+  // UI disabled state updates after rendering; a ref acquires the lock immediately.
+  const creatingTask = useRef(false);
   // Synchronous guard prevents duplicate provider POSTs before React rerenders.
   // Each provider/task pair remains independent while the request is pending.
   const activeSends = useRef(new Set<string>());
@@ -114,8 +111,8 @@ export function StudyTaskBoard({
   const [scheduledIds, setScheduledIds] = useState<Set<string>>(() => new Set());
 
   const submit = async () => {
-    if (createPending.current || !title.trim()) return;
-    createPending.current = true;
+    if (creatingTask.current || !title.trim()) return;
+    creatingTask.current = true;
     setError(null);
     setIsSubmitting(true);
     try {
@@ -128,7 +125,7 @@ export function StudyTaskBoard({
     } catch {
       setError("Não foi possível criar a tarefa.");
     } finally {
-      createPending.current = false;
+      creatingTask.current = false;
       setIsSubmitting(false);
     }
   };
