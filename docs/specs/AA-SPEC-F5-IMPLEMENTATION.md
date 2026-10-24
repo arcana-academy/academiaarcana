@@ -138,15 +138,25 @@ Honeybadger (browser/server/edge) e workflow de smoke por deploy.
 Não existe: métricas de negócio, tracing distribuído, dashboards, alertas com SLO.
 **Estado:** **PARCIAL** (`GAP-F6-12`).
 
-## F5.15 — Estratégia de rollout e rollback · issues #167 e #168 (duplicata)
+## F5.14 — Migrações e evolução de dados · issue #167 (corpo da issue)
 
-- Rollout: `main` protegido → PR → Quality Gate obrigatório → Render `autoDeployTrigger: checksPass` →
-  Production Smoke; promoção de imagem em `image-release.yml` exige SHA aprovado e main atual.
-- Rollback: `git revert` + redeploy do commit anterior; imagem GHCR retida com digest; migração nova é
-  sempre aditiva quando há dado em produção (reversão por migração compensatória).
-- Nenhum deploy de produção é feito por agente sem autorização humana explícita.
-**Estado:** **CANÔNICO** para o fluxo; execução de produção é humana.
+- A issue #167 foi aberta com título `F5.15 — Estratégia de rollout e rollback`, mas seu corpo
+  começa com `# F5.14 — Migrações e evolução de dados`. O conteúdo define análise de impacto,
+  evolução compatível de dados e validação antes/durante/depois de migração.
+- A migração operacional não é comprovada pela existência deste documento; estratégias de
+  reversão/compensação de dados dependem de evidência executada e dos gates aplicáveis.
+- Não alterar o título ou o corpo da issue automaticamente; manter a divergência rastreada.
+**Estado:** **DOCUMENTADO/PARCIAL** (metadados da issue e evidência operacional pendentes).
 
+## F5.15 — Estratégia de rollout e rollback · issue #168
+
+- O corpo da #168 define exposição progressiva, observação, mitigação, rollback ou compensação.
+  Trata-se de um requisito diferente de migrações de dados (#167), e não de duplicata.
+- O repositório contém workflows de qualidade e propostas de promoção; a existência desses
+  arquivos não comprova homologação operacional, implantação nem rollback testado.
+- A configuração real de Render e as provas de rollback/recuperação permanecem sujeitas
+  aos gates #536, #594, #595 e #268. Nenhuma publicação é autorizada por esta especificação.
+**Estado:** **DOCUMENTADO/PARCIAL** (exercício operacional não atestado por F7).
 ## F5.16 — Rastreabilidade requisito → implementação
 
 Cadeia obrigatória: requisito (`docs/product/AA-PRODUCT-REQUIREMENTS-1.0.md`) → critério → contrato
