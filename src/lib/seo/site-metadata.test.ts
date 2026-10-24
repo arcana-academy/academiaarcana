@@ -147,13 +147,13 @@ describe("route visibility lists", () => {
       "/login",
       "/cadastro",
       "/recuperar-senha",
-      "/feedback",
       "/integracoes",
     ]);
   });
 
   it("never advertises an authenticated surface", () => {
     expect(listIndexableRoutes()).not.toContain("/redefinir-senha");
+    expect(listIndexableRoutes()).not.toContain("/feedback");
     expect(listIndexableRoutes()).not.toContain("/santuario");
     expect(listIndexableRoutes()).not.toContain("/workspace");
     expect(listIndexableRoutes()).not.toContain("/api/health");

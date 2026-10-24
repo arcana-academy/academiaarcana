@@ -10,8 +10,9 @@ vi.mock("@/lib/supabase/proxy", () => ({
 
 import { proxy } from "../proxy";
 
-function createRequest() {
-  return { headers: new Headers() } as never;
+function createRequest(pathname = "/santuario") {
+  // Mirrors a real Next.js middleware request: `nextUrl` is always present.
+  return { headers: new Headers(), nextUrl: { pathname } } as never;
 }
 
 describe("proxy security headers", () => {
