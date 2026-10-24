@@ -68,9 +68,10 @@ O gate canônico (`npm audit --omit=dev --audit-level=high` em quality.yml) **n�
 na base (altas eram dev-only; prod tinha só moderate) — corrigido mesmo assim nesta branch.
 Os ranges em `package.json` já permitiam as versões corrigidas; apenas o lockfile mudou.
 
-**Correção aplicada nesta branch** (commit próprio): `package-lock.json` com bump cirúrgico
-`fast-uri 3.1.8→3.1.9`, `undici 8.11.2→8.12.3`, `zod 4.6.4→4.6.7` (diff: 3 entradas de
-pacote; `package.json` intacto). Dependabot permanece o canal canônico de updates — o PR
+**Correção aplicada nesta branch** (commits próprios): `package-lock.json` com bump cirúrgico
+`fast-uri 3.1.8→3.1.9`, `undici 8.11.2→8.12.3`, `zod 4.6.4→4.6.7` (diff vs. base: exatamente
+3 versões; `package.json` intacto), regenerado com o npm canônico 11.19.1 para preservar os
+metadados `libc`/`os`/`cpu` das 48 entradas de plataforma do lockfile. Dependabot permanece o canal canônico de updates — o PR
 aberto #757 (grupo dev-deps) traria `undici ^8.12.1`, que **ainda está na faixa vulnerável**
 (8.0.0–8.12.1); ao atualizar, o Dependabot convergirá para ≥8.12.2. Se #757 conflitar com
 esta branch, preferir o lockfile que audita 0 vulnerabilidades.
