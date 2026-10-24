@@ -47,22 +47,26 @@ export function Sidebar({ currentPath }: SidebarProps) {
       </div>
 
       <nav aria-label="Navegação principal">
-        <ul className="aa-sidebar-list">
+        <ul className="aa-sidebar-nav">
           {navigationItems.map((item) => {
             const active = item.href === currentPath;
             const Icon = item.icon;
-
             return (
               <li key={item.href}>
                 <Link
                   href={item.href as AuthenticatedRouteHref}
                   className={`aa-sidebar-link ${active ? "aa-sidebar-link-active" : ""}`}
+                  aria-label={item.label}
+                  title={item.label}
                   aria-current={active ? "page" : undefined}
                 >
                   <span className="aa-sidebar-icon" aria-hidden="true">
                     <Icon size={20} />
                   </span>
-                  <span>{item.label}</span>
+                  <span className="aa-sidebar-link-copy">
+                    <strong>{item.label}</strong>
+                    <span>{item.description}</span>
+                  </span>
                 </Link>
               </li>
             );
