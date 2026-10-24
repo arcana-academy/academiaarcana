@@ -827,5 +827,31 @@
     "checkpoint": "F7-2026-10-24",
     "referenceHead": "70e9198eb9d393cfe7a6729d84da7394e668f01e",
     "policy": "REPORT_ONLY_NO_ISSUE_WRITES"
-  }
+  },
+  "additionalReferences": [
+    {
+      "issue": 53,
+      "comparedTo": 52,
+      "equivalence": "NON_IDENTICAL",
+      "decision": "BLOCKED_RECONCILE_REQUIREMENTS"
+    },
+    {
+      "issue": 55,
+      "comparedTo": 54,
+      "equivalence": "EXACT",
+      "decision": "REVIEW_DUPLICATE_ONLY"
+    },
+    {
+      "issue": 56,
+      "comparedTo": 54,
+      "equivalence": "EXACT",
+      "decision": "REVIEW_DUPLICATE_ONLY"
+    },
+    {
+      "issue": 186,
+      "comparedTo": 185,
+      "equivalence": "DIFFERENT_REQUIREMENT",
+      "decision": "BLOCKED_KEEP_OPEN"
+    }
+  ]
 }
