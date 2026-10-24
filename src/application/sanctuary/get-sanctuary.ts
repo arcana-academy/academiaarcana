@@ -13,9 +13,9 @@ import type { SanctuaryGrimoire, SanctuaryUser, SanctuaryViewModel } from "@/dom
 import type {
   SanctuaryMissionProjection,
   SanctuaryProgressProjection,
-  SanctuaryProjectionPort,
+  SanctuaryRepository,
   SanctuaryTaskProjection,
-} from "./sanctuary-projection-port";
+} from "./sanctuary-repository";
 
 export type SanctuarySessionContext = { user: SanctuaryUser };
 

@@ -6,7 +6,7 @@ import type {
   SanctuaryUser,
 } from "@/domains/sanctuary";
 import { getSanctuary } from "./get-sanctuary";
-import type { SanctuaryProjectionPort } from "./sanctuary-projection-port";
+import type { SanctuaryRepository } from "./sanctuary-repository";
 
 const user: SanctuaryUser = {
   id: "user-1",
