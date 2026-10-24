@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import type { PageContent } from "@/domains/learning";
-import { isDecorativeReadingBlock } from "./AccessiblePageReadingPreview";
-import { accessibleBlockTypeLabel, readingAlternativeLabel } from "./accessible-block-contract";
+import {
+  readableBlockType,
+  isDecorativeReadingBlock,
+  readingAlternativeLabel,
+} from "./AccessiblePageReadingPreview";
 
 /** Text-only copy of an editable draft; never a file attachment or server write. */
 export function serializeAccessiblePageText(title: string, content: PageContent): string {
@@ -22,7 +25,7 @@ export function serializeAccessiblePageText(title: string, content: PageContent)
     if (isDecorativeReadingBlock(block)) return;
     lines.push("");
     if (block.type !== "paragraph") {
-      lines.push("Bloco " + (index + 1) + " — " + accessibleBlockTypeLabel(block.type));
+      lines.push("Bloco " + (index + 1) + " — " + readableBlockType(block.type));
     }
     if (block.content) {
       lines.push(block.content);

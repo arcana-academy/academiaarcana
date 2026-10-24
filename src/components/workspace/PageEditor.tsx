@@ -175,12 +175,15 @@ function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: Page
                 value={block.type}
                 onChange={(event) => onChange(index, { type: event.target.value })}
               >
-                {!isKnownBlockType(block.type) ? (
+                {!["paragraph", "image", "audio", "video", "formula", "diagram"].includes(block.type) ? (
                   <option value={block.type}>Tipo existente: {block.type}</option>
                 ) : null}
-                {KNOWN_BLOCK_TYPES.map(({ id, label }) => (
-                  <option key={id} value={id}>{label}</option>
-                ))}
+                <option value="paragraph">Texto</option>
+                <option value="image">Imagem — referência textual</option>
+                <option value="audio">Áudio — referência textual</option>
+                <option value="video">Vídeo — referência textual</option>
+                <option value="formula">Fórmula</option>
+                <option value="diagram">Diagrama — referência textual</option>
               </select>
               {block.type === "image" ? (
                 <label htmlFor={"workspace-block-decorative-" + index}>
@@ -203,7 +206,17 @@ function PageBlocks({ blocks, blockKeys, onChange, onAccessibilityChange }: Page
               ) : (
                 <>
                   <label htmlFor={"workspace-block-description-" + index}>
-                    {accessibilityFieldLabel(block.type)}
+                    {block.type === "image"
+                      ? "Descrição alternativa"
+                      : block.type === "audio"
+                        ? "Transcrição ou descrição do áudio"
+                        : block.type === "video"
+                          ? "Transcrição ou descrição"
+                        : block.type === "formula"
+                          ? "Leitura da fórmula"
+                          : block.type === "diagram"
+                            ? "Descrição do diagrama"
+                            : "Observação acessível (opcional)"}
                   </label>
                   <textarea
                     id={"workspace-block-description-" + index}
