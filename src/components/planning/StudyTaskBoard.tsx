@@ -59,6 +59,7 @@ export function StudyTaskBoard({
     serverTasks: tasks,
     localCreates: locallyCreated,
     ids: new Set<string>(),
+    completedAbsent: new Set<string>(),
   }));
   if (acknowledgment.serverTasks !== tasks || acknowledgment.localCreates !== locallyCreated) {
     const serverIds = new Set(tasks.map((task) => task.id));
@@ -66,21 +67,31 @@ export function StudyTaskBoard({
     for (const created of locallyCreated) {
       if (serverIds.has(created.id)) ids.add(created.id);
     }
-    setAcknowledgment({ serverTasks: tasks, localCreates: locallyCreated, ids });
+    // Only a *new* server snapshot that omits a completed ID acknowledges
+    // completion. A stale snapshot still containing that ID must stay hidden.
+    const completedAbsent = new Set(acknowledgment.completedAbsent);
+    if (acknowledgment.serverTasks !== tasks) {
+      for (const id of locallyCompleted) {
+        if (!serverIds.has(id)) completedAbsent.add(id);
+      }
+    }
+    setAcknowledgment({ serverTasks: tasks, localCreates: locallyCreated, ids, completedAbsent });
   }
 
   const items = useMemo(() => {
     const serverIds = new Set(tasks.map((task) => task.id));
     return [
-      ...tasks.filter((task) => !locallyCompleted.has(task.id)),
+      ...tasks.filter(
+        (task) => !locallyCompleted.has(task.id) || acknowledgment.completedAbsent.has(task.id),
+      ),
       ...locallyCreated.filter(
         (task) =>
           !serverIds.has(task.id) &&
           !acknowledgment.ids.has(task.id) &&
-          !locallyCompleted.has(task.id),
+          (!locallyCompleted.has(task.id) || acknowledgment.completedAbsent.has(task.id)),
       ),
     ];
-  }, [tasks, locallyCreated, locallyCompleted, acknowledgment.ids]);
+  }, [tasks, locallyCreated, locallyCompleted, acknowledgment.ids, acknowledgment.completedAbsent]);
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -246,6 +257,14 @@ export function StudyTaskBoard({
     setError(null);
     try {
       await onComplete(id);
+      // Re-completing a legitimately reopened ID starts a new acknowledgment
+      // cycle. Otherwise the old absence proof would keep it visible.
+      setAcknowledgment((current) => {
+        if (!current.completedAbsent.has(id)) return current;
+        const completedAbsent = new Set(current.completedAbsent);
+        completedAbsent.delete(id);
+        return { ...current, completedAbsent };
+      });
       setLocallyCompleted((current) => new Set([...current, id]));
     } catch {
       setError("Não foi possível concluir a tarefa.");

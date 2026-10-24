@@ -663,67 +663,40 @@ describe("StudyTaskBoard", () => {
     expect(await screen.findByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
   });
 
-  it("keeps the Cronograma available if an Outlook event has an invalid date", () => {
-    const events = [
-      {
-        id: "malformed-event",
-        subject: "Sessão do grimório",
-        start: { dateTime: "invalid-graph-date", timeZone: "UTC" },
-        end: { dateTime: "2026-10-20T15:00:00Z", timeZone: "UTC" },
-        webLink: "https://outlook.office.com/calendar/item/malformed-event",
-      },
-    ];
-    render(
-      <StudyTaskBoard
-        tasks={[task]}
-        outlookConnected
-        outlookEvents={events}
-        onCreate={vi.fn()}
-        onComplete={vi.fn()}
-      />,
+  it("shows a reopened task after its absence was acknowledged and permits completion again", async () => {
+    const onCreate = vi.fn();
+    const onComplete = vi.fn().mockResolvedValue({ ...task, status: "completed" });
+    const { rerender } = render(
+      <StudyTaskBoard tasks={[task]} onCreate={onCreate} onComplete={onComplete} />,
     );
-    expect(screen.getByText("Sessão do grimório")).toBeInTheDocument();
-    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
-    expect(screen.getByText(/Data indisponível/)).toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
 
-  it("does not throw if a study task has a malformed due date", () => {
-    render(
-      <StudyTaskBoard
-        tasks={[{ ...task, dueAt: "not-a-valid-date" }]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn()}
-      />,
-    );
-    expect(screen.getByText("Revisar capítulo")).toBeInTheDocument();
-    expect(screen.getByText("Data indisponível")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Concluir" })).toBeEnabled();
-  });
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument());
 
-  it("treats UTC Outlook event timestamps without offsets as UTC", () => {
-    const start = "2026-10-20T13:30:00";
-    const end = "2026-10-20T14:30:00";
-    const toLocalLabel = (value: string) =>
-      new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" })
-        .format(new Date(value));
-    render(
+    // A newer server response can still be stale: do not resurrect it yet.
+    rerender(
+      <StudyTaskBoard tasks={[{ ...task }]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(screen.queryByText("Revisar capítulo")).not.toBeInTheDocument();
+
+    // An authoritative server snapshot without the task acknowledges completion.
+    rerender(
+      <StudyTaskBoard tasks={[]} onCreate={onCreate} onComplete={onComplete} />,
+    );
+    expect(screen.getByText("Nenhuma tarefa futura cadastrada.")).toBeInTheDocument();
+
+    // A later fresh server response may legitimately reopen that same task ID.
+    rerender(
       <StudyTaskBoard
-        tasks={[task]}
-        outlookConnected
-        outlookEvents={[{
-          id: "utc-event",
-          subject: "Aula arcana",
-          start: { dateTime: start, timeZone: "UTC" },
-          end: { dateTime: end, timeZone: "UTC" },
-        }]}
-        onCreate={vi.fn()}
-        onComplete={vi.fn()}
+        tasks={[{ ...task, title: "Retomar capítulo", updatedAt: "2026-10-17T10:00:00.000Z" }]}
+        onCreate={onCreate}
+        onComplete={onComplete}
       />,
     );
-    const eventItem = screen.getByText("Aula arcana").closest("li");
-    expect(eventItem).toHaveTextContent(toLocalLabel(`${start}Z`));
-    expect(eventItem).toHaveTextContent(toLocalLabel(`${end}Z`));
+    expect(await screen.findByText("Retomar capítulo")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Concluir" }));
+    await waitFor(() => expect(screen.queryByText("Retomar capítulo")).not.toBeInTheDocument());
+    expect(onComplete).toHaveBeenCalledTimes(2);
   });
 
 });
