@@ -413,3 +413,25 @@ describe("saved block checklist integration", () => {
     expect(screen.getByRole("button", { name: "Organizar estudo por trechos" })).toBeEnabled();
   });
 });
+
+describe("temporary glossary integration", () => {
+  test("requires saved nonempty content and discards entries upon return", async () => {
+    const onSave = vi.fn(async (input: SaveInput): Promise<Page> => ({ ...page, title: input.title, content: input.content }));
+    render(<PageEditor {...movementProps} page={page} onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", { name: "Criar glossário temporário" }));
+    expect(screen.getByRole("heading", { name: "Glossário pessoal temporário" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Termo"), { target: { value: "Átomo" } });
+    fireEvent.change(screen.getByLabelText("Definição com suas palavras"), { target: { value: "Unidade química" } });
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar conceito" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Criar glossário temporário" }));
+    expect(screen.getByText("0 conceito(s) nesta tela.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao editor" }));
+    fireEvent.change(screen.getByLabelText("Bloco 1"), { target: { value: "Não salvo" } });
+    expect(screen.getByRole("button", { name: "Criar glossário temporário" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Criar glossário temporário" })).toBeEnabled();
+  });
+});
