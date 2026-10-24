@@ -178,11 +178,14 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     const createNotebookForm = page.getByRole("form", { name: "Criar caderno" });
     try {
       await expect(createNotebookForm).toBeVisible();
+      await expect(page).toHaveURL(
+        /\/workspace\?view=tree&grimoire=[^#]+#current$/,
+      );
     } catch (error) {
       await Promise.all(workspaceActionTasks);
       const alerts = await page.getByRole("alert").allTextContents();
       throw new Error(
-        `Notebook creation form did not appear after creating a grimoire; URL=${page.url()}; action responses=${workspaceActionDetails.join(" | ") || "none"}; visible alerts=${alerts.join(" | ") || "none"}`,
+        `Grimoire creation did not reach its canonical selected state; URL=${page.url()}; action responses=${workspaceActionDetails.join(" | ") || "none"}; visible alerts=${alerts.join(" | ") || "none"}`,
         { cause: error },
       );
     } finally {
@@ -193,11 +196,17 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await createNotebook.getByRole("textbox", { name: "Novo caderno" }).fill(notebookTitle);
     await createNotebook.getByRole("button", { name: "Criar caderno" }).click();
     await expect(page.getByRole("form", { name: "Criar capítulo" })).toBeVisible();
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&notebook=[^#]+#current$/,
+    );
 
     const createChapter = page.getByRole("form", { name: "Criar capítulo" });
     await createChapter.getByRole("textbox", { name: "Novo capítulo" }).fill(chapterTitle);
     await createChapter.getByRole("button", { name: "Criar capítulo" }).click();
     await expect(page.getByRole("form", { name: "Criar página" })).toBeVisible();
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&chapter=[^#]+#current$/,
+    );
 
     const createPage = page.getByRole("form", { name: "Criar página" });
     await createPage.getByRole("textbox", { name: "Nova página" }).fill(pageTitle);
@@ -205,6 +214,9 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
 
     const editor = page.getByRole("article", { name: "Editor da página" });
     await expect(editor).toBeVisible();
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&page=[^#]+#current$/,
+    );
     await expect(editor.getByRole("textbox", { name: "Título", exact: true })).toHaveValue(pageTitle);
     await editor.getByRole("button", { name: "Adicionar bloco" }).click();
     await editor.getByRole("textbox", { name: "Bloco 1" }).fill(pageBody);
@@ -212,8 +224,13 @@ test.describe("authenticated Grimoires to Workspace handoff", () => {
     await expect(editor.getByText("Página salva.")).toBeVisible();
     await captureSyntheticVisualEvidence(page, "03-workspace-pagina-salva-desktop.png");
 
+    // Revalidation from the save action may briefly refresh the current RSC
+    // tree. Wait for the client shell to restore its canonical selection before
+    // capturing the reload URL instead of racing that synchronization effect.
+    await expect(page).toHaveURL(
+      /\/workspace\?view=tree&page=[^#]+#current$/,
+    );
     const selectedUrl = page.url();
-    expect(selectedUrl).toMatch(/\/workspace\?view=tree&page=[^#]+#current$/);
     await page.reload();
     await expect(page).toHaveURL(selectedUrl);
     const persistedEditor = page.getByRole("article", { name: "Editor da página" });
