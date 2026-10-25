@@ -329,7 +329,7 @@
     }
   }
 
-  const triggerEntries = [...renderConfig.matchAll(/^\\s*autoDeployTrigger:\\s*(\\S+)\\s*$/gm)].map((match) => match[1]);
+  const triggerEntries = [...renderConfig.matchAll(/^\s*autoDeployTrigger:\s*(\S+)\s*$/gm)].map((match) => match[1]);
   if (triggerEntries.length !== 1 || triggerEntries[0] !== "off") {
     fail("Render auto-deploy must have exactly one trigger, set to off");
   }
