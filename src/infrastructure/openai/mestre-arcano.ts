@@ -405,13 +405,16 @@ async function runMestreArcanoLoop({
       return { payload, responseId };
     }
 
+    // A private read and an external request can arrive in the SAME model batch.
+    // Deny egress for the entire batch before executing any tool in parallel.
+    const readsPrivateData = functionCalls.some((call) => isPrivateDataTool(call.name));
     responseInput = await executeMestreArcanoCalls(
       functionCalls,
       toolContext,
-      !privateDataInContext,
+      !privateDataInContext && !readsPrivateData,
     );
 
-    if (functionCalls.some((call) => isPrivateDataTool(call.name))) {
+    if (readsPrivateData) {
       privateDataInContext = true;
     }
   }
