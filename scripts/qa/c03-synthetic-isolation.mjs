@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { assessSupabasePublishedPorts } from './c03-docker-publish-guard.mjs';
 
 const SHA40 = /^[0-9a-f]{40}$/;
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
@@ -91,12 +92,25 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     readGitHead: () => execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }),
     readSupabaseStatus: () => execFileSync('supabase', ['status', '-o', 'env'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }),
   });
-  if (!result.ok) {
+  // Docker's actual host port bindings must also be loopback-only.
+  // A localhost API URL does not prove a localhost Docker publication.
+  let publishedPorts = { ok: true, reasons: [] };
+  if (result.ok) {
+    try {
+      const inventory = execFileSync('docker', ['ps', '--format', '{{json .}}'], {
+        encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+      });
+      publishedPorts = assessSupabasePublishedPorts(inventory);
+    } catch {
+      publishedPorts = { ok: false, reasons: ['Docker published-port metadata could not be read'] };
+    }
+  }
+  if (!result.ok || !publishedPorts.ok) {
     console.error('BLOCKED: synthetic QA technical preflight failed:');
-    for (const reason of result.reasons) console.error(`- ${reason}`);
+    for (const reason of [...result.reasons, ...publishedPorts.reasons]) console.error(`- ${reason}`);
     process.exitCode = 2;
   } else {
-    console.log('PASS: checkout SHA and loopback Supabase technical checks.');
+    console.log('PASS: checkout SHA, local Supabase origin and Docker loopback publishing.');
     console.log('NOT VERIFIED: independent human authorization, isolation of the host/network, disposal evidence and protected C03 approval.');
   }
 }
