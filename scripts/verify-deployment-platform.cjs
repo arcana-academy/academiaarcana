@@ -50,13 +50,18 @@ const requiredRenderDirectives = [
   "type: web",
   "runtime: node",
   "branch: main",
-  "autoDeployTrigger: commit",
+  "autoDeployTrigger: off",
   "buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build",
   "startCommand: npm start",
   "healthCheckPath: /api/health",
   "key: NPM_CONFIG_IGNORE_SCRIPTS",
   'value: "true"',
 ];
+
+const triggerEntries = [...renderConfig.matchAll(/^\\s*autoDeployTrigger:\\s*(\\S+)\\s*$/gm)].map((match) => match[1]);
+if (triggerEntries.length !== 1 || triggerEntries[0] !== "off") {
+  throw new Error("Render auto-deploy must have exactly one trigger, set to off.");
+}
 
 for (const directive of requiredRenderDirectives) {
   if (!renderConfig.includes(directive)) {
