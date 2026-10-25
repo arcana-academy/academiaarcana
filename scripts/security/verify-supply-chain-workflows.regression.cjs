@@ -58,6 +58,8 @@ for (const expression of [
   '${{ secrets[format(\'SYNTHETIC_{0}\', \"NAME\")] }}',
   '${{ secrets . SYNTHETIC_NOT_A_REAL_SECRET }}',
   "${{ secrets['GITHUB_TOKEN'] }}",
+  '${{ toJSON(secrets) }}',
+  '${{ secrets }}',
 ]) {
   test('rejects noncanonical PR secret references: ' + expression, () => {
     const result = runSyntheticWorkflow({ expression });
