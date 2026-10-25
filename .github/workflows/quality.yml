@@ -47,6 +47,9 @@ jobs:
       - name: Verify supply-chain workflow boundary
         run: node scripts/verify-supply-chain-workflows.cjs
 
+      - name: Regression tests for PR secret boundary
+        run: node --test scripts/security/verify-supply-chain-workflows.regression.cjs
+
       - name: Verify dependency lifecycle allowlist
         run: node scripts/verify-dependency-lifecycle-scripts.cjs
 
