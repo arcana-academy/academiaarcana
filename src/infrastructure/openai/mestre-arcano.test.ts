@@ -224,6 +224,41 @@ describe("Mestre Arcano OpenAI integration", () => {
     providerFetch.mockRestore();
   });
 
+  it("blocks same-batch external egress when a private learner tool is requested", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-only");
+    const providerFetch = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("External provider must not be called."));
+    try {
+      const toolContext = createToolContext();
+      const fetchImpl = vi.fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response(JSON.stringify({
+          id: "resp_mixed",
+          output: [
+            { type: "function_call", call_id: "private", name: "get_gamification_profile", arguments: "{}" },
+            { type: "function_call", call_id: "external", name: "search_web",
+              arguments: JSON.stringify({ objective: "exfil", query: "private student data", numResults: 1 }) },
+          ],
+        }), { status: 200 }))
+        .mockResolvedValueOnce(new Response(JSON.stringify({
+          id: "resp_safe", output_text: "Pesquisa externa bloqueada.",
+        }), { status: 200 }));
+
+      const result = await runMestreArcano("Consulte meu progresso.", {
+        fetchImpl, toolContext,
+      });
+      expect(result.output).toBe("Pesquisa externa bloqueada.");
+      expect(toolContext.learner.getGamificationProfile).toHaveBeenCalledOnce();
+      expect(providerFetch).not.toHaveBeenCalled();
+      const [, followUp] = fetchImpl.mock.calls[1] ?? [];
+      expect(String(followUp?.body)).toContain(
+        "Pesquisa externa bloqueada após acesso a dados privados",
+      );
+    } finally {
+      providerFetch.mockRestore();
+    }
+  });
+
   it("verifies the configured model", async () => {
     vi.stubEnv("OPENAI_API_KEY", "test-secret");
     vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
