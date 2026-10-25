@@ -111,9 +111,17 @@ for (const fileName of workflowFiles) {
   }
 
   if (/\bpull_request\s*:/m.test(content)) {
+    // Indexed or computed lookups cannot be safely allowlisted by this guard.
+    // Require the auditable `secrets.GITHUB_TOKEN` form in PR workflows.
+    if (/\bsecrets\s*\[/.test(content)) {
+      throw new Error(
+        `${fileName}: pull_request workflow uses indexed or computed secrets access.`,
+      );
+    }
+
     const secretRefs = [
-      ...content.matchAll(/secrets\.([A-Z0-9_]+)/g),
-    ].map((match) => match[1]);
+      ...content.matchAll(/\bsecrets\s*\.\s*([A-Z_][A-Z0-9_]*)/gi),
+    ].map((match) => match[1].toUpperCase());
 
     const disallowed = secretRefs.filter(
       (name) => name !== "GITHUB_TOKEN",
