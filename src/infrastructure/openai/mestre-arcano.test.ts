@@ -259,6 +259,59 @@ describe("Mestre Arcano OpenAI integration", () => {
     }
   });
 
+  it("keeps Responses stateless and caps response tokens with an abort signal", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-only");
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ id: "resp_no_store", output_text: "Ok" }), { status: 200 }),
+    );
+    await runMestreArcano("Olá", { fetchImpl, toolContext: createToolContext() });
+    const [, init] = fetchImpl.mock.calls[0] ?? [];
+    const requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    expect(requestBody.store).toBe(false);
+    expect(requestBody.max_output_tokens).toBe(4096);
+    expect(requestBody.include).toEqual(["reasoning.encrypted_content"]);
+    expect(requestBody).not.toHaveProperty("previous_response_id");
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("replays tool output locally without referencing a stored response ID", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-only");
+    const fetchImpl = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: "resp_private",
+        output: [
+          { type: "reasoning", id: "reasoning_test", encrypted_content: "encrypted-synthetic", summary: [] },
+          { type: "function_call", call_id: "profile", name: "get_gamification_profile", arguments: "{}" },
+        ],
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: "resp_end", output_text: "Progresso disponível.",
+      }), { status: 200 }));
+    await runMestreArcano("Como está meu progresso?", {
+      fetchImpl, toolContext: createToolContext(),
+    });
+    const [, next] = fetchImpl.mock.calls[1] ?? [];
+    const body = JSON.parse(String(next?.body)) as Record<string, unknown>;
+    expect(body.store).toBe(false);
+    expect(body).not.toHaveProperty("previous_response_id");
+    expect(JSON.stringify(body.input)).toContain("encrypted-synthetic");
+    expect(JSON.stringify(body.input)).toContain("function_call_output");
+  });
+
+  it("rejects excess tool calls before any tool is executed", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-only");
+    const toolContext = createToolContext();
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ output: Array.from({ length: 5 }, (_, i) => ({
+        type: "function_call", call_id: `call_${i}`,
+        name: "get_gamification_profile", arguments: "{}",
+      })) }), { status: 200 }),
+    );
+    await expect(runMestreArcano("Olá", { fetchImpl, toolContext }))
+      .rejects.toThrow("limite de ferramentas por iteração");
+    expect(toolContext.learner.getGamificationProfile).not.toHaveBeenCalled();
+  });
+
   it("verifies the configured model", async () => {
     vi.stubEnv("OPENAI_API_KEY", "test-secret");
     vi.stubEnv("OPENAI_AGENT_MODEL", "gpt-5.6-sol");
