@@ -51,6 +51,38 @@ if (existsSync(autofixWorkflowPath)) {
   }
 }
 
+// GitHub accepts mapping, scalar and sequence forms of the YAML `on` key.
+// Inspect its top-level declaration so alternate PR triggers cannot bypass
+// the secrets boundary, without treating unrelated comments as events.
+function hasPullRequestTrigger(content) {
+  let insideOn = false;
+  for (const line of content.split(/\r?\n/)) {
+    const onDeclaration = line.match(/^(?:on|"on"|'on')\s*:\s*(.*)$/);
+    if (onDeclaration) {
+      const inline = onDeclaration[1].replace(/\s+#.*$/, "").trim();
+      if (inline) {
+        if (/(?:^|[\s\[,{"'])pull_request(?=$|[\s\]},:"'])/.test(inline)) {
+          return true;
+        }
+        insideOn = false;
+      } else {
+        insideOn = true;
+      }
+      continue;
+    }
+    if (!insideOn) continue;
+    if (/^\S/.test(line)) {
+      insideOn = false;
+      continue;
+    }
+    const entry = line.replace(/\s+#.*$/, "").trim();
+    if (/^(?:-\s*)?(?:pull_request|"pull_request"|'pull_request')\s*(?::|$)/.test(entry)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const shaPinnedUse = /^[^\s@]+@[0-9a-f]{40}$/i;
 
 for (const fileName of workflowFiles) {
@@ -110,7 +142,7 @@ for (const fileName of workflowFiles) {
     }
   }
 
-  if (/\bpull_request\s*:/m.test(content)) {
+  if (hasPullRequestTrigger(content)) {
     // Verify every secrets context access, not only member/index lookups.
     // Otherwise a whole-context expression could bypass member-only checks.
     for (const expression of content.matchAll(/\$\{\{([\s\S]*?)\}\}/g)) {

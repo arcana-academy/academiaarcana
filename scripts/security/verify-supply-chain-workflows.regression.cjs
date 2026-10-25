@@ -15,15 +15,14 @@ const ownership = [
   '/scripts/verify-supply-chain-workflows.cjs @arcana-academy',
 ].join('\n') + '\n';
 
-function runSyntheticWorkflow({ expression, trigger = 'pull_request' }) {
+function runSyntheticWorkflow({ expression, trigger = 'pull_request', onLines = null }) {
   const root = mkdtempSync(join(tmpdir(), 'aa-supply-chain-'));
   try {
     mkdirSync(join(root, '.github', 'workflows'), { recursive: true });
     writeFileSync(join(root, '.github', 'CODEOWNERS'), ownership);
     writeFileSync(join(root, '.github', 'workflows', 'synthetic.yml'), [
       'name: synthetic-regression',
-      'on:',
-      `  ${trigger}:`,
+      ...(onLines ?? ['on:', `  ${trigger}:`]),
       'permissions:',
       '  contents: read',
       'jobs:',
@@ -66,6 +65,30 @@ for (const expression of [
     assert.notEqual(result.status, 0, 'Unsafe PR workflow was unexpectedly accepted');
   });
 }
+
+for (const onLines of [
+  ['on: [pull_request]'],
+  ['on: pull_request'],
+  ['on: [push, pull_request]'],
+  ['on:', "  'pull_request':"],
+  ["'on':", '  - pull_request'],
+]) {
+  test('rejects secret access through alternate pull_request declaration: ' + onLines.join(' '), () => {
+    const result = runSyntheticWorkflow({
+      expression: '${{ secrets.SYNTHETIC_NOT_A_REAL_SECRET }}',
+      onLines,
+    });
+    assert.notEqual(result.status, 0, 'Alternate valid PR trigger bypassed the security guard');
+  });
+}
+
+test('does not treat a comment as a pull_request trigger', () => {
+  const result = runSyntheticWorkflow({
+    expression: '${{ secrets.SYNTHETIC_NOT_A_REAL_SECRET }}',
+    onLines: ['on: push # pull_request mentioned only in this comment'],
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
 
 test('does not change rules for push-only workflows', () => {
   const result = runSyntheticWorkflow({
