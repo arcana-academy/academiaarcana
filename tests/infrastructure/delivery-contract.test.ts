@@ -142,7 +142,7 @@ describe("delivery infrastructure contract", () => {
     const smoke = readRepoFile(".github/workflows/production-smoke.yml");
     // The smoke can only verify a revision after it is deployed. Neither
     // checksPass nor commit is acceptable under the current release NO-GO.
-    const configured = [...blueprint.matchAll(/^\\s*autoDeployTrigger:\\s*(\\S+)\\s*$/gm)]
+    const configured = [...blueprint.matchAll(/^\s*autoDeployTrigger:\s*(\S+)\s*$/gm)]
       .map((match) => match[1]);
     expect(configured).toEqual(["off"]);
     expect(smoke).toContain("body.revision !== expected");
