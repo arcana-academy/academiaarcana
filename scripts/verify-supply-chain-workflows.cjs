@@ -111,6 +111,20 @@ for (const fileName of workflowFiles) {
   }
 
   if (/\bpull_request\s*:/m.test(content)) {
+    // Verify every secrets context access, not only member/index lookups.
+    // Otherwise a whole-context expression could bypass member-only checks.
+    for (const expression of content.matchAll(/\$\{\{([\s\S]*?)\}\}/g)) {
+      const expr = expression[1].replace(/'(?:''|[^'])*'/g, "''");
+      for (const reference of expr.matchAll(/\bsecrets\b/gi)) {
+        const access = expr.slice(reference.index);
+        if (!/^secrets\s*\.\s*GITHUB_TOKEN\b/i.test(access)) {
+          throw new Error(
+            `${fileName}: pull_request workflow accesses a nonallowlisted secrets context.`,
+          );
+        }
+      }
+    }
+
     // Indexed or computed lookups cannot be safely allowlisted by this guard.
     // Require the auditable `secrets.GITHUB_TOKEN` form in PR workflows.
     if (/\bsecrets\s*\[/.test(content)) {
