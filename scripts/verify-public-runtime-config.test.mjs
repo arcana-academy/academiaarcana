@@ -134,6 +134,29 @@ describe("verify-public-runtime-config", () => {
     ).toThrow(/valid HTTPS Supabase project URL/);
   });
 
+
+  it("redacts arbitrary environment data from CLI-reporting metadata", () => {
+    const syntheticMarker = "synthetic-confidential-value-not-a-real-secret";
+    const result = verifyPublicRuntimeConfig({
+      APP_ENV: syntheticMarker,
+      NEXT_PUBLIC_SUPABASE_URL: validUrl,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+    });
+    expect(result.environment).toBe("unknown");
+    expect(JSON.stringify(result)).not.toContain(syntheticMarker);
+  });
+
+  it.each(["test", "staging", "development"])(
+    "preserves approved non-secret environment label %s",
+    (appEnvironment) => {
+      expect(verifyPublicRuntimeConfig({
+        APP_ENV: appEnvironment,
+        NEXT_PUBLIC_SUPABASE_URL: validUrl,
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }).environment).toBe(appEnvironment);
+    },
+  );
+
   it("accepts a complete preview configuration", () => {
     expect(
       verifyPublicRuntimeConfig({

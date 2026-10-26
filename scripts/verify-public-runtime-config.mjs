@@ -86,10 +86,23 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
     environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   );
 
+  // The result is printed by the CLI. Never copy arbitrary process-environment
+  // values into logs; only literal, reviewed labels may leave this boundary.
+  const candidate = environment.APP_ENV ?? environment.NODE_ENV;
+  let environmentLabel;
+  switch (candidate) {
+    case "production": environmentLabel = "production"; break;
+    case "preview": environmentLabel = "preview"; break;
+    case "development": environmentLabel = "development"; break;
+    case "test": environmentLabel = "test"; break;
+    case "staging": environmentLabel = "staging"; break;
+    default: environmentLabel = "unknown";
+  }
+
   return {
     integration: "supabase-public-runtime",
     verified: true,
-    environment: environment.APP_ENV ?? environment.NODE_ENV ?? "unknown",
+    environment: environmentLabel,
     configuration: "environment",
   };
 }
