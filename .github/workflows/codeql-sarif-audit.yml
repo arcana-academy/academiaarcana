@@ -76,5 +76,13 @@ jobs:
                           phys = loc.get("physicalLocation", {})
                           art = phys.get("artifactLocation", {}).get("uri", "?")
                           line = phys.get("region", {}).get("startLine", "?")
-                          print(f"ALERT|{rid}|sev={sev}|level={prec}|{art}:{line}|{msg}")
+                          text = f"ALERT|{rid}|sev={sev}|level={prec}|{art}:{line}|{msg}"
+                          esc = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                          esc_file = str(art).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace(":", "%3A").replace(",", "%2C")
+                          try:
+                              esc_line = int(line)
+                          except Exception:
+                              esc_line = 1
+                          print(f"::warning file={esc_file},line={esc_line},title={rid}::{esc}")
+                          print(text)
           PY
