@@ -1,0 +1,857 @@
+{
+  "series": "F1-F5",
+  "commit": "3ec1ce32ca43508b2ddca67d926f934aea34d24e",
+  "entries": [
+    {
+      "issue": 77,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.1 — `identity`",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Fronteira idêntica ao canônico do produto: `DOMAIN_POLICIES.identity` proíbe autorização, perfil completo e preferências.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 78,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.2 — `authorization`",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Decisão de acesso separada de identidade e contexto; sem política, o resultado é `policy-denied`.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 79,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.3 — `customers`",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Transposto para `context` (membership/visibilidade). Não existe módulo de clientes; cadastro institucional depende de DEP-C17-01/02.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 80,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.4 — `conversations`",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Transposto para `intelligence` (Mestre Arcano) + `social`. Histórico de conversa persistido não é canônico.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 81,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.5 — `tickets`",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Não existe ticket de atendimento. O análogo é `public.feedback_responses` (owner `trust`), sob a decisão de retenção de #588/#530.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 82,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.6 — `knowledge`",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Transposto para `education` como fonte oficial de conteúdo; `learning` consome por contrato.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 83,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.7 — `documents`",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Documentos externos são adapter de infraestrutura (`external_document_sources`, owner `infrastructure`); extração/processamento não implementado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 84,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.8 — `ai`",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Transposto para `intelligence` + `adaptive`, com allowlist de provedor e limite de consumo durável.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 85,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.9 — `notifications`",
+      "status": "LACUNA",
+      "gap": "GAP-F1-09",
+      "note": "Não existe domínio, tabela, fila ou worker de notificações. A definição registra a ausência em vez de inventar a capacidade.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 86,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.10 — `analytics`",
+      "status": "PARCIAL",
+      "gap": "GAP-F1-10",
+      "note": "`/estatisticas` é leitura derivada de `learning`/`planning`/`gamification`; não há persistência analítica própria.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 87,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.11 — `audit`",
+      "status": "PARCIAL",
+      "gap": "GAP-F1-11",
+      "note": "Auditoria é contrato do domínio `trust` + `authorization`; trilha persistente não existe.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 88,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.12 — `settings`",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Configuração não é domínio: divide-se em runtime/build, preferências de acessibilidade e navegação.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 89,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.13 — Matriz de dependências",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Fonte única: `DOMAIN_DEPENDENCY_MATRIX`; ciclos e imports proibidos falham em teste arquitetural.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 90,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.14 — Contratos entre módulos",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Superfície pública restrita a `src/domains/*/index.ts` e `contracts.ts`.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 91,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.15 — Matriz de eventos",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "27 eventos declarados por 14 domínios, extraídos de `DOMAIN_POLICIES`.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 92,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.16 — Ciclo de vida dos eventos",
+      "status": "LACUNA",
+      "gap": "GAP-F1-16",
+      "note": "Envelope e ciclo definidos; não há transporte, portanto não há entrega a testar.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 93,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.16 — Ciclo de vida dos eventos",
+      "status": "LACUNA",
+      "gap": "GAP-F1-16",
+      "note": "Duplicata de #92.",
+      "duplicateOf": 92
+    },
+    {
+      "issue": 94,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.17 — Propriedade dos dados",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "16 recursos com owner único em `DATA_OWNERSHIP_POLICY`, verificados por teste.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 95,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.18 — Leitura/escrita/mutação",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Tabela por domínio derivada das políticas; enforcement por RLS + guardas de servidor.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 96,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.18 — Leitura/escrita/mutação",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Duplicata de #95.",
+      "duplicateOf": 95
+    },
+    {
+      "issue": 97,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.19 — Comandos, consultas e eventos",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Separação aplicada; inventário completo por caso de uso está em `AA-SPEC-F5` §F5.2.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 98,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.20 — Fronteiras e ciclos",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Quatro testes arquiteturais + guarda de `prebuild`.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 99,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.21 — Isolamento de camadas",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Domínio sem React/Next/Supabase client; aplicação, infraestrutura e UI separadas e verificadas.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 100,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.22 — Dependências externas e adapters",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Port/adapter por capacidade; allowlist em `provider-policy.ts`.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 101,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.23 — Configuração e secrets",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "`.env.example` é o único arquivo de ambiente versionado; `/etc/secrets` preferido em runtime.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 102,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.24 — Ciclo de vida das configurações",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Ciclo aplicado via Git + CODEOWNERS + reversão por revert.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 103,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.25 — Classificação das configurações",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Quatro classes com controles distintos; nenhum valor sensível versionado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 104,
+      "document": "AA-SPEC-F1-MODULE-BOUNDARIES.md",
+      "section": "F1.26 — Escopo das configurações",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Escopos sistema→operação; escopo menor nunca sobrescreve maior silenciosamente.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 105,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.1 — Inventário de entidades",
+      "status": "PARCIAL",
+      "gap": "GAP-F2-01",
+      "note": "Inventário derivado de código; entidades do texto original sem equivalente não foram criadas.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 106,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.2 — Identidade e ownership",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "IDs opacos e estáveis; owner derivado de `DATA_OWNERSHIP_POLICY`.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 107,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.3 — Relacionamentos",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Relações explícitas com unicidade de posição e transições de amizade impostas no banco.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 108,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.4 — Agregados e consistência",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Agregados com raiz e fronteira; coordenação entre domínios só por RPC/evento declarado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 109,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.5 — Estados e ciclos de vida",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Estados explícitos por entidade; nenhum estado implícito aceito na borda.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 110,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.6 — Transições de estado",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Fluxo solicitação→estado→validação→autorização→regra→novo estado→evento.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 111,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.7 — Invariantes",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "INV-01…INV-10 com verificação direta em teste.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 112,
+      "document": "AA-SPEC-F2-DOMAIN-MODEL.md",
+      "section": "F2.8 — Regras de negócio por domínio",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Regras consolidadas por domínio; operação possível ≠ operação válida.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 113,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.1 — Princípios dos contratos",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Contrato tipado, superfície mínima e teste por contrato.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 114,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.2 — Commands",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Comandos como casos de uso explícitos, com validação e erro tipado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 115,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.3 — Queries",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Leitura sem efeito, escopo de dono explícito e aplicada no servidor/RLS.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 116,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.4 — Events",
+      "status": "PARCIAL",
+      "gap": "GAP-F3-04",
+      "note": "Envelope e catálogo definidos; sem broker, nenhuma entrega é declarada.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 117,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.5 — Requests e Responses",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Zod na borda, `no-store` em dado pessoal, status mínimos sem vazamento.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 118,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.6 — Contratos de erro",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Erros nomeados; nenhuma resposta expõe stack, SQL ou segredo.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 119,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.7 — Validação de entrada",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Validação em três níveis; entrada inválida não consome cota nem grava estado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 120,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.8 — Autorização nos casos de uso",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Autorização no servidor + RLS como segunda barreira + rate limit por rota sensível.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 121,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.9 — Idempotência",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "RPCs atômicos garantem idempotência nas operações existentes; integrações externas ainda não usam chave.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 122,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.10 — Paginação, filtros e ordenação",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Limite e ordenação determinística canônicos; cursor ainda não generalizado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 123,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.11 — Versionamento e compatibilidade",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Evolução aditiva; migrações imutáveis após aplicação; `/api/v1` para superfície pública.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 124,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.12 — Contratos com infraestrutura",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Domínio declara a interface; infraestrutura implementa; nenhum domínio importa cliente de banco.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 125,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.13 — Contratos assíncronos",
+      "status": "LACUNA",
+      "gap": "GAP-F3-13",
+      "note": "Não existe runtime assíncrono; o contrato está desenhado e a ausência registrada.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 126,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.14 — Webhooks e integrações",
+      "status": "PARCIAL",
+      "gap": "GAP-F3-14",
+      "note": "Callbacks OAuth existem e são testados; webhook de evento de entrada não existe.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 127,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.15 — Contratos públicos e privados",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Tabela de superfícies com regra de exposição e teste.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 128,
+      "document": "AA-SPEC-F3-CONTRACTS.md",
+      "section": "F3.16 — Matriz final de contratos",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "15 contratos com owner, implementação e teste correspondente.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 129,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.1 — Princípios e estratégia",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Pirâmide aplicada com contagens verificadas no HEAD.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 130,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.2 — Critérios de aceitação",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Critério ligado a invariante e a requisito, sob pena de virar lacuna.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 131,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.3 — Testes de domínio e invariantes",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Seis suítes arquiteturais + suítes por domínio.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 132,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.4 — Testes de Commands",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Sucesso, entrada inválida e efeito colateral por caso de uso.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 133,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.5 — Testes de Queries",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Escopo de dono, ordenação e limite verificados.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 134,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.6 — Testes de Events",
+      "status": "PARCIAL",
+      "gap": "GAP-F3-04",
+      "note": "Sem transporte não há teste de entrega; o catálogo é verificado estruturalmente.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 135,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.7 — Testes de Requests/Responses",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "400/401/429 com `Retry-After` inteiro e `no-store` cobertos.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 136,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.8 — Testes de erros",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Erros nomeados e ausência de vazamento.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 137,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.9 — Testes de autorização",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Três camadas: contrato, RLS em pgTAP e borda HTTP.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 138,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.10 — Idempotência e concorrência",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "RPC atômico de gamificação, unicidade de posição e limite de API testados.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 139,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.11 — Testes assíncronos",
+      "status": "LACUNA",
+      "gap": "GAP-F3-13",
+      "note": "Não há fila/worker para testar; nenhuma simulação é apresentada como cobertura.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 140,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.11 — Testes assíncronos",
+      "status": "LACUNA",
+      "gap": "GAP-F3-13",
+      "note": "Duplicata de #139.",
+      "duplicateOf": 139
+    },
+    {
+      "issue": 141,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.12 — Webhooks e integrações",
+      "status": "PARCIAL",
+      "gap": "GAP-F3-14",
+      "note": "Integrações e callbacks cobertos; webhook de entrada não existe para testar.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 142,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.13 — Testes de IA",
+      "status": "PARCIAL",
+      "gap": "GAP-F4-13",
+      "note": "Guardas de provedor, limite e ausência de segredo cobertos; qualidade de resposta não é medida.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 143,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.14 — Privacidade e segurança",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Gitleaks, isolamento de build, RLS intercontas e privilégios cobertos; senha vazada é pendência externa de #31.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 144,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.14 — Privacidade e segurança",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Duplicata de #143.",
+      "duplicateOf": 143
+    },
+    {
+      "issue": 145,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.15 — UI e acessibilidade",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Oito suítes de a11y + design system + baselines visuais.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 146,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.15 — UI e acessibilidade",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Duplicata de #145.",
+      "duplicateOf": 145
+    },
+    {
+      "issue": 147,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.16 — Regressões",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Regressões nomeadas em workflows dedicados; bug sem teste de regressão não conta como corrigido.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 148,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.17 — Matriz requisito → teste",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Requisitos AA-PROD mapeados; requisito sem elo é lacuna.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 149,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.18 — Quality Gates",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Sequência fail-closed do `quality.yml`, obrigatória para não-admins.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 150,
+      "document": "AA-SPEC-F4-TEST-STRATEGY.md",
+      "section": "F4.19 — Matriz final de cobertura",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Cobertura por área com lacunas explicitamente marcadas.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 151,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.1 — Princípios de implementação",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Domínio antes de infraestrutura; sem implementação especulativa.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 152,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.2 — Decomposição em unidades",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "11 unidades com contrato e teste.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 154,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.3 — Ordem e dependências",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Fluxo core→domínio→aplicação→infra→app, com teste contra inversão.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 155,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.4 — Implementação por módulo",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "`data` e `flonts` têm contrato sem caso de uso dedicado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 156,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.5 — Implementação do domínio",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Regras puras, sem I/O, com normalização de entrada.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 157,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.6 — Casos de uso",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Identidade→contexto→autorização→domínio→resultado tipado.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 158,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.7 — Contratos",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "12 suítes de contrato por domínio.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 159,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.8 — Persistência",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "22 migrações, RLS e revokes explícitos, RPCs atômicos.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 160,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.9 — Eventos",
+      "status": "LACUNA",
+      "gap": "GAP-F3-04",
+      "note": "Efeitos derivados são síncronos e explícitos; não há publicação de evento.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 161,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.10 — Implementação assíncrona",
+      "status": "LACUNA",
+      "gap": "GAP-F3-13",
+      "note": "Não existe fila, worker, cron ou broker de aplicação.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 162,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.11 — Integrações e adapters",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Sete provedores OAuth com credenciais isoladas e allowlist.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 163,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.12 — Implementação de segurança",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "CSP com nonce, rate limit, segredos isolados e guardas de supply-chain; pendências de provedor em #536/#534/#537.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 166,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.13 — Observabilidade",
+      "status": "PARCIAL",
+      "gap": "GAP-F6-12",
+      "note": "Health/ready, smoke e Honeybadger existem; métricas, tracing e alertas não.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 167,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.14 — Migrações e evolução de dados (corpo da #167; título inconsistente)",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Issue #167 tem título F5.15, mas o corpo especifica F5.14 (migrações). Requer correção de metadados e revisão de aceite; não é duplicata da #168.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 168,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.15 — Estratégia de rollout e rollback",
+      "status": "PARCIAL",
+      "gap": null,
+      "note": "Issue #168 especifica rollout/rollback, enquanto #167 descreve migrações. Especificações distintas; não encerrar como duplicata nem como execução operacional comprovada.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 169,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.16 — Rastreabilidade",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "Cadeia requisito→critério→contrato→caso de uso→teste→CI.",
+      "duplicateOf": null
+    },
+    {
+      "issue": 170,
+      "document": "AA-SPEC-F5-IMPLEMENTATION.md",
+      "section": "F5.17 — Matriz final de implementação",
+      "status": "CANÔNICO",
+      "gap": null,
+      "note": "14 domínios com estado de contrato, caso de uso, adapter, DB e teste.",
+      "duplicateOf": null
+    }
+  ],
+  "autoClose": false,
+  "validation": {
+    "checkpoint": "F7-2026-10-24",
+    "referenceHead": "70e9198eb9d393cfe7a6729d84da7394e668f01e",
+    "policy": "REPORT_ONLY_NO_ISSUE_WRITES"
+  },
+  "additionalReferences": [
+    {
+      "issue": 53,
+      "comparedTo": 52,
+      "equivalence": "NON_IDENTICAL",
+      "decision": "BLOCKED_RECONCILE_REQUIREMENTS"
+    },
+    {
+      "issue": 55,
+      "comparedTo": 54,
+      "equivalence": "EXACT",
+      "decision": "REVIEW_DUPLICATE_ONLY"
+    },
+    {
+      "issue": 56,
+      "comparedTo": 54,
+      "equivalence": "EXACT",
+      "decision": "REVIEW_DUPLICATE_ONLY"
+    },
+    {
+      "issue": 186,
+      "comparedTo": 185,
+      "equivalence": "DIFFERENT_REQUIREMENT",
+      "decision": "BLOCKED_KEEP_OPEN"
+    }
+  ]
+}

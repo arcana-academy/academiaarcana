@@ -17,3 +17,31 @@
 5. A green synthetic CI is only a test of code behavior. It does not establish Render Secret Files semantics, off-GHCR durability, privacy policy ratification or human authorization.
 
 **Acceptance:** independent code review of current HEAD, success of new synthetic-negative CI, explicit evidence of no secrets in proposed build source, operational signoff and proof of hosted isolation before considering merge. Keep #536/#593/#594/#595 open.
+
+## Observação técnica verificada — 2026-10-24
+
+Reprodução local do guard `scripts/security/assert-build-secret-isolation-536.cjs`:
+
+| Cenário | Resultado |
+|---|---|
+| ambiente sem variáveis de credencial | `PASS` (exit 0) quando rodado com `env -i` |
+| ambiente com `OPENAI_API_KEY` sintética | `FAIL CLOSED` (exit 1), sem imprimir nome ou valor |
+| ambiente do executor desta sessão | `FAIL CLOSED` (exit 1) |
+
+O terceiro caso revelou um comportamento que vale registrar: o guard examina **todo** o ambiente e,
+portanto, também reage a tokens injetados pela própria plataforma de execução
+(`GITHUB_TOKEN`, `GH_TOKEN`). Em um runner do GitHub Actions esses nomes são sempre não vazios.
+
+Consequências:
+
+1. O guard **não** roda no `quality.yml`; ele roda no `prebuild`/`render.yaml` e no workflow sintético,
+   que o exercita via `node --test` com ambientes controlados. Por isso não há falha de CI hoje.
+2. Se o guard for executado em um runner com token de CI no ambiente, ele falha por **falso positivo** —
+   falha segura, mas bloqueia build legítimo.
+3. Isso reforça o item 2 das limitações acima: sincronizar `render.yaml` com o serviço vivo **antes** de
+   separar os segredos de runtime faria o próximo build parar. A ordem exigida permanece
+   "migrar segredos → sincronizar comando de build → reconstruir → provar ausência".
+
+**Recomendação registrada, não aplicada:** avaliar (com o dono de Segurança e revisão independente) uma
+allowlist explícita e pequena para tokens da plataforma de CI no guard. Qualquer alteração nesse arquivo
+muda o limite de confiança de um controle P0 e exige teste sintético novo, portanto não é feita aqui.
