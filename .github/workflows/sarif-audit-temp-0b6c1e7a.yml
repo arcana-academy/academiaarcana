@@ -96,25 +96,37 @@ jobs:
               return str(s).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           files = sorted(pathlib.Path('/tmp/sc-main').rglob('*.sarif'))
           total = 0
-          for f in files:
+          lines = []
+          for fi, f in enumerate(files):
               data = json.loads(f.read_text())
-              for run in data.get('runs', []):
+              for ri, run in enumerate(data.get('runs', [])):
                   tool = run.get('tool', {}).get('driver', {})
-                  print(f"::notice::AUDIT_SCORECARD_TOOL tool={esc(tool.get('name'))} version={esc(tool.get('version') or tool.get('semanticVersion'))} rules={len(tool.get('rules',[]))}")
-                  for rule in tool.get('rules', []):
-                      print(f"::notice::AUDIT_SCORECARD_RULE id={esc(rule.get('id'))} desc={esc(rule.get('shortDescription',{}).get('text','')[:300])}")
                   counts = collections.Counter()
+                  first = {}
                   for res in run.get('results', []):
-                      total += 1
                       counts[res.get('ruleId','?')] += 1
-                      msg = res.get('message', {}).get('text', '')[:600]
-                      locs = []
-                      for loc in res.get('locations', []):
-                          phys = loc.get('physicalLocation', {})
-                          uri = phys.get('artifactLocation', {}).get('uri', '?')
-                          line = phys.get('region', {}).get('startLine', '?')
-                          locs.append(f"{uri}:{line}")
-                      print(f"::warning file={locs[0].split(':')[0] if locs and locs[0] not in ('?:?','') else 'README.md'}::AUDIT_SCORECARD rule={esc(res.get('ruleId'))} level={esc(res.get('level'))} loc={esc(';'.join(locs))} msg={esc(msg)}")
-                  print(f"::notice::AUDIT_SCORECARD_COUNTS {esc(dict(counts))}")
-          print(f"::notice::AUDIT_SCORECARD_COUNT count={total} files={len(files)}")
+                      rid = res.get('ruleId','?')
+                      if rid not in first:
+                          msg = res.get('message', {}).get('text', '').replace('\n', ' ')[:250]
+                          locs = []
+                          for loc in res.get('locations', []):
+                              phys = loc.get('physicalLocation', {})
+                              locs.append(f"{phys.get('artifactLocation', {}).get('uri', '?')}:{phys.get('region', {}).get('startLine', '?')}")
+                          first[rid] = f"{rid} x{counts[rid]} @{';'.join(locs)[:120]} :: {msg}"
+                  total_run = sum(counts.values())
+                  total += total_run
+                  lines.append(f"RUN{fi}.{ri} tool={tool.get('name')} v={tool.get('version') or tool.get('semanticVersion')} rulesInDriver={len(tool.get('rules',[]))} results={total_run} counts={dict(counts)}")
+                  for rid in sorted(first):
+                      # refresh count in text
+                      lines.append(f"RULE {rid} x{counts[rid]} :: " + first[rid].split('::',1)[-1].strip())
+          lines.append(f"TOTAL results={total} files={len(files)}")
+          chunk = []
+          for ln in lines:
+              chunk.append(ln)
+              if len(' || '.join(chunk)) > 1400:
+                  print(f"::warning::AUDIT2 {' || '.join(chunk)}")
+                  chunk = []
+          if chunk:
+              print(f"::warning::AUDIT2 {' || '.join(chunk)}")
+          print(f"::notice::AUDIT2_DONE total={total}")
           PYEOF
