@@ -1,0 +1,48 @@
+name: Hadolint
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".github/workflows/hadolint.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".github/workflows/hadolint.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hadolint-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hadolint:
+    name: Hadolint Dockerfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Static analysis for the Dockerfile. Together with CodeQL (JS/TS +
+      # Actions) this is the repository's SAST surface for container images.
+      # Info/style findings stay advisory; warnings and errors fail the job.
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: warning
