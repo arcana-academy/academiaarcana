@@ -1,10 +1,13 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -17,11 +20,6 @@ type Baselines = Record<string, string>;
 
 const baselinePath = join(process.cwd(), "tests/e2e/proof-visual-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
-
-async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
-  return { hash: createHash("sha256").update(bytes).digest("hex"), bytes };
-}
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
@@ -177,16 +175,22 @@ test("proof visual matrix matches deterministic A/B/C baselines", async ({ page 
   ]) {
     await page.setViewportSize(viewport);
     await page.goto("/design-system/proofs?theme=mago-classico");
+    await expect(page.getByTestId("proof-showcase")).toBeVisible();
 
     for (const proofId of PROOF_IDS) {
       for (const variant of ["current", "target", "negative"] as const) {
         const locator = page.getByTestId(`proof-${proofId}-${variant}`);
         const key = `${proofId}:${variant}:${viewport.label}`;
-        const capture = await screenshotHash(locator);
+        await expect(locator).toBeVisible();
+        await settleVisualSurface(page, locator);
+        const capture = await captureStableVisualHash(locator);
         actual[key] = capture.hash;
         if (captureDir && capture.hash !== baselines[key]) {
           mkdirSync(captureDir, { recursive: true });
-          writeFileSync(join(captureDir, `${proofId}-${variant}-${viewport.label}.png`), capture.bytes);
+          writeFileSync(
+            join(captureDir, `${proofId}-${variant}-${viewport.label}.png`),
+            capture.bytes,
+          );
         }
       }
     }

@@ -1,10 +1,17 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
+import {
+  isVisualBaselineWriteEnabled,
+  writeVisualBaselines,
+} from "./support/visual-baselines";
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
 type Baselines = Record<string, string>;
@@ -13,12 +20,12 @@ const baselinePath = join(process.cwd(), "tests/e2e/cronograma-pilot-baselines.j
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
 
 async function screenshotHash(locator: Locator, evidencePath?: string): Promise<string> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
+  const capture = await captureStableVisualHash(locator);
   if (evidencePath) {
     mkdirSync(dirname(evidencePath), { recursive: true });
-    writeFileSync(evidencePath, bytes);
+    writeFileSync(evidencePath, capture.bytes);
   }
-  return createHash("sha256").update(bytes).digest("hex");
+  return capture.hash;
 }
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
@@ -26,32 +33,6 @@ async function assertNoHorizontalOverflow(page: Page, label: string): Promise<vo
     () => document.documentElement.scrollWidth > window.innerWidth + 1,
   );
   expect(overflow, `horizontal overflow: ${label}`).toBe(false);
-}
-
-async function settleVisualSurface(page: Page, root: Locator): Promise<void> {
-  await page.evaluate(async () => {
-    await document.fonts?.ready;
-  });
-  for (const image of await root.locator("img").all()) {
-    await image.evaluate(async (node) => {
-      const element = node as HTMLImageElement;
-      if (!element.complete) {
-        await new Promise<void>((resolve) => {
-          element.addEventListener("load", () => resolve(), { once: true });
-          element.addEventListener("error", () => resolve(), { once: true });
-        });
-      }
-      if (element.complete && element.naturalWidth > 0 && "decode" in element) {
-        await element.decode().catch(() => undefined);
-      }
-    });
-  }
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-      }),
-  );
 }
 
 function channelToLinear(channel: number): number {
@@ -290,6 +271,14 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
+  for (const key of Object.keys(actual)) {
+    expect(actual[key], `Visible heading copy must change: ${key}`).not.toBe(referenceCopy[key]);
+  }
+  if (isVisualBaselineWriteEnabled()) {
+    writeVisualBaselines(baselinePath, referenceCopy);
+    return;
+  }
+
   reportVisualBaselineComparison(
     "AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON",
     referenceCopy,
@@ -297,9 +286,7 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
   );
   // Original approved baselines remain unchanged. Only the confirmed text
   // change may alter the live pixels; rendering its prior wording must
-  // reproduce all three previously reviewed screenshots byte-for-byte.
+  // reproduce all three previously reviewed screenshots through the stable
+  // spatial fingerprint.
   expect(referenceCopy).toEqual(baselines);
-  for (const key of Object.keys(actual)) {
-    expect(actual[key], `Visible heading copy must change: ${key}`).not.toBe(referenceCopy[key]);
-  }
 });

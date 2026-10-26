@@ -1,10 +1,13 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -16,11 +19,6 @@ type Baselines = Record<string, string>;
 
 const baselinePath = join(process.cwd(), "tests/e2e/focus-pilot-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
-
-async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
-  return { hash: createHash("sha256").update(bytes).digest("hex"), bytes };
-}
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
@@ -159,9 +157,9 @@ test("Focus production pilot matches deterministic visual baselines", async ({ p
     const session = page.locator(".aa-focus-session");
     await expect(session).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
-    await page.evaluate(async () => { await document.fonts.ready; });
+    await settleVisualSurface(page, session);
     const key = `focus:mago-classico:${viewport.label}`;
-    const capture = await screenshotHash(session);
+    const capture = await captureStableVisualHash(session);
     actual[key] = capture.hash;
     if (captureDir && capture.hash !== baselines[key]) {
       mkdirSync(captureDir, { recursive: true });

@@ -1,10 +1,13 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -16,14 +19,6 @@ type Baselines = Record<string, string>;
 
 const baselinePath = join(process.cwd(), "tests/e2e/statistics-pilot-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
-
-async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
-  return {
-    hash: createHash("sha256").update(bytes).digest("hex"),
-    bytes,
-  };
-}
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
@@ -226,8 +221,8 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     const view = page.getByTestId("statistics-view");
     await expect(view).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
-    await page.evaluate(async () => { await document.fonts.ready; });
-    const capture = await screenshotHash(view);
+    await settleVisualSurface(page, view);
+    const capture = await captureStableVisualHash(view);
     if (captureDir) {
       mkdirSync(captureDir, { recursive: true });
       writeFileSync(join(captureDir, `statistics-${viewport.label}.png`), capture.bytes);

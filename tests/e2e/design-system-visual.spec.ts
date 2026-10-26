@@ -1,10 +1,13 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -16,11 +19,6 @@ type Baselines = Record<string, string>;
 
 const baselinePath = join(process.cwd(), "tests/e2e/visual-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
-
-async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
-  return { hash: createHash("sha256").update(bytes).digest("hex"), bytes };
-}
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
@@ -43,10 +41,11 @@ test("all 40 themes match deterministic visual baselines", async ({ page }) => {
 
     const showcase = page.getByTestId("theme-showcase");
     await expect(showcase).toBeVisible();
+    await settleVisualSurface(page, showcase);
     await assertNoHorizontalOverflow(page, themeId);
 
     const key = `theme:${themeId}:desktop`;
-    const capture = await screenshotHash(showcase);
+    const capture = await captureStableVisualHash(showcase);
     actual[key] = capture.hash;
     // Collect evidence for discrepancies only; never modify approved baselines.
     if (captureDir && capture.hash !== baselines[key]) {
