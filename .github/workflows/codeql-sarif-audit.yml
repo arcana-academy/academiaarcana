@@ -106,7 +106,7 @@ jobs:
           set +e
           docker run --rm \
             --volume "$PWD:/repo" --workdir /repo \
-            gcr.io/openssf/scorecard:stable \
+            ghcr.io/ossf/scorecard:stable \
             --local=. --checks=Pinned-Dependencies \
             --format=sarif --show-details \
             > scorecard-local.sarif 2> scorecard-cli.err
