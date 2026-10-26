@@ -1,3 +1,6 @@
+# --platform is deliberate: the digest pin below is the linux/amd64 image
+# that Render runs, regardless of the builder host architecture.
+# hadolint ignore=DL3029
 FROM --platform=linux/amd64 node:24-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS builder
 
 WORKDIR /app
@@ -47,6 +50,7 @@ RUN npm run build \
   && npm prune --omit=dev --ignore-scripts \
   && mkdir -p .next/cache
 
+# hadolint ignore=DL3029
 FROM --platform=linux/amd64 node:24-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS runtime
 
 WORKDIR /app
