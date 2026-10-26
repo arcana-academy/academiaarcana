@@ -63,3 +63,7 @@ Copy `.env.example` to `.env.local` only when the corresponding integration is e
 ## Runtime
 
 The repository standardizes on Node.js 24 (`.nvmrc`, `package.json` `engines`, and CI).
+
+## License
+
+Copyright (c) 2026 Academia Arcana. All rights reserved. See [`LICENSE`](LICENSE): this is proprietary software, and no license to use, copy, modify, or distribute it is granted.
