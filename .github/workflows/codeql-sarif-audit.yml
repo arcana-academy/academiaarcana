@@ -109,10 +109,11 @@ jobs:
           tar -xzf /tmp/scorecard.tar.gz -C /tmp scorecard
           /tmp/scorecard \
             --local=. --checks=Pinned-Dependencies \
-            --format=sarif --show-details \
-            > scorecard-local.sarif 2> scorecard-cli.err
+            --format=json --show-details \
+            > scorecard-local.json 2> scorecard-cli.err
           echo "docker/scorecard exit: $?"
-          ls -l scorecard-local.sarif scorecard-cli.err || true
+          ls -l scorecard-local.json scorecard-cli.err || true
+          cp scorecard-local.json scorecard-local.sarif
           python3 - <<'PY'
           import pathlib
           err = pathlib.Path("scorecard-cli.err").read_text(errors="replace") if pathlib.Path("scorecard-cli.err").exists() else ""
@@ -128,23 +129,19 @@ jobs:
         run: |
           python3 - <<'PY'
           import json
-          data = json.load(open("scorecard-local.sarif"))
-          for run in data.get("runs", []):
-              results = run.get("results", [])
-              texts = []
-              for res in results:
-                  rid = res.get("ruleId", "?")
-                  msg = (res.get("message", {}).get("text", "") or "").replace("\n", " ")[:260]
-                  for loc in res.get("locations", []) or [{}]:
-                      phys = loc.get("physicalLocation", {}) if loc else {}
-                      art = phys.get("artifactLocation", {}).get("uri", "-") if phys else "-"
-                      line = phys.get("region", {}).get("startLine", "-") if phys else "-"
-                      texts.append(f"ALERT|{rid}|{art}:{line}|{msg}")
-              print(f"::warning file=results.sarif,line=1,title=TOTAL::SCORECARD_CLI TOTAL_RESULTS={len(results)}")
-              for start in range(0, len(texts), 3):
-                  chunk = " || ".join(texts[start:start + 3])
-                  esc = chunk.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-                  print(f"::warning file=results.sarif,line=1,title=BATCH{start // 3}::{esc}")
+          data = json.load(open("scorecard-local.json"))
+          texts = []
+          for check in data.get("checks", []):
+              name = check.get("name", "?")
+              score = check.get("score", "?")
+              reason = (check.get("reason", "") or "").replace("\n", " ")[:200]
+              print(f"::warning file=results.sarif,line=1,title=TOTAL::SCORECARD_CLI CHECK={name} SCORE={score} REASON={reason}")
+              for detail in check.get("details", []) or []:
+                  texts.append(f"DETAIL|{name}|{str(detail)[:260]}")
+          for start in range(0, len(texts), 3):
+              chunk = " || ".join(texts[start:start + 3])
+              esc = chunk.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::warning file=results.sarif,line=1,title=BATCH{start // 3}::{esc}")
           PY
 
   scorecard:
