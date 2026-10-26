@@ -1,22 +1,32 @@
 name: AA S20 Ubuntu 24.04 — Cronograma 194 (manual / NO-GO)
 
-# Review-only workflow. It has NO push, pull_request, schedule, or release trigger.
-# GitHub requires a manual workflow to exist on the default branch before dispatch.
-# Do not merge or dispatch without a separate release-independent authorization.
+# S22: label-only proposal for PR #830; publishing this file does NOT run the job.
+# Only an owner-applied label on this DRAFT PR can authorize execution.
+# The build and E2E run in a detached Linux network namespace, fail closed.
 on:
-  workflow_dispatch:
-    inputs:
-      authorization:
-        description: 'Exact authorization phrase: AUTORIZO-CRONOGRAMA-194'
-        required: true
-        type: string
+  pull_request:
+    types: [labeled]
+    branches:
+      - work/aa-security-s16-cronograma-atomic-metrics-20261026
+    paths:
+      - .github/workflows/s20-cronograma-194-ubuntu-manual.yml
 
 permissions:
   contents: read
 
 jobs:
   cronograma-194:
-    if: ${{ github.ref == 'refs/heads/work/aa-security-s20-cronograma-ubuntu194-prep-20261026' && inputs.authorization == 'AUTORIZO-CRONOGRAMA-194' }}
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.actor == 'arcana-academy' &&
+      github.event.label.name == 'aa-qa-194-authorized' &&
+      github.event.pull_request.number == 830 &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == 'arcana-academy/academiaarcana' &&
+      github.event.pull_request.head.ref == 'work/aa-security-s20-cronograma-ubuntu194-prep-20261026' &&
+      github.event.pull_request.base.ref == 'work/aa-security-s16-cronograma-atomic-metrics-20261026' &&
+      github.event.pull_request.base.sha == '390fbcda0c542309c0bf4a4de4d888150aab40b0'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     defaults:
@@ -62,17 +72,40 @@ jobs:
       - name: Install exact lockfile dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Rebuild only reviewed native dependency
-        run: npm rebuild unrs-resolver --ignore-scripts=false
-
-      - name: Build with synthetic public configuration
-        run: npm run build
-
+      # Install the pre-reviewed browser while ordinary runner egress is available.
+      # No product application code runs before the offline sandbox is created.
       - name: Install matching Playwright Chromium and Linux libraries
         run: node node_modules/@playwright/test/cli.js install --with-deps chromium
 
-      - name: Run only Cronograma E2E scenario 194 once
+      - name: Verify and run build and Cronograma 194 in offline Linux network namespace
         run: |
-          node node_modules/@playwright/test/cli.js test \
-            tests/e2e/cronograma-production-pilot.spec.ts:194 \
-            --project=chromium --workers=1 --retries=0 --reporter=line
+          set -euo pipefail
+          # Only the runner's UID/GID, Node PATH, and HOME enter the sandbox.
+          export QA_UID="$(id -u)"
+          export QA_GID="$(id -g)"
+          export QA_PATH="$PATH"
+          export QA_HOME="$HOME"
+          sudo --preserve-env=QA_UID,QA_GID,QA_PATH,QA_HOME unshare --net -- bash <<'ISOLATED_QA'
+          set -euo pipefail
+          ip link set lo up
+          # A newly created namespace must have only loopback and no routes.
+          test "$(ip -o link show | wc -l)" -eq 1
+          test -z "$(ip -4 route show default)"
+          test -z "$(ip -6 route show default)"
+          test "$(ip -o link show | grep -c ' lo:')" -eq 1
+          # Fail closed if network namespace isolation is unavailable.
+          echo 'OFFLINE_NETWORK_NAMESPACE_PRECHECK=PASS'
+          exec setpriv --reuid "$QA_UID" --regid "$QA_GID" --init-groups \
+            env -i PATH="$QA_PATH" HOME="$QA_HOME" CI=1 NEXT_TELEMETRY_DISABLED=1 \
+              NEXT_PUBLIC_SUPABASE_URL='https://abcdefghijklmnopqrst.supabase.co' \
+              NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC' \
+            bash -euo pipefail -c '
+              test "$(id -u)" -ne 0
+              node scripts/security/assert-build-secret-isolation-536.cjs
+              npm rebuild unrs-resolver --ignore-scripts=false
+              npm run build
+              node node_modules/@playwright/test/cli.js test \
+                tests/e2e/cronograma-production-pilot.spec.ts:194 \
+                --project=chromium --workers=1 --retries=0 --reporter=line
+            '
+          ISOLATED_QA
