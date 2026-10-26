@@ -1,0 +1,120 @@
+name: SARIF Audit (temporary 0b6c1e7a)
+
+on:
+  push:
+    branches: [arena/0b6c1e7a-academiaarcana]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  codeql:
+    name: Audit CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: actions
+            build-mode: none
+    env:
+      AUDIT_LANG: ${{ matrix.language }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - name: Perform CodeQL Analysis (no upload)
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          upload: false
+          output: sarif-results
+          category: "/language:${{ matrix.language }}"
+      - name: Emit SARIF results as annotations
+        run: |
+          python3 - <<'PYEOF'
+          import json, pathlib
+          def esc(s):
+              return str(s).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          files = sorted(pathlib.Path('sarif-results').rglob('*.sarif'))
+          total = 0
+          for f in files:
+              data = json.loads(f.read_text())
+              for run in data.get('runs', []):
+                  tool = run.get('tool', {}).get('driver', {})
+                  rules = {r.get('id'): r for r in tool.get('rules', [])}
+                  for res in run.get('results', []):
+                      total += 1
+                      rule = res.get('ruleId', '?')
+                      level = res.get('level', '?')
+                      msg = res.get('message', {}).get('text', '')[:400]
+                      locs = []
+                      for loc in res.get('locations', []):
+                          phys = loc.get('physicalLocation', {})
+                          uri = phys.get('artifactLocation', {}).get('uri', '?')
+                          line = phys.get('region', {}).get('startLine', '?')
+                          locs.append(f"{uri}:{line}")
+                      print(f"::warning file={locs[0].split(':')[0] if locs else 'README.md'}::AUDIT_CODEQL rule={esc(rule)} level={esc(level)} loc={esc(';'.join(locs))} msg={esc(msg)}")
+                  print(f"::notice::AUDIT_CODEQL_TOOL tool={esc(tool.get('name'))} version={esc(tool.get('version'))} rules={len(rules)} file={esc(str(f))}")
+          print(f"::notice::AUDIT_CODEQL_COUNT count={total} files={len(files)}")
+          PYEOF
+
+  scorecard-main:
+    name: Audit Scorecard main SARIF
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download latest main Scorecard artifact and emit as annotations
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sc-main
+          gh run download 40399219363 --repo "$GITHUB_REPOSITORY" --name scorecard-results --dir /tmp/sc-main
+          ls -la /tmp/sc-main
+          python3 - <<'PYEOF'
+          import json, pathlib, collections
+          def esc(s):
+              return str(s).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          files = sorted(pathlib.Path('/tmp/sc-main').rglob('*.sarif'))
+          total = 0
+          for f in files:
+              data = json.loads(f.read_text())
+              for run in data.get('runs', []):
+                  tool = run.get('tool', {}).get('driver', {})
+                  print(f"::notice::AUDIT_SCORECARD_TOOL tool={esc(tool.get('name'))} version={esc(tool.get('version') or tool.get('semanticVersion'))} rules={len(tool.get('rules',[]))}")
+                  for rule in tool.get('rules', []):
+                      print(f"::notice::AUDIT_SCORECARD_RULE id={esc(rule.get('id'))} desc={esc(rule.get('shortDescription',{}).get('text','')[:300])}")
+                  counts = collections.Counter()
+                  for res in run.get('results', []):
+                      total += 1
+                      counts[res.get('ruleId','?')] += 1
+                      msg = res.get('message', {}).get('text', '')[:600]
+                      locs = []
+                      for loc in res.get('locations', []):
+                          phys = loc.get('physicalLocation', {})
+                          uri = phys.get('artifactLocation', {}).get('uri', '?')
+                          line = phys.get('region', {}).get('startLine', '?')
+                          locs.append(f"{uri}:{line}")
+                      print(f"::warning file={locs[0].split(':')[0] if locs and locs[0] not in ('?:?','') else 'README.md'}::AUDIT_SCORECARD rule={esc(res.get('ruleId'))} level={esc(res.get('level'))} loc={esc(';'.join(locs))} msg={esc(msg)}")
+                  print(f"::notice::AUDIT_SCORECARD_COUNTS {esc(dict(counts))}")
+          print(f"::notice::AUDIT_SCORECARD_COUNT count={total} files={len(files)}")
+          PYEOF
