@@ -164,3 +164,59 @@ jobs:
           path: /tmp/academiaarcana-image.tar
           if-no-files-found: error
           retention-days: 30
+
+  publish-test-status:
+    name: Publish CI test status
+    # Republish the Quality Gate result as a legacy commit status on the PR
+    # head. This repository accumulates 43+ check suites per commit (mostly
+    # permanently-queued suites from unused marketplace apps), which pushes
+    # the github-actions suites past the first-30 window OpenSSF Scorecard
+    # reads through GraphQL, so its CI-Tests probe cannot see that tests ran.
+    # Commit statuses are read through a separate, untruncated API and give
+    # the same genuine signal: this job only reports the real Quality Gate
+    # outcome (success only when every test step above passed) and links
+    # back to this workflow run as evidence. It never checks out or executes
+    # pull-request code, and its token can only write commit statuses.
+    if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      statuses: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      QUALITY_RESULT: ${{ needs.quality.result }}
+      TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Publish Quality Gate result as commit status
+        run: |
+          case "$QUALITY_RESULT" in
+            success)
+              state="success"
+              description="Quality Gate tests passed"
+              ;;
+            failure)
+              state="failure"
+              description="Quality Gate tests failed"
+              ;;
+            cancelled)
+              state="error"
+              description="Quality Gate was cancelled"
+              ;;
+            *)
+              state="error"
+              description="Quality Gate did not complete"
+              ;;
+          esac
+          gh api --method POST "repos/${GH_REPO}/statuses/${HEAD_SHA}" \
+            -f state="$state" \
+            -f context="ci/tests" \
+            -f description="$description" \
+            -f target_url="$TARGET_URL"

@@ -4,7 +4,18 @@ language: "pt-BR"
 
 reviews:
   profile: "assertive"
-  request_changes_workflow: true
+  # Automatic approvals (modern setting; replaces the deprecated
+  # request_changes_workflow alias): CodeRabbit requests changes while it
+  # has actionable comments and formally approves once the latest commit
+  # has been reviewed, its threads are resolved, and pre-merge checks pass.
+  # This repository has a single human maintainer account that also authors
+  # automation PRs, so a non-author bot approval is the available second
+  # pair of eyes for Scorecard's Code-Review check and the branch rule.
+  # allow_author_approval stays false: the PR author must never be able to
+  # force an approval with `@coderabbitai approve`.
+  auto_approvals:
+    enabled: true
+    allow_author_approval: false
   high_level_summary: true
   review_status: true
 
