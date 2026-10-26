@@ -51,16 +51,21 @@ function fetchExactly(url,host,maxSize){
   sourceBlob:'3315a36d3977b894256b65c2a24cacfa43cef5fa',
   nextVersion:'16.4.3',fonts:{}};
  const cache=new Map();
+ const cssEvidence=[];
  for(const [name,args] of fonts){
   const f=validateGoogleFontFunctionCall(name,args);
   const axes=getFontAxes(f.fontFamily,f.weights,f.styles,f.selectedVariableAxes);
   const cssUrl=getGoogleFontsUrl(f.fontFamily,axes,f.display);
   const cssBytes=await fetchExactly(cssUrl,'fonts.googleapis.com',512*1024);
   const css=cssBytes.toString('utf8');
+  const cssHash=sha256(cssBytes);
+  const cssFile=path.join(dir,sha256(Buffer.from(cssUrl))+'.css');
+  fs.writeFileSync(cssFile,cssBytes,{mode:0o600,flag:'wx'});
+  cssEvidence.push({family:f.fontFamily,url:cssUrl,sha256:cssHash,file:cssFile});
   if(!css.includes('@font-face')||/@import\b/i.test(css))blocked('CSS not expected');
   const entries=findFontFilesInCss(css,f.preload?f.subsets:undefined);
   if(entries.length<1||entries.length>80)blocked('font count');
-  const entry={cssSha256:sha256(cssBytes),files:{}};
+  const entry={cssSha256:cssHash,files:{}};
   for(const {googleFontFileUrl,ext} of entries){
    if(ext!=='woff2'||!googleFontFileUrl.startsWith('https://fonts.gstatic.com/'))
     blocked('unapproved WOFF2 resource');
@@ -82,10 +87,19 @@ function fetchExactly(url,host,maxSize){
  const json=JSON.stringify(manifest,null,2)+'\n';
  const output=path.join(dir,'candidate-manifest.json');
  fs.writeFileSync(output,json,{mode:0o600,flag:'wx'});
+ const index={schema:1,approvalState:'candidate-only',
+  originalCSS:cssEvidence,
+  originalWOFF2:[...cache].map(([url,digest])=>({url,sha256:digest,
+   file:path.join(dir,sha256(Buffer.from(url))+'.woff2')}))};
+ const indexJSON=JSON.stringify(index,null,2)+'\n';
+ const indexPath=path.join(dir,'evidence-index.json');
+ fs.writeFileSync(indexPath,indexJSON,{mode:0o600,flag:'wx'});
  const report={approval:false,status:'CANDIDATE_NOT_APPROVED',
   sourceBlob:manifest.sourceBlob, nextVersion:manifest.nextVersion,
   stylesheetOrigin:'fonts.googleapis.com',binaryOrigin:'fonts.gstatic.com',
   manifestSha256:sha256(Buffer.from(json)),candidatePath:output,
+  evidenceIndexPath:indexPath,evidenceIndexSha256:sha256(Buffer.from(indexJSON)),
+  originalCSSFiles:cssEvidence.length,
   woff2Files:cache.size,next:'Independent evidence review and owner approval required'};
  fs.writeFileSync(path.join(dir,'evidence-report.json'),
   JSON.stringify(report,null,2)+'\n',{mode:0o600,flag:'wx'});
