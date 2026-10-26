@@ -76,7 +76,8 @@ jobs:
                           phys = loc.get("physicalLocation", {})
                           art = phys.get("artifactLocation", {}).get("uri", "?")
                           line = phys.get("region", {}).get("startLine", "?")
-                          text = f"ALERT|{rid}|sev={sev}|level={prec}|{art}:{line}|{msg}"
+                          sup = res.get("suppressions", [])
+                          text = f"ALERT|{rid}|sev={sev}|level={prec}|suppressed={bool(sup)}|{art}:{line}|{msg}"
                           esc = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
                           esc_file = str(art).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace(":", "%3A").replace(",", "%2C")
                           try:

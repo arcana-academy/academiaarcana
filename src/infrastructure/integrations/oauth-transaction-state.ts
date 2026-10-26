@@ -10,6 +10,9 @@ function signOAuthState(subjectId: string, nonce: string, secret: string): Buffe
   // with the server secret provides integrity for the public version label,
   // the subject id, and the random nonce. No password is stored or derived.
   const payload = [STATE_FORMAT_VERSION, subjectId, nonce].join("\0");
+  // False positive: this HMAC authenticates a state token; no password is
+  // hashed or stored, so a password-hashing KDF does not apply here.
+  // codeql[js/insufficient-password-hash]
   return createHmac("sha256", secret).update(payload).digest();
 }
 
