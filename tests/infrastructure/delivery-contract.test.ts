@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -8,6 +9,10 @@ import {
 } from "@/core/architecture/provider-policy";
 
 const root = process.cwd();
+const require = createRequire(import.meta.url);
+const { assertFrozenBlueprint } = require(
+  "../../scripts/security/read-blueprint-trigger.cjs",
+) as { assertFrozenBlueprint: (root: string) => string };
 
 const readRepoFile = (path: string) => readFileSync(resolve(root, path), "utf8");
 
@@ -140,12 +145,49 @@ describe("delivery infrastructure contract", () => {
   it("freezes automatic Render promotion without weakening post-deploy smoke", () => {
     const blueprint = readRepoFile("render.yaml");
     const smoke = readRepoFile(".github/workflows/production-smoke.yml");
+
     // The smoke can only verify a revision after it is deployed. Neither
     // checksPass nor commit is acceptable under the current release NO-GO.
-    const configured = [...blueprint.matchAll(/^\s*autoDeployTrigger:\s*(\S+)\s*$/gm)]
-      .map((match) => match[1]);
-    expect(configured).toEqual(["off"]);
+    // The trigger must be the quoted string "off": YAML 1.1 resolves a bare
+    // `off` to boolean false, which does not satisfy Render's string enum.
+    expect(blueprint).toContain('autoDeployTrigger: "off"');
+    expect(blueprint).not.toMatch(/^\s*autoDeployTrigger:\s*off\s*$/m);
+    expect(blueprint).not.toContain("autoDeployTrigger: checksPass");
+    expect(blueprint).not.toContain("autoDeployTrigger: commit");
+    expect(() => assertFrozenBlueprint(root)).not.toThrow();
     expect(smoke).toContain("body.revision !== expected");
+  });
+
+  it("requires an explicit deploy expectation for Git-backed smoke", () => {
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+
+    // Under NO-GO, a merge to main is frozen and no deployment follows it.
+    // Requiring the smoke to observe head_sha would therefore fail forever.
+    // The automatic Git-backed branch is gated on an unset repository variable.
+    expect(workflow).toContain("vars.RENDER_DEPLOY_EXPECTED == 'true'");
+    expect(workflow).toContain("vars.RENDER_IMAGE_DEPLOY_ENABLED != 'true'");
+    expect(workflow).toContain("github.event.workflow_run.head_sha");
+    expect(workflow).toContain(
+      "inputs.expected_revision || github.event.workflow_run.head_sha || github.sha",
+    );
+    // Manual smoke against the actually deployed revision stays available.
+    expect(workflow).toContain("expected_revision:");
+    expect(workflow).toContain('[[ "$expected" =~ ^[0-9a-f]{40}$ ]]');
+  });
+
+  it("treats a Render cold-start HTML page as not-ready, not a revision mismatch", () => {
+    const workflow = readRepoFile(".github/workflows/production-smoke.yml");
+
+    // A sleeping Free instance can answer with "Application loading" HTML.
+    // Cache-busters and an explicit JSON Accept header reduce that exposure,
+    // and a non-JSON body must be retried rather than reported as a mismatch.
+    expect(workflow).toContain("/api/health?probe=");
+    expect(workflow).toContain("/api/ready?probe=");
+    expect(workflow).toContain("-H 'Accept: application/json'");
+    expect(workflow).toContain("try { body = JSON.parse(");
+    expect(workflow).toContain("catch { process.exit(2); }");
+    expect(workflow).toContain("Non-JSON health response");
+    expect(workflow).toContain("body.revision !== expected");
   });
 
   it("validates workflow-derived production revisions before shell use", () => {
@@ -396,7 +438,7 @@ describe("delivery infrastructure contract", () => {
       "type: web",
       "runtime: node",
       "branch: main",
-      "autoDeployTrigger: off",
+      'autoDeployTrigger: "off"',
       "buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build",
       "startCommand: npm start",
       "healthCheckPath: /api/health",
