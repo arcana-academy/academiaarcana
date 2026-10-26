@@ -71,6 +71,30 @@ export function validateSupabaseProductionConfiguration(
   }
 }
 
+/**
+ * Resolves the deployment label that is safe to print to stdout.
+ *
+ * The raw environment may contain secrets, so no value taken from it may
+ * flow into the verification report. Only a fixed allowlist of well-known
+ * deployment labels is returned, each as a literal; anything else collapses
+ * to "unknown". This keeps `js/clear-text-logging` from tainting the CLI
+ * output with arbitrary `process.env` data.
+ */
+export function resolveEnvironmentLabel(environment) {
+  switch (environment.APP_ENV ?? environment.NODE_ENV) {
+    case "production":
+      return "production";
+    case "preview":
+      return "preview";
+    case "development":
+      return "development";
+    case "test":
+      return "test";
+    default:
+      return "unknown";
+  }
+}
+
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
   for (const name of [
     "NEXT_PUBLIC_SUPABASE_URL",
@@ -89,7 +113,7 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
   return {
     integration: "supabase-public-runtime",
     verified: true,
-    environment: environment.APP_ENV ?? environment.NODE_ENV ?? "unknown",
+    environment: resolveEnvironmentLabel(environment),
     configuration: "environment",
   };
 }
