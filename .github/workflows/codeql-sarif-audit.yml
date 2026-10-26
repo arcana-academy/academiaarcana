@@ -104,9 +104,10 @@ jobs:
       - name: Run Scorecard CLI locally
         run: |
           set +e
-          docker run --rm \
-            --volume "$PWD:/repo" --workdir /repo \
-            ghcr.io/ossf/scorecard:stable \
+          curl -fsSL -o /tmp/scorecard.tar.gz \
+            https://github.com/ossf/scorecard/releases/download/v5.6.0/scorecard_5.6.0_linux_amd64.tar.gz
+          tar -xzf /tmp/scorecard.tar.gz -C /tmp scorecard
+          /tmp/scorecard \
             --local=. --checks=Pinned-Dependencies \
             --format=sarif --show-details \
             > scorecard-local.sarif 2> scorecard-cli.err
