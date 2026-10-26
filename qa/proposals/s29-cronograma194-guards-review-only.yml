@@ -129,6 +129,17 @@ jobs:
           with open(os.environ['GITHUB_ENV'],'a') as env:env.write('AA_APPROVED_FONT_MANIFEST='+p+'\n')
           S29_MANIFEST
 
+      # S25 fixture provisioning requires independent human approval. If missing,
+      # fail BEFORE npm, browser installation or execution of application code.
+      - name: Refuse bootstrap without independently approved local font fixture
+        run: |
+          set -euo pipefail
+          : "${QA_MOCK_FILE:?BLOCKED: approved font fixture is absent}"
+          : "${QA_FONT_SHA256:?BLOCKED: approved font hashes are absent}"
+          test -f "$QA_MOCK_FILE"
+          test -f "$QA_FONT_SHA256"
+          sha256sum --quiet --check "$QA_FONT_SHA256"
+
       - name: Setup Node.js 24
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -137,11 +148,15 @@ jobs:
       - name: Pin npm without third-party lifecycle scripts
         run: npm install --global npm@11.19.1 --ignore-scripts
 
-      - name: Verify reviewed dependency lifecycle boundary
+      - name: Verify reviewed dependency lifecycle boundary in offline namespace
         run: |
-          node scripts/verify-dependency-lifecycle-scripts.cjs
+          set -euo pipefail
           node --version
           npm --version
+          # Repository code executes without network access, as an unprivileged user.
+          sudo -n unshare --net -- setpriv \
+            --reuid "$(id -u)" --regid "$(id -g)" --init-groups \
+            "$(command -v node)" scripts/verify-dependency-lifecycle-scripts.cjs
 
       - name: Install exact lockfile dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -150,15 +165,6 @@ jobs:
       # No product application code runs before the offline sandbox is created.
       - name: Install matching Playwright Chromium and Linux libraries
         run: node node_modules/@playwright/test/cli.js install --with-deps chromium
-
-      # The fuller S25 font-fixture code remains a separate candidate pending review.
-      # Do not activate: no approved fixture is staged. Fail closed by requiring both paths.
-      - name: Refuse offline build without independently approved local font fixture
-        run: |
-          set -euo pipefail
-          : "${QA_MOCK_FILE:?BLOCKED: approved font fixture is absent}"
-          : "${QA_FONT_SHA256:?BLOCKED: approved font hashes are absent}"
-          sha256sum --quiet --check "$QA_FONT_SHA256"
 
       - name: Verify and run build and Cronograma 194 in offline Linux network namespace
         run: |
