@@ -226,7 +226,19 @@ test("Cronograma pilot records performance evidence without inventing a budget",
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
     const board = document.querySelector(".aa-study-task-board");
-    return board !== null && board.getAnimations({ subtree: true }).every((animation) => animation.playState !== "running");
+    if (!board) return false;
+    // The metrics below read filter styles for every descendant. Read those
+    // same styles before checking animation state to avoid a late transition
+    // starting after an apparently settled zero-animation observation.
+    for (const element of board.querySelectorAll("*")) {
+      const style = getComputedStyle(element);
+      void style.filter;
+      void style.backdropFilter;
+    }
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    return board.getAnimations({ subtree: true }).every((animation) => animation.playState !== "running");
   }, null, { timeout: 10_000 });
   const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
     descendants: node.querySelectorAll("*").length,
