@@ -53,7 +53,7 @@ jobs:
 
       - name: Install browser for isolated authenticated Next.js E2E
         if: github.event_name == 'pull_request'
-        run: npm exec -- playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Run authenticated Next.js journeys against local-only Supabase
         if: github.event_name == 'pull_request'

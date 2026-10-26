@@ -35,7 +35,8 @@ jobs:
           echo "CP05_EXACT_SHA=$(git rev-parse HEAD)"
       - name: Install targeted test dependencies
         run: |
-          npm install --global npm@11.19.1 --ignore-scripts
+          corepack enable npm
+          corepack prepare npm@11.19.1 --activate
           npm ci --ignore-scripts
           npm rebuild unrs-resolver --ignore-scripts=false
       - name: Run modified credentials boundary test only

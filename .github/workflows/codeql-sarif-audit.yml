@@ -84,6 +84,56 @@ jobs:
                           print(text)
           PY
 
+  scorecard-cli:
+    name: Scorecard CLI (local Pinned-Dependencies)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard CLI locally
+        run: |
+          docker run --rm \
+            --volume "$PWD:/repo" --workdir /repo \
+            gcr.io/openssf/scorecard:stable \
+            --local=. --checks=Pinned-Dependencies \
+            --format=sarif --output=scorecard-local.sarif \
+            --show-details || true
+          ls -l scorecard-local.sarif
+
+      - name: Print Scorecard CLI results
+        run: |
+          python3 - <<'PY'
+          import json
+          data = json.load(open("scorecard-local.sarif"))
+          for run in data.get("runs", []):
+              results = run.get("results", [])
+              texts = []
+              for res in results:
+                  rid = res.get("ruleId", "?")
+                  msg = (res.get("message", {}).get("text", "") or "").replace("\n", " ")[:260]
+                  for loc in res.get("locations", []) or [{}]:
+                      phys = loc.get("physicalLocation", {}) if loc else {}
+                      art = phys.get("artifactLocation", {}).get("uri", "-") if phys else "-"
+                      line = phys.get("region", {}).get("startLine", "-") if phys else "-"
+                      texts.append(f"ALERT|{rid}|{art}:{line}|{msg}")
+              print(f"::warning file=results.sarif,line=1,title=TOTAL::SCORECARD_CLI TOTAL_RESULTS={len(results)}")
+              for start in range(0, len(texts), 3):
+                  chunk = " || ".join(texts[start:start + 3])
+                  esc = chunk.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                  print(f"::warning file=results.sarif,line=1,title=BATCH{start // 3}::{esc}")
+          PY
+
   scorecard:
     name: Scorecard SARIF
     runs-on: ubuntu-latest

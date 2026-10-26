@@ -9,14 +9,19 @@ if [[ "$(node -p 'process.versions.node.split(".")[0]')" != "24" ]]; then
 fi
 
 if [[ "$(npm --version)" != "11.19.1" ]]; then
+  # Pin npm through Corepack (bundled with Node 24) instead of an unpinned
+  # global npm install. Corepack resolves the exact version declared in
+  # package.json's packageManager field and verifies the download signature.
+  export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
   if command -v sudo >/dev/null 2>&1; then
-    sudo npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+    sudo corepack enable npm
   elif [[ "$(id -u)" == "0" ]]; then
-    npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+    corepack enable npm
   else
     echo "ERROR: npm 11.19.1 is required. Install it in this isolated environment." >&2
     exit 1
   fi
+  corepack prepare npm@11.19.1 --activate
 fi
 
 if [[ "$(npm --version)" != "11.19.1" ]]; then
