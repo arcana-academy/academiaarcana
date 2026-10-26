@@ -73,4 +73,3 @@ F7 não promoveu nenhum item a `IMPLEMENTADO`/`TESTADO` apenas por consulta docu
 - Correções versionadas somente na branch isolada `work/aa-f7-closure-guard-20261024-head70e9198`.
 - Sem alteração da `main`, da PR #821, de issues, secrets, serviços ou ambientes produtivos.
 - Testes de contrato locais/GitHub serão registrados no checkpoint final; não reaproveitar `typecheck`/`lint` anteriores como teste do script F7.
-

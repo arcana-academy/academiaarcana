@@ -223,7 +223,11 @@ test("Cronograma pilot records performance evidence without inventing a budget",
   // same browser evaluation. A separate later getComputedStyle() pass can
   // expose pending transitions (31 observed on Ubuntu CI after a zero poll).
   // Keep the contract: no active animations and no filters on StudyTaskBoard.
-  const settled = await page.waitForFunction(async () => {
+  // Keep this predicate synchronous. An async predicate returns a Promise,
+  // which is itself truthy and can make waitForFunction resolve to `false`
+  // before the finite board transitions have actually settled. Polling on each
+  // animation frame provides the intended post-style-resolution boundary.
+  const settled = await page.waitForFunction(() => {
     const board = document.querySelector(".aa-study-task-board");
     if (!board) return false;
     const descendants = [...board.querySelectorAll("*")];
@@ -232,9 +236,6 @@ test("Cronograma pilot records performance evidence without inventing a budget",
       const style = getComputedStyle(element);
       return style.filter !== "none" || style.backdropFilter !== "none";
     }).length;
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    });
     const activeAnimations = board.getAnimations({ subtree: true })
       .filter((animation) => animation.playState === "running").length;
     if (activeAnimations !== 0) return false;
@@ -247,7 +248,7 @@ test("Cronograma pilot records performance evidence without inventing a budget",
       pageActiveAnimations: document.getAnimations()
         .filter((animation) => animation.playState === "running").length,
     };
-  }, null, { timeout: 10_000 });
+  }, null, { polling: "raf", timeout: 10_000 });
   const metrics = await settled.jsonValue();
   if (!metrics) throw new Error("Cronograma metrics did not settle");
 
