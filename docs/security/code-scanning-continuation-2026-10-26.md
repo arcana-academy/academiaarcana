@@ -143,3 +143,36 @@ an owner-admin step (branch-protection APIs return `403` to automation).
   `FuzzingID` closed (10) and `SASTID` at 10 via the configured-tool
   path; the remaining five alerts close via the owner actions and dates
   documented above.
+
+## Addendum — `LicenseID` decision (2026-10-26, fourth pass)
+
+After PR #834 merged, the repository owner was asked to choose a licence
+model and copyright holder rather than having either invented by
+automation. The owner selected the recommended option and **Academia
+Arcana** as copyright holder.
+
+For this product, the recommended option is a proprietary
+**"all rights reserved"** notice, because it:
+
+1. preserves the current legal position of a public repository that had
+   no licence file (public visibility alone grants no reuse rights);
+2. grants no right to use, copy, modify, distribute, sublicense, or sell
+   the code, matching `private: true` and the absence of any open-source
+   grant elsewhere in the project; and
+3. satisfies Scorecard's `hasLicenseFile` probe. Scorecard's License check
+   then scores **9/10** (the remaining point is reserved for an FSF/OSI
+   approved licence), and 9 meets the Scorecard-action SARIF policy
+   threshold for `License`, so `LicenseID` is expected to close on the
+   next `main` analysis without any public rights grant.
+
+Implemented accordingly:
+
+- `LICENSE` — copyright in the name of Academia Arcana, all rights
+  reserved, expressly stating that no licence is granted;
+- `package.json` — `license: "UNLICENSED"`, the npm convention for a
+  proprietary package for which no licence is granted;
+- `README.md` — a short License section pointing to the canonical file.
+
+This is a copyright notice, not an open-source licence and not legal
+advice. If the ownership entity or intended licensing terms change, the
+owners should have qualified legal counsel review the notice.
