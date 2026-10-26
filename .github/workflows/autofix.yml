@@ -21,7 +21,9 @@ jobs:
           cache: npm
 
       - name: Pin npm
-        run: npm install --global npm@11.19.1 --ignore-scripts
+        run: |
+          corepack enable npm
+          corepack prepare npm@11.19.1 --activate
 
       - name: Verify dependency lifecycle allowlist
         run: node scripts/verify-dependency-lifecycle-scripts.cjs
@@ -40,7 +42,7 @@ jobs:
       # manifests onto the pull-request branch for normal review.
       - name: Install Playwright browser for baseline refresh
         if: contains(github.event.pull_request.labels.*.name, 'refresh-visual-baselines')
-        run: npm exec -- playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Refresh visual baselines
         if: contains(github.event.pull_request.labels.*.name, 'refresh-visual-baselines')

@@ -1,8 +1,12 @@
-FROM --platform=linux/amd64 node:24-bookworm-slim AS builder
+FROM --platform=linux/amd64 node:24-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS builder
 
 WORKDIR /app
 
-RUN npm install --global npm@11.19.1 --ignore-scripts
+# Pin npm through Corepack (bundled with Node 24) instead of an unpinned
+# global npm install; the exact version comes from package.json's
+# packageManager pin and Corepack verifies the download signature.
+RUN corepack enable npm \
+  && corepack prepare npm@11.19.1 --activate
 
 COPY package.json package-lock.json ./
 COPY scripts/verify-dependency-lifecycle-scripts.cjs ./scripts/verify-dependency-lifecycle-scripts.cjs
@@ -38,7 +42,7 @@ RUN npm run build \
   && npm prune --omit=dev --ignore-scripts \
   && mkdir -p .next/cache
 
-FROM --platform=linux/amd64 node:24-bookworm-slim AS runtime
+FROM --platform=linux/amd64 node:24-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS runtime
 
 WORKDIR /app
 

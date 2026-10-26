@@ -84,7 +84,9 @@ jobs:
           echo "Reminder: GitHub Actions can show public environment variables in runner logs; never supply server secrets to this workflow."
 
       - name: Pin reviewed npm
-        run: npm install --global npm@11.19.1 --ignore-scripts
+        run: |
+          corepack enable npm
+          corepack prepare npm@11.19.1 --activate
 
       - name: Verify reviewed dependency lifecycle boundary
         working-directory: stable

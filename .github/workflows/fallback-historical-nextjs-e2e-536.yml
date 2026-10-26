@@ -78,7 +78,7 @@ jobs:
 
       - name: Install Chromium
         working-directory: historical
-        run: npm exec -- playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Start disposable Supabase stack
         working-directory: historical
