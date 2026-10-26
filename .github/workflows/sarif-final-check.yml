@@ -1,0 +1,61 @@
+name: SARIF Final Check (temporary)
+
+on:
+  push:
+    branches:
+      - arena/b0c80df9-academiaarcana
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  read:
+    name: Read Scorecard SARIF from main
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download Scorecard SARIF uploaded from main
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: scorecard-results
+          path: scorecard-artifact
+          run-id: 40399219363
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print SARIF results
+        run: |
+          python3 - <<'PY'
+          import glob, json
+          for path in sorted(glob.glob("scorecard-artifact/**/*.sarif", recursive=True)):
+              data = json.load(open(path))
+              for run in data.get("runs", []):
+                  results = run.get("results", [])
+                  tool = run.get("tool", {}).get("driver", {}).get("name", "?")
+                  print(f"::warning file=results.sarif,line=1,title=TOTAL::TOOL={tool} TOTAL_RESULTS={len(results)}")
+                  texts = []
+                  for res in results:
+                      rid = res.get("ruleId", "?")
+                      msg = (res.get("message", {}).get("text", "") or "").replace("\n", " ")[:240]
+                      locs = res.get("locations", []) or [{}]
+                      phys = locs[0].get("physicalLocation", {}) if locs else {}
+                      art = phys.get("artifactLocation", {}).get("uri", "-") if phys else "-"
+                      line = phys.get("region", {}).get("startLine", "-") if phys else "-"
+                      texts.append(f"ALERT|{rid}|{art}:{line}|{msg}")
+                  for start in range(0, len(texts), 3):
+                      chunk = " || ".join(texts[start:start + 3])
+                      esc = chunk.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                      print(f"::warning file=results.sarif,line=1,title=BATCH{start // 3}::{esc}")
+          PY
