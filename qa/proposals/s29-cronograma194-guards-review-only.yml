@@ -1,0 +1,196 @@
+name: S29 REVIEW ONLY — Cronograma 194 hardened runner proposal
+
+# NON-ACTIVE: file intentionally lives outside .github/workflows. NO-GO.
+# S29: does not alter PR830, main or execute any workflow.
+# Hash gate + restricted bootstrap egress + netns capability precheck. Fonts staging not approved.
+on:
+  pull_request:
+    types: [labeled]
+    branches:
+      - work/aa-security-s16-cronograma-atomic-metrics-20261026
+    paths:
+      - .github/workflows/s20-cronograma-194-ubuntu-manual.yml
+
+concurrency:
+  group: aa-cronograma-194-pr830
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  cronograma-194:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.actor == 'arcana-academy' &&
+      github.event.label.name == 'aa-qa-194-authorized' &&
+      github.event.pull_request.number == 830 &&
+      github.event.pull_request.draft == true &&
+      github.event.pull_request.head.repo.full_name == 'arcana-academy/academiaarcana' &&
+      github.event.pull_request.head.ref == 'work/aa-security-s20-cronograma-ubuntu194-prep-20261026' &&
+      github.event.pull_request.base.ref == 'work/aa-security-s16-cronograma-atomic-metrics-20261026' &&
+      github.event.pull_request.base.sha == '390fbcda0c542309c0bf4a4de4d888150aab40b0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      CI: '1'
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+
+    steps:
+      - name: Restrict network egress before checkout (free; no telemetry)
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: block
+          disable-telemetry: true
+          allowed-endpoints: |
+            github.com:443
+            api.github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            nodejs.org:443
+            registry.npmjs.org:443
+            fonts.googleapis.com:443
+            fonts.gstatic.com:443
+            cdn.playwright.dev:443
+            playwright.azureedge.net:443
+            playwright.download.prss.microsoft.com:443
+            archive.ubuntu.com:80
+            security.ubuntu.com:80
+            azure.archive.ubuntu.com:80
+            packages.microsoft.com:443
+
+      - name: Checkout immutable PR 829 code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 390fbcda0c542309c0bf4a4de4d888150aab40b0
+          persist-credentials: false
+
+      - name: Verify runner and immutable test target
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = '390fbcda0c542309c0bf4a4de4d888150aab40b0'
+          test -z "$(git status --porcelain)"
+          printf 'Ubuntu: '; . /etc/os-release; echo "$PRETTY_NAME"
+          echo 'PR829_IMMUTABLE_HEAD=390fbcda0c542309c0bf4a4de4d888150aab40b0'
+
+      - name: Verify Ubuntu / network namespace before installing dependencies
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = '390fbcda0c542309c0bf4a4de4d888150aab40b0'
+          test -z "$(git status --porcelain)"
+          command -v unshare >/dev/null
+          command -v ip >/dev/null
+          command -v setpriv >/dev/null
+          sudo -n unshare --net -- bash -euo pipefail <<'S29_NETCHECK'
+          ip link set lo up
+          test "$(ip -o link show | wc -l)" -eq 1
+          test -z "$(ip -4 route show default)"
+          test -z "$(ip -6 route show default)"
+          test "$(find /sys/class/net -mindepth 1 -maxdepth 1 -printf '%f\\n')" = lo
+          S29_NETCHECK
+
+      - name: Gate on owner-approved canonical font manifest before any dependency install
+        env:
+          AA_APPROVED_FONT_MANIFEST_JSON: ${{ vars.AA_APPROVED_FONT_MANIFEST_JSON }}
+          AA_APPROVED_FONT_MANIFEST_SHA256: ${{ vars.AA_APPROVED_FONT_MANIFEST_SHA256 }}
+        run: |
+          set -euo pipefail
+          python3 <<'S29_MANIFEST'
+          import os, re, json, hashlib, tempfile
+          text=os.environ.get('AA_APPROVED_FONT_MANIFEST_JSON','')
+          digest=os.environ.get('AA_APPROVED_FONT_MANIFEST_SHA256','')
+          if not text or len(text)>40000 or not re.fullmatch('[0-9a-f]{64}',digest):
+              raise SystemExit('BLOCKED: missing owner-approved font manifest')
+          if hashlib.sha256(text.encode()).hexdigest()!=digest:
+              raise SystemExit('BLOCKED: font manifest hash mismatch')
+          m=json.loads(text)
+          families={'Grenze','Literata','Cormorant Upright','Smythe'}
+          if m.get('schema')!=1 or m.get('sourceBlob')!='3315a36d3977b894256b65c2a24cacfa43cef5fa' or m.get('nextVersion')!='16.4.3' or set(m.get('fonts',{}))!=families:
+              raise SystemExit('BLOCKED: canonical font identity mismatch')
+          for f in families:
+              x=m['fonts'][f]
+              if not re.fullmatch('[0-9a-f]{64}',str(x.get('cssSha256',''))) or not isinstance(x.get('files'),dict) or not x['files']:
+                  raise SystemExit('BLOCKED: missing approved CSS/WOFF2 hashes')
+              for u,d in x['files'].items():
+                  if not u.startswith('https://fonts.gstatic.com/') or not re.fullmatch('[0-9a-f]{64}',str(d)):
+                      raise SystemExit('BLOCKED: unapproved font origin/hash')
+          fd,p=tempfile.mkstemp(prefix='aa-font-manifest-',suffix='.json',dir=os.environ['RUNNER_TEMP'])
+          with os.fdopen(fd,'w') as out: out.write(text)
+          with open(os.environ['GITHUB_ENV'],'a') as env:env.write('AA_APPROVED_FONT_MANIFEST='+p+'\\n')
+          S29_MANIFEST
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Pin npm without third-party lifecycle scripts
+        run: npm install --global npm@11.19.1 --ignore-scripts
+
+      - name: Verify reviewed dependency lifecycle boundary
+        run: |
+          node scripts/verify-dependency-lifecycle-scripts.cjs
+          node --version
+          npm --version
+
+      - name: Install exact lockfile dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      # Install the pre-reviewed browser while ordinary runner egress is available.
+      # No product application code runs before the offline sandbox is created.
+      - name: Install matching Playwright Chromium and Linux libraries
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      # The fuller S25 font-fixture code remains a separate candidate pending review.
+      # Do not activate: no approved fixture is staged. Fail closed by requiring both paths.
+      - name: Refuse offline build without independently approved local font fixture
+        run: |
+          set -euo pipefail
+          : "${QA_MOCK_FILE:?BLOCKED: approved font fixture is absent}"
+          : "${QA_FONT_SHA256:?BLOCKED: approved font hashes are absent}"
+          sha256sum --quiet --check "$QA_FONT_SHA256"
+
+      - name: Verify and run build and Cronograma 194 in offline Linux network namespace
+        run: |
+          set -euo pipefail
+          # Only the runner's UID/GID, Node PATH, and HOME enter the sandbox.
+          export QA_UID="$(id -u)"
+          export QA_GID="$(id -g)"
+          export QA_PATH="$PATH"
+          export QA_HOME="$HOME"
+          sudo --preserve-env=QA_UID,QA_GID,QA_PATH,QA_HOME,QA_MOCK_FILE,QA_FONT_SHA256 unshare --net -- bash <<'ISOLATED_QA'
+          set -euo pipefail
+          ip link set lo up
+          # A newly created namespace must have only loopback and no routes.
+          test "$(ip -o link show | wc -l)" -eq 1
+          test -z "$(ip -4 route show default)"
+          test -z "$(ip -6 route show default)"
+          test "$(ip -o link show | grep -c ' lo:')" -eq 1
+          # Fail closed if network namespace isolation is unavailable.
+          sha256sum --quiet --check "$QA_FONT_SHA256"
+          echo 'OFFLINE_NETWORK_NAMESPACE_PRECHECK=PASS'
+          exec setpriv --reuid "$QA_UID" --regid "$QA_GID" --init-groups \
+            env -i PATH="$QA_PATH" HOME="$QA_HOME" CI=1 NEXT_TELEMETRY_DISABLED=1 \
+              NEXT_PUBLIC_SUPABASE_URL='https://abcdefghijklmnopqrst.supabase.co' \
+              NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC' \
+              NEXT_FONT_GOOGLE_MOCKED_RESPONSES="$QA_MOCK_FILE" \
+            bash -euo pipefail -c '
+              test "$(id -u)" -ne 0
+              node scripts/security/assert-build-secret-isolation-536.cjs
+              npm rebuild unrs-resolver --ignore-scripts=false
+              npm run build
+              node node_modules/@playwright/test/cli.js test \
+                tests/e2e/cronograma-production-pilot.spec.ts:194 \
+                --project=chromium --workers=1 --retries=0 --reporter=line
+            '
+          ISOLATED_QA
