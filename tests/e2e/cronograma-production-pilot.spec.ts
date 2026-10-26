@@ -219,39 +219,37 @@ test("Cronograma pilot records performance evidence without inventing a budget",
       void style.backdropFilter;
     }
   });
-  // The budget applies to the settled page: allow all finite transitions
-  // to finish, then sample again after two paint frames.
-  await page.waitForFunction(async () => {
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    });
+  // Measure filter styles *before* testing for settled animations in the
+  // same browser evaluation. A separate later getComputedStyle() pass can
+  // expose pending transitions (31 observed on Ubuntu CI after a zero poll).
+  // Keep the contract: no active animations and no filters on StudyTaskBoard.
+  const settled = await page.waitForFunction(async () => {
     const board = document.querySelector(".aa-study-task-board");
     if (!board) return false;
-    // The metrics below read filter styles for every descendant. Read those
-    // same styles before checking animation state to avoid a late transition
-    // starting after an apparently settled zero-animation observation.
-    for (const element of board.querySelectorAll("*")) {
+    const descendants = [...board.querySelectorAll("*")];
+    // Force the same style resolution used by the performance measurement.
+    const filterCount = descendants.filter((element) => {
       const style = getComputedStyle(element);
-      void style.filter;
-      void style.backdropFilter;
-    }
+      return style.filter !== "none" || style.backdropFilter !== "none";
+    }).length;
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
-    return board.getAnimations({ subtree: true }).every((animation) => animation.playState !== "running");
+    const activeAnimations = board.getAnimations({ subtree: true })
+      .filter((animation) => animation.playState === "running").length;
+    if (activeAnimations !== 0) return false;
+    return {
+      descendants: descendants.length,
+      images: board.querySelectorAll("img").length,
+      filters: filterCount,
+      activeAnimations,
+      // Keep page-wide animations observable without changing the board contract.
+      pageActiveAnimations: document.getAnimations()
+        .filter((animation) => animation.playState === "running").length,
+    };
   }, null, { timeout: 10_000 });
-  const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
-    descendants: node.querySelectorAll("*").length,
-    images: node.querySelectorAll("img").length,
-    filters: [...node.querySelectorAll("*")].filter((element) => {
-      const style = getComputedStyle(element);
-      return style.filter !== "none" || style.backdropFilter !== "none";
-    }).length,
-    // Scope the performance contract to StudyTaskBoard. Unrelated shell
-    // animations are retained as diagnostics rather than silently discarded.
-    activeAnimations: node.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length,
-    pageActiveAnimations: document.getAnimations().filter((animation) => animation.playState === "running").length,
-  }));
+  const metrics = await settled.jsonValue();
+  if (!metrics) throw new Error("Cronograma metrics did not settle");
 
   console.log(`AA_CRONOGRAMA_PILOT_PERF_JSON=${JSON.stringify(metrics)}`);
   expect(metrics.filters).toBe(0);
