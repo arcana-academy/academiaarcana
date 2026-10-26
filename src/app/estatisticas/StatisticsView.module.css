@@ -38,6 +38,28 @@
   box-shadow: var(--aa-shadows-sm);
 }
 
+.analysisSection[data-evidence-kind="self-reported"] {
+  border-block-start: 3px solid var(--aa-border-strong);
+}
+
+.analysisSection[data-evidence-kind="objective"] {
+  border-block-start: 3px double var(--aa-border-strong);
+}
+
+.analysisSection[data-evidence-kind="learning-gap"] {
+  border-block-start: 3px dashed var(--aa-border-strong);
+}
+
+.analysisSection[data-statistics-region="reviews"] {
+  border-block-start: 3px dotted var(--aa-border-strong);
+}
+
+.statisticsView :global(a:focus-visible),
+.statisticsView :global(summary:focus-visible) {
+  outline: var(--aa-focus-width) solid var(--aa-focus-ring);
+  outline-offset: var(--aa-focus-offset);
+}
+
 .analysisSection :global(.aa-list-item) {
   min-width: 0;
   border-color: var(--aa-border-default);

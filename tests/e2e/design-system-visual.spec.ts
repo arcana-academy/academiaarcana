@@ -1,9 +1,13 @@
-import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -15,11 +19,6 @@ type Baselines = Record<string, string>;
 
 const baselinePath = join(process.cwd(), "tests/e2e/visual-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
-
-async function screenshotHash(locator: Locator): Promise<string> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
-  return createHash("sha256").update(bytes).digest("hex");
-}
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
@@ -34,6 +33,7 @@ test("all 40 themes match deterministic visual baselines", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
 
   const actual: Baselines = {};
+  const captureDir = process.env.AA_VISUAL_REVIEW_CAPTURE_DIR;
 
   for (const themeId of THEME_IDS) {
     await page.goto(`/design-system?theme=${themeId}`);
@@ -41,14 +41,22 @@ test("all 40 themes match deterministic visual baselines", async ({ page }) => {
 
     const showcase = page.getByTestId("theme-showcase");
     await expect(showcase).toBeVisible();
+    await settleVisualSurface(page, showcase);
     await assertNoHorizontalOverflow(page, themeId);
 
-    actual[`theme:${themeId}:desktop`] = await screenshotHash(showcase);
+    const key = `theme:${themeId}:desktop`;
+    const capture = await captureStableVisualHash(showcase);
+    actual[key] = capture.hash;
+    // Collect evidence for discrepancies only; never modify approved baselines.
+    if (captureDir && capture.hash !== baselines[key]) {
+      mkdirSync(captureDir, { recursive: true });
+      writeFileSync(join(captureDir, `design-system-${themeId}-desktop.png`), capture.bytes);
+    }
   }
 
-  // Kept intentionally machine-readable so the first reviewed run can seed
-  // the text manifest without committing binary screenshot artifacts.
-  console.log(`AA_VISUAL_BASELINES_JSON=${JSON.stringify(actual)}`);
+  // Kept intentionally machine-readable so a reviewed run can reconcile the
+  // text manifest without committing binary screenshot artifacts.
+  reportVisualBaselineComparison("AA_VISUAL_BASELINES_JSON", actual, baselines);
   if (isVisualBaselineWriteEnabled()) {
     writeVisualBaselines(baselinePath, actual);
     return;

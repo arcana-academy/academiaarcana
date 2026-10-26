@@ -316,7 +316,7 @@
     "name: academiaarcana",
     "runtime: node",
     "branch: main",
-    "autoDeployTrigger: commit",
+    "autoDeployTrigger: off",
     "buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build",
     'key: SKIP_INSTALL_DEPS',
     "startCommand: npm start",
@@ -327,6 +327,11 @@
     if (!renderConfig.includes(required)) {
       fail(`Render contract missing "${required}"`);
     }
+  }
+
+  const triggerEntries = [...renderConfig.matchAll(/^\s*autoDeployTrigger:\s*(\S+)\s*$/gm)].map((match) => match[1]);
+  if (triggerEntries.length !== 1 || triggerEntries[0] !== "off") {
+    fail("Render auto-deploy must have exactly one trigger, set to off");
   }
 
   const deploymentPlatform = readRepoFile(

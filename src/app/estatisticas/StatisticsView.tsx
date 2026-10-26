@@ -356,6 +356,7 @@ function GapsSection({ educational }: { educational: EducationalOverview }) {
     <section
       className={`aa-card aa-card-default ${styles.analysisSection}`}
       data-statistics-region="learning-gaps"
+      data-evidence-kind="learning-gap"
       aria-labelledby="gaps-title"
     >
       <h2 id="gaps-title">Possíveis lacunas</h2>
@@ -433,7 +434,7 @@ export function StatisticsView({
       title="Estatísticas"
       description="Indicadores educacionais derivados de tentativas reais, separados das métricas de gamificação."
     >
-      <div className={styles.statisticsView} data-statistics-view="production">
+      <div className={styles.statisticsView} data-statistics-view="production" data-testid="statistics-view">
         <GamificationStats gamification={gamification} />
         <EducationalStats educational={educational} />
         <ProfileSignals educational={educational} />

@@ -13,10 +13,10 @@ describe("deployment platform contract", () => {
       serviceType: "web",
       runtime: "node",
       branch: "main",
-      buildCommand: "npm ci && npm run build",
+      buildCommand: "node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build",
       startCommand: "npm start",
       healthCheckPath: "/api/health",
-      autoDeployTrigger: "commit",
+      autoDeployTrigger: "off",
     });
   });
 });

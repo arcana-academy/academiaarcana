@@ -5,11 +5,10 @@ export const DEPLOYMENT_CONTRACT = {
   serviceType: "web",
   runtime: "node",
   branch: "main",
-  buildCommand: "npm ci && npm run build",
+  buildCommand: "node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build",
   startCommand: "npm start",
   healthCheckPath: "/api/health",
-  // Promotion must not wait on Production Smoke: that check can only pass once
-  // the new revision is already serving, so gating the deploy on it deadlocks.
-  // The Quality Gate runs before a commit reaches main.
-  autoDeployTrigger: "commit",
+  // NO-GO: merges cannot initiate production deployment.
+  // Production Smoke remains post-deployment verification.
+  autoDeployTrigger: "off",
 } as const;

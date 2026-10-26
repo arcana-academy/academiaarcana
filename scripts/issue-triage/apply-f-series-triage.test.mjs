@@ -29,6 +29,8 @@ test("default invocation is non-mutating dry run with all 95 rows", () => {
   assert.match(result.stdout, /#168 PARCIAL -> BLOCKED_PARCIAL/);
   assert.match(result.stdout, /#186 DOCUMENTADO -> BLOCKED_KEEP_OPEN/);
   assert.match(result.stdout, /0 comments; 0 issues closed/);
+  assert.match(result.stdout, /non-closing reference/);
+  assert.doesNotMatch(result.stdout, /still contains auto-closing references/);
 });
 
 test("issue write flag fails closed even when CI token variables exist", () => {
