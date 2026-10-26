@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # REVIEW ONLY: no workflow activation, no npm/build/test, no external network call.
 set -euo pipefail
-[[ "\${AA_NETNS_EVIDENCE_AUTHORIZED:-}" == yes ]] || { echo 'BLOCKED: explicit evidence authorization required' >&2; exit 40; }
-[[ "\${RUNNER_OS:-}" == Linux && "\${GITHUB_ACTIONS:-}" == true ]] || { echo 'BLOCKED: GitHub Ubuntu runner required' >&2; exit 41; }
+[[ "${AA_NETNS_EVIDENCE_AUTHORIZED:-}" == yes ]] || { echo 'BLOCKED: explicit evidence authorization required' >&2; exit 40; }
+[[ "${RUNNER_OS:-}" == Linux && "${GITHUB_ACTIONS:-}" == true ]] || { echo 'BLOCKED: GitHub Ubuntu runner required' >&2; exit 41; }
 . /etc/os-release
-[[ "\${ID:-}" == ubuntu && "\${VERSION_ID:-}" == 24.04 ]] || { echo 'BLOCKED: Ubuntu 24.04 required' >&2; exit 42; }
+[[ "${ID:-}" == ubuntu && "${VERSION_ID:-}" == 24.04 ]] || { echo 'BLOCKED: Ubuntu 24.04 required' >&2; exit 42; }
 for program in sudo unshare ip readlink python3; do
   command -v "$program" >/dev/null || { echo "BLOCKED: missing $program" >&2; exit 43; }
 done
