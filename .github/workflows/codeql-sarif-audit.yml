@@ -127,6 +127,7 @@ jobs:
               tool = run.get("tool", {}).get("driver", {}).get("name", "?")
               print(f"SARIF_FILE={path} TOOL={tool} TOTAL_RESULTS={len(results)}")
               print(f"::warning file=results.sarif,line=1,title=TOTAL::SARIF_FILE={path} TOOL={tool} TOTAL_RESULTS={len(results)}")
+              texts = []
               for res in results:
                   rid = res.get("ruleId", "?")
                   prec = res.get("level", rules.get(rid, {}).get("defaultConfiguration", {}).get("level", "?"))
@@ -135,15 +136,10 @@ jobs:
                       phys = loc.get("physicalLocation", {}) if loc else {}
                       art = phys.get("artifactLocation", {}).get("uri", "-") if phys else "-"
                       line = phys.get("region", {}).get("startLine", "-") if phys else "-"
-                      text = f"ALERT|{rid}|level={prec}|suppressed={bool(res.get('suppressions'))}|{art}:{line}|{msg}"
-                      esc = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-                      try:
-                          esc_line = int(line)
-                      except Exception:
-                          esc_line = 1
-                      esc_file = str(art).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace(":", "%3A").replace(",", "%2C")
-                      if esc_file in ("-", ""):
-                          esc_file = "results.sarif"
-                      print(f"::warning file={esc_file},line={esc_line},title={rid}::{esc}")
-                      print(text)
+                      texts.append(f"ALERT|{rid}|level={prec}|{art}:{line}|{msg}")
+              for start in range(0, len(texts), 3):
+                  chunk = " || ".join(texts[start:start + 3])
+                  esc = chunk.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                  print(f"::warning file=results.sarif,line=1,title=BATCH{start // 3}::{esc}")
+                  print(chunk)
           PY
