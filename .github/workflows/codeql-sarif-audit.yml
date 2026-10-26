@@ -1,0 +1,146 @@
+name: SARIF Audit (temporary)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - arena/b0c80df9-academiaarcana
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: sarif-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    name: CodeQL SARIF (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: actions
+            build-mode: none
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Perform CodeQL Analysis (SARIF artifact only)
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: false
+          output: sarif-results
+
+      - name: Print SARIF results to log
+        run: |
+          python3 - <<'PY'
+          import glob, json
+          for path in sorted(glob.glob("sarif-results/**/*.sarif", recursive=True)):
+              data = json.load(open(path))
+              for run in data.get("runs", []):
+                  rules = {}
+                  for r in run.get("tool", {}).get("driver", {}).get("rules", []):
+                      rules[r["id"]] = r
+                  results = run.get("results", [])
+                  print(f"SARIF_FILE={path} TOTAL_RESULTS={len(results)}")
+                  for res in results:
+                      rid = res.get("ruleId", "?")
+                      prec = res.get("level", rules.get(rid, {}).get("defaultConfiguration", {}).get("level", "?"))
+                      msg = (res.get("message", {}).get("text", "") or "").replace("\n", " ")[:300]
+                      for loc in res.get("locations", []):
+                          phys = loc.get("physicalLocation", {})
+                          art = phys.get("artifactLocation", {}).get("uri", "?")
+                          line = phys.get("region", {}).get("startLine", "?")
+                          text = f"ALERT|{rid}|level={prec}|suppressed={bool(res.get('suppressions'))}|{art}:{line}|{msg}"
+                          esc = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                          esc_file = str(art).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace(":", "%3A").replace(",", "%2C")
+                          try:
+                              esc_line = int(line)
+                          except Exception:
+                              esc_line = 1
+                          print(f"::warning file={esc_file},line={esc_line},title={rid}::{esc}")
+                          print(text)
+          PY
+
+  scorecard:
+    name: Scorecard SARIF
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+      checks: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run OSSF Scorecard
+        uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: false
+
+      - name: Print SARIF results to log
+        run: |
+          python3 - <<'PY'
+          import json, os
+          path = "results.sarif"
+          data = json.load(open(path))
+          for run in data.get("runs", []):
+              rules = {}
+              for r in run.get("tool", {}).get("driver", {}).get("rules", []):
+                  rules[r["id"]] = r
+              results = run.get("results", [])
+              tool = run.get("tool", {}).get("driver", {}).get("name", "?")
+              print(f"SARIF_FILE={path} TOOL={tool} TOTAL_RESULTS={len(results)}")
+              for res in results:
+                  rid = res.get("ruleId", "?")
+                  prec = res.get("level", rules.get(rid, {}).get("defaultConfiguration", {}).get("level", "?"))
+                  msg = (res.get("message", {}).get("text", "") or "").replace("\n", " ")[:280]
+                  for loc in res.get("locations", []) or [{}]:
+                      phys = loc.get("physicalLocation", {}) if loc else {}
+                      art = phys.get("artifactLocation", {}).get("uri", "-") if phys else "-"
+                      line = phys.get("region", {}).get("startLine", "-") if phys else "-"
+                      text = f"ALERT|{rid}|level={prec}|suppressed={bool(res.get('suppressions'))}|{art}:{line}|{msg}"
+                      esc = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                      try:
+                          esc_line = int(line)
+                      except Exception:
+                          esc_line = 1
+                      esc_file = str(art).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace(":", "%3A").replace(",", "%2C")
+                      if esc_file in ("-", ""):
+                          esc_file = "results.sarif"
+                      print(f"::warning file={esc_file},line={esc_line},title={rid}::{esc}")
+                      print(text)
+          PY
