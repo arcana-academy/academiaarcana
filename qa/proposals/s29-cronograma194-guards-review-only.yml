@@ -129,17 +129,6 @@ jobs:
           with open(os.environ['GITHUB_ENV'],'a') as env:env.write('AA_APPROVED_FONT_MANIFEST='+p+'\n')
           S29_MANIFEST
 
-      # S25 fixture provisioning requires independent human approval. If missing,
-      # fail BEFORE npm, browser installation or execution of application code.
-      - name: Refuse bootstrap without independently approved local font fixture
-        run: |
-          set -euo pipefail
-          : "${QA_MOCK_FILE:?BLOCKED: approved font fixture is absent}"
-          : "${QA_FONT_SHA256:?BLOCKED: approved font hashes are absent}"
-          test -f "$QA_MOCK_FILE"
-          test -f "$QA_FONT_SHA256"
-          sha256sum --quiet --check "$QA_FONT_SHA256"
-
       - name: Setup Node.js 24
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -161,6 +150,133 @@ jobs:
       - name: Install exact lockfile dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
+      - name: Stage original canonical fonts and compare with pre-approved SHA-256
+        run: |
+          set -euo pipefail
+          node <<'S31_CANONICAL_FONTS'
+          'use strict';
+          // S31 review-only: stage EXACT approved canonical font responses after npm ci.
+          // This block is NOT EXECUTED by the review-only YAML outside .github/workflows.
+          const fs = require('node:fs');
+          const os = require('node:os');
+          const path = require('node:path');
+          const https = require('node:https');
+          const { createHash } = require('node:crypto');
+          const sha256 = (b) => createHash('sha256').update(b).digest('hex');
+          const sha1 = (b) => createHash('sha1').update(b).digest('hex');
+          const source = fs.readFileSync('src/app/fonts.ts');
+          if (sha1(Buffer.concat([Buffer.from('blob ' + source.length + '\0'), source]))
+              !== '3315a36d3977b894256b65c2a24cacfa43cef5fa') {
+            throw Error('BLOCKED: fonts.ts canonical source changed');
+          }
+          if (require('next/package.json').version !== '16.4.3') {
+            throw Error('BLOCKED: Next.js font loader version drift');
+          }
+          const manifestPath = process.env.AA_APPROVED_FONT_MANIFEST;
+          if (!manifestPath || !path.isAbsolute(manifestPath)) {
+            throw Error('BLOCKED: approved font manifest absent');
+          }
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const helper = (name) => require('next/dist/compiled/@next/font/dist/google/' + name);
+          const { validateGoogleFontFunctionCall } = helper('validate-google-font-function-call');
+          const { getFontAxes } = helper('get-font-axes');
+          const { getGoogleFontsUrl } = helper('get-google-fonts-url');
+          const { findFontFilesInCss } = helper('find-font-files-in-css');
+          const requested = [
+            ['Grenze', {subsets:['latin'],display:'swap',variable:'--font-arcana-grenze'}],
+            ['Literata', {subsets:['latin'],display:'swap',variable:'--font-arcana-literata'}],
+            ['Cormorant_Upright', {subsets:['latin'],weight:['400','600'],display:'swap',variable:'--font-arcana-cormorant',preload:false}],
+            ['Smythe', {subsets:['latin'],weight:'400',display:'swap',variable:'--font-arcana-smythe',preload:false}]
+          ];
+          const agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36';
+          async function readHTTPS(url, host, limit) {
+            const target = new URL(url);
+            if (target.protocol !== 'https:' || target.hostname !== host ||
+                target.port || target.username || target.password || target.hash) {
+              throw Error('BLOCKED: unexpected font origin');
+            }
+            return new Promise((resolve, reject) => {
+              const req = https.get(target, {headers:{'User-Agent':agent},timeout:20000}, (res) => {
+                if (res.statusCode !== 200) {
+                  res.resume(); reject(Error('BLOCKED: font origin HTTP status')); return;
+                }
+                const parts=[]; let size=0;
+                res.on('data', (part) => {
+                  size += part.length;
+                  if (size > limit) {res.destroy(Error('BLOCKED: font size limit'));return;}
+                  parts.push(part);
+                });
+                res.on('error',reject);
+                res.on('end',()=>resolve(Buffer.concat(parts)));
+              });
+              req.on('timeout',()=>req.destroy(Error('BLOCKED: font timeout')));
+              req.on('error',reject);
+            });
+          }
+          (async () => {
+            if (!process.env.RUNNER_TEMP || !process.env.GITHUB_ENV) {
+              throw Error('BLOCKED: ephemeral GitHub runner required');
+            }
+            const root = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP,'aa-approved-fonts-'));
+            const map = Object.create(null);
+            const lines = [];
+            const savedFiles = new Map();
+            const processed = new Set();
+            for (const [fontName, options] of requested) {
+              const spec = validateGoogleFontFunctionCall(fontName,options);
+              const axes = getFontAxes(spec.fontFamily,spec.weights,spec.styles,spec.selectedVariableAxes);
+              const cssUrl = getGoogleFontsUrl(spec.fontFamily,axes,spec.display);
+              const approved = manifest.fonts[spec.fontFamily];
+              if (!approved) throw Error('BLOCKED: font family missing');
+              const cssBytes = await readHTTPS(cssUrl,'fonts.googleapis.com',512*1024);
+              if (sha256(cssBytes) !== approved.cssSha256) throw Error('BLOCKED: canonical CSS differs');
+              let css = cssBytes.toString('utf8');
+              if (!css.includes('@font-face') || /@import\b/i.test(css))
+                throw Error('BLOCKED: unexpected stylesheet');
+              const references = findFontFilesInCss(css,spec.preload?spec.subsets:undefined);
+              if (references.length < 1 || references.length > 80)
+                throw Error('BLOCKED: invalid font resource count');
+              const used = new Set();
+              for (const {googleFontFileUrl,ext} of references) {
+                const expected = approved.files[googleFontFileUrl];
+                if (!/^[0-9a-f]{64}$/.test(String(expected)) || ext !== 'woff2')
+                  throw Error('BLOCKED: font resource not approved');
+                let stored = savedFiles.get(googleFontFileUrl);
+                if (!stored) {
+                  const buffer = await readHTTPS(googleFontFileUrl,'fonts.gstatic.com',5*1024*1024);
+                  if (buffer.length < 64 || buffer.toString('ascii',0,4) !== 'wOF2' ||
+                      sha256(buffer) !== expected)
+                    throw Error('BLOCKED: canonical WOFF2 differs');
+                  stored = path.join(root,sha256(Buffer.from(googleFontFileUrl))+'.woff2');
+                  fs.writeFileSync(stored,buffer,{flag:'wx',mode:0o600});
+                  lines.push(expected+'  '+stored);
+                  savedFiles.set(googleFontFileUrl,stored);
+                }
+                css=css.split(googleFontFileUrl).join(stored);
+                used.add(googleFontFileUrl);
+              }
+              if (used.size !== Object.keys(approved.files).length)
+                throw Error('BLOCKED: manifest contains unreferenced binaries');
+              if (/https?:\/\//i.test(css)) throw Error('BLOCKED: remote URL in offline CSS');
+              map[cssUrl]=css;
+              processed.add(spec.fontFamily);
+            }
+            if (processed.size!==4 || savedFiles.size<4)
+              throw Error('BLOCKED: incomplete canonical font fixture');
+            const local = path.join(root,'google-fonts.cjs');
+            const code='module.exports='+JSON.stringify(map,null,2)+';\n';
+            fs.writeFileSync(local,code,{flag:'wx',mode:0o600});
+            lines.push(sha256(Buffer.from(code))+'  '+local);
+            const hashes=path.join(root,'SHA256SUMS');
+            fs.writeFileSync(hashes,lines.join('\n')+'\n',{flag:'wx',mode:0o600});
+            fs.appendFileSync(process.env.GITHUB_ENV,'QA_MOCK_FILE='+local+'\nQA_FONT_SHA256='+hashes+'\n');
+            console.log('CANONICAL_FONTS_VERIFIED: families=4; binaries='+savedFiles.size);
+          })().catch((error) => {
+            console.error('CANONICAL_FONTS_BLOCKED:',error.message);
+            process.exitCode=1;
+          });
+          S31_CANONICAL_FONTS
       # Install the pre-reviewed browser while ordinary runner egress is available.
       # No product application code runs before the offline sandbox is created.
       - name: Install matching Playwright Chromium and Linux libraries
@@ -169,6 +285,12 @@ jobs:
       - name: Verify and run build and Cronograma 194 in offline Linux network namespace
         run: |
           set -euo pipefail
+          # The reviewed fixture stage must populate both variables; fail closed.
+          : "${QA_MOCK_FILE:?BLOCKED: no approved font fixture}"
+          : "${QA_FONT_SHA256:?BLOCKED: no approved font hashes}"
+          test -f "$QA_MOCK_FILE"
+          test -f "$QA_FONT_SHA256"
+          sha256sum --quiet --check "$QA_FONT_SHA256"
           # Only the runner's UID/GID, Node PATH, and HOME enter the sandbox.
           export QA_UID="$(id -u)"
           export QA_GID="$(id -g)"
