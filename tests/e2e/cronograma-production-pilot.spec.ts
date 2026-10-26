@@ -222,7 +222,8 @@ test("Cronograma pilot records performance evidence without inventing a budget",
   // Measure filter styles *before* testing for settled animations in the
   // same browser evaluation. A separate later getComputedStyle() pass can
   // expose pending transitions (31 observed on Ubuntu CI after a zero poll).
-  // Keep the contract: no active animations and no filters on StudyTaskBoard.
+  // Preserve the original page-wide no-running-animations contract while
+  // measuring StudyTaskBoard filters after hydration in the same evaluation.
   const settled = await page.waitForFunction(async () => {
     const board = document.querySelector(".aa-study-task-board");
     if (!board) return false;
@@ -237,15 +238,16 @@ test("Cronograma pilot records performance evidence without inventing a budget",
     });
     const activeAnimations = board.getAnimations({ subtree: true })
       .filter((animation) => animation.playState === "running").length;
-    if (activeAnimations !== 0) return false;
+    const pageActiveAnimations = document.getAnimations()
+      .filter((animation) => animation.playState === "running").length;
+    // Wait for both the board and the entire page, not only the board.
+    if (activeAnimations !== 0 || pageActiveAnimations !== 0) return false;
     return {
       descendants: descendants.length,
       images: board.querySelectorAll("img").length,
       filters: filterCount,
       activeAnimations,
-      // Keep page-wide animations observable without changing the board contract.
-      pageActiveAnimations: document.getAnimations()
-        .filter((animation) => animation.playState === "running").length,
+      pageActiveAnimations,
     };
   }, null, { timeout: 10_000 });
   const metrics = await settled.jsonValue();
@@ -254,6 +256,7 @@ test("Cronograma pilot records performance evidence without inventing a budget",
   console.log(`AA_CRONOGRAMA_PILOT_PERF_JSON=${JSON.stringify(metrics)}`);
   expect(metrics.filters).toBe(0);
   expect(metrics.activeAnimations).toBe(0);
+  expect(metrics.pageActiveAnimations).toBe(0);
 });
 
 test("Cronograma pilot preserves reviewed visual pixels beyond the approved pending-task heading copy", async ({ page }) => {
