@@ -96,7 +96,7 @@ jobs:
           test "$(ip -o link show | wc -l)" -eq 1
           test -z "$(ip -4 route show default)"
           test -z "$(ip -6 route show default)"
-          test "$(find /sys/class/net -mindepth 1 -maxdepth 1 -printf '%f\\n')" = lo
+          test "$(find /sys/class/net -mindepth 1 -maxdepth 1 -printf '%f\n')" = lo
           S29_NETCHECK
 
       - name: Gate on owner-approved canonical font manifest before any dependency install
@@ -126,7 +126,7 @@ jobs:
                       raise SystemExit('BLOCKED: unapproved font origin/hash')
           fd,p=tempfile.mkstemp(prefix='aa-font-manifest-',suffix='.json',dir=os.environ['RUNNER_TEMP'])
           with os.fdopen(fd,'w') as out: out.write(text)
-          with open(os.environ['GITHUB_ENV'],'a') as env:env.write('AA_APPROVED_FONT_MANIFEST='+p+'\\n')
+          with open(os.environ['GITHUB_ENV'],'a') as env:env.write('AA_APPROVED_FONT_MANIFEST='+p+'\n')
           S29_MANIFEST
 
       - name: Setup Node.js 24
