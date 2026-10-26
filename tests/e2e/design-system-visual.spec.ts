@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -54,9 +55,9 @@ test("all 40 themes match deterministic visual baselines", async ({ page }) => {
     }
   }
 
-  // Kept intentionally machine-readable so the first reviewed run can seed
-  // the text manifest without committing binary screenshot artifacts.
-  console.log(`AA_VISUAL_BASELINES_JSON=${JSON.stringify(actual)}`);
+  // Kept intentionally machine-readable so a reviewed run can reconcile the
+  // text manifest without committing binary screenshot artifacts.
+  reportVisualBaselineComparison("AA_VISUAL_BASELINES_JSON", actual, baselines);
   if (isVisualBaselineWriteEnabled()) {
     writeVisualBaselines(baselinePath, actual);
     return;

@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -191,7 +192,7 @@ test("proof visual matrix matches deterministic A/B/C baselines", async ({ page 
     }
   }
 
-  console.log(`AA_PROOF_BASELINES_JSON=${JSON.stringify(actual)}`);
+  reportVisualBaselineComparison("AA_PROOF_BASELINES_JSON", actual, baselines);
   if (isVisualBaselineWriteEnabled()) {
     writeVisualBaselines(baselinePath, actual);
     return;

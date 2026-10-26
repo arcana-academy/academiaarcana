@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -233,6 +234,12 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     }
     actual[`statistics:mago-classico:${viewport.label}`] = capture.hash;
   }
+
+  reportVisualBaselineComparison(
+    "AA_STATISTICS_PILOT_BASELINES_JSON",
+    actual,
+    baselines,
+  );
 
   if (process.env.UPDATE_STATISTICS_PILOT_BASELINES === "1") {
     writeFileSync(baselinePath, `${JSON.stringify(actual, null, 2)}\n`);

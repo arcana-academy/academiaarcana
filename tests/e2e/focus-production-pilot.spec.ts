@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { reportVisualBaselineComparison } from "./support/github-visual-evidence";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -168,7 +169,11 @@ test("Focus production pilot matches deterministic visual baselines", async ({ p
     }
   }
 
-  console.log(`AA_FOCUS_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
+  reportVisualBaselineComparison(
+    "AA_FOCUS_PILOT_BASELINES_JSON",
+    actual,
+    baselines,
+  );
   if (isVisualBaselineWriteEnabled()) {
     writeVisualBaselines(baselinePath, actual);
     return;
