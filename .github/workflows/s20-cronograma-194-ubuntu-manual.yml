@@ -1,0 +1,78 @@
+name: AA S20 Ubuntu 24.04 — Cronograma 194 (manual / NO-GO)
+
+# Review-only workflow. It has NO push, pull_request, schedule, or release trigger.
+# GitHub requires a manual workflow to exist on the default branch before dispatch.
+# Do not merge or dispatch without a separate release-independent authorization.
+on:
+  workflow_dispatch:
+    inputs:
+      authorization:
+        description: 'Exact authorization phrase: AUTORIZO-CRONOGRAMA-194'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  cronograma-194:
+    if: ${{ github.ref == 'refs/heads/work/aa-security-s20-cronograma-ubuntu194-prep-20261026' && inputs.authorization == 'AUTORIZO-CRONOGRAMA-194' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      CI: '1'
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
+
+    steps:
+      - name: Checkout immutable PR 829 code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 390fbcda0c542309c0bf4a4de4d888150aab40b0
+          persist-credentials: false
+
+      - name: Verify runner and immutable test target
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = '390fbcda0c542309c0bf4a4de4d888150aab40b0'
+          test -z "$(git status --porcelain)"
+          printf 'Ubuntu: '; . /etc/os-release; echo "$PRETTY_NAME"
+          echo 'PR829_IMMUTABLE_HEAD=390fbcda0c542309c0bf4a4de4d888150aab40b0'
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Pin npm without third-party lifecycle scripts
+        run: npm install --global npm@11.19.1 --ignore-scripts
+
+      - name: Verify reviewed dependency lifecycle boundary
+        run: |
+          node scripts/verify-dependency-lifecycle-scripts.cjs
+          node --version
+          npm --version
+
+      - name: Install exact lockfile dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Rebuild only reviewed native dependency
+        run: npm rebuild unrs-resolver --ignore-scripts=false
+
+      - name: Build with synthetic public configuration
+        run: npm run build
+
+      - name: Install matching Playwright Chromium and Linux libraries
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      - name: Run only Cronograma E2E scenario 194 once
+        run: |
+          node node_modules/@playwright/test/cli.js test \
+            tests/e2e/cronograma-production-pilot.spec.ts:194 \
+            --project=chromium --workers=1 --retries=0 --reporter=line
