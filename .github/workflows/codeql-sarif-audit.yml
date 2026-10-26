@@ -2,6 +2,9 @@ name: CodeQL SARIF Audit (temporary)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - arena/9d10c297-academiaarcana
 
 permissions:
   contents: read
