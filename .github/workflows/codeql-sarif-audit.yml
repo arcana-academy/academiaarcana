@@ -53,10 +53,28 @@ jobs:
           upload: false
           output: sarif-results
 
-      - name: Upload SARIF artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: codeql-sarif-${{ matrix.language }}
-          path: sarif-results
-          if-no-files-found: error
-          retention-days: 3
+      - name: Print SARIF results to log
+        run: |
+          python3 - <<'PY'
+          import glob, json
+          for path in sorted(glob.glob("sarif-results/**/*.sarif", recursive=True)):
+              data = json.load(open(path))
+              for run in data.get("runs", []):
+                  rules = {}
+                  for tool in [run.get("tool", {})]:
+                      for r in tool.get("driver", {}).get("rules", []):
+                          rules[r["id"]] = r
+                  results = run.get("results", [])
+                  print(f"SARIF_FILE={path} TOTAL_RESULTS={len(results)}")
+                  for res in results:
+                      rid = res.get("ruleId", "?")
+                      rule = rules.get(rid, {})
+                      sev = rule.get("properties", {}).get("security-severity", "?")
+                      prec = rule.get("defaultConfiguration", {}).get("level", res.get("level", "?"))
+                      msg = (res.get("message", {}).get("text", "") or "").replace("\n", " ")[:300]
+                      for loc in res.get("locations", []):
+                          phys = loc.get("physicalLocation", {})
+                          art = phys.get("artifactLocation", {}).get("uri", "?")
+                          line = phys.get("region", {}).get("startLine", "?")
+                          print(f"ALERT|{rid}|sev={sev}|level={prec}|{art}:{line}|{msg}")
+          PY
