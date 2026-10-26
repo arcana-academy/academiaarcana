@@ -86,4 +86,17 @@ jobs:
                               esc_line = 1
                           print(f"::warning file={esc_file},line={esc_line},title={rid}::{esc}")
                           print(text)
+                  for ri, res in enumerate(results):
+                      rid = res.get("ruleId", "?")
+                      for ci, flow in enumerate(res.get("codeFlows", [])):
+                          for ti, thread in enumerate(flow.get("threadFlows", [])):
+                              for si, step in enumerate(thread.get("locations", [])):
+                                  loc = step.get("location", {})
+                                  phys = loc.get("physicalLocation", {})
+                                  art = phys.get("artifactLocation", {}).get("uri", "?")
+                                  line = phys.get("region", {}).get("startLine", "?")
+                                  smsg = (loc.get("message", {}).get("text", "") or "").replace("\n", " ")[:200]
+                                  ftext = f"FLOW|{rid}|r{ri}c{ci}t{ti}s{si}|{art}:{line}|{smsg}"
+                                  fesc = ftext.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                                  print(f"::warning file={art},line=1,title=FLOW::{fesc}")
           PY
