@@ -99,7 +99,7 @@ if (rejected.length > 0) {
       }
       console.log(
         "F7: 95/95 reviewed as metadata; 0 comments; 0 issues closed. " +
-          "PR #821 still contains auto-closing references in its BODY. DO NOT MERGE it unchanged.",
+          "Keep every issue number as a non-closing reference in pull-request descriptions.",
       );
     }
   } catch (error) {

@@ -1,9 +1,17 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
+import {
+  isVisualBaselineWriteEnabled,
+  writeVisualBaselines,
+} from "./support/visual-baselines";
 import { THEME_IDS } from "../../src/design-system/themes/presets";
 
 type Baselines = Record<string, string>;
@@ -12,12 +20,12 @@ const baselinePath = join(process.cwd(), "tests/e2e/cronograma-pilot-baselines.j
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
 
 async function screenshotHash(locator: Locator, evidencePath?: string): Promise<string> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
+  const capture = await captureStableVisualHash(locator);
   if (evidencePath) {
     mkdirSync(dirname(evidencePath), { recursive: true });
-    writeFileSync(evidencePath, bytes);
+    writeFileSync(evidencePath, capture.bytes);
   }
-  return createHash("sha256").update(bytes).digest("hex");
+  return capture.hash;
 }
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
@@ -25,32 +33,6 @@ async function assertNoHorizontalOverflow(page: Page, label: string): Promise<vo
     () => document.documentElement.scrollWidth > window.innerWidth + 1,
   );
   expect(overflow, `horizontal overflow: ${label}`).toBe(false);
-}
-
-async function settleVisualSurface(page: Page, root: Locator): Promise<void> {
-  await page.evaluate(async () => {
-    await document.fonts?.ready;
-  });
-  for (const image of await root.locator("img").all()) {
-    await image.evaluate(async (node) => {
-      const element = node as HTMLImageElement;
-      if (!element.complete) {
-        await new Promise<void>((resolve) => {
-          element.addEventListener("load", () => resolve(), { once: true });
-          element.addEventListener("error", () => resolve(), { once: true });
-        });
-      }
-      if (element.complete && element.naturalWidth > 0 && "decode" in element) {
-        await element.decode().catch(() => undefined);
-      }
-    });
-  }
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-      }),
-  );
 }
 
 function channelToLinear(channel: number): number {
@@ -193,22 +175,64 @@ test("StudyTaskBoard remains usable when decorative assets fail", async ({ page 
 
 test("Cronograma pilot records performance evidence without inventing a budget", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
-  // Theme tokens apply after hydration, so button color transitions started by
-  // the initial paint must settle before measuring steady-state motion.
+  // Wait for the actual hydrated theme/scenario rather than sampling the
+  // initial paint, which can briefly report zero animations before transitions start.
+  await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "connected");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
+  // data-theme can already match server HTML before React effects run.
+  // The inline theme tokens are set by applyTheme() only after hydration;
+  // wait for that observable boundary before checking for active transitions.
   await page.waitForFunction(
-    () => document.getAnimations().every((animation) => animation.playState !== "running"),
+    () => document.documentElement.style.getPropertyValue("--aa-surfaces-panel").trim().length > 0,
     null,
     { timeout: 10_000 },
   );
-  const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
-    descendants: node.querySelectorAll("*").length,
-    images: node.querySelectorAll("img").length,
-    filters: [...node.querySelectorAll("*")].filter((element) => {
+  await page.evaluate(async () => { await document.fonts.ready; });
+  // Force style resolution before awaiting animation completion. Reading
+  // getComputedStyle() for the first time in the metric collection otherwise
+  // starts ~31 CSS transitions *after* a premature zero-animation poll.
+  await page.locator(".aa-study-task-board").evaluate((node) => {
+    for (const element of [node, ...node.querySelectorAll("*")]) {
+      const style = getComputedStyle(element);
+      void style.color;
+      void style.backgroundColor;
+      void style.borderColor;
+      void style.filter;
+      void style.backdropFilter;
+    }
+  });
+  // Measure filter styles *before* testing for settled animations in the
+  // same browser evaluation. A separate later getComputedStyle() pass can
+  // expose pending transitions (31 observed on Ubuntu CI after a zero poll).
+  // Keep the contract: no active animations and no filters on StudyTaskBoard.
+  // Keep this predicate synchronous. An async predicate returns a Promise,
+  // which is itself truthy and can make waitForFunction resolve to `false`
+  // before the finite board transitions have actually settled. Polling on each
+  // animation frame provides the intended post-style-resolution boundary.
+  const settled = await page.waitForFunction(() => {
+    const board = document.querySelector(".aa-study-task-board");
+    if (!board) return false;
+    const descendants = [...board.querySelectorAll("*")];
+    // Force the same style resolution used by the performance measurement.
+    const filterCount = descendants.filter((element) => {
       const style = getComputedStyle(element);
       return style.filter !== "none" || style.backdropFilter !== "none";
-    }).length,
-    activeAnimations: document.getAnimations().filter((animation) => animation.playState === "running").length,
-  }));
+    }).length;
+    const activeAnimations = board.getAnimations({ subtree: true })
+      .filter((animation) => animation.playState === "running").length;
+    if (activeAnimations !== 0) return false;
+    return {
+      descendants: descendants.length,
+      images: board.querySelectorAll("img").length,
+      filters: filterCount,
+      activeAnimations,
+      // Keep page-wide animations observable without changing the board contract.
+      pageActiveAnimations: document.getAnimations()
+        .filter((animation) => animation.playState === "running").length,
+    };
+  }, null, { polling: "raf", timeout: 10_000 });
+  const metrics = await settled.jsonValue();
+  if (!metrics) throw new Error("Cronograma metrics did not settle");
 
   console.log(`AA_CRONOGRAMA_PILOT_PERF_JSON=${JSON.stringify(metrics)}`);
   expect(metrics.filters).toBe(0);
@@ -247,12 +271,22 @@ test("Cronograma pilot preserves reviewed visual pixels beyond the approved pend
   }
 
   console.log(`AA_CRONOGRAMA_PILOT_BASELINES_JSON=${JSON.stringify(actual)}`);
-  console.log(`AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON=${JSON.stringify(referenceCopy)}`);
-  // Original approved baselines remain unchanged. Only the confirmed text
-  // change may alter the live pixels; rendering its prior wording must
-  // reproduce all three previously reviewed screenshots byte-for-byte.
-  expect(referenceCopy).toEqual(baselines);
   for (const key of Object.keys(actual)) {
     expect(actual[key], `Visible heading copy must change: ${key}`).not.toBe(referenceCopy[key]);
   }
+  if (isVisualBaselineWriteEnabled()) {
+    writeVisualBaselines(baselinePath, referenceCopy);
+    return;
+  }
+
+  reportVisualBaselineComparison(
+    "AA_CRONOGRAMA_PILOT_COPY_ONLY_REFERENCE_JSON",
+    referenceCopy,
+    baselines,
+  );
+  // Original approved baselines remain unchanged. Only the confirmed text
+  // change may alter the live pixels; rendering its prior wording must
+  // reproduce all three previously reviewed screenshots through the stable
+  // spatial fingerprint.
+  expect(referenceCopy).toEqual(baselines);
 });

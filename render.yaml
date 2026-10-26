@@ -3,14 +3,10 @@ services:
     name: academiaarcana
     runtime: node
     branch: main
-    # Deploy on every commit that reaches main. Main only ever receives merged
-    # pull requests, so the Quality Gate has already run before the promotion
-    # starts. checksPass cannot be used here: it withholds the deploy while any
-    # check on the commit is red, and the Production Smoke check can only turn
-    # green after this service is already serving the new revision. That is a
-    # circular dependency, not a gate. See
-    # docs/engineering/2026-10-23-render-promotion-deadlock.md.
-    autoDeployTrigger: commit
+    # Release freeze (NO-GO): a merged commit must not deploy automatically.
+    # Production Smoke is post-deploy evidence, not a promotion gate.
+    # Re-enable only after separate, approved release governance.
+    autoDeployTrigger: off
     buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build
     startCommand: npm start
     healthCheckPath: /api/health

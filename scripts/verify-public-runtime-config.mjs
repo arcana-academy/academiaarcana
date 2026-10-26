@@ -90,6 +90,8 @@ export function resolveEnvironmentLabel(environment) {
       return "development";
     case "test":
       return "test";
+    case "staging":
+      return "staging";
     default:
       return "unknown";
   }

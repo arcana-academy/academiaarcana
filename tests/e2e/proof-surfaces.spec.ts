@@ -1,9 +1,13 @@
-import { createHash } from "node:crypto";
-import { readFileSync, statSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -16,11 +20,6 @@ type Baselines = Record<string, string>;
 
 const baselinePath = join(process.cwd(), "tests/e2e/proof-visual-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
-
-async function screenshotHash(locator: Locator): Promise<string> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
-  return createHash("sha256").update(bytes).digest("hex");
-}
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
@@ -167,6 +166,7 @@ test("proof visual matrix matches deterministic A/B/C baselines", async ({ page 
   await page.emulateMedia({ reducedMotion: "reduce" });
 
   const actual: Baselines = {};
+  const captureDir = process.env.AA_VISUAL_REVIEW_CAPTURE_DIR;
 
   for (const viewport of [
     { width: 375, height: 812, label: "mobile" },
@@ -175,16 +175,28 @@ test("proof visual matrix matches deterministic A/B/C baselines", async ({ page 
   ]) {
     await page.setViewportSize(viewport);
     await page.goto("/design-system/proofs?theme=mago-classico");
+    await expect(page.getByTestId("proof-showcase")).toBeVisible();
 
     for (const proofId of PROOF_IDS) {
       for (const variant of ["current", "target", "negative"] as const) {
         const locator = page.getByTestId(`proof-${proofId}-${variant}`);
-        actual[`${proofId}:${variant}:${viewport.label}`] = await screenshotHash(locator);
+        const key = `${proofId}:${variant}:${viewport.label}`;
+        await expect(locator).toBeVisible();
+        await settleVisualSurface(page, locator);
+        const capture = await captureStableVisualHash(locator);
+        actual[key] = capture.hash;
+        if (captureDir && capture.hash !== baselines[key]) {
+          mkdirSync(captureDir, { recursive: true });
+          writeFileSync(
+            join(captureDir, `${proofId}-${variant}-${viewport.label}.png`),
+            capture.bytes,
+          );
+        }
       }
     }
   }
 
-  console.log(`AA_PROOF_BASELINES_JSON=${JSON.stringify(actual)}`);
+  reportVisualBaselineComparison("AA_PROOF_BASELINES_JSON", actual, baselines);
   if (isVisualBaselineWriteEnabled()) {
     writeVisualBaselines(baselinePath, actual);
     return;

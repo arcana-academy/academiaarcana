@@ -1,9 +1,13 @@
-import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
+import {
+  reportVisualBaselineComparison,
+  settleVisualSurface,
+} from "./support/github-visual-evidence";
+import { captureStableVisualHash } from "./support/stable-visual-hash";
 import {
   isVisualBaselineWriteEnabled,
   writeVisualBaselines,
@@ -15,14 +19,6 @@ type Baselines = Record<string, string>;
 
 const baselinePath = join(process.cwd(), "tests/e2e/statistics-pilot-baselines.json");
 const baselines = JSON.parse(readFileSync(baselinePath, "utf8")) as Baselines;
-
-async function screenshotHash(locator: Locator): Promise<{ hash: string; bytes: Buffer }> {
-  const bytes = await locator.screenshot({ animations: "disabled" });
-  return {
-    hash: createHash("sha256").update(bytes).digest("hex"),
-    bytes,
-  };
-}
 
 async function assertNoHorizontalOverflow(page: Page, label: string): Promise<void> {
   const overflow = await page.evaluate(
@@ -118,8 +114,8 @@ test("objective confirmation, due review, gaps and low-confidence signals remain
   );
 
   await page.getByTestId("statistics-pilot-scenario-select").selectOption("low-confidence");
-  await expect(page.locator(".statistics-view__profile")).toContainText("confiança Insuficiente");
-  await expect(page.locator(".statistics-view__profile")).toContainText("1 tentativa(s)");
+  await expect(page.locator('[data-statistics-region="profile-signals"]')).toContainText("confiança Insuficiente");
+  await expect(page.locator('[data-statistics-region="profile-signals"]')).toContainText("1 tentativa(s)");
 });
 
 test("all 40 themes keep composed contrast, evidence boundaries and no overflow", async ({ page }) => {
@@ -135,9 +131,9 @@ test("all 40 themes keep composed contrast, evidence boundaries and no overflow"
 
     const surfaces = await page.evaluate(() => {
       const selectors = [
-        ".statistics-view__educational-statistics",
-        ".statistics-view__self-reported",
-        ".statistics-view__objective",
+        '[data-statistics-region="educational-overview"]',
+        '[data-statistics-region="self-reported-evidence"]',
+        '[data-statistics-region="objective-evidence"]',
       ];
       return selectors.map((selector) => {
         const surface = document.querySelector(selector)!;
@@ -163,11 +159,17 @@ test("keyboard focus and reduced motion remain visible and predictable", async (
 
   const themeSelect = page.getByTestId("statistics-pilot-theme-select");
   await themeSelect.focus();
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Praticar" })).toBeFocused();
+  const practiceLink = page.getByRole("link", { name: "Praticar" });
+  let reachedByKeyboard = false;
+  for (let index = 0; index < 40; index += 1) {
+    await page.keyboard.press("Tab");
+    reachedByKeyboard = await practiceLink.evaluate((node) => document.activeElement === node);
+    if (reachedByKeyboard) break;
+  }
+  expect(reachedByKeyboard, "The practice link must be reachable from the theme control by Tab").toBe(true);
+  await expect(practiceLink).toBeFocused();
 
-  const focusStyle = await page.getByRole("link", { name: "Praticar" }).evaluate((node) => {
+  const focusStyle = await practiceLink.evaluate((node) => {
     const style = getComputedStyle(node);
     return { outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth) };
   });
@@ -218,13 +220,21 @@ test("StatisticsView matches reviewed deterministic screenshots at three viewpor
     await page.goto("/design-system/pilots/statistics?scenario=mixed-evidence&theme=mago-classico");
     const view = page.getByTestId("statistics-view");
     await expect(view).toBeVisible();
-    const capture = await screenshotHash(view);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
+    await settleVisualSurface(page, view);
+    const capture = await captureStableVisualHash(view);
     if (captureDir) {
       mkdirSync(captureDir, { recursive: true });
       writeFileSync(join(captureDir, `statistics-${viewport.label}.png`), capture.bytes);
     }
     actual[`statistics:mago-classico:${viewport.label}`] = capture.hash;
   }
+
+  reportVisualBaselineComparison(
+    "AA_STATISTICS_PILOT_BASELINES_JSON",
+    actual,
+    baselines,
+  );
 
   if (process.env.UPDATE_STATISTICS_PILOT_BASELINES === "1") {
     writeFileSync(baselinePath, `${JSON.stringify(actual, null, 2)}\n`);

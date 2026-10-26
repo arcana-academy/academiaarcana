@@ -128,4 +128,3 @@
 **Permissões:** o histórico anterior registra 403 em operações `issues: write`; F7 não executou comentários ou fechamentos e não atestou a permissão atual por tentativa de escrita.
 
 **Reprodução de leitura:** `node scripts/issue-triage/apply-f-series-triage.mjs --check` valida o mapeamento local; invocação padrão lista os 95 itens sem escrever; `--apply` retorna erro.
-
