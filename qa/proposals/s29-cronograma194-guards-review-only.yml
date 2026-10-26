@@ -108,12 +108,19 @@ jobs:
           python3 <<'S29_MANIFEST'
           import os, re, json, hashlib, tempfile
           text=os.environ.get('AA_APPROVED_FONT_MANIFEST_JSON','')
-          digest=os.environ.get('AA_APPROVED_FONT_MANIFEST_SHA256','')
-          if not text or len(text)>40000 or not re.fullmatch('[0-9a-f]{64}',digest):
-              raise SystemExit('BLOCKED: missing owner-approved font manifest')
-          if hashlib.sha256(text.encode()).hexdigest()!=digest:
-              raise SystemExit('BLOCKED: font manifest hash mismatch')
+          declared=os.environ.get('AA_APPROVED_FONT_MANIFEST_SHA256','')
+          # This pin MUST be changed in a separately reviewed commit only after
+          # the owner explicitly approves the verified candidate and its SHA-256.
+          approved_pin='S32_PENDING_INDEPENDENT_FONT_EVIDENCE_AND_OWNER_APPROVAL'
+          if not re.fullmatch('[0-9a-f]{64}',approved_pin):
+              raise SystemExit('BLOCKED: no owner-approved font SHA-256 pinned in reviewed code')
+          if not text or len(text)>40000 or declared!=approved_pin:
+              raise SystemExit('BLOCKED: missing or unapproved font manifest')
+          if hashlib.sha256(text.encode()).hexdigest()!=approved_pin:
+              raise SystemExit('BLOCKED: font manifest checksum differs from owner-approved pin')
           m=json.loads(text)
+          if m.get('approvalState')!='owner-approved':
+              raise SystemExit('BLOCKED: candidate fonts have not been independently approved')
           families={'Grenze','Literata','Cormorant Upright','Smythe'}
           if m.get('schema')!=1 or m.get('sourceBlob')!='3315a36d3977b894256b65c2a24cacfa43cef5fa' or m.get('nextVersion')!='16.4.3' or set(m.get('fonts',{}))!=families:
               raise SystemExit('BLOCKED: canonical font identity mismatch')
@@ -177,7 +184,7 @@ jobs:
             throw Error('BLOCKED: approved font manifest absent');
           }
           const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-          const helper = (name) => require('next/dist/compiled/@next/font/dist/google/' + name);
+          const helper = (name) => require(path.join(process.cwd(), 'node_modules/next/dist/compiled/@next/font/dist/google', name));
           const { validateGoogleFontFunctionCall } = helper('validate-google-font-function-call');
           const { getFontAxes } = helper('get-font-axes');
           const { getGoogleFontsUrl } = helper('get-google-fonts-url');
