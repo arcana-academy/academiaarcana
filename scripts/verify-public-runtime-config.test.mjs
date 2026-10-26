@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   loadBuildEnvironment,
+  resolveEnvironmentLabel,
   validateSupabaseProductionConfiguration,
   verifyPublicRuntimeConfig,
 } from "./verify-public-runtime-config.mjs";
@@ -170,6 +171,33 @@ describe("verify-public-runtime-config", () => {
       environment: "preview",
       configuration: "environment",
     });
+  });
+
+  it.each(["production", "preview", "development", "test"])(
+    "keeps the allowlisted environment label %s",
+    (label) => {
+      expect(resolveEnvironmentLabel({ APP_ENV: label })).toBe(label);
+    },
+  );
+
+  it("falls back to NODE_ENV when APP_ENV is absent", () => {
+    expect(resolveEnvironmentLabel({ NODE_ENV: "production" })).toBe(
+      "production",
+    );
+  });
+
+  it("never echoes an unlisted environment value into the report", () => {
+    expect(
+      resolveEnvironmentLabel({ APP_ENV: "staging-with-secret-material" }),
+    ).toBe("unknown");
+    expect(resolveEnvironmentLabel({})).toBe("unknown");
+    expect(
+      verifyPublicRuntimeConfig({
+        APP_ENV: "staging-with-secret-material",
+        NEXT_PUBLIC_SUPABASE_URL: validUrl,
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: validKey,
+      }).environment,
+    ).toBe("unknown");
   });
 
   it("accepts a complete production configuration", () => {

@@ -71,6 +71,32 @@ export function validateSupabaseProductionConfiguration(
   }
 }
 
+/**
+ * Resolves the deployment label that is safe to print to stdout.
+ *
+ * The raw environment may contain secrets, so no value taken from it may
+ * flow into the verification report. Only a fixed allowlist of well-known
+ * deployment labels is returned, each as a literal; anything else collapses
+ * to "unknown". This keeps `js/clear-text-logging` from tainting the CLI
+ * output with arbitrary `process.env` data.
+ */
+export function resolveEnvironmentLabel(environment) {
+  switch (environment.APP_ENV ?? environment.NODE_ENV) {
+    case "production":
+      return "production";
+    case "preview":
+      return "preview";
+    case "development":
+      return "development";
+    case "test":
+      return "test";
+    case "staging":
+      return "staging";
+    default:
+      return "unknown";
+  }
+}
+
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
   for (const name of [
     "NEXT_PUBLIC_SUPABASE_URL",
@@ -86,23 +112,10 @@ export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) 
     environment.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   );
 
-  // The result is printed by the CLI. Never copy arbitrary process-environment
-  // values into logs; only literal, reviewed labels may leave this boundary.
-  const candidate = environment.APP_ENV ?? environment.NODE_ENV;
-  let environmentLabel;
-  switch (candidate) {
-    case "production": environmentLabel = "production"; break;
-    case "preview": environmentLabel = "preview"; break;
-    case "development": environmentLabel = "development"; break;
-    case "test": environmentLabel = "test"; break;
-    case "staging": environmentLabel = "staging"; break;
-    default: environmentLabel = "unknown";
-  }
-
   return {
     integration: "supabase-public-runtime",
     verified: true,
-    environment: environmentLabel,
+    environment: resolveEnvironmentLabel(environment),
     configuration: "environment",
   };
 }

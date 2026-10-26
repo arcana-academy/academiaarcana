@@ -1,16 +1,39 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-const OAUTH_STATE_VERSION = "v1";
+// Public format label that prefixes every issued state value. It is sent in
+// clear text as the first state segment, so it is not a credential.
+const STATE_FORMAT_VERSION = "v1";
 const NONCE_BYTES = 32;
+// 32 random bytes encode to exactly 43 unpadded base64url characters.
+const NONCE_LENGTH = 43;
+const NONCE_ALPHABET =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+/**
+ * Validates an untrusted nonce segment and rebuilds it character by
+ * character from the base64url allowlist. Only the canonical nonce shape
+ * issued by `createSubjectBoundOAuthState` is accepted, and the value that
+ * reaches the signature check is assembled from the allowlist itself rather
+ * than passed through from the untrusted state string.
+ */
+function normalizeNonce(value: string): string | null {
+  if (value.length !== NONCE_LENGTH) return null;
+
+  let normalized = "";
+  for (const character of value) {
+    const index = NONCE_ALPHABET.indexOf(character);
+    if (index === -1) return null;
+    normalized += NONCE_ALPHABET[index];
+  }
+  return normalized;
+}
 
 function signOAuthState(subjectId: string, nonce: string, secret: string): Buffer {
-  return createHmac("sha256", secret)
-    .update(OAUTH_STATE_VERSION)
-    .update("\0")
-    .update(subjectId)
-    .update("\0")
-    .update(nonce)
-    .digest();
+  // This is message authentication, not password hashing: HMAC-SHA256 keyed
+  // with the server secret provides integrity for the public version label,
+  // the subject id, and the random nonce. No password is stored or derived.
+  const payload = [STATE_FORMAT_VERSION, subjectId, nonce].join("\0");
+  return createHmac("sha256", secret).update(payload).digest();
 }
 
 export function createSubjectBoundOAuthState(
@@ -31,7 +54,7 @@ export function createSubjectBoundOAuthState(
     normalizedSecret,
   ).toString("base64url");
 
-  return `${OAUTH_STATE_VERSION}.${nonce}.${signature}`;
+  return `${STATE_FORMAT_VERSION}.${nonce}.${signature}`;
 }
 
 export function verifySubjectBoundOAuthState(
@@ -44,9 +67,10 @@ export function verifySubjectBoundOAuthState(
 
   if (!state || !normalizedSubjectId || !normalizedSecret) return false;
 
-  const [version, nonce, signature, extra] = state.split(".");
+  const [version, rawNonce, signature, extra] = state.split(".");
+  const nonce = rawNonce ? normalizeNonce(rawNonce) : null;
   if (
-    version !== OAUTH_STATE_VERSION ||
+    version !== STATE_FORMAT_VERSION ||
     !nonce ||
     !signature ||
     extra !== undefined

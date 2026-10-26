@@ -40,6 +40,26 @@ describe("OAuth transaction state", () => {
     ).toBe(false);
   });
 
+  it("rejects a state whose nonce is not canonical base64url", () => {
+    const state = createSubjectBoundOAuthState("user-a", "server-secret");
+    const [version, , signature] = state.split(".");
+
+    expect(
+      verifySubjectBoundOAuthState(
+        `${version}.not+a/valid=nonce.${signature}`,
+        "user-a",
+        "server-secret",
+      ),
+    ).toBe(false);
+    expect(
+      verifySubjectBoundOAuthState(
+        `${version}.short.${signature}`,
+        "user-a",
+        "server-secret",
+      ),
+    ).toBe(false);
+  });
+
   it("generates a distinct nonce for each authorization transaction", () => {
     const first = createSubjectBoundOAuthState("user-a", "server-secret");
     const second = createSubjectBoundOAuthState("user-a", "server-secret");
