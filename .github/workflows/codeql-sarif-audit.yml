@@ -103,13 +103,25 @@ jobs:
 
       - name: Run Scorecard CLI locally
         run: |
+          set +e
           docker run --rm \
             --volume "$PWD:/repo" --workdir /repo \
             gcr.io/openssf/scorecard:stable \
             --local=. --checks=Pinned-Dependencies \
-            --format=sarif --output=scorecard-local.sarif \
-            --show-details || true
-          ls -l scorecard-local.sarif
+            --format=sarif --show-details \
+            > scorecard-local.sarif 2> scorecard-cli.err
+          echo "docker/scorecard exit: $?"
+          ls -l scorecard-local.sarif scorecard-cli.err || true
+          python3 - <<'PY'
+          import pathlib
+          err = pathlib.Path("scorecard-cli.err").read_text(errors="replace") if pathlib.Path("scorecard-cli.err").exists() else ""
+          head = (err.strip().splitlines() or ["<no stderr>"])[:6]
+          for i, line in enumerate(head):
+              esc = line[:280].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::warning file=results.sarif,line=1,title=CLIERR{i}::{esc}")
+          sarif = pathlib.Path("scorecard-local.sarif")
+          print(f"::warning file=results.sarif,line=1,title=CLIERRSIZE::sarif_bytes={sarif.stat().st_size if sarif.exists() else -1}")
+          PY
 
       - name: Print Scorecard CLI results
         run: |
