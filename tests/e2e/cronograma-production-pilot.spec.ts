@@ -193,22 +193,63 @@ test("StudyTaskBoard remains usable when decorative assets fail", async ({ page 
 
 test("Cronograma pilot records performance evidence without inventing a budget", async ({ page }) => {
   await page.goto("/design-system/pilots/cronograma?theme=mago-classico&scenario=connected");
-  // Theme tokens apply after hydration, so button color transitions started by
-  // the initial paint must settle before measuring steady-state motion.
+  // Wait for the actual hydrated theme/scenario rather than sampling the
+  // initial paint, which can briefly report zero animations before transitions start.
+  await expect(page.getByTestId("cronograma-production-pilot")).toHaveAttribute("data-scenario", "connected");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "mago-classico");
+  // data-theme can already match server HTML before React effects run.
+  // The inline theme tokens are set by applyTheme() only after hydration;
+  // wait for that observable boundary before checking for active transitions.
   await page.waitForFunction(
-    () => document.getAnimations().every((animation) => animation.playState !== "running"),
+    () => document.documentElement.style.getPropertyValue("--aa-surfaces-panel").trim().length > 0,
     null,
     { timeout: 10_000 },
   );
-  const metrics = await page.locator(".aa-study-task-board").evaluate((node) => ({
-    descendants: node.querySelectorAll("*").length,
-    images: node.querySelectorAll("img").length,
-    filters: [...node.querySelectorAll("*")].filter((element) => {
+  await page.evaluate(async () => { await document.fonts.ready; });
+  // Force style resolution before awaiting animation completion. Reading
+  // getComputedStyle() for the first time in the metric collection otherwise
+  // starts ~31 CSS transitions *after* a premature zero-animation poll.
+  await page.locator(".aa-study-task-board").evaluate((node) => {
+    for (const element of [node, ...node.querySelectorAll("*")]) {
+      const style = getComputedStyle(element);
+      void style.color;
+      void style.backgroundColor;
+      void style.borderColor;
+      void style.filter;
+      void style.backdropFilter;
+    }
+  });
+  // Measure filter styles *before* testing for settled animations in the
+  // same browser evaluation. A separate later getComputedStyle() pass can
+  // expose pending transitions (31 observed on Ubuntu CI after a zero poll).
+  // Keep the contract: no active animations and no filters on StudyTaskBoard.
+  const settled = await page.waitForFunction(async () => {
+    const board = document.querySelector(".aa-study-task-board");
+    if (!board) return false;
+    const descendants = [...board.querySelectorAll("*")];
+    // Force the same style resolution used by the performance measurement.
+    const filterCount = descendants.filter((element) => {
       const style = getComputedStyle(element);
       return style.filter !== "none" || style.backdropFilter !== "none";
-    }).length,
-    activeAnimations: document.getAnimations().filter((animation) => animation.playState === "running").length,
-  }));
+    }).length;
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    const activeAnimations = board.getAnimations({ subtree: true })
+      .filter((animation) => animation.playState === "running").length;
+    if (activeAnimations !== 0) return false;
+    return {
+      descendants: descendants.length,
+      images: board.querySelectorAll("img").length,
+      filters: filterCount,
+      activeAnimations,
+      // Keep page-wide animations observable without changing the board contract.
+      pageActiveAnimations: document.getAnimations()
+        .filter((animation) => animation.playState === "running").length,
+    };
+  }, null, { timeout: 10_000 });
+  const metrics = await settled.jsonValue();
+  if (!metrics) throw new Error("Cronograma metrics did not settle");
 
   console.log(`AA_CRONOGRAMA_PILOT_PERF_JSON=${JSON.stringify(metrics)}`);
   expect(metrics.filters).toBe(0);

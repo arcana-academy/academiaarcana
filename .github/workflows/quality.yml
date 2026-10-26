@@ -93,6 +93,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://abcdefghijklmnopqrst.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC
           STATISTICS_PILOT_CAPTURE_DIR: test-results/statistics-pilot-captures
+          AA_VISUAL_REVIEW_CAPTURE_DIR: test-results/aa-visual-review
         run: npm run test:e2e
 
       - name: Upload synthetic Cronograma visual review evidence
@@ -101,6 +102,17 @@ jobs:
         with:
           name: cronograma-visual-review-${{ github.sha }}
           path: test-results/aa-cronograma-c43/*.png
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Upload unresolved visual discrepancies for human review
+        if: ${{ failure() && github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unresolved-visual-evidence-${{ github.sha }}
+          path: |
+            test-results/aa-visual-review/*.png
+            test-results/statistics-pilot-captures/*.png
           if-no-files-found: ignore
           retention-days: 3
 
