@@ -1,0 +1,119 @@
+# REVIEW-ONLY STAGING FILE. It is intentionally NOT in .github/workflows.
+# This file is NOT registered with GitHub Actions and cannot run as committed.
+# Activation requires a separate authorization and security review.
+name: AA C35 — S32 evidence only (not activated)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Enter exactly S32-EVIDENCE-ONLY (no Cronograma E2E or release)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aa-s32-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  s32-evidence:
+    if: >-
+      github.repository == 'arcana-academy/academiaarcana' &&
+      github.actor == 'arcana-academy' &&
+      github.ref == 'refs/heads/work/aa-c35-s32-evidence-workflow-staged-20261026' &&
+      inputs.confirmation == 'S32-EVIDENCE-ONLY'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      CI: '1'
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - name: Harden runner before any checkout or dependency download
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: block
+          disable-telemetry: true
+          allowed-endpoints: |
+            github.com:443
+            api.github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            registry.npmjs.org:443
+            fonts.googleapis.com:443
+            fonts.gstatic.com:443
+            results-receiver.actions.githubusercontent.com:443
+            pipelines.actions.githubusercontent.com:443
+            *.blob.core.windows.net:443
+
+      - name: Checkout immutable S33 evidence source (no credentials)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 44e8316a7c24c298d15a27b340d052f302b0ca09
+          persist-credentials: false
+
+      - name: Check Ubuntu, source and evidence collectors are unchanged
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          . /etc/os-release
+          test "$ID" = ubuntu
+          test "$VERSION_ID" = 24.04
+          test "$(git rev-parse HEAD)" = 44e8316a7c24c298d15a27b340d052f302b0ca09
+          test -z "$(git status --porcelain)"
+          test "$(git hash-object qa/evidence/s32-probe-ubuntu-netns.sh)" = 366219a40150c000544d3ae1d426b7e2e2115877
+          test "$(git hash-object qa/evidence/s32-capture-font-candidates.cjs)" = cfdbf7fd048e9c1157841182af27f47fb31aa1f4
+          test "$(git hash-object src/app/fonts.ts)" = 3315a36d3977b894256b65c2a24cacfa43cef5fa
+          echo "S32_IMMUTABLE_PROVENANCE=PASS"
+
+      - name: Prove Linux network-namespace isolation without outbound traffic
+        id: netns
+        env:
+          AA_NETNS_EVIDENCE_AUTHORIZED: 'yes'
+        run: |
+          set -euo pipefail
+          bash qa/evidence/s32-probe-ubuntu-netns.sh | tee "$RUNNER_TEMP/aa-s32-netns-evidence.jsonl"
+
+      - name: Setup pinned Node.js only for the evidence collector
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Install exact npm dependencies without lifecycle scripts
+        run: |
+          set -euo pipefail
+          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+          test "$(npm --version)" = 11.19.1
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          test "$(node -p 'require("next/package.json").version')" = 16.4.3
+
+      - name: Collect candidate CSS and WOFF2 bytes with SHA-256 (not approved)
+        id: fonts
+        env:
+          AA_EVIDENCE_COLLECTION_AUTHORIZED: 'yes'
+        run: |
+          set -euo pipefail
+          node qa/evidence/s32-capture-font-candidates.cjs | tee "$RUNNER_TEMP/aa-s32-font-candidate-report.jsonl"
+          echo "S32_CANDIDATE_ONLY=true"
+          echo "NO_FONT_APPROVAL_GRANTED=true"
+
+      - name: Preserve only S32 network and font-candidate evidence for human review
+        if: ${{ success() && steps.netns.outcome == 'success' && steps.fonts.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: s32-evidence-candidate-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/aa-s32-netns-evidence.jsonl
+            ${{ runner.temp }}/aa-s32-font-candidate-report.jsonl
+            ${{ runner.temp }}/aa-font-candidate-*/
+          if-no-files-found: error
+          retention-days: 3
+
+# Does NOT run tests, builds, releases, deploys, GHCR or write to GitHub.
+# Candidate font hashes are NOT approval; independent review and owner approval required.
