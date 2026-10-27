@@ -1,29 +1,23 @@
-# REVIEW-ONLY STAGING FILE. It is intentionally NOT in .github/workflows.
-# This file is NOT registered with GitHub Actions and cannot run as committed.
-# ACTIVATION IS PROHIBITED until ALL prerequisites are independently verified:
-# 1) Owner explicitly authorizes two separate writes (register workflow on default branch,
-#    and enable an independently approved evidence-only dispatch).
-# 2) GitHub environment aa-s32-evidence-independent-review ALREADY EXISTS,
-#    requires a reviewer other than the dispatching account, prevents self-review,
-#    restricts allowed deployment branches to C35, and disallows administrator bypass.
-#    Merely naming an environment in YAML is NOT protection: GitHub may create
-#    an unprotected environment automatically if it does not exist.
-# 3) Repository variable AA_C35_APPROVED_WORKFLOW_SHA is set only after that review
-#    to the EXACT frozen HEAD SHA of the separate approved C35 activation branch.
-# 4) Repo variable AA_C35_PUBLIC_ARTIFACTS_APPROVED is set to "yes" only after
-#    review of the public visibility of synthetic CSS/WOFF2 evidence and retention.
-# 5) *.blob.core.windows.net is a documented dynamic GitHub artifact endpoint,
-#    NOT a narrow host permission; owner must separately approve this exception.
-# 6) workflow_dispatch requires registration on DEFAULT branch; do not copy or
-#    register here without separate approval and checking main push workflows.
-# NO automatic job, no merge, no deploy, no release, no Cronograma 194.
-name: AA C35 — S32 evidence only (not activated)
+# C40 REVIEW ONLY: this is an INACTIVE proposal in qa/proposals.
+# DO NOT copy to .github/workflows or register on main without a new owner approval.
+# No workflow, build, E2E, merge, deploy, GHCR or source-asset upload authorized.
+#
+# Before eventual registration, an independent HUMAN reviewer must approve:
+#   - environment aa-s32-evidence-independent-review: required reviewer, NO self
+#     review, branch restriction, admin bypass disabled; environment must EXIST
+#   - no additional public artifact uploads; current collection retains original
+#     font bytes only in ephemeral runner temp; raw CSS/WOFF2 NOT retained
+#   - exact reviewed workflow SHA and allowed destination list; main push triggers
+# The two jobs deliberately use DIFFERENT disposable GitHub-hosted runners.
+# The privileged netns probe never installs npm dependencies or fetches fonts.
+# The connected font job explicitly disables sudo and container access.
+name: AA C40 — S32 bounded evidence only (NOT ACTIVE)
 
 on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: "Enter exactly S32-EVIDENCE-ONLY (no Cronograma E2E or release)"
+        description: "Type S32-EVIDENCE-ONLY (not release authorization)"
         required: true
         type: string
 
@@ -31,25 +25,75 @@ permissions:
   contents: read
 
 concurrency:
-  group: aa-s32-evidence-${{ github.ref }}
+  group: aa-c40-s32-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  s32-evidence:
+  netns-evidence:
     if: >-
       github.repository == 'arcana-academy/academiaarcana' &&
       github.actor == 'arcana-academy' &&
       github.ref == 'refs/heads/work/aa-c35-s32-evidence-workflow-staged-20261026' &&
       inputs.confirmation == 'S32-EVIDENCE-ONLY' &&
-      vars.AA_C35_APPROVED_WORKFLOW_SHA == github.sha &&
-      vars.AA_C35_PUBLIC_ARTIFACTS_APPROVED == 'yes'
+      vars.AA_C40_APPROVED_WORKFLOW_SHA == github.sha &&
+      vars.AA_C40_EVIDENCE_DISPATCH_AUTHORIZED == 'yes'
     runs-on: ubuntu-24.04
-    # NOT sufficient alone; independently approved required reviewers and
-    # prevention of self-approval MUST preexist in repository settings.
     environment:
       name: aa-s32-evidence-independent-review
       deployment: false
-    timeout-minutes: 20
+    timeout-minutes: 8
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # This job requires sudo ONLY for the pinned S32 netns probe. No
+      # third-party app code, npm installs, fonts or production data run here.
+      - name: Lock network egress before immutable checkout
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: block
+          disable-telemetry: true
+          allowed-endpoints: |
+            github.com:443
+            api.github.com:443
+            codeload.github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+
+      - name: Checkout verified S32 probe only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 2580e30a2882baf46b472a3bd30f930156043641
+          persist-credentials: false
+
+      - name: Verify immutable probe and inspect isolated namespace
+        env:
+          AA_NETNS_EVIDENCE_AUTHORIZED: 'yes'
+        run: |
+          set -euo pipefail
+          . /etc/os-release
+          test "$ID" = ubuntu
+          test "$VERSION_ID" = '24.04'
+          test "$(git rev-parse HEAD)" = '2580e30a2882baf46b472a3bd30f930156043641'
+          test "$(git hash-object qa/evidence/s32-probe-ubuntu-netns.sh)" = '366219a40150c000544d3ae1d426b7e2e2115877'
+          bash qa/evidence/s32-probe-ubuntu-netns.sh
+          echo 'S32_NETNS_PROBE_ONLY=PASS_IF_SCRIPT_SUCCEEDS'
+
+  font-candidate-evidence:
+    needs: netns-evidence
+    if: >-
+      needs.netns-evidence.result == 'success' &&
+      github.repository == 'arcana-academy/academiaarcana' &&
+      github.actor == 'arcana-academy' &&
+      github.ref == 'refs/heads/work/aa-c35-s32-evidence-workflow-staged-20261026' &&
+      vars.AA_C40_APPROVED_WORKFLOW_SHA == github.sha &&
+      vars.AA_C40_EVIDENCE_DISPATCH_AUTHORIZED == 'yes' &&
+      vars.AA_C40_HASH_LOG_VISIBILITY_APPROVED == 'yes'
+    runs-on: ubuntu-24.04
+    environment:
+      name: aa-s32-evidence-independent-review
+      deployment: false
+    timeout-minutes: 12
     defaults:
       run:
         shell: bash
@@ -58,13 +102,12 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
 
     steps:
-      - name: Harden runner before any checkout or dependency download
+      - name: Block egress, sudo and containers before any app dependencies
         uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-telemetry: true
-          # Dynamic artifact storage host is NOT narrowly scoped.
-          # Keep its approval gate disabled until independent review.
+          disable-sudo-and-containers: true
           allowed-endpoints: |
             github.com:443
             api.github.com:443
@@ -75,78 +118,50 @@ jobs:
             nodejs.org:443
             fonts.googleapis.com:443
             fonts.gstatic.com:443
-            *.actions.githubusercontent.com:443
-            *.blob.core.windows.net:443
 
-      - name: Checkout immutable S33 evidence source (no credentials)
+      - name: Checkout immutable bounded collector (no credentials)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 44e8316a7c24c298d15a27b340d052f302b0ca09
+          ref: 2580e30a2882baf46b472a3bd30f930156043641
           persist-credentials: false
 
-      - name: Check Ubuntu, source and evidence collectors are unchanged
-        run: |
-          set -euo pipefail
-          test "$RUNNER_OS" = Linux
-          . /etc/os-release
-          test "$ID" = ubuntu
-          test "$VERSION_ID" = 24.04
-          test "$(git rev-parse HEAD)" = 44e8316a7c24c298d15a27b340d052f302b0ca09
-          test -z "$(git status --porcelain)"
-          test "$(git hash-object qa/evidence/s32-probe-ubuntu-netns.sh)" = 366219a40150c000544d3ae1d426b7e2e2115877
-          test "$(git hash-object qa/evidence/s32-capture-font-candidates.cjs)" = cfdbf7fd048e9c1157841182af27f47fb31aa1f4
-          test "$(git hash-object src/app/fonts.ts)" = 3315a36d3977b894256b65c2a24cacfa43cef5fa
-          echo "S32_IMMUTABLE_PROVENANCE=PASS"
-
-      - name: Prove Linux network-namespace isolation without outbound traffic
-        id: netns
-        env:
-          AA_NETNS_EVIDENCE_AUTHORIZED: 'yes'
-        run: |
-          set -euo pipefail
-          bash qa/evidence/s32-probe-ubuntu-netns.sh | tee "$RUNNER_TEMP/aa-s32-netns-evidence.jsonl"
-
-      - name: Setup pinned Node.js only for the evidence collector
+      - name: Setup exact reviewed Node 24 patch
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '24'
+          node-version: '24.22.1'
           package-manager-cache: false
 
-      - name: Install exact npm dependencies without lifecycle scripts
-        run: |
-          set -euo pipefail
-          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
-          test "$(npm --version)" = 11.19.1
-          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
-          test "$(node -p 'require("next/package.json").version')" = 16.4.3
-
-      - name: Collect candidate CSS and WOFF2 bytes with SHA-256 (not approved)
-        id: fonts
+      - name: Verify executable boundary and collect BOUNDED candidate hashes only
         env:
           AA_EVIDENCE_COLLECTION_AUTHORIZED: 'yes'
         run: |
           set -euo pipefail
-          node qa/evidence/s32-capture-font-candidates.cjs | tee "$RUNNER_TEMP/aa-s32-font-candidate-report.jsonl"
-          echo "S32_CANDIDATE_ONLY=true"
-          echo "NO_FONT_APPROVAL_GRANTED=true"
+          test "$(node --version)" = 'v24.22.1'
+          . /etc/os-release
+          test "$ID" = ubuntu
+          test "$VERSION_ID" = '24.04'
+          test "$(git rev-parse HEAD)" = '2580e30a2882baf46b472a3bd30f930156043641'
+          test "$(git hash-object src/app/fonts.ts)" = '3315a36d3977b894256b65c2a24cacfa43cef5fa'
+          test "$(git hash-object qa/evidence/c40-capture-font-candidates-bounded.cjs)" = '082652fc9ddcb151f0f31e49b48575910bc34430'
+          # Harden-Runner must already disable sudo before any untrusted npm.
+          if sudo -n true 2>/dev/null; then
+            echo 'BLOCKED: sudo unexpectedly available in connected job' >&2
+            exit 51
+          fi
+          mkdir -p "$RUNNER_TEMP/aa-npm-pinned"
+          npm install --prefix "$RUNNER_TEMP/aa-npm-pinned" \
+            --no-save --no-package-lock --ignore-scripts --no-audit --no-fund \
+            npm@11.19.1
+          AA_NPM_CLI="$RUNNER_TEMP/aa-npm-pinned/node_modules/npm/bin/npm-cli.js"
+          test "$(node "$AA_NPM_CLI" --version)" = '11.19.1'
+          node "$AA_NPM_CLI" ci --omit=dev --ignore-scripts --no-audit --no-fund
+          test "$(node -p 'require("next/package.json").version')" = '16.4.3'
+          # No upload-artifact: CSS/WOFF2 stay ephemeral. Only digest metadata
+          # enters runner logs after separately approved log visibility.
+          node qa/evidence/c40-capture-font-candidates-bounded.cjs
+          echo 'S32_CANDIDATE_NOT_APPROVED=true'
 
-      - name: Preserve only S32 network and font-candidate evidence for human review
-        if: ${{ success() && steps.netns.outcome == 'success' && steps.fonts.outcome == 'success' }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: s32-evidence-candidate-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/aa-s32-netns-evidence.jsonl
-            ${{ runner.temp }}/aa-s32-font-candidate-report.jsonl
-            ${{ runner.temp }}/aa-font-candidate-*/
-          if-no-files-found: error
-          retention-days: 3
-
-# Does NOT run tests, builds, releases, deploys, GHCR or write to GitHub.
-# Candidate font hashes are NOT approval; independent review and owner approval required.
-# Required activation procedure: independently review SHA, whitelist, PUBLIC artifact
-# contents and settings; prove protected environment configuration and branch policy;
-# set approval variables only after approval; propose a separate immutable default-
-# branch workflow registration change; assess main push checks and deploy hooks;
-# request explicit registration authorization, then separate dispatch authorization.
-# No approval and no runtime execution are implied by this staged YAML.
+# No upload-artifact, no raw CSS/WOFF2 publication, no deployment and no E2E.
+# Public GitHub job logs can still expose digest metadata and need approval.
+# The runner's temporary raw evidence is destroyed after the job. It DOES NOT
+# provide long-term private custody; this remains an independent BLOCKED item.
