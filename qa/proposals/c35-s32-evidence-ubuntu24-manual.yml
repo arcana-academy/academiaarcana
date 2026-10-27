@@ -1,6 +1,22 @@
 # REVIEW-ONLY STAGING FILE. It is intentionally NOT in .github/workflows.
 # This file is NOT registered with GitHub Actions and cannot run as committed.
-# Activation requires a separate authorization and security review.
+# ACTIVATION IS PROHIBITED until ALL prerequisites are independently verified:
+# 1) Owner explicitly authorizes two separate writes (register workflow on default branch,
+#    and enable an independently approved evidence-only dispatch).
+# 2) GitHub environment aa-s32-evidence-independent-review ALREADY EXISTS,
+#    requires a reviewer other than the dispatching account, prevents self-review,
+#    restricts allowed deployment branches to C35, and disallows administrator bypass.
+#    Merely naming an environment in YAML is NOT protection: GitHub may create
+#    an unprotected environment automatically if it does not exist.
+# 3) Repository variable AA_C35_APPROVED_WORKFLOW_SHA is set only after that review
+#    to the EXACT frozen HEAD SHA of the separate approved C35 activation branch.
+# 4) Repo variable AA_C35_PUBLIC_ARTIFACTS_APPROVED is set to "yes" only after
+#    review of the public visibility of synthetic CSS/WOFF2 evidence and retention.
+# 5) *.blob.core.windows.net is a documented dynamic GitHub artifact endpoint,
+#    NOT a narrow host permission; owner must separately approve this exception.
+# 6) workflow_dispatch requires registration on DEFAULT branch; do not copy or
+#    register here without separate approval and checking main push workflows.
+# NO automatic job, no merge, no deploy, no release, no Cronograma 194.
 name: AA C35 — S32 evidence only (not activated)
 
 on:
@@ -24,8 +40,15 @@ jobs:
       github.repository == 'arcana-academy/academiaarcana' &&
       github.actor == 'arcana-academy' &&
       github.ref == 'refs/heads/work/aa-c35-s32-evidence-workflow-staged-20261026' &&
-      inputs.confirmation == 'S32-EVIDENCE-ONLY'
+      inputs.confirmation == 'S32-EVIDENCE-ONLY' &&
+      vars.AA_C35_APPROVED_WORKFLOW_SHA == github.sha &&
+      vars.AA_C35_PUBLIC_ARTIFACTS_APPROVED == 'yes'
     runs-on: ubuntu-24.04
+    # NOT sufficient alone; independently approved required reviewers and
+    # prevention of self-approval MUST preexist in repository settings.
+    environment:
+      name: aa-s32-evidence-independent-review
+      deployment: false
     timeout-minutes: 20
     defaults:
       run:
@@ -43,13 +66,17 @@ jobs:
           allowed-endpoints: |
             github.com:443
             api.github.com:443
+            codeload.github.com:443
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
             registry.npmjs.org:443
+            nodejs.org:443
             fonts.googleapis.com:443
             fonts.gstatic.com:443
-            results-receiver.actions.githubusercontent.com:443
-            pipelines.actions.githubusercontent.com:443
+            *.actions.githubusercontent.com:443
+            # Dynamic host exception required by GitHub artifact upload.
+            # Public repo: artifact contents remain accessible to readers.
+            # BLOCKED until independently reviewed and owner-approved.
             *.blob.core.windows.net:443
 
       - name: Checkout immutable S33 evidence source (no credentials)
@@ -84,6 +111,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
+          package-manager-cache: false
 
       - name: Install exact npm dependencies without lifecycle scripts
         run: |
@@ -117,3 +145,9 @@ jobs:
 
 # Does NOT run tests, builds, releases, deploys, GHCR or write to GitHub.
 # Candidate font hashes are NOT approval; independent review and owner approval required.
+# Required activation procedure: independently review SHA, whitelist, PUBLIC artifact
+# contents and settings; prove protected environment configuration and branch policy;
+# set approval variables only after approval; propose a separate immutable default-
+# branch workflow registration change; assess main push checks and deploy hooks;
+# request explicit registration authorization, then separate dispatch authorization.
+# No approval and no runtime execution are implied by this staged YAML.
