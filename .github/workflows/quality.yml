@@ -177,14 +177,16 @@ jobs:
     # outcome (success only when every test step above passed) and links
     # back to this workflow run as evidence. It never checks out or executes
     # pull-request code, and its token can only write commit statuses.
-    if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    # Dependabot-triggered runs receive a read-only token, so they are
+    # excluded here instead of failing while trying to publish a status.
+    if: ${{ always() && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository }}
     needs: quality
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       statuses: write
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       QUALITY_RESULT: ${{ needs.quality.result }}

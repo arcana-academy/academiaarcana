@@ -129,7 +129,7 @@ registering shows as InProgress, score 2, and the alert remains).
 
 Passing is a self-certification by a project maintainer at
 bestpractices.dev, and its very first MUST criterion is that **the
-software be released under a FLOSS (free/libre, open-source) licence**.
+software be released under a FLOSS (free/libre, open-source) license**.
 The owners deliberately chose the opposite in PR #835: a proprietary
 "all rights reserved" notice that grants no rights. With that decision in
 force, the Passing badge — and therefore this alert — **cannot** be
@@ -139,7 +139,7 @@ a business/legal choice that automation must not make unilaterally.
 
 If the owners ever make it, the remaining steps are:
 
-1. adopt the FLOSS licence and update `LICENSE`/`package.json`;
+1. adopt the FLOSS license and update `LICENSE`/`package.json`;
 2. sign in to <https://www.bestpractices.dev> with the owner GitHub
    account, add the project by repository URL;
 3. complete the Passing self-assessment with evidence links (this
