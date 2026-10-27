@@ -6,7 +6,10 @@ services:
     # Release freeze (NO-GO): a merged commit must not deploy automatically.
     # Production Smoke is post-deploy evidence, not a promotion gate.
     # Re-enable only after separate, approved release governance.
-    autoDeployTrigger: off
+    # Quoted: YAML 1.1 resolves bare `off` to boolean false, while Render's
+    # Blueprint schema requires the string enum "off" | "commit" | "checksPass".
+    # See https://render.com/docs/blueprint-spec (example uses 'off').
+    autoDeployTrigger: "off"
     buildCommand: node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
