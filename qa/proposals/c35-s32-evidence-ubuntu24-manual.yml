@@ -63,6 +63,8 @@ jobs:
         with:
           egress-policy: block
           disable-telemetry: true
+          # Dynamic artifact storage host is NOT narrowly scoped.
+          # Keep its approval gate disabled until independent review.
           allowed-endpoints: |
             github.com:443
             api.github.com:443
@@ -74,9 +76,6 @@ jobs:
             fonts.googleapis.com:443
             fonts.gstatic.com:443
             *.actions.githubusercontent.com:443
-            # Dynamic host exception required by GitHub artifact upload.
-            # Public repo: artifact contents remain accessible to readers.
-            # BLOCKED until independently reviewed and owner-approved.
             *.blob.core.windows.net:443
 
       - name: Checkout immutable S33 evidence source (no credentials)
