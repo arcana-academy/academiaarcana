@@ -21,6 +21,13 @@ alerts / 57 closed**. The public Scorecard API for the exact `main` commit
 No check was disabled or suppressed to reach this state, and this pass
 does not change any Scorecard policy either.
 
+**Update while this PR was under review:** PR #836 merged into `main` at
+`53c2363` without any formal review. The public Scorecard API at that
+commit therefore reports aggregate **8.0**, Code-Review **5 (3/6)** and
+CI-Tests **1 (1/6)**. The `23477d4` figures above remain the baseline for
+the root-cause analysis; the current recovery starts from the #836
+window, not from 3/5 and 1/5.
+
 ## CI-Tests — fixed going forward in this PR
 
 ### Why the measurement says 1/5 when tests run on every PR
@@ -49,19 +56,39 @@ its genuine outcome as a legacy commit status (`ci/tests`) on the PR head
 SHA, linking back to the workflow run:
 
 - Scorecard's `testsRunInCI` probe also accepts successful commit
-  **statuses** whose context matches a CI/test pattern, and statuses are
-  read through the REST API without the 30-suite truncation.
+  **statuses** whose context matches a CI/test pattern. This avoids the
+  GraphQL check-suite truncation, but it is not unlimited: Scorecard
+  v5.6.0 calls the REST `ListStatuses` endpoint with empty list options
+  and does not paginate, so it receives only GitHub's default first page
+  (the 30 most recent status records; see the
+  [Scorecard v5.6.0 source](https://github.com/ossf/scorecard/blob/v5.6.0/clients/githubrepo/statuses.go)).
+  Publishing after the Quality Gate normally keeps `ci/tests` near the
+  top — on PR #837 head `f8a8d57`, it was record 4 of 14 — but enough
+  newer records could still displace it beyond that first page.
 - The job reports `success` only when the Quality Gate (lint, typecheck,
   unit, a11y and e2e tests, build and image smoke) actually succeeded;
   failures/cancellations are published as `failure`/`error`. It is a
   republication of real evidence, not a synthetic pass.
 - The job checks out nothing and executes no pull-request code. Its token
   has exactly one write permission, `statuses: write`, at job level; the
-  workflow top level remains `contents: read`. Fork PRs are skipped.
+  workflow top level remains `contents: read`. Same-repository
+  Dependabot PRs are included: their token is read-only by default, but
+  GitHub honors an explicit `permissions` key for `pull_request` runs
+  ([GitHub documentation](https://docs.github.com/en/code-security/reference/supply-chain-security/troubleshoot-dependabot/dependabot-on-actions#changing-github_token-permissions)),
+  and this job uses only the ephemeral workflow token, not an Actions
+  secret.
+  Fork PRs are skipped because a fork `pull_request` token cannot be
+  granted write access.
 
-New merged PRs will therefore be counted deterministically. The alert's
-score rises as the current window's undetected PRs age out; it reaches 10
-once every changeset in the trailing 30-commit window carries the status.
+Eligible same-repository PRs (including Dependabot PRs) therefore gain a
+much more reliable signal, but a score of 10 is not guaranteed merely by
+adding the publisher. A merged fork PR receives no `ci/tests` status from
+this job, and any status can become invisible to Scorecard if enough
+newer records push it off the first 30. The score reaches 10 only when
+every PR in Scorecard's trailing sample has evidence visible through at
+least one channel — a first-page matching status or a detectable
+`github-actions` check suite — after the currently undetected PRs age
+out.
 
 ### Optional owner action that fixes the current window immediately
 
@@ -69,8 +96,10 @@ Revoking this repository's access from the unused apps that manufacture
 queued suites (GitHub → Settings → GitHub Apps → Configure → repository
 access) would bring each head below 30 suites, making the already-existing
 `github-actions` suites of #831/#832/#834/#835 visible to Scorecard on the
-next run. Audit each app first — some queued suites belong to tools that
-report through commit statuses or comments instead (CodeRabbit, Qlty,
+next run. Reducing unused status-producing apps also lowers the chance
+that newer records push `ci/tests` beyond Scorecard's first status page.
+Audit each app first — some queued suites belong to tools that report
+through commit statuses or comments instead (CodeRabbit, Qlty,
 Render, StepSecurity, autofix.ci) and should only be removed if truly
 unused. This account-level change cannot be made from the repository or
 with the automation token.
@@ -78,10 +107,12 @@ with the automation token.
 ## Code-Review — process hardened in this PR
 
 Scorecard counts a changeset as reviewed only when someone other than the
-author approves it (the merger counts when merger ≠ author). In the
-trailing window, #832/#833/#834 carry Sourcery `APPROVED` reviews, while
-#831 (comments only) and #835 (merged with an owner admin bypass after
-Sourcery reported its 7-day review budget exhausted) do not — hence 3/5.
+author approves it (the merger counts when merger ≠ author). At the
+`23477d4` baseline, #832/#833/#834 carried Sourcery `APPROVED` reviews,
+while #831 (comments only) and #835 (merged with an owner admin bypass
+after Sourcery reported its 7-day review budget exhausted) did not —
+hence 3/5. PR #836 then merged with no formal reviews at all, which is
+why the current `53c2363` result is 3/6.
 
 This repository has a single human collaborator account, and GitHub does
 not let an author approve their own pull request, so a non-author second
@@ -101,13 +132,16 @@ alias, which was already on):
   `@coderabbitai review` (done on this PR), after which the automatic
   approval rules apply.
 
-History cannot be rewritten honestly: #831 and #835 were merged without a
-non-author approval, so the alert stays open until their commits leave the
-trailing window (or a genuine second reviewer reviews them). If this PR is
-approved by CodeRabbit/Sourcery before merge, the window becomes 4/6
-(score 7). From here on, do not merge pull requests — including via admin
-bypass — until a non-author approval exists; each such merge resets the
-count. Adding a second human reviewer remains the strongest option.
+History cannot be rewritten honestly: #831, #835 and #836 were merged
+without a non-author approval, so the alert stays open until their
+commits leave Scorecard's trailing sample. If this PR is approved by
+CodeRabbit/Sourcery before merge, it adds one genuinely approved
+changeset; the exact post-merge fraction also depends on which older
+commits remain in that 30-commit sample, so it should be verified from
+the next Scorecard run rather than assumed. From here on, do not merge
+pull requests — including via admin bypass — until a non-author approval
+exists; each such merge adds another unapproved changeset. Adding a
+second human reviewer remains the strongest option.
 
 ## Maintained — resolves by calendar, not by code
 
@@ -133,7 +167,7 @@ software be released under a FLOSS (free/libre, open-source) license**.
 The owners deliberately chose the opposite in PR #835: a proprietary
 "all rights reserved" notice that grants no rights. With that decision in
 force, the Passing badge — and therefore this alert — **cannot** be
-earned without reversing the licence decision (e.g. adopting MIT or
+earned without reversing the license decision (e.g. adopting MIT or
 Apache-2.0, which would also move License from 9 to 10). That reversal is
 a business/legal choice that automation must not make unilaterally.
 
@@ -158,8 +192,10 @@ product", with this rationale recorded instead of a misleading fix.
 - Public Scorecard API at `23477d4`: aggregate **8.1**, with the check
   scores in the table above (Fuzzing 10, SAST 10, License 9 confirm the
   previous three passes; Code-Review 6 and CI-Tests 2 reproduce exactly
-  under the analyses in this document).
-- On this PR, the new publisher job must produce a `ci/tests` commit
-  status on the PR head pointing at the Quality Gate run; that is the
-  evidence the probe consumes. Quality Gate, CodeQL and the
-  supply-chain guards remain the merge gate.
+  under the analyses in this document). At the later `53c2363` main
+  commit, the same API reports aggregate **8.0**, Code-Review **5 (3/6)**
+  and CI-Tests **1 (1/6)** after unreviewed PR #836 entered the sample.
+- On this PR, the publisher has produced a successful `ci/tests` commit
+  status on the PR head pointing at the Quality Gate run — the evidence
+  the probe consumes when that record remains on the first status page.
+  Quality Gate, CodeQL and the supply-chain guards remain the merge gate.
