@@ -8,7 +8,7 @@ describe("Workspace route error recovery", () => {
   it("replaces the generic English fallback with an accessible Portuguese message", () => {
     render(<WorkspaceError error={new Error("synthetic database outage")} reset={vi.fn()} />);
 
-    expect(screen.getByRole("heading", { name: "Não foi possível carregar o Workspace" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Não foi possível carregar o editor de estudos" })).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Não foi possível recuperar seus grimórios, capítulos e páginas agora.",
     );
