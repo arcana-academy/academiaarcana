@@ -507,6 +507,30 @@ p {
   padding: 0;
 }
 
+.aa-sidebar-nav-group-list,
+.aa-mobile-nav-group-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aa-sidebar-group-title,
+.aa-mobile-group-title {
+  margin: 0.85rem 0 0.3rem;
+  padding-inline: 0.7rem;
+  color: var(--aa-text-muted);
+  font-size: var(--aa-type-scale-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.aa-sidebar-nav-group:first-child .aa-sidebar-group-title,
+.aa-mobile-nav-group:first-child .aa-mobile-group-title {
+  margin-top: 0;
+}
+
 .aa-sidebar-link {
   min-height: 3.15rem;
   display: flex;
