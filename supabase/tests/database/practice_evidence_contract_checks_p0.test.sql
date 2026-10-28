@@ -4,12 +4,53 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select extensions.plan(6);
 
+-- Compare server-normalized definitions against equivalent synthetic CHECKs.
+-- Literal pg_get_constraintdef output can vary across PostgreSQL versions.
+create temporary table aa_c117_expected_item (
+  evidence_mode text,
+  criterion text,
+  criterion_version text,
+  constraint aa_c117_expected_item_check check (
+    evidence_mode = 'self_assessment'::text
+    and criterion is null and criterion_version is null
+    or evidence_mode = 'criterion_exact_match'::text
+    and pg_catalog.char_length(pg_catalog.btrim(criterion)) >= 1
+    and pg_catalog.char_length(pg_catalog.btrim(criterion)) <= 1000
+    and criterion_version = 'criterion_exact_match_v1'::text
+  )
+);
+
+create temporary table aa_c117_expected_attempt (
+  evidence_type text,
+  criterion text,
+  criterion_version text,
+  criterion_result text,
+  criterion_scope text,
+  criterion_reference text,
+  constraint aa_c117_expected_attempt_check check (
+    evidence_type = 'self-assessment'::text
+    and criterion is null and criterion_version is null
+    and criterion_result is null and criterion_scope is null
+    and criterion_reference is null
+    or evidence_type = 'criterion-referenced'::text
+    and pg_catalog.char_length(pg_catalog.btrim(criterion)) >= 1
+    and pg_catalog.char_length(pg_catalog.btrim(criterion)) <= 1000
+    and criterion_version is not null and criterion_result is not null
+    and criterion_scope = 'practice-item'::text
+    and pg_catalog.char_length(pg_catalog.btrim(criterion_reference)) >= 1
+    and pg_catalog.char_length(pg_catalog.btrim(criterion_reference)) <= 5000
+  )
+);
+
 select extensions.is(
   (select pg_catalog.pg_get_constraintdef(c.oid, true)
      from pg_catalog.pg_constraint c
     where c.conrelid = 'public.educational_practice_items'::regclass
       and c.conname = 'educational_practice_items_criterion_contract_check'),
-  $expected$CHECK (evidence_mode = 'self_assessment'::text AND criterion IS NULL AND criterion_version IS NULL OR evidence_mode = 'criterion_exact_match'::text AND char_length(TRIM(BOTH FROM criterion)) >= 1 AND char_length(TRIM(BOTH FROM criterion)) <= 1000 AND criterion_version = 'criterion_exact_match_v1'::text)$expected$,
+  (select pg_catalog.pg_get_constraintdef(c.oid, true)
+     from pg_catalog.pg_constraint c
+    where c.conrelid = 'pg_temp.aa_c117_expected_item'::regclass
+      and c.conname = 'aa_c117_expected_item_check'),
   'Practice item criterion check matches the hosted contract'
 );
 
@@ -18,7 +59,10 @@ select extensions.is(
      from pg_catalog.pg_constraint c
     where c.conrelid = 'public.educational_practice_attempts'::regclass
       and c.conname = 'educational_practice_attempts_evidence_contract_check'),
-  $expected$CHECK (evidence_type = 'self-assessment'::text AND criterion IS NULL AND criterion_version IS NULL AND criterion_result IS NULL AND criterion_scope IS NULL AND criterion_reference IS NULL OR evidence_type = 'criterion-referenced'::text AND char_length(TRIM(BOTH FROM criterion)) >= 1 AND char_length(TRIM(BOTH FROM criterion)) <= 1000 AND criterion_version IS NOT NULL AND criterion_result IS NOT NULL AND criterion_scope = 'practice-item'::text AND char_length(TRIM(BOTH FROM criterion_reference)) >= 1 AND char_length(TRIM(BOTH FROM criterion_reference)) <= 5000)$expected$,
+  (select pg_catalog.pg_get_constraintdef(c.oid, true)
+     from pg_catalog.pg_constraint c
+    where c.conrelid = 'pg_temp.aa_c117_expected_attempt'::regclass
+      and c.conname = 'aa_c117_expected_attempt_check'),
   'Practice attempt evidence check matches the hosted contract'
 );
 
