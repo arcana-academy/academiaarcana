@@ -20,7 +20,7 @@ const learningPaths = [
       },
       {
         href: "/workspace",
-        title: "Workspace",
+        title: "Editor de estudos",
         description: "Estruture capítulos e páginas.",
       },
     ],
