@@ -129,7 +129,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           router.refresh();
         } else {
           setMessage(
-            "Conta criada. Verifique seu email para confirmar o acesso, se a confirmação estiver habilitada.",
+            "Confira seu e-mail para confirmar a conta antes de entrar.",
           );
         }
         return;
@@ -184,7 +184,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       <form className="aa-auth-form" onSubmit={handleSubmit} noValidate>
         {mode !== "update-password" && (
           <div>
-            <label htmlFor={emailId}>Email</label>
+            <label htmlFor={emailId}>E-mail</label>
             <input
               className="aa-auth-input"
               id={emailId}
@@ -266,7 +266,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <p className="aa-auth-authlink">Já tem conta? <Link href="/login">Entrar</Link></p>
       ) : null}
       {mode === "recover" ? (
-        <p className="aa-auth-authlink"><Link href="/login">Voltar ao Login</Link></p>
+        <p className="aa-auth-authlink"><Link href="/login">Voltar para entrar</Link></p>
       ) : null}
       {mode === "login" ? (
         <p className="aa-auth-privacy-note">Seu acesso utiliza a autenticação segura existente da Academia Arcana.</p>
