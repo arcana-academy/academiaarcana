@@ -39,7 +39,7 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
 
       <RelewiseSearch />
 
-      <section className="aa-sanctuary-command" aria-label="Comando da jornada">
+      <section className="aa-sanctuary-command" aria-label="Próximo passo de aprendizagem">
         <div className="aa-sanctuary-command-primary">
           <p className="aa-eyebrow">Próximo passo</p>
           <h2>{learningHeading}</h2>
@@ -73,7 +73,7 @@ export function Sanctuary({ viewModel }: SanctuaryProps) {
       </section>
 
       <section className="aa-surface aa-sanctuary-section" aria-labelledby="adaptive-recommendation-title">
-        <p className="aa-eyebrow">Adaptação · evidência</p>
+        <p className="aa-eyebrow">Sugestão para seu próximo estudo</p>
         <h2 id="adaptive-recommendation-title">{viewModel.adaptiveRecommendation.title}</h2>
         <p>{viewModel.adaptiveRecommendation.message}</p>
         <p className="aa-state-copy">{viewModel.adaptiveRecommendation.reason}</p>
