@@ -147,7 +147,7 @@ export default async function WorkspacePage({
       <AuthenticatedShell currentPath="/workspace">
         <main className="aa-page aa-workspace-page" aria-labelledby="workspace-title">
           <header className="aa-card aa-card-elevated">
-            <h1 id="workspace-title">Workspace</h1>
+            <h1 id="workspace-title">Editor de estudos</h1>
             <p className="aa-state-copy">
               Organize seus Grimórios, Cadernos, Capítulos e Páginas no seu ritmo.
             </p>
@@ -158,7 +158,7 @@ export default async function WorkspacePage({
             aria-labelledby="workspace-load-error-title"
           >
             <h2 id="workspace-load-error-title">
-              Não foi possível carregar seu Workspace
+              Não foi possível carregar o editor de estudos
             </h2>
             <p className="aa-state-copy">
               Não foi possível consultar seus materiais agora. Essa falha não significa
@@ -203,7 +203,7 @@ export default async function WorkspacePage({
 
   return (
     <AuthenticatedShell currentPath="/workspace">
-      <main className="aa-page aa-workspace-page" aria-label="Workspace">
+      <main className="aa-page aa-workspace-page" aria-label="Editor de estudos">
         <WorkspaceShell
         tree={{ grimoires: tree }}
         initialState={initialState}
