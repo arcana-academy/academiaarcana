@@ -228,7 +228,7 @@ describe("SanctuaryPage", () => {
       ),
     ).toBe(true);
 
-    const workspaceLinks = within(primaryNavigation).getAllByRole("link", { name: "Workspace" });
+    const workspaceLinks = within(primaryNavigation).getAllByRole("link", { name: "Editor de estudos" });
     expect(workspaceLinks).toHaveLength(1);
     expect(
       workspaceLinks.every(
