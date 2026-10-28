@@ -18,9 +18,11 @@ describe("MobileNavigation", () => {
 
     expect(menu).toHaveAttribute("open");
     expect(screen.getByRole("navigation", { name: "Navegação móvel" })).toBeInTheDocument();
-    const currentLink = screen.getByRole("link", { name: "Workspace" });
+    const currentLink = screen.getByRole("link", { name: "Editor de estudos" });
     expect(currentLink).toHaveAttribute("aria-current", "page");
     expect(currentLink.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByRole("link", { name: "Grimórios" })).toHaveAttribute("href", "/grimorios");
+    expect(screen.getByText("Meus estudos")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sequência de estudos" })).toHaveAttribute("href", "/streak");
   });
 });
