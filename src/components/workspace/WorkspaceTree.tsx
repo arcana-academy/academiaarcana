@@ -67,7 +67,7 @@ export function WorkspaceTree({
   };
 
   return (
-    <nav className="workspace-tree-region" aria-label="Navegação do workspace">
+    <nav className="workspace-tree-region" aria-label="Navegação do editor de estudos">
       <details
         className="workspace-region-disclosure"
         open={isExpanded}
