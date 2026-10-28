@@ -13,7 +13,7 @@ describe("AuthenticatedNavigation", () => {
     expect(screen.getByRole("link", { name: "Academia" })).toHaveAttribute("href", "/academia");
     expect(screen.getByRole("link", { name: "Grimórios" })).toHaveAttribute("href", "/grimorios");
     expect(screen.getByRole("link", { name: "Santuário" })).toHaveAttribute("href", "/santuario");
-    expect(screen.getByRole("link", { name: "Workspace" })).toHaveAttribute("href", "/workspace");
+    expect(screen.getByRole("link", { name: "Editor de estudos" })).toHaveAttribute("href", "/workspace");
     expect(screen.getByRole("link", { name: "Cronograma" })).toHaveAttribute("href", "/cronograma");
     expect(screen.getByRole("link", { name: "Personalizar" })).toHaveAttribute("href", "/personalizar");
   });
@@ -24,7 +24,7 @@ describe("AuthenticatedNavigation", () => {
     expect(screen.getByRole("link", { name: "Santuário" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Academia" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Grimórios" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Workspace" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Editor de estudos" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Cronograma" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Personalizar" })).not.toHaveAttribute("aria-current");
   });
@@ -46,7 +46,7 @@ describe("AuthenticatedNavigation", () => {
   it("updates the current route when the workspace is active", () => {
     render(<AuthenticatedNavigation currentPath="/workspace" />);
 
-    expect(screen.getByRole("link", { name: "Workspace" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Editor de estudos" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Santuário" })).not.toHaveAttribute("aria-current");
   });
 
@@ -55,13 +55,13 @@ describe("AuthenticatedNavigation", () => {
 
     expect(screen.getByRole("link", { name: "Cronograma" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Santuário" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Workspace" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Editor de estudos" })).not.toHaveAttribute("aria-current");
   });
 
   it("keeps links keyboard-focusable through native link semantics", () => {
     render(<AuthenticatedNavigation currentPath="/santuario" />);
 
-    for (const name of ["Academia", "Grimórios", "Santuário", "Workspace", "Cronograma", "Personalizar"]) {
+    for (const name of ["Academia", "Grimórios", "Santuário", "Editor de estudos", "Cronograma", "Personalizar"]) {
       const link = screen.getByRole("link", { name });
       link.focus();
       expect(document.activeElement).toBe(link);
