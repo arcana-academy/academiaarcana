@@ -19,7 +19,7 @@ export function WorkspaceHeader({
     <header className="workspace-header">
       <div className="workspace-header-copy">
         <span className="workspace-header-kicker" aria-hidden="true">
-          Workspace
+          Editor de estudos
         </span>
         <h1>{title}</h1>
       </div>
