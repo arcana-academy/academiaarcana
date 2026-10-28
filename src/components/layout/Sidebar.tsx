@@ -5,7 +5,7 @@ import { FlontsPortrait } from "@/components/flonts/FlontsPortrait";
 import {
   navigationGroups,
   type AuthenticatedRouteHref,
-} from "@/components/navigation/AuthenticatedNavigation";
+} from "@/config/navigation";
 
 type SidebarProps = {
   currentPath: string;
