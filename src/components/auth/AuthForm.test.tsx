@@ -194,6 +194,27 @@ describe("AuthForm", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("As senhas precisam ser iguais.");
   });
 
+  it("marks only the confirmation field invalid when signup passwords differ", () => {
+    render(<AuthForm mode="signup" />);
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "student@example.com" } });
+    fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "correct-password" } });
+    fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "other-password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+    expect(screen.getByLabelText("Confirmar senha")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("Senha")).toHaveAttribute("aria-invalid", "false");
+    expect(screen.getByLabelText("E-mail")).toHaveAttribute("aria-invalid", "false");
+    expect(screen.getByLabelText("Confirmar senha")).toHaveAttribute("aria-describedby", "auth-form-message");
+  });
+
+  it("identifies an invalid email without making an authentication request", () => {
+    render(<AuthForm mode="recover" />);
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "invalid-email" } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar instruções" }));
+    expect(resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("E-mail")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("alert")).toHaveTextContent("Informe um e-mail válido.");
+  });
+
   it("uses the existing Supabase signup when passwords match", async () => {
     render(<AuthForm mode="signup" />);
     fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "student@example.com" } });

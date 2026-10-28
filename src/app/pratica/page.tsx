@@ -77,24 +77,27 @@ function PageSelector({
   return (
     <section className="aa-card aa-card-default" aria-labelledby="pages-title">
       <h2 id="pages-title">Conteúdos praticáveis</h2>
-      <div role="list" className="aa-list">
-        {pages.map((page) => (
-          <Link
-            key={page.id}
-            role="listitem"
-            className="aa-list-item aa-surface"
-            href={`/pratica?pagina=${encodeURIComponent(page.id)}`}
-            aria-current={selectedPageId === page.id ? "page" : undefined}
-          >
-            <span>
-              <strong>{page.title}</strong>
-              <span className="aa-state-copy">
-                {items.filter((item) => item.pageId === page.id).length} atividade(s)
-              </span>
-            </span>
-          </Link>
-        ))}
-      </div>
+      <ul className="aa-list">
+        {pages.map((page) => {
+          const count = items.filter((item) => item.pageId === page.id).length;
+          return (
+            <li key={page.id}>
+              <Link
+                className="aa-list-item aa-surface"
+                href={`/pratica?pagina=${encodeURIComponent(page.id)}`}
+                aria-current={selectedPageId === page.id ? "page" : undefined}
+              >
+                <span>
+                  <strong>{page.title}</strong>
+                  <span className="aa-state-copy">
+                    {count} {count === 1 ? "atividade" : "atividades"}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
@@ -165,16 +168,15 @@ function PracticeItemList({
   }
 
   return (
-    <div className="aa-list" role="list" aria-label="Atividades deste conteúdo">
+    <ul className="aa-list" aria-label="Atividades deste conteúdo">
       {items.map((item) => {
         const review = overview.reviews.find(
           (entry: ReviewRecommendation) => entry.practiceItemId === item.id,
         );
         return (
-          <Link
-            key={item.id}
-            className="aa-list-item aa-surface"
-            role="listitem"
+          <li key={item.id}>
+            <Link
+              className="aa-list-item aa-surface"
             href={
               item.evidenceMode === "criterion_exact_match"
                 ? `/pratica?pagina=${encodeURIComponent(item.pageId)}&avaliacao=${encodeURIComponent(item.id)}`
@@ -191,10 +193,11 @@ function PracticeItemList({
                 {review?.due ? "revisão liberada" : "sem revisão pendente"}
               </span>
             </span>
-          </Link>
+            </Link>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 

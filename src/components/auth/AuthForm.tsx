@@ -48,11 +48,27 @@ export function AuthForm({ mode }: AuthFormProps) {
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [message, setMessage] = useState("");
+  const [invalidField, setInvalidField] = useState<"email" | "password" | "confirm-password" | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("loading");
     setMessage("");
+    setInvalidField(null);
+
+    const emailInput = event.currentTarget.elements.namedItem("email") as HTMLInputElement | null;
+    if (emailInput && !emailInput.checkValidity()) {
+      setStatus("error");
+      setInvalidField("email");
+      setMessage("Informe um e-mail válido.");
+      return;
+    }
+    if (mode === "login" && !password) {
+      setStatus("error");
+      setInvalidField("password");
+      setMessage("Informe sua senha.");
+      return;
+    }
 
     const supabase = createClient();
 
@@ -76,12 +92,14 @@ export function AuthForm({ mode }: AuthFormProps) {
       if (mode === "update-password") {
         if (password !== confirmPassword) {
           setStatus("error");
+          setInvalidField("confirm-password");
           setMessage("As senhas precisam ser iguais.");
           return;
         }
 
         if (password.length < MIN_PASSWORD_LENGTH) {
           setStatus("error");
+          setInvalidField("password");
           setMessage(PASSWORD_TOO_SHORT_ERROR);
           return;
         }
@@ -99,6 +117,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
       if (mode === "signup" && password.length < MIN_PASSWORD_LENGTH) {
         setStatus("error");
+        setInvalidField("password");
         setMessage(PASSWORD_TOO_SHORT_ERROR);
         return;
       }
@@ -106,6 +125,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       if (mode === "signup") {
         if (password !== confirmPassword) {
           setStatus("error");
+          setInvalidField("confirm-password");
           setMessage("As senhas precisam ser iguais.");
           return;
         }
@@ -194,7 +214,8 @@ export function AuthForm({ mode }: AuthFormProps) {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              aria-invalid={status === "error"}
+              aria-invalid={invalidField === "email"}
+                aria-describedby={invalidField === "email" ? "auth-form-message" : undefined}
             />
           </div>
         )}
@@ -214,7 +235,8 @@ export function AuthForm({ mode }: AuthFormProps) {
               minLength={MIN_PASSWORD_LENGTH}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              aria-invalid={status === "error"}
+              aria-invalid={invalidField === "password"}
+                aria-describedby={invalidField === "password" ? "auth-form-message" : undefined}
             />
 
             <button
@@ -240,13 +262,14 @@ export function AuthForm({ mode }: AuthFormProps) {
               minLength={MIN_PASSWORD_LENGTH}
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              aria-invalid={status === "error"}
+              aria-invalid={invalidField === "confirm-password"}
+                aria-describedby={invalidField === "confirm-password" ? "auth-form-message" : undefined}
             />
           </div>
         )}
 
         {message && (
-          <p role="alert" aria-live="polite">
+          <p id="auth-form-message" role="alert" aria-live="polite">
             {message}
           </p>
         )}

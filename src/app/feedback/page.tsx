@@ -68,6 +68,11 @@ export default function FeedbackPage() {
             <Sparkles aria-hidden="true" className="aa-feedback-mark" />
           </div>
 
+          <p className="aa-field-description">
+            Para enviar feedback, é necessário estar conectado à sua conta.
+            <Link href="/login"> Entrar na conta</Link> antes de preencher o formulário, se necessário.
+          </p>
+
           <form onSubmit={onSubmit} className="aa-feedback-form" noValidate>
             <Input
               name="name"

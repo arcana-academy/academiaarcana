@@ -19,6 +19,8 @@ describe("FeedbackPage", () => {
     expect(
       screen.getByRole("button", { name: /enviar feedback/i }),
     ).toBeInTheDocument();
+    expect(screen.getByText(/necessário estar conectado à sua conta/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Entrar na conta" })).toHaveAttribute("href", "/login");
   });
 
   it("offers a login destination after an authentication-required response", async () => {

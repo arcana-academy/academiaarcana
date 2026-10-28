@@ -16,6 +16,7 @@ describe("public synthetic Arcana MVP", () => {
   it("presents a clear demo disclosure with accessible missions", () => {
     render(<ArcanaExperience />);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Sua jornada começa");
+    expect(screen.getByRole("heading", { name: "Tudo pronto para continuar?" })).toBeInTheDocument();
     expect(screen.getByText(/Demonstração sem conta e sem banco de dados/)).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Missões concluídas" })).toHaveAttribute("value", "0");
     expect(within(screen.getByRole("list", { name: "Missões da demonstração" })).getAllByRole("button")).toHaveLength(3);

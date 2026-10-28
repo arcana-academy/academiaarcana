@@ -90,6 +90,9 @@ describe("PraticaPage accessibility contract", () => {
     expect(html).toContain("Parcial — lembrei parte, mas algo importante faltou.");
     expect(html).toContain("Insuficiente — preciso consultar e tentar novamente.");
     expect(html).toContain('aria-label="Navegação educacional"');
+    expect(html).toContain('<ul class="aa-list"');
+    expect(html).toContain('href="/pratica?pagina=page-1"');
+    expect(html).not.toContain('role="listitem"');
     expect(html).toContain("Avaliações com critério explícito");
   });
 

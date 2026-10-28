@@ -200,7 +200,7 @@ export function ArcanaExperience() {
             </button>
             <div className={styles.note}>Interromper não apaga o que você já conseguiu. Você pode registrar uma sessão breve.</div>
             <div className={styles.next}>
-              <h3>Pronta para continuar?</h3>
+              <h3>Tudo pronto para continuar?</h3>
               <p>O próximo passo é experimentar as áreas reais da plataforma com sua própria conta quando os fluxos estiverem validados.</p>
               <Link href="/cadastro" className={styles.secondaryButton}>Conhecer o cadastro</Link>
             </div>
