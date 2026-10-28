@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 export const SITE_NAME = "Academia Arcana";
 
 export const DEFAULT_SITE_TITLE =
-  "Academia Arcana — aprendizagem adaptativa, acessível e segura";
+  "Academia Arcana — organize seus estudos e acompanhe sua jornada";
 
 export const DEFAULT_SITE_DESCRIPTION =
-  "Uma academia de aprendizagem adaptativa, acessível e segura: grimórios, missões, prática e acompanhamento educacional.";
+  "Organize seus grimórios, planeje estudos, pratique e acompanhe seu progresso na Academia Arcana.";
 
 /**
  * Origin used when neither the public application URL nor the Render runtime
@@ -122,7 +122,7 @@ export const ROUTE_METADATA = {
     indexable: false,
   },
   "/workspace": {
-    title: "Workspace de leitura",
+    title: "Editor de estudos",
     description:
       "Leia e edite o conteúdo do grimório selecionado com hierarquia de capítulos e páginas.",
     indexable: false,
