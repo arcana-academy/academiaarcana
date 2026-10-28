@@ -30,7 +30,7 @@ export default async function StreakPage() {
     <AuthenticatedShell currentPath="/streak">
       <ArcanaPage
         eyebrow="Continuidade"
-        title="Streak"
+        title="Sequência de estudos"
         description="Acompanhe consistência a partir de eventos reais de aprendizagem, sem transformar pausas em fracasso."
       >
         {loadError ? (
