@@ -84,7 +84,7 @@ function findWorkspaceTitle(
   );
   if (grimoire) return grimoire.title;
 
-  return "Workspace";
+  return "Editor de estudos";
 }
 
 /** Manage Workspace selection and saved page state on the client. */
