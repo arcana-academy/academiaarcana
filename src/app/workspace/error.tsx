@@ -17,7 +17,7 @@ export default function WorkspaceError({ error, reset }: WorkspaceErrorProps) {
   return (
     <main className="aa-page aa-page-narrow" aria-labelledby="workspace-error-title">
       <section className="aa-surface aa-sanctuary-section">
-        <h1 id="workspace-error-title">Não foi possível carregar o Workspace</h1>
+        <h1 id="workspace-error-title">Não foi possível carregar o editor de estudos</h1>
         <p role="alert">
           Não foi possível recuperar seus grimórios, capítulos e páginas agora.
           Seus estudos não foram alterados. Tente novamente.
