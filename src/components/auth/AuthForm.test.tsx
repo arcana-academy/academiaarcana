@@ -58,7 +58,7 @@ describe("AuthForm", () => {
   it("submits login credentials and redirects to the sanctuary after success", async () => {
     render(<AuthForm mode="login" />);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("E-mail"), {
       target: { value: "student@example.com" },
     });
 
@@ -85,7 +85,7 @@ describe("AuthForm", () => {
 
     render(<AuthForm mode="login" />);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("E-mail"), {
       target: { value: "student@example.com" },
     });
 
@@ -105,7 +105,7 @@ describe("AuthForm", () => {
   it("does not enumerate accounts during password recovery", async () => {
     render(<AuthForm mode="recover" />);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("E-mail"), {
       target: { value: "student@example.com" },
     });
 
@@ -180,13 +180,13 @@ describe("AuthForm", () => {
     unmount();
     render(<AuthForm mode="recover" />);
     expect(screen.getByRole("heading", { name: "Recuperar acesso" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Voltar ao Login" })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: "Voltar para entrar" })).toHaveAttribute("href", "/login");
     expect(screen.getByText(/não confirmamos se um endereço está cadastrado/i)).toBeInTheDocument();
   });
 
   it("blocks signup when password confirmation differs without calling Supabase", async () => {
     render(<AuthForm mode="signup" />);
-    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "student@example.com" } });
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "student@example.com" } });
     fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "correct-password" } });
     fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "other-password" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
@@ -196,7 +196,7 @@ describe("AuthForm", () => {
 
   it("uses the existing Supabase signup when passwords match", async () => {
     render(<AuthForm mode="signup" />);
-    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "student@example.com" } });
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "student@example.com" } });
     fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "correct-password" } });
     fireEvent.change(screen.getByLabelText("Confirmar senha"), { target: { value: "correct-password" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
@@ -211,7 +211,7 @@ describe("AuthForm", () => {
   it("rejects a password shorter than eight characters during signup", async () => {
     render(<AuthForm mode="signup" />);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("E-mail"), {
       target: { value: "student@example.com" },
     });
 
@@ -237,7 +237,7 @@ describe("AuthForm", () => {
 
     render(<AuthForm mode="signup" />);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("E-mail"), {
       target: { value: "student@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Senha"), {
@@ -258,7 +258,7 @@ describe("AuthForm", () => {
   it("does not redirect signup when email confirmation is pending", async () => {
     render(<AuthForm mode="signup" />);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("E-mail"), {
       target: { value: "student@example.com" },
     });
     fireEvent.change(screen.getByLabelText("Senha"), {
@@ -272,7 +272,7 @@ describe("AuthForm", () => {
     await waitFor(() => {
       expect(signUp).toHaveBeenCalledTimes(1);
       expect(screen.getByRole("alert")).toHaveTextContent(
-        "Verifique seu email para confirmar o acesso",
+        "Confira seu e-mail para confirmar a conta antes de entrar.",
       );
     });
 
