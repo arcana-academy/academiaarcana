@@ -46,7 +46,7 @@ describe("Workspace", () => {
 
     expect(screen.getByRole("banner")).toBeTruthy();
     expect(
-      screen.getByRole("navigation", { name: "Navegação do workspace" }),
+      screen.getByRole("navigation", { name: "Navegação do editor de estudos" }),
     ).toBeTruthy();
     const editorRegion = screen.getByRole("region", { name: "Área de trabalho" });
     // Every canonical deep link (including Santuário resume) uses #current.
