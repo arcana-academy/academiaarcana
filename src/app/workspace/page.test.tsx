@@ -140,8 +140,8 @@ describe("WorkspacePage read recovery", () => {
 
     render(await WorkspacePage({ searchParams: Promise.resolve(params) }));
 
-    expect(screen.getByRole("heading", { name: "Workspace", level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível carregar seu Workspace");
+    expect(screen.getByRole("heading", { name: "Editor de estudos", level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Não foi possível carregar o editor de estudos");
     const retry = screen.getByRole("button", { name: "Tentar novamente" });
     const form = retry.closest("form");
     expect(form).toHaveAttribute("action", "/workspace");
