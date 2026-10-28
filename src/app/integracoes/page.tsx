@@ -41,14 +41,14 @@ function statusDescription(
   }
   switch (status) {
     case "connected":
-      return "A conexão externa foi verificada em runtime.";
+      return "A conexão com o serviço externo foi verificada.";
     case "error":
       return "A conexão externa falhou na última verificação.";
     case "implemented":
-      return "O adapter de runtime está implementado; a conexão externa ainda não foi verificada para esta conta.";
+      return "A integração foi desenvolvida, mas a conexão externa ainda não foi verificada para esta conta.";
     default:
       return executionMode === "runtime"
-        ? "O adapter de runtime existe; a conexão de conta é verificada no contexto autenticado."
+        ? "A conexão depende de verificação no contexto autenticado da conta."
         : "O nome está no catálogo, mas nenhuma conexão externa foi verificada.";
   }
 }
@@ -85,11 +85,11 @@ export default async function IntegracoesPage() {
           Integrações
         </p>
         <h1 id="integrations-title" style={{ margin: 0 }}>
-          Hub de integrações da Academia Arcana
+          Central de integrações da Academia Arcana
         </h1>
         <p style={{ margin: 0, color: "var(--aa-text-secondary)" }}>
-          Um centro único para descobrir capacidades do ecossistema, distinguir
-          conexões reais de catálogo e transformar ferramentas em fluxos do produto.
+          Consulte as ferramentas disponíveis e saiba quais conexões estão verificadas,
+          aguardam configuração ou ainda fazem parte do catálogo.
         </p>
       </header>
 
@@ -230,7 +230,7 @@ export default async function IntegracoesPage() {
           <p style={{ color: "var(--aa-text-secondary)" }}>
             Conecte sua conta para criar e acompanhar tarefas de estudo no Asana.
             A autorização ocorre no servidor e a Academia Arcana continua sendo a
-            fonte de verdade do progresso educacional.
+            registro principal do progresso educacional.
           </p>
           <Link className="aa-button aa-button-primary" href="/integracoes/asana">
             Gerenciar conexão do Asana
@@ -291,7 +291,7 @@ export default async function IntegracoesPage() {
           <p style={{ color: "var(--aa-text-secondary)" }}>
             Conecte sua conta para organizar quadros, listas, cartões e checklists
             do fluxo operacional. A autenticação ocorre no servidor e a Academia
-            Arcana continua sendo a fonte de verdade educacional.
+            Arcana continua sendo a registro principal do progresso educacional.
           </p>
           <Link className="aa-button aa-button-primary" href="/integracoes/trello">
             Gerenciar conexão do Trello
@@ -353,7 +353,7 @@ export default async function IntegracoesPage() {
             Pesquisa web do Mestre Arcano
           </h2>
           <p style={{ color: "var(--aa-text-secondary)", maxWidth: "58rem" }}>
-            Parallel e Exa são providers server-side para evidências externas.
+            Parallel e Exa são serviços de pesquisa externa usados pelo servidor.
             Eles não são conexões de conta do aluno e nenhuma credencial é exposta
             ao navegador.
           </p>
@@ -377,13 +377,13 @@ export default async function IntegracoesPage() {
                     }}
                   >
                     <h3 style={{ margin: 0 }}>{integration.name}</h3>
-                    <span aria-label={configured ? "Provider configurado" : "Provider não configurado"}>
+                    <span aria-label={configured ? "Serviço configurado" : "Serviço não configurado"}>
                       {configured ? "Configurado" : "Não configurado"}
                     </span>
                   </div>
                   <p style={{ color: "var(--aa-text-secondary)", marginBottom: 0 }}>
                     Capacidade: {integration.capabilities?.join(", ") ?? "não informada"}.
-                    A verificação acontece somente quando o provider é utilizado.
+                    A verificação acontece somente quando o serviço é utilizado.
                   </p>
                 </article>
               );
