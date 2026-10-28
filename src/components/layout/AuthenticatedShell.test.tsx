@@ -56,6 +56,8 @@ describe("AuthenticatedShell", () => {
     expect(sidebarLinks).toHaveLength(15);
     expect(sidebar?.querySelectorAll(".aa-sidebar-icon svg")).toHaveLength(15);
     expect(sidebar?.querySelectorAll(".aa-sidebar-link-copy")).toHaveLength(15);
+    expect(sidebar?.querySelectorAll(".aa-sidebar-nav-group")).toHaveLength(5);
+    expect(sidebar).toHaveTextContent("Meus estudos");
 
     const sidebarNavigation = within(sidebar as HTMLElement);
     const settingsLink = sidebarNavigation.getByRole("link", { name: "Configurações" });
