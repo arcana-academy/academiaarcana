@@ -45,7 +45,7 @@ export function AcademyJourney({ journey }: AcademyJourneyProps) {
   return (
     <section className="academy-paths" aria-labelledby="academy-journey-title">
       <header className="academy-paths-header">
-        <p className="aa-eyebrow">Sua jornada · dados reais</p>
+        <p className="aa-eyebrow">Seu aprendizado até aqui</p>
         <h2 id="academy-journey-title">Do primeiro grimório à próxima missão</h2>
         <p>
           Um caminho para começar, continuar e reconhecer seu progresso,
@@ -83,7 +83,7 @@ export function AcademyJourney({ journey }: AcademyJourneyProps) {
                   : "O contexto de aprendizagem ainda não está configurado."}
               </p>
               <Link className="aa-button aa-button-secondary" href="/workspace">
-                Abrir Workspace
+                Abrir editor de estudos
               </Link>
             </div>
           )}
