@@ -1,0 +1,104 @@
+name: AA594 Verify Published GHCR Digest for Offsite Backup (NO-GO)
+on:
+  push:
+    branches:
+      - work/aa-594-ghcr-candidate-proof-20261029
+    paths:
+      - .github/workflows/aa-594-ghcr-candidate-proof.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify-published-candidate:
+    if: github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/work/aa-594-ghcr-candidate-proof-20261029'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      SOURCE_SHA: d0c839fe37a1c809585183fd57426877753ca119
+      CANDIDATE: ghcr.io/arcana-academy/academiaarcana@sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658
+      DIGEST: sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658
+    steps:
+      - name: Pin audit-only checkout, read-only permissions
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: d0c839fe37a1c809585183fd57426877753ca119
+          persist-credentials: false
+
+      - name: Verify runner and source immutable baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test -z "$(git status --porcelain)"
+          echo AA594_CANDIDATE_SOURCE_PINNED=PASS
+
+      - name: Install metadata inspector only
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v skopeo >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends skopeo >/dev/null
+          fi
+          skopeo --version
+          echo AA594_GHCR_READONLY_INSPECTOR=PASS
+
+      - name: Fetch exact public manifest and config anonymously without layers or registry writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          skopeo inspect --no-creds --no-tags --raw --retry-times 1 "docker://$CANDIDATE" \
+            > "$RUNNER_TEMP/aa594-public-manifest.json" 2>"$RUNNER_TEMP/aa594-registry-stderr" || {
+              echo "::error title=AA594 GHCR candidate::Published manifest unreadable anonymously, no raw credentials or errors echoed."
+              exit 1
+            }
+          skopeo inspect --no-creds --no-tags --config --retry-times 1 "docker://$CANDIDATE" \
+            > "$RUNNER_TEMP/aa594-public-config.json" 2>>"$RUNNER_TEMP/aa594-registry-stderr" || {
+              echo "::error title=AA594 GHCR candidate::Image config unreadable anonymously."
+              exit 1
+            }
+          python3 - <<'PY'
+          import hashlib,json,os,re
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])
+          raw=(root/"aa594-public-manifest.json").read_bytes()
+          expected=os.environ["DIGEST"]
+          actual="sha256:"+hashlib.sha256(raw).hexdigest()
+          assert actual==expected, "Exact published manifest hash mismatch"
+          manifest=json.loads(raw)
+          assert manifest.get("schemaVersion")==2
+          layers=manifest.get("layers")
+          config_desc=manifest.get("config")
+          assert isinstance(layers,list) and len(layers)==7, "Unexpected published layer count"
+          assert isinstance(config_desc,dict), "Missing config descriptor"
+          for o in [config_desc,*layers]:
+            assert re.fullmatch(r"sha256:[a-f0-9]{64}",o.get("digest","")), "Invalid blob descriptor"
+            assert isinstance(o.get("size"),int) and o["size"]>0,"Invalid blob size"
+          cfg=json.loads((root/"aa594-public-config.json").read_text(encoding="utf-8"))
+          assert cfg.get("architecture")=="amd64" and cfg.get("os")=="linux","Wrong platform"
+          user=cfg.get("config",{}).get("User")
+          assert isinstance(user,str) and user and user.lower()!="root" and user!="0", "Root image"
+          environment=cfg.get("config",{}).get("Env") or []
+          names={x.split("=",1)[0] for x in environment if isinstance(x,str)}
+          forbidden={"OPENAI_API_KEY","PARALLEL_API_KEY","EXA_API_KEY","SUPABASE_SERVICE_ROLE_KEY",
+                     "DATABASE_URL","GITHUB_TOKEN","GH_TOKEN"}
+          assert not forbidden.intersection(names),"Runtime credentials named in published image config"
+          print("AA594_GHCR_PUBLIC_MANIFEST_DIGEST=PASS")
+          print("AA594_GHCR_MANIFEST_LAYER_DESCRIPTORS=PASS count=7")
+          print("AA594_GHCR_LINUX_AMD64_NONROOT=PASS")
+          print("AA594_GHCR_CONFIG_RUNTIME_CREDENTIAL_NAMES=PASS")
+          print("AA594_CANDIDATE_SIZE_METADATA_BYTES="+str(sum(o["size"] for o in layers)+config_desc["size"]))
+          PY
+
+      - name: Remove temporary registry metadata
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          rm -f "$RUNNER_TEMP/aa594-public-manifest.json" "$RUNNER_TEMP/aa594-public-config.json" "$RUNNER_TEMP/aa594-registry-stderr"
+          test ! -e "$RUNNER_TEMP/aa594-public-manifest.json" &&
+            test ! -e "$RUNNER_TEMP/aa594-public-config.json" || exit 1
+          echo AA594_GHCR_METADATA_TEARDOWN=PASS
