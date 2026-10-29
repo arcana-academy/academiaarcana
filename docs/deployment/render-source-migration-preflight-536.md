@@ -25,11 +25,13 @@ O guard puro `scripts/security/verify-render-source-migration-536.cjs` possui du
 
 ## Resultado da verificação de Blueprint / Auto Sync (somente leitura)
 
-- A consulta à API de **serviço** e a listagem de serviços do workspace `arcana.academy` retornaram o serviço esperado, porém **não contêm `blueprintId`, `autoSync` ou lista de recursos gerenciados pelo Blueprint**. Logo, `autoDeployTrigger: off` prova apenas o congelamento de deploy automático Git, **não** o Auto Sync de Blueprint.
-- A API oficial possui `GET /v1/blueprints` (descoberta de Blueprints autorizados) e `GET /v1/blueprints/{blueprintId}` (dados `autoSync` e `resources[].id`). Documentação: https://api-docs.render.com/reference/list-blueprints e https://api-docs.render.com/reference/retrieve-blueprint .
-- A integração Render acessível nesta execução não expõe essas ações de Blueprint. **Não foi obtida evidência administrativa do Auto Sync** e não é permitido inferir ausência de Blueprint porque o recurso não aparece na resposta de serviço.
-- Desbloqueio exclusivamente de leitura: obter por sessão autorizada do Dashboard `Blueprints > [Blueprint] > Settings` o `Auto Sync` e conferir o serviço na lista de recursos gerenciados, ou usar `GET` autorizado com escopo mínimo, retornando apenas ID de Blueprint, estado `autoSync`, caminho de arquivo, branch e IDs de recursos. Nunca enviar chave de API no chat, registrar valores de variáveis ou disparar `Manual Sync`.
-- **FAIL CLOSED:** se o serviço pertence a um Blueprint com Auto Sync ligado, ou se o vínculo é desconhecido, não executar troca de source até existir estratégia aprovada para evitar reversão do serviço para Git-backed.
+**Evidência nova, 29/10/2026 — verificação administrativa concluída para o workspace atual:**
+
+- A página autenticada [Render Dashboard > Blueprints](https://dashboard.render.com/blueprints), **com seletor de workspace exibindo `arcana.academy`**, informou expressamente: **“You haven’t created any Blueprint instances yet.”** Nenhum Blueprint nem lista de recursos de Blueprint foi apresentado nesse workspace.
+- A integração Render confirmou que o único serviço listado nesse workspace (sem previews) é o `academiaarcana`, ID `srv-dauor697lnhs739cicag`, `ownerId=tea-daa6v6tg1s2s73cb5gi0`, ambiente `evm-dauor697lnhs739cibr0`, origem Git/Node, `main`, plano Free e Auto Deploy OFF. A consulta foi de **leitura**; nenhuma configuração foi salva, nenhum serviço criado, nenhum sincronismo solicitado.
+- **Conclusão delimitada:** não existe instância de Blueprint no workspace autenticado observado na data. Assim, **não há um Auto Sync de Blueprint existente nesse workspace a inspecionar**; a hipótese de uma instância de Blueprint já cadastrada que sobrescreva imediatamente a fonte deste serviço **não é sustentada pelos dados atuais**.
+- Isso **não comprova que o workspace nunca utilizou Blueprint**, nem elimina o risco de nova vinculação futura, nem substitui um snapshot atualizado imediatamente antes de uma migração autorizada. O campo `autoDeployTrigger=off` é distinto de Auto Sync.
+- **Antes de trocar a fonte**, reconfirmar no mesmo workspace a ausência de Blueprint ou inspecionar qualquer Blueprint que surja, bem como manter `Auto Deploy OFF`, plano Free, identidade do serviço e o digest autorizado. A troca de origem continua **NO-GO**, pois salvar a alteração dispara deploy e ainda depende de #536, #594, #595 e aprovações independentes.
 
 ## Gate antes de qualquer decisão de publicação (pendências externas)
 
