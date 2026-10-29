@@ -81,6 +81,25 @@ jobs:
             "SUPABASE_GENERAL_FAILURE":r"failed to start|error starting",
           }
           print("C03_STARTUP_EXIT=NONZERO")
+          # Ordered line-level event codes; never print raw log lines.
+          order_patterns={
+            "PULL_FAILURE":r"failed to pull|pull access denied|manifest unknown|toomanyrequests",
+            "REGISTRY_DENIAL":r"unauthorized|denied:|429 too many requests|rate limit exceeded",
+            "DB_REFUSED":r"failed to connect to (?:database|postgres).*|connection refused|ECONNREFUSED",
+            "DNS_FAILURE":r"no such host|temporary failure in name resolution",
+            "HOST_UNREACHABLE":r"network is unreachable|no route to host",
+            "HEALTHCHECK":r"health.?check.*?fail|unhealthy",
+            "IMAGE_NOT_FOUND":r"manifest unknown|no matching manifest|not found locally",
+            "CONTAINER_FAILED":r"failed to start container|failed to create container",
+          }
+          events=[]
+          for num,line in enumerate(data.splitlines(),start=1):
+            for key,regex in order_patterns.items():
+              if re.search(regex,line,re.I):
+                events.append((num,key))
+          print(f"C03_DIAG_ORDERED_EVENTS={len(events)}")
+          for num,key in events[:6]: print(f"C03_DIAG_FIRST_EVENT line={num} type={key}")
+          for num,key in events[-10:]: print(f"C03_DIAG_LAST_EVENT line={num} type={key}")
           for key,regex in patterns.items():
             print(f"C03_DIAG_{key}={'YES' if re.search(regex,data,re.I|re.S) else 'NO'}")
           ids=subprocess.check_output(["docker","ps","-aq","--filter","name=supabase_"],text=True).split()
