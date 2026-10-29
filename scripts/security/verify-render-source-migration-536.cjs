@@ -2,6 +2,9 @@
 
 // P0 #536: read-only, metadata-only migration contract. No API calls, no deploy.
 const SERVICE_ID = "srv-dauor697lnhs739cicag";
+const SERVICE_NAME = "academiaarcana";
+const OWNER_ID = "tea-daa6v6tg1s2s73cb5gi0";
+const ENVIRONMENT_ID = "evm-dauor697lnhs739cibr0";
 const SERVICE_URL = "https://academiaarcana.onrender.com";
 const REPO = "https://github.com/arcana-academy/academiaarcana";
 const IMAGE_PREFIX = "ghcr.io/arcana-academy/academiaarcana@sha256:";
@@ -15,6 +18,9 @@ function reject() {
 function frozenService(data) {
   if (!data || typeof data !== "object" ||
       data.id !== SERVICE_ID ||
+      data.name !== SERVICE_NAME ||
+      data.ownerId !== OWNER_ID ||
+      data.environmentId !== ENVIRONMENT_ID ||
       data.type !== "web_service" ||
       data.autoDeploy !== "no" ||
       data.autoDeployTrigger !== "off" ||
