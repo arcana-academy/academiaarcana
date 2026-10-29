@@ -25,6 +25,7 @@ const tagPrefix = "academiaarcana-c137-synthetic-" + nonce;
 const hardenedTag = tagPrefix + "-hardened";
 const controlTag = tagPrefix + "-control";
 const dockerTags = [hardenedTag, controlTag];
+const createdContainers = [];
 
 const benign = "C137_BENIGN_ONLY_" + nonce;
 const canaries = [
@@ -77,14 +78,20 @@ function examineImage(tag, label) {
   const history = docker(["history", "--no-trunc", "--format", "{{.CreatedBy}}", tag], label + " history");
   const image = JSON.parse(metadata);
   assert.equal(image?.RootFS?.Type, "layers", label + ": expected image layers");
-  assert.ok(Array.isArray(image.RootFS.Layers) && image.RootFS.Layers.length > 0,
-    label + ": no root filesystem layer to examine");
+  assert.ok(Array.isArray(image.RootFS.Layers) && image.RootFS.Layers.length === 1,
+    label + ": only a one-layer synthetic image can be attested by filesystem export");
 
+  // Create but NEVER start a disposable container. Export its one-layer filesystem
+  // as an uncompressed tar to avoid assuming docker save uses readable layer bytes.
+  const containerId = docker(["container", "create", "--name",
+    "aa-c137-" + nonce + "-" + label, tag, "/synthetic-never-run"], label + " create").trim();
+  assert.match(containerId, /^[a-f0-9]{64}$/, label + ": invalid disposable container identity");
+  createdContainers.push(containerId);
   const archivePath = path.join(baseDir, label + ".tar");
-  docker(["save", "--output", archivePath, tag], label + " save", 120000);
+  docker(["container", "export", "--output", archivePath, containerId], label + " export", 120000);
   const archive = readFileSync(archivePath);
 
-  // Scan the complete, uncompressed Docker save archive, including layer tar contents.
+  // Scan the complete uncompressed export of this one-layer synthetic image.
   // The unsafe control proves the scanner actually observes synthetic file content.
   const scan = (marker) => archive.includes(Buffer.from(marker, "utf8"));
   assert.ok(scan(benign), label + ": benign marker missing, scan inconclusive");
@@ -115,6 +122,11 @@ try {
   console.log("C137 PASS: deliberate unsafe control exposes every synthetic marker in archive");
   console.log("C137 PASS: hardened and control images have inspectable filesystem layers");
 } finally {
+  for (const id of createdContainers) {
+    spawnSync("docker", ["container", "rm", "--force", id], {
+      encoding: "utf8", timeout: 20000, maxBuffer: 1024 * 1024,
+    });
+  }
   for (const tag of dockerTags) {
     // Removing only our random, synthetic image tags; never touch application images.
     spawnSync("docker", ["image", "rm", "--force", tag], {
