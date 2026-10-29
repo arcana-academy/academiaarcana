@@ -1,0 +1,136 @@
+name: AA844 C03 Integrated Linux Supabase Network Proof (NO-GO)
+
+on:
+  push:
+    branches:
+      - work/aa-844-linux-bind-proof-20261029
+    paths:
+      - .github/workflows/aa-844-c03-linux-integrated-network.yml
+
+permissions:
+  contents: read
+
+jobs:
+  integrated-isolation:
+    if: github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/work/aa-844-linux-bind-proof-20261029'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AA_NETWORK: aa844-ci-integrated-${{ github.run_id }}
+    steps:
+      - name: Checkout exact immutable source of DRAFT PR 844
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: d0c839fe37a1c809585183fd57426877753ca119
+          persist-credentials: false
+
+      - name: Validate ephemeral runner and create internal loopback-bound bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = d0c839fe37a1c809585183fd57426877753ca119
+          test -z "$(git status --porcelain)"
+          test -z "$(docker ps -q)"
+          docker network create --internal --driver bridge \
+            --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 \
+            "$AA_NETWORK" >/dev/null
+          python3 - <<'PY'
+          import json,os,subprocess
+          n=json.loads(subprocess.check_output(["docker","network","inspect",os.environ["AA_NETWORK"]],text=True))[0]
+          assert n["Internal"] is True and n["Driver"]=="bridge" and n["EnableIPv6"] is False
+          assert n["Options"]["com.docker.network.bridge.host_binding_ipv4"]=="127.0.0.1"
+          print("C03_INTEGRATED_INTERNAL_NETWORK=PASS")
+          PY
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Setup pinned local Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Start ephemeral Supabase on internal-only bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start --network-id "$AA_NETWORK" >"$RUNNER_TEMP/aa844-integrated-start.log" 2>&1; then
+            echo "::error title=Supabase on internal bridge::Failed to start local-only Supabase; logs omitted to protect synthetic credentials."
+            exit 1
+          fi
+          echo "C03_INTEGRATED_SUPABASE_START=PASS"
+
+      - name: Inspect all actual Supabase host publications and network attachments
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,subprocess
+          ids=subprocess.check_output(["docker","ps","-q"],text=True).split()
+          assert ids, "No Supabase containers were started"
+          items=json.loads(subprocess.check_output(["docker","inspect",*ids],text=True))
+          total=0
+          for item in items:
+            name=item["Name"].lstrip("/")
+            assert name.startswith("supabase_"), f"Unexpected container: {name}"
+            networks=item["NetworkSettings"]["Networks"]
+            assert list(networks)==[os.environ["AA_NETWORK"]], f"Unexpected network attachment: {name} {list(networks)}"
+            for port,bindings in (item["NetworkSettings"]["Ports"] or {}).items():
+              for binding in bindings or []:
+                ip=binding["HostIp"]
+                assert ip=="127.0.0.1", f"Unsafe host binding: {name} {port} {ip}"
+                print(f"C03_INTEGRATED_BIND {name} {port} -> {ip}:{binding['HostPort']}")
+                total+=1
+          assert total>=2, f"Expected multiple published Supabase ports; observed {total}"
+          print(f"C03_INTEGRATED_ALL_HOST_BINDINGS=PASS containers={len(items)} ports={total}")
+          PY
+
+      - name: Verify outbound IPv4 IPv6 and external DNS blocked on same live Supabase network
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 60s docker run --rm -i --name aa844-integrated-egress-probe \
+            --pull always --network "$AA_NETWORK" --user 65534:65534 \
+            --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --pids-limit 64 --memory 128m \
+            python:3.12-slim python - <<'PY'
+          import errno,socket
+          approved={errno.ENETUNREACH,errno.EHOSTUNREACH,errno.ENETDOWN,errno.EAFNOSUPPORT,errno.EADDRNOTAVAIL,errno.EPERM}
+          for family,host,port,label in [
+              (socket.AF_INET,"1.1.1.1",443,"IPV4"),
+              (socket.AF_INET,"8.8.8.8",53,"IPV4_DNS"),
+              (socket.AF_INET6,"2606:4700:4700::1111",443,"IPV6"),
+              (socket.AF_INET6,"2001:4860:4860::8888",53,"IPV6_DNS")]:
+              s=socket.socket(family,socket.SOCK_STREAM)
+              s.settimeout(3)
+              try:
+                  try:s.connect((host,port))
+                  except OSError as e:
+                      assert e.errno in approved, f"{label}: unproven denial errno={e.errno}"
+                      print(f"C03_INTEGRATED_{label}_EGRESS_DENIED=PASS errno={e.errno}")
+                  else:raise AssertionError(f"{label}: outbound connection succeeded")
+              finally:s.close()
+          socket.setdefaulttimeout(3)
+          try:socket.getaddrinfo("example.com",443,type=socket.SOCK_STREAM)
+          except socket.gaierror as e:print(f"C03_INTEGRATED_EXTERNAL_DNS_DENIED=PASS gaierror={e.errno}")
+          else:raise AssertionError("External DNS resolved inside the internal network")
+          print("C03_INTEGRATED_INGRESS_AND_EGRESS=PASS")
+          PY
+
+      - name: Destroy only disposable Supabase and internal network
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          docker rm -f aa844-integrated-egress-probe >/dev/null 2>&1
+          supabase stop --no-backup >/dev/null 2>&1
+          docker network rm "$AA_NETWORK" >/dev/null 2>&1
+          if docker network inspect "$AA_NETWORK" >/dev/null 2>&1; then
+            echo "::error title=C03 teardown::Disposable network was not removed."
+            exit 1
+          fi
+          echo "C03_INTEGRATED_TEARDOWN=PASS"
