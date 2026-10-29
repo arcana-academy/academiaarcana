@@ -1,0 +1,155 @@
+name: AA594 Ephemeral OCI Layout Verification and Restore (NO-GO)
+
+on:
+  push:
+    branches:
+      - work/aa-594-oci-ephemeral-20261029
+    paths:
+      - .github/workflows/aa-594-oci-ephemeral-proof.yml
+
+permissions:
+  contents: read
+
+jobs:
+  oci-ephemeral:
+    if: github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/work/aa-594-oci-ephemeral-20261029'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 27
+    env:
+      EXPECTED_SHA: d0c839fe37a1c809585183fd57426877753ca119
+      IMAGE_REF: academiaarcana:d0c839fe37a1c809585183fd57426877753ca119
+      OCI_ARCHIVE: /tmp/aa594-oci-ephemeral.tar
+      OCI_READBACK: /tmp/aa594-oci-readback.tar
+    steps:
+      - name: Checkout exact previously validated PR 844 revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: d0c839fe37a1c809585183fd57426877753ca119
+          persist-credentials: false
+
+      - name: Validate read-only source and safe build contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test -z "$(git status --porcelain)"
+          test -z "$(docker ps -q)"
+          test ! -e "$OCI_ARCHIVE" && test ! -e "$OCI_READBACK"
+          grep -qx '.env' .dockerignore
+          grep -qx '.env.*' .dockerignore
+          node scripts/security/assert-build-secret-isolation-536.cjs
+          echo AA594_OCI_SOURCE_AND_BUILD_BOUNDARY=PASS
+
+      - name: Install OCI transfer tooling on ephemeral Linux runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v skopeo >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends skopeo
+          fi
+          skopeo --version
+          echo AA594_OCI_TRANSFER_TOOL_READY=PASS
+
+      - name: Build one disposable linux amd64 image with public synthetic values
+        shell: bash
+        run: |
+          set -euo pipefail
+          export OPENAI_API_KEY="AA594_SYNTHETIC_HOST_ONLY_CANARY"
+          timeout 1080s docker build --platform linux/amd64 --progress=plain \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnopqrst.supabase.co \
+            --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC \
+            --build-arg NEXT_PUBLIC_APP_URL=https://academiaarcana.onrender.com \
+            --build-arg ACADEMIA_ARCANA_REVISION="$EXPECTED_SHA" \
+            --tag "$IMAGE_REF" .
+          python3 - <<'PY'
+          import json,os,subprocess
+          cfg=json.loads(subprocess.check_output(["docker","image","inspect",os.environ["IMAGE_REF"]],text=True))[0]
+          assert cfg["Architecture"]=="amd64" and cfg["Os"]=="linux"
+          assert cfg["Config"]["User"]=="node"
+          assert "AA594_SYNTHETIC_HOST_ONLY_CANARY" not in json.dumps(cfg)
+          assert not any(e.startswith(("OPENAI_API_KEY=","PARALLEL_API_KEY=","EXA_API_KEY=",
+                                       "SUPABASE_SERVICE_ROLE_KEY=","DATABASE_URL="))
+                         for e in cfg["Config"]["Env"])
+          assert f"ACADEMIA_ARCANA_REVISION={os.environ['EXPECTED_SHA']}" in cfg["Config"]["Env"]
+          print("AA594_OCI_ORIGIN_ARCH_USER_ENV=PASS")
+          PY
+          echo AA594_OCI_SYNTHETIC_BUILD=PASS
+
+      - name: Convert local image into real OCI archive without registry access
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 180s skopeo copy --format oci \
+            "docker-daemon:$IMAGE_REF" "oci-archive:$OCI_ARCHIVE:academiaarcana:local-oci-proof" \
+            >"$RUNNER_TEMP/aa594-skopeo-copy.log" 2>&1 || {
+              echo "::error title=OCI conversion::Local image-to-OCI conversion failed (raw output withheld)."
+              exit 1
+            }
+          test -s "$OCI_ARCHIVE"
+          echo AA594_REAL_OCI_LAYOUT_CREATED=PASS
+
+      - name: Independently verify every OCI content hash and manifest descriptor
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,os,sys,tarfile,shutil
+          sys.path.insert(0,"scripts/security")
+          import oci_recovery_536
+          source=os.environ["OCI_ARCHIVE"]
+          with tarfile.open(source,"r:") as t:
+            obj=t.extractfile("index.json")
+            assert obj is not None
+            index=json.load(obj)
+          manifests=index.get("manifests",[])
+          assert len(manifests)==1, "OCI layout must reference exactly one image"
+          digest=manifests[0]["digest"]
+          result=oci_recovery_536.verify(source,digest)
+          assert result["result"]=="PASS" and result["platform"]=="linux/amd64"
+          assert result["user"]=="node"
+          with open(os.path.join(os.environ["RUNNER_TEMP"],"aa594-manifest-digest"),"w") as f:
+            f.write(digest)
+          with open(os.path.join(os.environ["RUNNER_TEMP"],"aa594-tar-sha"),"w") as f:
+            f.write(result["archiveSha256"])
+          print(f"AA594_REAL_OCI_OFFLINE_INTEGRITY=PASS checked_objects={result['objectsVerified']}")
+          shutil.copyfile(source,os.environ["OCI_READBACK"])
+          digest2=oci_recovery_536.verify(os.environ["OCI_READBACK"],digest,result["archiveSha256"])
+          assert digest2["result"]=="PASS"
+          print("AA594_LOCAL_OCI_TAR_READBACK_SHA256=PASS")
+          PY
+
+      - name: Restore OCI archive to Docker and test runtime without production secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker image rm "$IMAGE_REF" >/dev/null
+          test -z "$(docker image ls -q --filter reference="$IMAGE_REF")"
+          timeout 180s skopeo copy \
+            "oci-archive:$OCI_READBACK" "docker-daemon:$IMAGE_REF" \
+            >"$RUNNER_TEMP/aa594-skopeo-restore.log" 2>&1 || {
+              echo "::error title=OCI restore::OCI-to-daemon restore failed (raw output withheld)."
+              exit 1
+            }
+          test "$(docker image inspect "$IMAGE_REF" --format '{{.Config.User}}')" = node
+          echo AA594_OCI_TO_DOCKER_RESTORE=PASS
+          bash scripts/smoke-production-container.sh "$EXPECTED_SHA"
+          echo AA594_OCI_RESTORED_NONROOT_HEALTH_REVISION=PASS
+
+      - name: Always destroy only ephemeral image and OCI files
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          docker image rm "$IMAGE_REF" >/dev/null 2>&1
+          rm -f "$OCI_ARCHIVE" "$OCI_READBACK" \
+            "$RUNNER_TEMP/aa594-manifest-digest" "$RUNNER_TEMP/aa594-tar-sha" \
+            "$RUNNER_TEMP/aa594-skopeo-copy.log" "$RUNNER_TEMP/aa594-skopeo-restore.log"
+          if test -e "$OCI_ARCHIVE" || test -e "$OCI_READBACK" ||
+             docker image inspect "$IMAGE_REF" >/dev/null 2>&1; then
+            echo "::error title=AA594 cleanup::Disposable OCI or image still present."
+            exit 1
+          fi
+          echo AA594_OCI_EPHEMERAL_TEARDOWN=PASS
