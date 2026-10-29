@@ -942,3 +942,46 @@ CONSOLIDAR
 ```
 
 The architecture remains a living system, but changes must be explicit, traceable and subordinate to the Constitution Master.
+
+
+---
+
+## 27. Implementation reconciliation checkpoint — 2026-10-29 (local proposal; no homologation)
+
+**Base read:** `b4f5eb3cdd345002349e7d9d30f826b4a57e5889` on `work/aa-master360-mvp-isolated-20261026`, initially clean. This section documents a **locally edited, uncommitted candidate**, not the canonical `main` state, a current production SHA, or a deployment approval. No tests, installations, migrations, commits or production actions were performed as part of this checkpoint.
+
+### 27.1 Operational release freeze versus historical promotion semantics
+
+The 2026-10-23 note in §25.6 describes why the earlier `checksPass` trigger caused a promotion/smoke deadlock and why `commit` was considered at that historical point. The examined `render.yaml` instead declares `autoDeployTrigger: "off"` with an explicit release freeze. **The current source contract is manual, Auto Deploy OFF and NO-GO.** The chronological explanation does not authorize re-enabling `commit`, GHCR promotion, or any deployment. Actual hosted settings require separately authorized read-only confirmation; the Blueprint alone cannot prove live service configuration.
+
+### 27.2 Focused architectural reconciliation
+
+| Requirement | Evidence at the base revision | Local candidate adjustment | Validation status |
+|---|---|---|---|
+| Education resource ownership | §8 and §21 describe `educational_practice_items` and `educational_practice_attempts` as Education-owned, but the code registry omitted them | Add the two table entries; leave `page_progress` owned by Learning | Implemented in local code; not tested |
+| Atomic education-to-learning operations | Versioned SQL functions `record_educational_practice_attempt` and `record_criterion_referenced_practice_attempt` record attempts and update page progress | Register cross-domain RPC ownership with Education and Learning as supporting domains | Implemented in local registry; not tested; does not apply SQL |
+| JSON input budgets | `/api/ia-aberta` used a stream-bounded 256 KiB reader; Mestre Arcano used unbounded `request.json()` before its 8,000-character guard | Reuse one shared bounded JSON reader for both while preserving route-specific validation and existing quotas | Local candidate only; runtime unverified |
+| Provider capability versus invocability | AI catalog mixes frameworks, vector stores and chat inference engines; generic gateway calls `/v1/chat/completions` | Explicitly distinguish cataloged products and locally supported chat-completions adapters; require eligibility before calling a provider | Static contract proposed in local code; no external provider tested |
+| Protection of build/runtime | Guard `assert-build-secret-isolation-536.cjs`, runtime secret reader and frozen Render Blueprint are present | Preserve controls and record the release freeze; no image migration or live change | Runtime segregation remains separately gated by #536 |
+| Product and governance boundary | §25.1–25.3 and C17–C19 track unresolved constitutional and institutional decisions | Do not resolve CSS/Tailwind, institution/teacher scope, privacy, or release governance by inference | BLOCKED by relevant authorities |
+
+The scope remains a modular monolith with the 14 approved domains and directional dependencies in §1–5. No new domain, service, table, provider account or migration is implied by this checkpoint.
+
+### 27.3 Isolated local test expectations — not executed
+
+- Architectural ownership assertions: unique owners and two Education-owned practice tables; cross-domain education/progress RPCs; no new cycles or forbidden imports.
+- HTTP request limits: valid JSON succeeds, malformed JSON returns 400, actual stream body above 256 KiB returns 413 before quota or provider use; the existing 8,000-character Mestre Arcano limit remains unchanged.
+- Gateway eligibility: documented catalog-only entries cannot invoke a chat endpoint or consume the IA Aberta quota; supported adapters still require runtime configuration and separate operational validation.
+- Persistence/RLS: reuse existing Supabase educational tests and local C117/P0 work rather than overwriting or repeating already accepted evidence; any needed future execution must be explicitly authorized in an isolated environment.
+- Build/Render: verify the frozen source configuration without attempting deploy, release or secret mutation.
+
+**Closure boundary:** Passing these tests would support the targeted local architecture changes only. It would not constitute MVP acceptance, independent review, protected release approval, the closing of #536/#594/#595/C03/ORG02, or proof of runtime provider availability. The previously published 46.6% architecture index is not reproducible from this record; the completion percentage is **not determinable**.
+
+
+### 27.4 Subsequent targeted local validation — 2026-10-29 (isolated; no release)
+
+This later checkpoint supersedes the **validation status only** of the initial local proposal in §§27.2–27.3. In the isolated checkout at base `b4f5eb3cdd345002349e7d9d30f826b4a57e5889`, the 10 targeted Vitest files completed with **84 passed tests and no assertion failures**: 7 files / 48 tests in the first post-dependency-recovery run, followed by the other 3 files / 36 tests with serialized workers after default parallel worker startup timed out. The initial homologation of the same 10 files had also completed with 84 passed tests before the dependency recovery. A subsequent `tsc --noEmit --incremental false --pretty false` exited 0 with no errors, and `git diff --check` reported no whitespace errors.
+
+The Windows `node_modules` recovery used a local donor checkout with identical `package.json` and `package-lock.json` hashes, after network attempts failed with `ECONNRESET` and `EIDLETIMEOUT`. `npm ls --depth=0 --offline --omit=optional` subsequently listed the expected direct dependencies. No productive migration, remote provider call, merge, image publication, GHCR push, Render deploy, or production configuration mutation was part of this validation. The actual hosted Auto Deploy setting is not proven by `render.yaml` alone.
+
+**Remaining release gates:** Quality Gate on a proposed PR, independent review, build/runtime secret isolation #536, durable OCI backup and custodial approval #594, ratified DEP-C17 authority decisions #595, and C03/ORG02 operational assurance. All remain separate; `DRAFT / NO-GO` must be preserved until their own verifiable acceptance criteria are met. No project-wide E2E, production smoke, or live provider readiness is claimed here.
