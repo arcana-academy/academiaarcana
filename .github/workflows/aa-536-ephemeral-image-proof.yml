@@ -1,0 +1,134 @@
+name: AA536 Ephemeral Public-Only Image and Restore Proof (NO-GO)
+
+on:
+  push:
+    branches:
+      - work/aa-536-ephemeral-image-proof-20261029
+    paths:
+      - .github/workflows/aa-536-ephemeral-image-proof.yml
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-image-proof:
+    if: github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/work/aa-536-ephemeral-image-proof-20261029'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 27
+    env:
+      EXPECTED_SHA: d0c839fe37a1c809585183fd57426877753ca119
+      IMAGE_REF: academiaarcana:d0c839fe37a1c809585183fd57426877753ca119
+    steps:
+      - name: Checkout exact previously validated PR 844 SHA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: d0c839fe37a1c809585183fd57426877753ca119
+          persist-credentials: false
+
+      - name: Validate disposable runner, source identity and no hosted secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$GITHUB_EVENT_NAME" = push
+          test "$GITHUB_REF" = refs/heads/work/aa-536-ephemeral-image-proof-20261029
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test -z "$(git status --porcelain)"
+          test -z "$(docker ps -q)"
+          # Build context must not include local .env files or private keys.
+          grep -qx '.env' .dockerignore
+          grep -qx '.env.*' .dockerignore
+          grep -qx '*.key' .dockerignore
+          grep -qx '**/*.pem' .dockerignore
+          test "$(grep -c '^ARG NEXT_PUBLIC_' Dockerfile)" -ge 2
+          if grep -Eq '^ARG (OPENAI_API_KEY|EXA_API_KEY|PARALLEL_API_KEY|SUPABASE_SERVICE_ROLE_KEY|.*CLIENT_SECRET)' Dockerfile; then
+            echo "::error title=Forbidden Docker build arg::Runtime credential ARG found."
+            exit 1
+          fi
+          echo "AA536_UNPRIVILEGED_BUILD_PREFLIGHT=PASS"
+
+      - name: Build local-only linux amd64 image with public synthetic values
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Canary is a PUBLIC TEST STRING in host env. Docker must not forward it
+          # into RUN environment, image config, history or runtime implicitly.
+          export OPENAI_API_KEY="AA536_SYNTHETIC_HOST_CANARY_DO_NOT_FORWARD"
+          test -n "$OPENAI_API_KEY"
+          timeout 1100s docker build --platform linux/amd64 --progress=plain \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijklmnopqrst.supabase.co \
+            --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC \
+            --build-arg NEXT_PUBLIC_APP_URL=https://academiaarcana.onrender.com \
+            --build-arg ACADEMIA_ARCANA_REVISION="$EXPECTED_SHA" \
+            --tag "$IMAGE_REF" .
+          echo "AA536_LOCAL_ONLY_IMAGE_BUILD=PASS"
+
+      - name: Inspect final image for identity and absence of synthetic/runtime secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, subprocess
+          image=os.environ["IMAGE_REF"]
+          cfg=json.loads(subprocess.check_output(["docker","image","inspect",image],text=True))[0]
+          assert cfg["Architecture"]=="amd64" and cfg["Os"]=="linux", "Wrong image platform"
+          assert cfg["Config"]["User"]=="node", "Runtime image must be non-root"
+          assert any(x==f"ACADEMIA_ARCANA_REVISION={os.environ['EXPECTED_SHA']}" for x in cfg["Config"]["Env"])
+          forbidden=("OPENAI_API_KEY","PARALLEL_API_KEY","EXA_API_KEY",
+                     "SUPABASE_SERVICE_ROLE_KEY","DATABASE_URL","GITHUB_TOKEN","GH_TOKEN",
+                     "RENDER_DEPLOY_API_KEY","AA536_SYNTHETIC_HOST_CANARY_DO_NOT_FORWARD")
+          inspected=json.dumps(cfg,sort_keys=True)
+          history=subprocess.check_output(["docker","history","--no-trunc","--format","{{.CreatedBy}}",image],text=True)
+          for item in forbidden:
+            if item=="AA536_SYNTHETIC_HOST_CANARY_DO_NOT_FORWARD":
+              assert item not in inspected+history, "Synthetic host canary leaked into image metadata"
+            else:
+              assert not any(entry.startswith(item+"=") for entry in cfg["Config"]["Env"]), "Runtime credential in image config"
+          print("AA536_IMAGE_ARCH_USER_REVISION_AND_ENV=PASS")
+          print("AA536_HOST_CANARY_NOT_FORWARDED_IN_IMAGE_METADATA=PASS")
+          PY
+          docker run --rm --network none --entrypoint /bin/sh "$IMAGE_REF" -c '
+            test "$(find /app -type f \( -name ".env" -o -name ".env.*" \) -print -quit | wc -l)" = 0
+          '
+          echo "AA536_IMAGE_HAS_NO_DOTENV_FILES=PASS"
+
+      - name: Test local archive bytes and same-daemon recovery (not OCI custody)
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$RUNNER_TEMP"
+          ORIGINAL_ID="$(docker image inspect "$IMAGE_REF" --format '{{.Id}}')"
+          docker save "$IMAGE_REF" -o "$RUNNER_TEMP/aa536-disposable-image.tar"
+          (
+            cd "$RUNNER_TEMP"
+            sha256sum aa536-disposable-image.tar > aa536-disposable-image.tar.sha256
+            sha256sum --check aa536-disposable-image.tar.sha256 >/dev/null
+          )
+          docker image rm "$IMAGE_REF" >/dev/null
+          test -z "$(docker image ls --filter reference="$IMAGE_REF" -q)"
+          docker load -i "$RUNNER_TEMP/aa536-disposable-image.tar" >/dev/null
+          RESTORED_ID="$(docker image inspect "$IMAGE_REF" --format '{{.Id}}')"
+          test "$ORIGINAL_ID" = "$RESTORED_ID"
+          echo "AA536_DISPOSABLE_DOCKER_ARCHIVE_SHA256=PASS"
+          echo "AA536_SAME_DAEMON_IMAGE_ROUNDTRIP=PASS"
+
+      - name: Smoke restored image without runtime secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/smoke-production-container.sh "$EXPECTED_SHA"
+          echo "AA536_RESTORED_IMAGE_NONROOT_HEALTH_REVISION=PASS"
+
+      - name: Destroy temporary image and archive without publishing
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          docker image rm "$IMAGE_REF" >/dev/null 2>&1
+          rm -f "$RUNNER_TEMP/aa536-disposable-image.tar" "$RUNNER_TEMP/aa536-disposable-image.tar.sha256"
+          if test -e "$RUNNER_TEMP/aa536-disposable-image.tar" || docker image inspect "$IMAGE_REF" >/dev/null 2>&1; then
+            echo "::error title=AA536 cleanup::Temporary image or archive remains."
+            exit 1
+          fi
+          echo "AA536_EPHEMERAL_IMAGE_AND_ARCHIVE_CLEANUP=PASS"
