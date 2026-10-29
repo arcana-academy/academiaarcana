@@ -288,8 +288,12 @@ src/core/architecture/data-ownership.test.ts
 | public.integration_credentials | table | infrastructure |
 | public.external_document_sources | table | infrastructure |
 | public.complete_study_task_with_reward | database-rpc | cross-domain |
+| public.record_educational_practice_attempt | database-rpc | cross-domain |
+| public.record_criterion_referenced_practice_attempt | database-rpc | cross-domain |
 | public.move_workspace_page | database-rpc | learning |
 | storage.grimoire-covers | storage-bucket | learning |
+
+The two educational-practice RPCs coordinate `education` (educational evidence) and `learning` (learner progress) without transferring ownership of `public.page_progress` from `learning`.
 
 ### Ownership rules
 
@@ -889,23 +893,27 @@ For architecture-local records this repository uses the **AA-ARCH-XXX** namespac
 
 ### 25.6 CI/CD semantic ordering
 
-The canonical delivery semantics are:
+The required ordering for a future release, **only after separate authorization**, is:
 
 ```text
 commit
   ↓
-GitHub Actions — pre-deploy Quality Gate
+GitHub Actions — pre-release Quality Gate
   ↓
-Render — commit promotion (main only receives gated merges)
+Human / operational release authorization — currently NO-GO
+  ↓ (only if GO is explicitly granted)
+Render — manual deployment (Auto Deploy OFF)
   ↓
 Application runtime
   ↓
 Production Smoke — post-deploy verification
 ```
 
+This diagram specifies order and gates; it does not claim that release approval or deployment has occurred.
+
 Production Smoke is evidence about the deployed runtime; it is not an input to the same Render promotion decision. Any future change that introduces a reverse dependency must be treated as an architecture regression and explicitly reviewed.
 
-> **Implementation note (2026-10-23).** Render's `checksPass` trigger makes every check on the commit an input to the promotion decision, which includes Production Smoke and therefore reverses this ordering. The reverse dependency reproduced on `b808779`: the smoke saw the previous deployment, failed, and Render then withheld the deploy permanently. The Blueprint now uses `autoDeployTrigger: commit`, which is the only trigger that matches the canonical semantics above. See `docs/engineering/2026-10-23-render-promotion-deadlock.md`.
+> **Implementation note (2026-10-23).** Render's `checksPass` trigger makes every check on the commit an input to the promotion decision, which includes Production Smoke and therefore reverses this ordering. The reverse dependency reproduced on `b808779`: the smoke saw the previous deployment, failed, and Render then withheld the deploy permanently. At that historical point, `autoDeployTrigger: commit` was considered to avoid the deadlock; it is **not** the current release policy. The examined `render.yaml` declares `autoDeployTrigger: "off"`, and NO-GO remains in force. Hosted Render settings require independent read-only verification. See `docs/engineering/2026-10-23-render-promotion-deadlock.md`.
 
 
 ## 26. Current canonical state
@@ -985,3 +993,28 @@ This later checkpoint supersedes the **validation status only** of the initial l
 The Windows `node_modules` recovery used a local donor checkout with identical `package.json` and `package-lock.json` hashes, after network attempts failed with `ECONNRESET` and `EIDLETIMEOUT`. `npm ls --depth=0 --offline --omit=optional` subsequently listed the expected direct dependencies. No productive migration, remote provider call, merge, image publication, GHCR push, Render deploy, or production configuration mutation was part of this validation. The actual hosted Auto Deploy setting is not proven by `render.yaml` alone.
 
 **Remaining release gates:** Quality Gate on a proposed PR, independent review, build/runtime secret isolation #536, durable OCI backup and custodial approval #594, ratified DEP-C17 authority decisions #595, and C03/ORG02 operational assurance. All remain separate; `DRAFT / NO-GO` must be preserved until their own verifiable acceptance criteria are met. No project-wide E2E, production smoke, or live provider readiness is claimed here.
+
+### 27.5 Approved minimal documentation reconciliation — 2026-10-29
+
+**Local reference:** `work/aa-master360-mvp-isolated-20261026` at `d0c839fe37a1c809585183fd57426877753ca119`; the GitHub reference compared was `b4f5eb3cdd345002349e7d9d30f826b4a57e5889`. The branch/ref and commit identify the inspected checkout, not a new integration or deployment.
+
+Before this documentation edit, `git status --porcelain=v1 --untracked-files=normal` reported no tracked-file changes and two untracked directories: `scripts/security/__pycache__/` and `supabase/.temp/`. Both are preserved. This checkpoint does not authorize removing or overwriting any local material.
+
+The existing local commit already contains the scoped code for shared bounded JSON reading, AI adapter eligibility, and the two educational evidence RPC ownership entries. This document now reconciles the §8 ownership table with those entries and distinguishes the current `autoDeployTrigger: "off"` source contract from historical release discussions in §25.6. No new business invariant, provider, table, migration, auth rule, quota, or API contract is introduced by this documentation change.
+
+**Verification boundary:** This documentation-only update has not run tests, builds, installations, migrations, commits, pushes, merges, deploys, or external mutations. The 84 targeted PASS and TypeScript checks in §27.4 describe a prior, bounded validation cycle; they must not be represented as fresh results or as approval of this documentation revision. The post-edit local Git diff was inspected: only this architecture document changed among tracked files (24 additions, 4 deletions); both untracked directories remain intact. Any automated validation remains a separate, not-yet-authorized step.
+
+**Decision boundary:** The AA-ARCH-001/002 constitutional CSS reconciliation, institutional/teacher DEP-C17 decisions, privacy/retention decisions, #536, #594, #595 and C03/ORG02 remain subject to their respective authorities. **R$ 0 additional expense, Auto Deploy OFF, and protected-release NO-GO remain unchanged.** Architecture documentation closure alone is not product homologation or publication authorization.
+
+### 27.6 Subsequent authorized targeted verification — 2026-10-29 (isolated, no release)
+
+After explicit authorization for targeted validation and integration review, the isolated checkout remained at `d0c839fe37a1c809585183fd57426877753ca119`. No installation, code changes, migration, commit, push, merge, hosted service operation, external provider invocation or deployment occurred.
+
+- **PASS:** `src/core/architecture/data-ownership.test.ts` — 6/6 assertions, Vitest exit code 0.
+- **PASS:** `tests/infrastructure/blueprint-trigger.test.ts` — 7/7 assertions, Vitest exit code 0.
+- **PASS:** `git diff --check` — no whitespace errors. Git emitted only an informational LF/CRLF normalization warning.
+- **Static reconciliation:** §8 ownership resources match the inspected local ownership declarations, including the two Education/Learning cross-domain RPCs. The shared JSON reader enforces 256 KiB of stream bytes, the Mestre Arcano route retains its 8,000-character semantic limit, and the IA Aberta request validator rejects catalog-only providers before quota or invocation. The gateway also checks provider eligibility.
+- **Release-source freeze:** `render.yaml` contains the quoted `autoDeployTrigger: "off"`; the hosted Render settings were not independently queried in this checkpoint.
+- **Workspace preservation:** only `docs/architecture/AA-ARCHITECTURE-1.0.md` was modified among tracked files. The pre-existing untracked `scripts/security/__pycache__/` and `supabase/.temp/` were not touched.
+
+These 13 fresh targeted PASS are **not additive** to the historical 84 PASS as a unique-test total and do not validate Supabase hosted policies, provider uptime, release authority, complete E2E behavior or production Smoke. Existing NO-GO gates (#536, #594, #595, C03/ORG02) and independent human review remain open.
