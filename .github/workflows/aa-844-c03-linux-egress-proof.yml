@@ -1,0 +1,106 @@
+name: AA844 C03 Linux DNS IPv4 IPv6 Egress Proof (NO-GO)
+
+on:
+  push:
+    branches:
+      - work/aa-844-linux-bind-proof-20261029
+    paths:
+      - .github/workflows/aa-844-c03-linux-egress-proof.yml
+
+permissions:
+  contents: read
+
+jobs:
+  egress-proof:
+    if: github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/work/aa-844-linux-bind-proof-20261029'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      AA_NETWORK: aa844-ci-internal-egress-${{ github.run_id }}
+    steps:
+      - name: Checkout immutable reviewed PR 844 SHA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: d0c839fe37a1c809585183fd57426877753ca119
+          persist-credentials: false
+
+      - name: Verify isolated Linux runner and exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = d0c839fe37a1c809585183fd57426877753ca119
+          test -z "$(git status --porcelain)"
+          test -z "$(docker ps -q)"
+          echo "C03_EGRESS_RUNNER_PREFLIGHT=PASS"
+
+      - name: Probe outbound DNS IPv4 and IPv6 in private internal Docker network
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network create --driver bridge --internal \
+            --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 \
+            "$AA_NETWORK" >/dev/null
+          python3 - <<'PY'
+          import json, os, subprocess
+          name=os.environ["AA_NETWORK"]
+          network=json.loads(subprocess.check_output(["docker","network","inspect",name],text=True))[0]
+          assert network["Driver"]=="bridge" and network["Internal"] is True, "Not an internal bridge"
+          assert network["EnableIPv6"] is False, "IPv6 unexpectedly enabled"
+          assert network["Options"]["com.docker.network.bridge.host_binding_ipv4"]=="127.0.0.1"
+          assert not network["Containers"], "Unexpected network occupant"
+          print("C03_INTERNAL_NETWORK_CONFIGURATION=PASS")
+          PY
+          timeout 60s docker run --rm -i --name aa844-egress-probe \
+            --pull always --network "$AA_NETWORK" \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --read-only --pids-limit 64 --memory 128m \
+            --user 65534:65534 --network-alias aa844-egress-probe \
+            python:3.12-slim python - <<'PY'
+          import errno
+          import socket
+
+          def assert_blocked(family, address, port, label):
+              s=socket.socket(family, socket.SOCK_STREAM)
+              s.settimeout(3)
+              try:
+                  try:
+                      s.connect((address, port))
+                  except OSError as exc:
+                      approved={errno.ENETUNREACH,errno.EHOSTUNREACH,errno.ENETDOWN,errno.EAFNOSUPPORT,errno.EADDRNOTAVAIL,errno.EPERM}
+                      assert exc.errno in approved, f"{label}: not a proven network denial: {type(exc).__name__} errno={exc.errno}"
+                      print(f"C03_{label}=PASS errno={exc.errno}")
+                      return
+                  raise AssertionError(f"{label}: outbound connection succeeded")
+              finally:
+                  s.close()
+
+          assert_blocked(socket.AF_INET, "1.1.1.1", 443, "IPV4_EGRESS_DENIED")
+          assert_blocked(socket.AF_INET, "8.8.8.8", 53, "IPV4_DNS_TRANSPORT_DENIED")
+          assert_blocked(socket.AF_INET6, "2606:4700:4700::1111", 443, "IPV6_EGRESS_DENIED")
+          assert_blocked(socket.AF_INET6, "2001:4860:4860::8888", 53, "IPV6_DNS_TRANSPORT_DENIED")
+
+          socket.setdefaulttimeout(3)
+          try:
+              answers=socket.getaddrinfo("example.com", 443, type=socket.SOCK_STREAM)
+          except socket.gaierror as exc:
+              print(f"C03_EXTERNAL_DNS_RESOLUTION_DENIED=PASS gaierror={exc.errno}")
+          else:
+              raise AssertionError(f"External DNS resolution unexpectedly succeeded: {len(answers)} records")
+
+          print("C03_SYNTHETIC_EGRESS_PROOF=PASS")
+          PY
+
+      - name: Destroy ephemeral proof network without affecting other containers
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          docker rm -f aa844-egress-probe >/dev/null 2>&1
+          docker network rm "$AA_NETWORK" >/dev/null 2>&1
+          if docker network inspect "$AA_NETWORK" >/dev/null 2>&1; then
+            echo "::error title=C03 teardown::Disposable network still exists."
+            exit 1
+          fi
+          echo "C03_EGRESS_NETWORK_TEARDOWN=PASS"
