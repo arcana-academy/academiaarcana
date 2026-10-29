@@ -17,6 +17,7 @@ jobs:
       AA_NETWORK: aa844-c03-firewall-${{ github.run_id }}
       AA_WARM: aa844-c03-warm-${{ github.run_id }}
       AA_CHAIN: AA844_C03_ONLY
+      AA_DNS_CHAIN: AA844_C03_DNS
     steps:
       - name: Checkout exact immutable DRAFT PR 844 source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -125,6 +126,20 @@ jobs:
           print(f"C03_FIREWALL_SUPABASE_LOCAL_BINDINGS=PASS containers={len(items)} ports={count}")
           PY
 
+      - name: Block Docker daemon upstream DNS on ephemeral runner only
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The embedded DNS proxy runs in container namespaces; forwarding is host-originated.
+          # Restrict only DNS protocol in this single-use Ubuntu runner, not the user's Windows host.
+          sudo iptables -N "$AA_DNS_CHAIN"
+          sudo iptables -A "$AA_DNS_CHAIN" -j REJECT
+          sudo iptables -I OUTPUT 1 -p udp --dport 53 -j "$AA_DNS_CHAIN"
+          sudo iptables -I OUTPUT 1 -p tcp --dport 53 -j "$AA_DNS_CHAIN"
+          sudo iptables -C OUTPUT -p udp --dport 53 -j "$AA_DNS_CHAIN"
+          sudo iptables -C OUTPUT -p tcp --dport 53 -j "$AA_DNS_CHAIN"
+          echo C03_HOST_UPSTREAM_DNS_DENY=PASS
+
       - name: Test IPv4 IPv6 outbound and Docker embedded DNS fail closed
         shell: bash
         run: |
@@ -133,6 +148,11 @@ jobs:
             --read-only --cap-drop ALL --security-opt no-new-privileges \
             --user 65534:65534 --memory 128m --pids-limit 64 python:3.12-slim python - <<'PY'
           import errno,socket
+          # Docker-internal names must keep resolving; blocking them would break Supabase.
+          answers=socket.getaddrinfo("supabase_db_academiaarcana",5432,type=socket.SOCK_STREAM)
+          assert answers, "Internal Supabase database name did not resolve"
+          with socket.create_connection((answers[0][4][0],5432),timeout=3):
+            print("C03_INTERNAL_SUPABASE_DB_DNS_AND_TCP=PASS")
           for family,host,port,label in [
             (socket.AF_INET,"1.1.1.1",443,"IPV4_EXTERNAL"),
             (socket.AF_INET,"8.8.8.8",53,"IPV4_DNS_TRANSPORT"),
@@ -166,11 +186,17 @@ jobs:
             BR="br-$(docker network inspect "$AA_NETWORK" --format '{{.Id}}' | cut -c1-12)"
             sudo iptables -D DOCKER-USER -i "$BR" ! -o "$BR" -j "$AA_CHAIN" >/dev/null 2>&1
           fi
+          sudo iptables -D OUTPUT -p tcp --dport 53 -j "$AA_DNS_CHAIN" >/dev/null 2>&1
+          sudo iptables -D OUTPUT -p udp --dport 53 -j "$AA_DNS_CHAIN" >/dev/null 2>&1
+          sudo iptables -F "$AA_DNS_CHAIN" >/dev/null 2>&1
+          sudo iptables -X "$AA_DNS_CHAIN" >/dev/null 2>&1
           sudo iptables -F "$AA_CHAIN" >/dev/null 2>&1
           sudo iptables -X "$AA_CHAIN" >/dev/null 2>&1
           docker network rm "$AA_NETWORK" >/dev/null 2>&1
           docker network rm "$AA_WARM" >/dev/null 2>&1
           sudo iptables -S "$AA_CHAIN" >/dev/null 2>&1 && { echo "::error title=C03 cleanup::Firewall chain remained"; exit 1; }
+          sudo iptables -S "$AA_DNS_CHAIN" >/dev/null 2>&1 && { echo "::error title=C03 cleanup::DNS chain remained"; exit 1; }
+          sudo iptables -S OUTPUT | grep -q "$AA_DNS_CHAIN" && { echo "::error title=C03 cleanup::DNS OUTPUT hook remained"; exit 1; }
           docker network inspect "$AA_NETWORK" >/dev/null 2>&1 && { echo "::error title=C03 cleanup::Network remained"; exit 1; }
           docker network inspect "$AA_WARM" >/dev/null 2>&1 && { echo "::error title=C03 cleanup::Warm network remained"; exit 1; }
           echo C03_EPHEMERAL_FIREWALL_AND_NETWORK_TEARDOWN=PASS
