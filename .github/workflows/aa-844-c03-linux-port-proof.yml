@@ -1,0 +1,107 @@
+name: AA844 C03 Linux Docker Port Proof (isolated / NO-GO)
+
+on:
+  push:
+    branches:
+      - work/aa-844-linux-bind-proof-20261029
+    paths:
+      - .github/workflows/aa-844-c03-linux-port-proof.yml
+
+permissions:
+  contents: read
+
+jobs:
+  supabase-loopback:
+    if: github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/work/aa-844-linux-bind-proof-20261029'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AA_NETWORK: aa844-ci-loopback-${{ github.run_id }}
+    steps:
+      - name: Checkout exact previously validated PR 844 revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: d0c839fe37a1c809585183fd57426877753ca119
+          persist-credentials: false
+
+      - name: Assert isolated runner and immutable application source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = d0c839fe37a1c809585183fd57426877753ca119
+          test -z "$(git status --porcelain)"
+          test -z "$(docker ps -q)"
+          echo "C03_RUNNER_PREFLIGHT=PASS"
+
+      - name: Prove bridge host-binding using a disposable synthetic probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 "$AA_NETWORK" >/dev/null
+          test "$(docker network inspect "$AA_NETWORK" --format '{{index .Options "com.docker.network.bridge.host_binding_ipv4"}}')" = 127.0.0.1
+          docker run --rm -d --name aa844-loopback-probe --network "$AA_NETWORK" -p 54331:5432 --pull always --user 65534:65534 --cap-drop ALL --security-opt no-new-privileges --read-only ubuntu:24.04 sleep 90 >/dev/null
+          python3 - <<'PY'
+          import json, subprocess
+          probe=json.loads(subprocess.check_output(["docker","inspect","aa844-loopback-probe"],text=True))[0]
+          binds=(probe["NetworkSettings"]["Ports"] or {}).get("5432/tcp")
+          assert binds and len(binds)==1, f"Expected one probe binding, got: {binds!r}"
+          assert binds[0]["HostIp"]=="127.0.0.1" and binds[0]["HostPort"]=="54331", f"Unsafe Docker binding: {binds!r}"
+          print("C03_SYNTHETIC_LOOPBACK_BIND=PASS")
+          PY
+          docker rm -f aa844-loopback-probe >/dev/null
+
+      - name: Setup pinned local Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Start disposable Supabase on proven bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start --network-id "$AA_NETWORK" >"$RUNNER_TEMP/aa844-supabase-local.log" 2>&1; then
+            echo "::error title=Local Supabase startup::Isolated startup failed; local logs withheld to protect synthetic credentials."
+            exit 1
+          fi
+          echo "C03_SUPABASE_EPHEMERAL_START=PASS"
+
+      - name: Inspect every Supabase container published IPv4 IPv6 host-binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, subprocess
+          ids=subprocess.check_output(["docker","ps","-q"],text=True).split()
+          assert ids, "No local Supabase containers are running"
+          items=json.loads(subprocess.check_output(["docker","inspect",*ids],text=True))
+          published=0
+          for item in items:
+            name=item["Name"].lstrip("/")
+            assert name.startswith("supabase_"), f"Unexpected active container: {name}"
+            assert os.environ["AA_NETWORK"] in item["NetworkSettings"]["Networks"], f"{name} outside isolated bridge"
+            for private_port, binds in (item["NetworkSettings"]["Ports"] or {}).items():
+              for bind in binds or []:
+                ip=bind.get("HostIp")
+                host_port=bind.get("HostPort")
+                assert ip=="127.0.0.1", f"Unsafe binding: {name} {private_port} -> {ip}:{host_port}"
+                print(f"C03_VERIFIED_BIND {name} {private_port} -> {ip}:{host_port}")
+                published+=1
+          assert published>=2, f"Expected multiple Supabase published ports, got {published}"
+          print(f"C03_ALL_SUPABASE_HOST_BINDINGS=PASS containers={len(items)} published_ports={published}")
+          PY
+
+      - name: Destroy only disposable Supabase and proof network
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          docker rm -f aa844-loopback-probe >/dev/null 2>&1
+          supabase stop --no-backup >/dev/null 2>&1
+          docker network rm "$AA_NETWORK" >/dev/null 2>&1
+          if docker network inspect "$AA_NETWORK" >/dev/null 2>&1; then
+            echo "::error title=Teardown::Temporary Docker network still exists."
+            exit 1
+          fi
+          echo "C03_TEMPORARY_NETWORK_REMOVED=PASS"
