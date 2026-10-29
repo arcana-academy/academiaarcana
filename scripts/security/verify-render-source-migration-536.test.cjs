@@ -8,6 +8,8 @@ const {
 const image = "ghcr.io/arcana-academy/academiaarcana@sha256:" + "a".repeat(64);
 const before = () => ({
   id: "srv-dauor697lnhs739cicag", type: "web_service",
+  name: "academiaarcana", ownerId: "tea-daa6v6tg1s2s73cb5gi0",
+  environmentId: "evm-dauor697lnhs739cibr0",
   autoDeploy: "no", autoDeployTrigger: "off",
   branch: "main", repo: "https://github.com/arcana-academy/academiaarcana",
   suspended: "not_suspended",
@@ -58,6 +60,20 @@ describe("P0 #536 read-only migration source guard", () => {
     rejects(() => verifyProposedImageSource(before(), {
       ...after(), autoDeploy: "yes",
     }, image));
+  });
+  it("rejects a different workspace, environment or service name before and after migration", () => {
+    const changes = [
+      { ownerId: "tea-another-workspace" },
+      { ownerId: undefined },
+      { environmentId: "evm-another-environment" },
+      { environmentId: undefined },
+      { name: "unapproved-service" },
+      { name: undefined },
+    ];
+    for (const change of changes) {
+      rejects(() => verifyCurrentGitSource({ ...before(), ...change }));
+      rejects(() => verifyProposedImageSource(before(), { ...after(), ...change }, image));
+    }
   });
   it("refuses paid plans, duplicate instances, different regions and URLs", () => {
     for (const changes of [
