@@ -52,6 +52,11 @@ jobs:
           PY
           docker rm -f aa844-loopback-probe >/dev/null
 
+      - name: Setup Node.js 24 required by repository devEngines
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
       - name: Setup pinned local Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
