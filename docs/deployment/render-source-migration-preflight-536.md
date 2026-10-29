@@ -5,6 +5,7 @@
 ## Situação de referência, 29/10/2026
 
 - Serviço existente: `srv-dauor697lnhs739cicag`; URL `https://academiaarcana.onrender.com`; plano `free`; 1 instância; região `ohio`; `/api/health`; prévias desligadas; `autoDeploy=no` e `autoDeployTrigger=off`.
+- Vínculo administrativo imutável esperado: workspace `arcana.academy` (`tea-daa6v6tg1s2s73cb5gi0`), ambiente `evm-dauor697lnhs739cibr0`, nome `academiaarcana`. Os mesmos valores devem ser preservados após a migração.
 - Fonte atual: **Git-backed / Node**, repositório `arcana-academy/academiaarcana`, branch `main`. A plataforma de build ainda não tem uma separação hospedada comprovada dos segredos de runtime.
 - Há diferença material entre o `buildCommand` LIVE (`node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts ...`) e o `render.yaml` declarado, que inicia com `node scripts/security/assert-build-secret-isolation-536.cjs`. Não sincronizar cegamente: o guard poderia interromper o build enquanto segredos de runtime ainda estiverem disponíveis no ambiente Git-backed.
 - `Dockerfile` contém build separado e variáveis públicas declaradas; o build imutável no Quality Gate usa somente entradas públicas definidas. Verificar novamente o SHA efetivamente aprovado antes de qualquer publicação. A existência de uma imagem histórica do projeto **não aprova** uma revisão atual.
@@ -21,6 +22,14 @@ O guard puro `scripts/security/verify-render-source-migration-536.cjs` possui du
 - `verifyProposedImageSource(before, after, approvedImage)`: exige que a fonte resultante seja `image`, do **mesmo** serviço, preservando os atributos essenciais, e que `imagePath` retornado pela API corresponda exatamente ao digest aprovado `ghcr.io/arcana-academy/academiaarcana@sha256:<64 hex minúsculos>`. Refusa tags mutáveis e caminhos contraditórios.
 
 **Estas funções rejeitam metadados inconsistentes e não exibem valores**. São contratos de *verificação*, não comandos que alteram serviço ou aprovam release. Um PASS sintético não demonstra estado real pós-migração.
+
+## Resultado da verificação de Blueprint / Auto Sync (somente leitura)
+
+- A consulta à API de **serviço** e a listagem de serviços do workspace `arcana.academy` retornaram o serviço esperado, porém **não contêm `blueprintId`, `autoSync` ou lista de recursos gerenciados pelo Blueprint**. Logo, `autoDeployTrigger: off` prova apenas o congelamento de deploy automático Git, **não** o Auto Sync de Blueprint.
+- A API oficial possui `GET /v1/blueprints` (descoberta de Blueprints autorizados) e `GET /v1/blueprints/{blueprintId}` (dados `autoSync` e `resources[].id`). Documentação: https://api-docs.render.com/reference/list-blueprints e https://api-docs.render.com/reference/retrieve-blueprint .
+- A integração Render acessível nesta execução não expõe essas ações de Blueprint. **Não foi obtida evidência administrativa do Auto Sync** e não é permitido inferir ausência de Blueprint porque o recurso não aparece na resposta de serviço.
+- Desbloqueio exclusivamente de leitura: obter por sessão autorizada do Dashboard `Blueprints > [Blueprint] > Settings` o `Auto Sync` e conferir o serviço na lista de recursos gerenciados, ou usar `GET` autorizado com escopo mínimo, retornando apenas ID de Blueprint, estado `autoSync`, caminho de arquivo, branch e IDs de recursos. Nunca enviar chave de API no chat, registrar valores de variáveis ou disparar `Manual Sync`.
+- **FAIL CLOSED:** se o serviço pertence a um Blueprint com Auto Sync ligado, ou se o vínculo é desconhecido, não executar troca de source até existir estratégia aprovada para evitar reversão do serviço para Git-backed.
 
 ## Gate antes de qualquer decisão de publicação (pendências externas)
 
