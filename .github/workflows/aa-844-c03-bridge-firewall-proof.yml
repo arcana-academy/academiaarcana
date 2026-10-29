@@ -1,0 +1,176 @@
+name: AA844 C03 Linux Scoped Firewall and Supabase DNS Proof (NO-GO)
+
+on:
+  push:
+    branches: [work/aa-844-linux-bind-proof-20261029]
+    paths: [.github/workflows/aa-844-c03-bridge-firewall-proof.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  network-isolation:
+    if: github.repository == 'arcana-academy/academiaarcana' && github.ref == 'refs/heads/work/aa-844-linux-bind-proof-20261029'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AA_NETWORK: aa844-c03-firewall-${{ github.run_id }}
+      AA_WARM: aa844-c03-warm-${{ github.run_id }}
+      AA_CHAIN: AA844_C03_ONLY
+    steps:
+      - name: Checkout exact immutable DRAFT PR 844 source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: d0c839fe37a1c809585183fd57426877753ca119
+          persist-credentials: false
+
+      - name: Fail closed on unexpected runner or source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          grep -qx 'VERSION_ID="24.04"' /etc/os-release
+          test "$(git rev-parse HEAD)" = d0c839fe37a1c809585183fd57426877753ca119
+          test -z "$(git status --porcelain)"
+          test -z "$(docker ps -q)"
+          sudo iptables -S DOCKER-USER >/dev/null
+          sudo iptables -S FORWARD | grep -q -- '-j DOCKER-USER'
+          echo C03_FIREWALL_BACKEND_AND_RUNNER=PASS
+
+      - name: Setup exact repo Node and local CLI
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Setup pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.118.0
+
+      - name: Preload Supabase images using loopback-only bridge, then stop
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 "$AA_WARM" >/dev/null
+          if ! timeout 250s supabase start --network-id "$AA_WARM" >"$RUNNER_TEMP/aa844-warm.log" 2>&1; then
+            echo "::error title=C03 cache preparation::Local Supabase prewarm failed, no secrets emitted."
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json,subprocess,os
+          ids=subprocess.check_output(["docker","ps","-q"],text=True).split()
+          assert ids
+          items=json.loads(subprocess.check_output(["docker","inspect",*ids],text=True))
+          ports=[]
+          for c in items:
+            assert c["Name"].lstrip("/").startswith("supabase_")
+            assert list(c["NetworkSettings"]["Networks"])==[os.environ["AA_WARM"]]
+            for bindings in (c["NetworkSettings"]["Ports"] or {}).values():
+              ports.extend(bindings or [])
+          assert len(ports)>=2 and all(b["HostIp"]=="127.0.0.1" for b in ports)
+          print(f"C03_PREWARM_LOOPBACK=PASS containers={len(items)} ports={len(ports)}")
+          PY
+          supabase stop --no-backup > /dev/null 2>&1
+          docker network rm "$AA_WARM" > /dev/null
+          test -z "$(docker ps -q)"
+          docker pull python:3.12-slim > /dev/null
+          docker image inspect python:3.12-slim > /dev/null
+          echo C03_PREWARM_TEARDOWN=PASS
+
+      - name: Enforce scoped external forwarding deny, retain bridge and host local traffic
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 "$AA_NETWORK" >/dev/null
+          BR="$(docker network inspect "$AA_NETWORK" --format '{{.Id}}' | cut -c1-12)"
+          BR="br-$BR"
+          test -e "/sys/class/net/$BR"
+          test "$(docker network inspect "$AA_NETWORK" --format '{{.Internal}}')" = false
+          test "$(docker network inspect "$AA_NETWORK" --format '{{.EnableIPv6}}')" = false
+          sudo iptables -N "$AA_CHAIN"
+          sudo iptables -A "$AA_CHAIN" -j DROP
+          sudo iptables -I DOCKER-USER 1 -i "$BR" ! -o "$BR" -j "$AA_CHAIN"
+          sudo iptables -C DOCKER-USER -i "$BR" ! -o "$BR" -j "$AA_CHAIN"
+          echo "C03_EGRESS_FILTER_ATTACHED=PASS"
+          echo "C03_FILTER_SCOPED_TO_BRIDGE=PASS"
+
+      - name: Start same cached Supabase on scoped-filter bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! timeout 120s supabase start --network-id "$AA_NETWORK" >"$RUNNER_TEMP/aa844-firewall-start.log" 2>&1; then
+            echo "::error title=C03 bridge integration::Local Supabase start failed with scoped forwarding rules; no raw logs disclosed."
+            exit 1
+          fi
+          echo C03_SCOPED_FIREWALL_SUPABASE_START=PASS
+
+      - name: Assert every Supabase host bind and attachment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json,subprocess
+          ids=subprocess.check_output(["docker","ps","-q"],text=True).split()
+          assert ids
+          items=json.loads(subprocess.check_output(["docker","inspect",*ids],text=True))
+          count=0
+          for c in items:
+            assert c["Name"].lstrip("/").startswith("supabase_")
+            assert list(c["NetworkSettings"]["Networks"])==[os.environ["AA_NETWORK"]]
+            for bindings in (c["NetworkSettings"]["Ports"] or {}).values():
+              for b in bindings or []:
+                assert b["HostIp"]=="127.0.0.1"
+                count+=1
+          assert count>=2
+          print(f"C03_FIREWALL_SUPABASE_LOCAL_BINDINGS=PASS containers={len(items)} ports={count}")
+          PY
+
+      - name: Test IPv4 IPv6 outbound and Docker embedded DNS fail closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 60s docker run --rm -i --pull never --name aa844-firewall-probe --network "$AA_NETWORK" \
+            --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --user 65534:65534 --memory 128m --pids-limit 64 python:3.12-slim python - <<'PY'
+          import errno,socket
+          for family,host,port,label in [
+            (socket.AF_INET,"1.1.1.1",443,"IPV4_EXTERNAL"),
+            (socket.AF_INET,"8.8.8.8",53,"IPV4_DNS_TRANSPORT"),
+            (socket.AF_INET6,"2606:4700:4700::1111",443,"IPV6_EXTERNAL"),
+            (socket.AF_INET6,"2001:4860:4860::8888",53,"IPV6_DNS_TRANSPORT")]:
+            s=socket.socket(family,socket.SOCK_STREAM)
+            s.settimeout(3)
+            try:
+              try:s.connect((host,port))
+              except (OSError,TimeoutError) as e:
+                assert isinstance(e,socket.timeout) or e.errno in {errno.ENETUNREACH,errno.EHOSTUNREACH,errno.ENETDOWN,errno.EAFNOSUPPORT,errno.EADDRNOTAVAIL,errno.EPERM}, f"{label} inconclusive errno={getattr(e,'errno',None)}"
+                print(f"C03_{label}_DENIED=PASS")
+              else:raise AssertionError(f"{label} unexpectedly connected")
+            finally:s.close()
+          socket.setdefaulttimeout(3)
+          try:socket.getaddrinfo("example.com",443,type=socket.SOCK_STREAM)
+          except socket.gaierror:print("C03_DOCKER_EXTERNAL_DNS_DENIED=PASS")
+          else:raise AssertionError("External DNS resolved via Docker embedded resolver; NOT fully isolated")
+          print("C03_EGRESS_AND_DNS_PROOF=PASS")
+          PY
+          sudo iptables -nvx -L "$AA_CHAIN" | sed -n '1,4p' | sed -E 's/[0-9]{3,}/N/g'
+
+      - name: Stop and delete only our ephemeral services and firewall rules
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          docker rm -f aa844-firewall-probe > /dev/null 2>&1
+          supabase stop --no-backup > /dev/null 2>&1
+          if docker network inspect "$AA_NETWORK" > /dev/null 2>&1; then
+            BR="br-$(docker network inspect "$AA_NETWORK" --format '{{.Id}}' | cut -c1-12)"
+            sudo iptables -D DOCKER-USER -i "$BR" ! -o "$BR" -j "$AA_CHAIN" >/dev/null 2>&1
+          fi
+          sudo iptables -F "$AA_CHAIN" >/dev/null 2>&1
+          sudo iptables -X "$AA_CHAIN" >/dev/null 2>&1
+          docker network rm "$AA_NETWORK" >/dev/null 2>&1
+          docker network rm "$AA_WARM" >/dev/null 2>&1
+          sudo iptables -S "$AA_CHAIN" >/dev/null 2>&1 && { echo "::error title=C03 cleanup::Firewall chain remained"; exit 1; }
+          docker network inspect "$AA_NETWORK" >/dev/null 2>&1 && { echo "::error title=C03 cleanup::Network remained"; exit 1; }
+          docker network inspect "$AA_WARM" >/dev/null 2>&1 && { echo "::error title=C03 cleanup::Warm network remained"; exit 1; }
+          echo C03_EPHEMERAL_FIREWALL_AND_NETWORK_TEARDOWN=PASS
