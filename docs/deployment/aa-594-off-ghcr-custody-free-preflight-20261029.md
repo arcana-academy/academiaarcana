@@ -15,6 +15,15 @@ Fontes públicas de referência:
 - Dropbox Basic oferece **2 GB**, se a conta estiver de fato no plano Basic: https://help.dropbox.com/pt-br/plans/dropbox-basic-faq . Exceder a quota pode impedir uploads e resultar em outras restrições: https://help.dropbox.com/storage-space/over-quota .
 - O provedor de destino **não tem política de retenção imutável por 30 dias comprovada**; quota gratuita e arquivo privado não são WORM, Object Lock ou backup com custódia independente.
 
+## 1A. Candidato de imagem imutável — prova pública atualizada (29/10/2026)
+
+- **Candidato primário histórico, já publicado (não é a PR #844):** `ghcr.io/arcana-academy/academiaarcana@sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658`. O código histórico/receita associados estão descritos na issue #594 e não devem ser confundidos com uma revisão nova.
+- **Nova evidência LIVE somente leitura** [GitHub Actions #40947320733](https://github.com/arcana-academy/academiaarcana/actions/runs/40947320733), job `123705997050`, Ubuntu 24.04, completed **SUCCESS**. Workflow da branch `work/aa-594-ghcr-candidate-proof-20261029`, commit `374edb9967020566886e922a031fab39e896f38d`, executado com `contents: read`, sem credenciais ou publicação.
+- `skopeo inspect --no-creds --raw` consultou o **manifesto público exato** e comparou seu SHA256 integral com o digest aprovado como candidato: **PASS**; os sete descritores de camada e o descritor de config apresentaram SHA256 e tamanhos válidos: **PASS**; o conjunto metadata de camadas e config totalizou **216.970.542 bytes**. A verificação da configuração remota confirmou `linux/amd64`, usuário não-root e ausência dos nomes de credenciais de runtime proibidos examinados: **PASS**. Nenhum blob de camada foi baixado nesta execução, logo esta prova não substitui a verificação histórica integral nem demonstra um backup armazenado.
+- **Escolha para o próximo procedimento de backup não produtivo:** utilizar somente esse digest primário histórico já publicado; **não** gerar ou publicar nova imagem para esse procedimento, nem presumir que represente a versão atual do MVP.
+- Pasta destino confirmada e vazia: [Drive privado `off-ghcr`](https://drive.google.com/drive/folders/1-3zfbsquskRbdHFEOP3bF4OH5nNGFUD2), zero objetos no último readback. **Não há ainda arquivo OCI armazenado**, portanto não existe recibo SHA-256 remoto nem prova de retenção.
+- A integração `Google_Drive.upload_file` requer uma referência de arquivo binário aceita pelo conector, e o OCI efêmero da prova anterior foi apagado. Não inserir paths locais, URLs inventadas ou bytes em base64 no campo `file_uri`; para uma transferência futura será necessário produzir um artefato OCI concreto em ambiente autorizado e empregar uma forma de entrega de binário suportada, com origem/ACL/sha ratificados. Não carregar imagem arbitrária como se fosse release.
+
 ## 2. Arquitetura proposta em duas etapas separadas
 
 ### Etapa A — cópia em provedor distinto (redução de risco, ainda não satisfaz #594)
@@ -43,7 +52,7 @@ Metas previamente selecionadas como base de planejamento da Academia Arcana: **R
 | Campo obrigatório | Valor/status |
 |---|---|
 | Serviço, branch e revisão liberada | PENDENTE DE APROVAÇÃO |
-| Imagem GHCR de origem com digest completo SHA256 | PENDENTE |
+| Imagem GHCR de origem com digest completo SHA256 | **CANDIDATO HISTÓRICO VERIFICADO**: `sha256:c2d2dd155ddaeab02167c2cb4e064fe2c85d7bcae60b3b2a64f5bc0f6a9e7658`; não é release novo |
 | Digest OCI manifest SHA256 / blobs verificados | PENDENTE |
 | SHA256 completo do tar OCI e tamanho em bytes | PENDENTE |
 | Provedor/conta/tenant e caminho de destino | GOOGLE DRIVE SELECIONADO PARA PREPARAÇÃO; PASTA PRIVADA CRIADA, SEM OCI |
@@ -67,4 +76,4 @@ Metas previamente selecionadas como base de planejamento da Academia Arcana: **R
 - PR #844 continua **DRAFT/UNMERGED**; #536, #594, #595 e homologação integral C03/ORG02 permanecem protegidos.
 - **Proibido nesta preparação:** upload OCI, publicar imagem GHCR, criar bucket, alterar ACL, autorizar cobrança, sincronizar Blueprint, merge, deploy, restart, alterar Render/Supabase, revogar ou criar chaves produtivas, excluir `academia-arcana-backup.7z`.
 
-**Próximo gatilho material:** quota de Drive e pasta privada preparadas; obter imagem de release com **digest aprovado**, custódia/autorizações, segurança do upload binário e ensaio de leitura remota com hash antes de alegar backup. Até então: PREPARADO PARA DECISÃO, NÃO BACKUP EXECUTADO.
+**Próximo gatilho material:** candidato histórico já publicado e sua metadata pública verificados; confirmar autorização específica para persistência de uma cópia OCI desse digest, o mecanismo seguro de transferência binária a partir de arquivo novo, política/custódia e readback remoto com hash, **antes** de alegar backup operacional. Ainda não há digest de release novo aprovado para a PR #844. Até então: PREPARADO PARA DECISÃO, NÃO BACKUP EXECUTADO.
