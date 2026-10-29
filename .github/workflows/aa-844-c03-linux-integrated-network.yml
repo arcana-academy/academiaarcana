@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 20
     env:
       AA_NETWORK: aa844-ci-integrated-${{ github.run_id }}
+      AA_WARM: aa844-ci-prewarm-${{ github.run_id }}
     steps:
       - name: Checkout exact immutable source of DRAFT PR 844
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,6 +54,42 @@ jobs:
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: 2.118.0
+
+      - name: Preload actual pinned Supabase images on temporary loopback-only bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network create --driver bridge \
+            --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 \
+            "$AA_WARM" >/dev/null
+          warm_log="$RUNNER_TEMP/aa844-prewarm-start.log"
+          if ! timeout 240s supabase start --network-id "$AA_WARM" >"$warm_log" 2>&1; then
+            echo "::error title=C03 prewarm::Supabase image prefetch/start did not finish in loopback-only bridge. Raw logs are not published."
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json,os,subprocess
+          ids=subprocess.check_output(["docker","ps","-q"],text=True).split()
+          assert ids, "Prewarm Supabase started no containers"
+          items=json.loads(subprocess.check_output(["docker","inspect",*ids],text=True))
+          count=0
+          for item in items:
+            name=item["Name"].lstrip("/")
+            assert name.startswith("supabase_"), f"Unrecognized prewarm container: {name}"
+            assert list(item["NetworkSettings"]["Networks"])==[os.environ["AA_WARM"]]
+            for port,bindings in (item["NetworkSettings"]["Ports"] or {}).items():
+              for b in bindings or []:
+                assert b["HostIp"]=="127.0.0.1", f"Unsafe prewarm bind: {name} {port}"
+                count+=1
+          assert count>=2, "No prewarm host bindings verified"
+          print(f"C03_PREWARM_IMAGES_AND_BINDINGS=PASS containers={len(items)} published_ports={count}")
+          PY
+          supabase stop --no-backup >/dev/null 2>&1
+          docker network rm "$AA_WARM" >/dev/null
+          test -z "$(docker ps -q)"
+          test -n "$(docker images -q)"
+          docker network inspect "$AA_NETWORK" >/dev/null
+          echo "C03_PREWARM_CACHE_READY_AND_CLEANUP=PASS"
 
       - name: Start ephemeral Supabase on internal-only bridge
         shell: bash
@@ -186,7 +223,12 @@ jobs:
           set +e
           docker rm -f aa844-integrated-egress-probe >/dev/null 2>&1
           supabase stop --no-backup >/dev/null 2>&1
+          docker network rm "$AA_WARM" >/dev/null 2>&1
           docker network rm "$AA_NETWORK" >/dev/null 2>&1
+          if docker network inspect "$AA_WARM" >/dev/null 2>&1; then
+            echo "::error title=C03 teardown::Disposable prewarm network was not removed."
+            exit 1
+          fi
           if docker network inspect "$AA_NETWORK" >/dev/null 2>&1; then
             echo "::error title=C03 teardown::Disposable network was not removed."
             exit 1
