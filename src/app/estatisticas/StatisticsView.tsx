@@ -44,6 +44,7 @@ function percent(value: number | null): string {
   return value === null ? "Sem dados" : `${Math.round(value * 100)}%`;
 }
 
+/** Renders persisted gamification metrics without inferring educational mastery. */
 function GamificationStats({
   gamification,
 }: {
@@ -373,12 +374,7 @@ function ObjectiveEvidenceSection({
                 <span className="aa-state-copy">{entry.reason}</span>
               </div>
               <Link
-                href={
-                  "/pratica?pagina=" +
-                  encodeURIComponent(entry.pageId) +
-                  "&avaliacao=" +
-                  encodeURIComponent(entry.practiceItemId)
-                }
+                href={`/pratica?pagina=${encodeURIComponent(entry.pageId)}&avaliacao=${encodeURIComponent(entry.practiceItemId)}`}
               >
                 Avaliar
               </Link>

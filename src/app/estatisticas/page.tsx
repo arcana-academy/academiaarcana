@@ -25,11 +25,12 @@ export default async function EstatisticasPage() {
 
   let snapshot: Awaited<ReturnType<typeof loadStatistics>> | null = null;
 
-  async function loadStatistics() {
+  /** Reads authorized gamification and educational sources in parallel. */
+  function loadStatistics() {
     return Promise.all([
-    repository.getProfile(claims.sub),
-    repository.listDailyMissions(claims.sub, todayUtc()),
-    getPedagogicalSnapshot(educationalRepository, claims.sub),
+      repository.getProfile(claims.sub),
+      repository.listDailyMissions(claims.sub, todayUtc()),
+      getPedagogicalSnapshot(educationalRepository, claims.sub),
     ]);
   }
 
@@ -40,16 +41,19 @@ export default async function EstatisticasPage() {
   }
 
   if (snapshot === null) {
+    const unavailableNotice = (
+      <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="statistics-unavailable-title">
+        <h2 id="statistics-unavailable-title">Não foi possível carregar suas estatísticas</h2>
+        <p>Os indicadores estão temporariamente indisponíveis. Tente novamente para consultar seu progresso.</p>
+        <form action="/estatisticas" method="get">
+          <button className="aa-button aa-button-secondary" type="submit">Tentar novamente</button>
+        </form>
+      </section>
+    );
     return (
       <AuthenticatedShell currentPath="/estatisticas">
         <ArcanaPage eyebrow="Progresso" title="Estatísticas" description="Indicadores baseados em dados verificáveis.">
-          <section className="aa-surface aa-sanctuary-section" role="alert" aria-labelledby="statistics-unavailable-title">
-            <h2 id="statistics-unavailable-title">Não foi possível carregar suas estatísticas</h2>
-            <p>Os indicadores estão temporariamente indisponíveis. Tente novamente para consultar seu progresso.</p>
-            <form action="/estatisticas" method="get">
-              <button className="aa-button aa-button-secondary" type="submit">Tentar novamente</button>
-            </form>
-          </section>
+          {unavailableNotice}
         </ArcanaPage>
       </AuthenticatedShell>
     );

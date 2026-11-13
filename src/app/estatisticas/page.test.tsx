@@ -17,22 +17,14 @@ vi.mock("@/lib/auth/require-authenticated-user", () => ({
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({})),
+  createClient: vi.fn(() => Promise.resolve({})),
 }));
 
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockSupabaseEducationalPracticeRepository {
-    listPages() {
-      return repositoryMocks.listPages();
-    }
-
-    listPracticeItems() {
-      return repositoryMocks.listPracticeItems();
-    }
-
-    listPracticeAttempts() {
-      return repositoryMocks.listPracticeAttempts();
-    }
+    readonly listPages = repositoryMocks.listPages;
+    readonly listPracticeItems = repositoryMocks.listPracticeItems;
+    readonly listPracticeAttempts = repositoryMocks.listPracticeAttempts;
   }
 
   return { SupabaseEducationalPracticeRepository: MockSupabaseEducationalPracticeRepository };
