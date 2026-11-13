@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, CalendarDays, CheckCircle2, Compass, GraduationCap, LibraryBig, ListChecks, ScrollText, UserRound, RotateCcw } from "lucide-react";
 
-import { addDemoTask, completeDemoTask, DEMO_PAGES, demoProgress, initialDemoState, saveDemoNote, toggleDemoPage, type DemoState } from "./mvp-model";
+import { addDemoTask, completeDemoTask, DEMO_PAGES, demoProgress, initialDemoState, parseDemoState, DEMO_STORAGE_KEY, saveDemoNote, toggleDemoPage, type DemoState } from "./mvp-model";
 import styles from "./MvpPilot.module.css";
 
 type Section = "santuario" | "academia" | "grimorios" | "capitulos" | "paginas" | "missoes" | "cronograma" | "perfil";
@@ -19,9 +19,29 @@ const SECTIONS: Array<{ id: Section; label: string; realHref: string; icon: type
   { id: "perfil", label: "Perfil", realHref: "/perfil", icon: UserRound },
 ];
 
-export function MvpPilot() {
+export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
   const [section, setSection] = useState<Section>("santuario");
   const [state, setState] = useState<DemoState>(initialDemoState);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!isolated) return;
+    try {
+      setState(parseDemoState(window.sessionStorage.getItem(DEMO_STORAGE_KEY)));
+    } catch {
+      setState(initialDemoState);
+    }
+    setLoaded(true);
+  }, [isolated]);
+
+  useEffect(() => {
+    if (!isolated || !loaded) return;
+    try {
+      window.sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // A blocked browser store keeps the disposable session in React memory.
+    }
+  }, [isolated, loaded, state]);
   const [taskTitle, setTaskTitle] = useState("");
   const [selectedPageId, setSelectedPageId] = useState<string>(DEMO_PAGES[0].id);
 
@@ -60,8 +80,8 @@ export function MvpPilot() {
           </ul>
         </nav>
         <div className={styles.sideNote}>
-          <span className="aa-badge aa-badge-info">Piloto local</span>
-          <p>Ambiente de demonstração. Sem contas, pagamentos ou integrações reais.</p>
+          <span className="aa-badge aa-badge-info">{isolated ? "Demonstração pessoal" : "Piloto local"}</span>
+          <p>Ambiente sintético. Sem contas estudantis, pagamentos ou integrações produtivas.</p>
         </div>
       </aside>
       <main id="mvp-content" className={styles.main}>
@@ -78,7 +98,9 @@ export function MvpPilot() {
             </div>
             <div className={styles.heroMark} aria-hidden="true">✦</div>
           </section>
-          <div className={styles.status} role="status">Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</div>
+          <div className={styles.status} role="status">{isolated
+            ? "Demonstração pessoal com dados fictícios. O progresso fica somente nesta aba do navegador; nada é enviado ao servidor. Não é uma conta de estudante."
+            : <>Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</>}</div>
 
           {section === "santuario" && <>
             <div className={styles.metrics}>
@@ -108,7 +130,7 @@ export function MvpPilot() {
 
           {section === "perfil" && <section className={styles.panel} aria-labelledby="profile-title"><p className="aa-eyebrow">Identidade de demonstração</p><h2 id="profile-title">Perfil</h2><div className={styles.profile}><div className={styles.avatar} aria-hidden="true">✧</div><div><h3>Aprendiz Arcano</h3><p>Perfil fictício · nenhuma conta criada</p><p>{progress.pages} páginas estudadas · {progress.doneTasks} tarefas concluídas</p></div></div><button className="aa-button aa-button-secondary" onClick={() => { setState(initialDemoState); setTaskTitle(""); }}> <RotateCcw size={16} aria-hidden="true" /> Reiniciar demonstração</button></section>}
         </div>
-        <footer className={styles.footer}>Academia Arcana · piloto de desenvolvimento com dados sintéticos · sem integração produtiva.</footer>
+        <footer className={styles.footer}>Academia Arcana · {isolated ? "demonstração isolada" : "piloto de desenvolvimento"} com dados sintéticos · sem integração produtiva · Seu caminho, seu ritmo, suas descobertas.</footer>
       </main>
     </div>
   );

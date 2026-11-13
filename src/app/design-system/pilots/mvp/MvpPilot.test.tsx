@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MvpPilot } from "./MvpPilot";
+import { DEMO_STORAGE_KEY } from "./mvp-model";
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -9,7 +10,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); window.sessionStorage.clear(); });
 
 describe("MVP synthetic journey pilot", () => {
   it("navigates from the Sanctuary to the grimoire, chapter and page", () => {
@@ -56,4 +57,22 @@ describe("MVP synthetic journey pilot", () => {
     expect(screen.getByRole("link", { name: /Acessar o módulo real/ })).toHaveAttribute("href", "/santuario");
     expect(screen.getByRole("link", { name: "Ir para conteúdo" })).toHaveAttribute("href", "#mvp-content");
   });
+  it("isolates production links and labels the synthetic session", () => {
+    render(<MvpPilot isolated />);
+    expect(screen.queryByRole("link", { name: /Acessar o módulo real/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/O progresso fica somente nesta aba/)).toBeInTheDocument();
+  });
+
+  it("restores bounded sample progress in the same browser tab", async () => {
+    window.sessionStorage.clear();
+    const mounted = render(<MvpPilot isolated />);
+    fireEvent.click(screen.getByRole("button", { name: "Páginas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Marcar como estudada" }));
+    await waitFor(() => expect(window.sessionStorage.getItem(DEMO_STORAGE_KEY)).toContain("page-runas"));
+    mounted.unmount();
+    render(<MvpPilot isolated />);
+    fireEvent.click(screen.getByRole("button", { name: "Santuário" }));
+    await waitFor(() => expect(screen.getByText("1 / 3")).toBeInTheDocument());
+  });
+
 });

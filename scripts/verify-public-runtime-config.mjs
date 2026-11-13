@@ -98,6 +98,15 @@ export function resolveEnvironmentLabel(environment) {
 }
 
 export function verifyPublicRuntimeConfig(environment = loadBuildEnvironment()) {
+  if (environment.ARCANA_DEMO_ISOLATED === "1") {
+    const forbidden = Object.entries(environment).some(([name, value]) =>
+      /(?:SUPABASE|POSTGRES|DATABASE_URL|SERVICE_ROLE|DB_PASSWORD|DB_URL)/i.test(name) &&
+      typeof value === "string" && value.length > 0,
+    );
+    if (forbidden) throw new Error("Isolated demonstration must not configure database or Supabase endpoints.");
+    return { integration: "synthetic-only", verified: true, environment: "preview", configuration: "no-backend" };
+  }
+
   for (const name of [
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
