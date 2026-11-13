@@ -6,6 +6,7 @@ import {
   getContentSecurityPolicyHeaderName,
 } from "@/lib/security/csp";
 import { isPrivateRoutePath } from "@/lib/security/private-routes";
+import { authorizeDemoBasic, isAllowedDemoPath, readDemoAccessCode } from "@/lib/demo/isolated-access";
 import { updateSession } from "@/lib/supabase/proxy";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -75,6 +76,34 @@ export async function proxy(request: NextRequest) {
 
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set(cspHeaderName, contentSecurityPolicy);
+
+  // Explicitly isolated personal preview: preserve CSP and origin checks,
+  // but do not call real auth/session services or expose application endpoints.
+  if (process.env.ARCANA_DEMO_ISOLATED === "1") {
+    const noCache = { "Cache-Control": "private, no-store" };
+    let isolatedResponse: NextResponse;
+    if (pathname === "/api/health") {
+      isolatedResponse = NextResponse.next({ request: { headers: requestHeaders } });
+    } else if (!isAllowedDemoPath(pathname)) {
+      isolatedResponse = new NextResponse(null, { status: 404, headers: noCache });
+    } else {
+      const expected = readDemoAccessCode();
+      if (expected === null) {
+        isolatedResponse = new NextResponse("Demo indisponível: credencial runtime ausente.", { status: 503, headers: noCache });
+      } else if (!authorizeDemoBasic(request.headers.get("authorization"), expected)) {
+        isolatedResponse = new NextResponse("Acesso restrito à demonstração.", {
+          status: 401,
+          headers: { ...noCache, "WWW-Authenticate": 'Basic realm="Academia Arcana - Demo", charset="UTF-8"' },
+        });
+      } else if (pathname === "/") {
+        isolatedResponse = NextResponse.redirect(new URL("/design-system/pilots/mvp", request.url));
+      } else {
+        isolatedResponse = NextResponse.next({ request: { headers: requestHeaders } });
+      }
+    }
+    isolatedResponse.headers.set(cspHeaderName, contentSecurityPolicy);
+    return isolatedResponse;
+  }
 
   // Liveness must not depend on an external Auth session refresh.
   // Keep the CSP/nonce flow unchanged; readiness and protected routes still validate sessions.
