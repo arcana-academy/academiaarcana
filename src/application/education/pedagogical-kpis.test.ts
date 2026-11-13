@@ -193,9 +193,9 @@ describe("P01-P06 pedagogical KPIs", () => {
     const items = [item("active", "self_assessment")];
     const attempts = [attempt("a1", "active", "partial", 0.4)];
     const repository = {
-      listPages: vi.fn(async () => [page]),
-      listPracticeItems: vi.fn(async () => items),
-      listPracticeAttempts: vi.fn(async () => attempts),
+      listPages: vi.fn(() => Promise.resolve([page])),
+      listPracticeItems: vi.fn(() => Promise.resolve(items)),
+      listPracticeAttempts: vi.fn(() => Promise.resolve(attempts)),
     } as unknown as EducationalPracticeRepository;
     const result = await getPedagogicalSnapshot(repository, "owner-1");
     expect(result.pedagogicalKpis.practiceCoverageRate).toBe(1);

@@ -207,7 +207,7 @@ describe("EstatisticasPage", () => {
     const html = renderToStaticMarkup(await EstatisticasPage());
     expect(html).toContain('data-statistics-region="pedagogical-kpis"');
     for (const id of ["P01", "P02", "P03", "P04", "P05", "P06"]) {
-      expect(html).toContain(id + " — ");
+      expect(html).toContain(`${id} — `);
     }
     expect(html).toContain("Sem dados");
     expect(repositoryMocks.listPages).toHaveBeenCalledTimes(1);

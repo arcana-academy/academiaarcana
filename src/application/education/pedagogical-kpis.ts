@@ -33,6 +33,7 @@ export type PedagogicalSnapshot = {
   pedagogicalKpis: PedagogicalKpis;
 };
 
+/** Returns a normalized ratio or null when there is no eligible denominator. */
 const rate = (numerator: number, denominator: number): number | null =>
   denominator === 0 ? null : numerator / denominator;
 
