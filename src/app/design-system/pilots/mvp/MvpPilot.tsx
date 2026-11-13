@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore, type Dispatch, type SetStateAction } from "react";
 import { BookOpen, CalendarDays, CheckCircle2, Compass, GraduationCap, LibraryBig, ListChecks, ScrollText, UserRound, RotateCcw } from "lucide-react";
 
-import { addDemoTask, completeDemoTask, DEMO_PAGES, demoProgress, initialDemoState, saveDemoNote, toggleDemoPage, type DemoState } from "./mvp-model";
+import { addDemoTask, completeDemoTask, DEMO_PAGES, demoProgress, initialDemoState, parseDemoState, DEMO_STORAGE_KEY, saveDemoNote, toggleDemoPage, type DemoState } from "./mvp-model";
 import styles from "./MvpPilot.module.css";
 
 type Section = "santuario" | "academia" | "grimorios" | "capitulos" | "paginas" | "missoes" | "cronograma" | "perfil";
@@ -19,9 +19,63 @@ const SECTIONS: Array<{ id: Section; label: string; realHref: string; icon: type
   { id: "perfil", label: "Perfil", realHref: "/perfil", icon: UserRound },
 ];
 
-export function MvpPilot() {
+const STORE_EVENT = "academia-arcana-mvp-session-change";
+let fallbackRaw: string | null = null;
+let fallbackActive = false;
+
+/** Subscribes to disposable browser-tab state changes without backend traffic. */
+function subscribeDemoStore(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(STORE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(STORE_EVENT, onStoreChange);
+  };
+}
+
+/** Reads an optional per-tab synthetic snapshot, tolerating blocked browser storage. */
+function getBrowserDemoRaw(): string | null {
+  if (fallbackActive) return fallbackRaw;
+  try {
+    return window.sessionStorage.getItem(DEMO_STORAGE_KEY);
+  } catch {
+    return fallbackRaw;
+  }
+}
+
+/** The server never renders persisted synthetic user state. */
+function getServerDemoRaw(): null { return null; }
+
+/** Stores bounded synthetic state in the same tab or an ephemeral fallback. */
+function writeDemoState(next: DemoState) {
+  const raw = JSON.stringify(next);
+  try {
+    window.sessionStorage.setItem(DEMO_STORAGE_KEY, raw);
+    fallbackActive = false;
+    fallbackRaw = null;
+  } catch {
+    fallbackActive = true;
+    fallbackRaw = raw;
+  }
+  window.dispatchEvent(new Event(STORE_EVENT));
+}
+
+/** Renders the existing synthetic MVP journey without any real application backend. */
+export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
   const [section, setSection] = useState<Section>("santuario");
-  const [state, setState] = useState<DemoState>(initialDemoState);
+  const [inMemoryState, setInMemoryState] = useState<DemoState>(initialDemoState);
+  const rawDemo = useSyncExternalStore(subscribeDemoStore, getBrowserDemoRaw, getServerDemoRaw);
+  const state = isolated ? parseDemoState(rawDemo) : inMemoryState;
+  /** Writes a demonstration-only state update without modifying real records. */
+  const setState: Dispatch<SetStateAction<DemoState>> = (value) => {
+    if (!isolated) {
+      setInMemoryState(value);
+      return;
+    }
+    const previous = parseDemoState(getBrowserDemoRaw());
+    const nextState = typeof value === "function" ? value(previous) : value;
+    writeDemoState(nextState);
+  };
   const [taskTitle, setTaskTitle] = useState("");
   const [selectedPageId, setSelectedPageId] = useState<string>(DEMO_PAGES[0].id);
 
@@ -29,13 +83,16 @@ export function MvpPilot() {
   const active = SECTIONS.find((item) => item.id === section) ?? SECTIONS[0];
   const selectedPage = DEMO_PAGES.find((page) => page.id === selectedPageId) ?? DEMO_PAGES[0];
   const pending = state.tasks.filter((task) => !task.done);
+  /** Adds a synthetic planning task to the local demonstration. */
   const taskAction = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!taskTitle.trim()) return;
     setState((previous) => addDemoTask(previous, taskTitle, `demo-${crypto.randomUUID()}`));
     setTaskTitle("");
   };
+  /** Changes the internal demonstration section. */
   const go = (next: Section) => setSection(next);
+  /** Opens a synthetic example page without calling a real content service. */
   const openPage = (id: string) => { setSelectedPageId(id); go("paginas"); };
 
   return (
@@ -60,8 +117,8 @@ export function MvpPilot() {
           </ul>
         </nav>
         <div className={styles.sideNote}>
-          <span className="aa-badge aa-badge-info">Piloto local</span>
-          <p>Ambiente de demonstração. Sem contas, pagamentos ou integrações reais.</p>
+          <span className="aa-badge aa-badge-info">{isolated ? "Demonstração pessoal" : "Piloto local"}</span>
+          <p>Ambiente sintético. Sem contas estudantis, pagamentos ou integrações produtivas.</p>
         </div>
       </aside>
       <main id="mvp-content" className={styles.main}>
@@ -78,7 +135,9 @@ export function MvpPilot() {
             </div>
             <div className={styles.heroMark} aria-hidden="true">✦</div>
           </section>
-          <div className={styles.status} role="status">Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</div>
+          <div className={styles.status} role="status">{isolated
+            ? "Demonstração pessoal com dados fictícios. O progresso fica somente nesta aba do navegador; nada é enviado ao servidor. Não é uma conta de estudante."
+            : <>Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</>}</div>
 
           {section === "santuario" && <>
             <div className={styles.metrics}>
@@ -108,7 +167,7 @@ export function MvpPilot() {
 
           {section === "perfil" && <section className={styles.panel} aria-labelledby="profile-title"><p className="aa-eyebrow">Identidade de demonstração</p><h2 id="profile-title">Perfil</h2><div className={styles.profile}><div className={styles.avatar} aria-hidden="true">✧</div><div><h3>Aprendiz Arcano</h3><p>Perfil fictício · nenhuma conta criada</p><p>{progress.pages} páginas estudadas · {progress.doneTasks} tarefas concluídas</p></div></div><button className="aa-button aa-button-secondary" onClick={() => { setState(initialDemoState); setTaskTitle(""); }}> <RotateCcw size={16} aria-hidden="true" /> Reiniciar demonstração</button></section>}
         </div>
-        <footer className={styles.footer}>Academia Arcana · piloto de desenvolvimento com dados sintéticos · sem integração produtiva.</footer>
+        <footer className={styles.footer}>Academia Arcana · {isolated ? "demonstração isolada" : "piloto de desenvolvimento"} com dados sintéticos · sem integração produtiva · Seu caminho, seu ritmo, suas descobertas.</footer>
       </main>
     </div>
   );

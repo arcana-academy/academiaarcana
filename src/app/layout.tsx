@@ -43,7 +43,11 @@ export const metadata: Metadata = {
   },
 };
 
-async function resolveApplicationIdentity(): Promise<ApplicationIdentityState> {
+function resolveApplicationIdentity(): Promise<ApplicationIdentityState> {
+  // Preview-only browser session; never query real account identity.
+  if (process.env.ARCANA_DEMO_ISOLATED === "1") {
+    return Promise.resolve({ status: "anonymous", identity: null, error: null });
+  }
   const resolver = createIdentityResolver({
     resolveSubjectId: createResolveSubjectIdServer(),
   });

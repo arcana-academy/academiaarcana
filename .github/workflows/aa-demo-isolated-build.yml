@@ -1,0 +1,95 @@
+name: Academia Arcana Isolated MVP Build (No Backend)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: isolated-mvp-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  isolated-build:
+    name: Isolated demo - no Supabase
+    # Only the explicitly authorized synthetic demo branch runs this isolated job.
+    if: github.event.pull_request.head.ref == 'work/aa-mvp-individual-demo-isolado-20261113'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      ARCANA_DEMO_ISOLATED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Pin npm
+        run: |
+          corepack enable npm
+          corepack prepare npm@11.19.1 --activate
+
+      - name: Confirm isolated prebuild has no Supabase or database
+        run: node scripts/verify-public-runtime-config.mjs
+
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+
+      - name: Rebuild approved native dependencies
+        run: npm rebuild unrs-resolver --ignore-scripts=false
+
+      - name: Build isolated application without backend credentials
+        run: npm run build
+
+      - name: Smoke-test runtime gate with no runtime secret
+        env:
+          PORT: "3179"
+        run: |
+          set -euo pipefail
+          npm start >/tmp/aa-demo-smoke.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+
+          # Runs locally, without outside endpoints or credentials.
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl --silent --fail --max-time 2 http://127.0.0.1:3179/api/health >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Isolated demo health check did not become ready."
+            exit 1
+          fi
+
+          node --input-type=module <<'NODE'
+          const base = "http://127.0.0.1:3179";
+          const expectations = [
+            ["/api/health", 200],
+            ["/", 503],
+            ["/design-system/pilots/mvp", 503],
+            ["/estatisticas", 404],
+            ["/santuario", 404],
+            ["/api/ready", 404],
+          ];
+          for (const [path, expected] of expectations) {
+            const response = await fetch(base + path, { redirect: "manual" });
+            if (response.status !== expected) {
+              throw new Error(`Unexpected demo response for ${path}: expected ${expected}, received ${response.status}.`);
+            }
+            if (expected !== 200 && !response.headers.get("cache-control")?.includes("no-store")) {
+              throw new Error(`Isolated denial missing no-store: ${path}.`);
+            }
+          }
+          console.log("Isolated no-secret smoke: health 200, access 503, protected routes 404.");
+          NODE
