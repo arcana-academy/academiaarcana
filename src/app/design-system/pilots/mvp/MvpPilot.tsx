@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore, type Dispatch, type SetStateAction } from "react";
 import { BookOpen, CalendarDays, CheckCircle2, Compass, GraduationCap, LibraryBig, ListChecks, ScrollText, UserRound, RotateCcw } from "lucide-react";
 
 import { addDemoTask, completeDemoTask, DEMO_PAGES, demoProgress, initialDemoState, parseDemoState, DEMO_STORAGE_KEY, saveDemoNote, toggleDemoPage, type DemoState } from "./mvp-model";
@@ -19,29 +19,57 @@ const SECTIONS: Array<{ id: Section; label: string; realHref: string; icon: type
   { id: "perfil", label: "Perfil", realHref: "/perfil", icon: UserRound },
 ];
 
+const STORE_EVENT = "academia-arcana-mvp-session-change";
+let fallbackRaw: string | null = null;
+let fallbackActive = false;
+
+function subscribeDemoStore(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(STORE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(STORE_EVENT, onStoreChange);
+  };
+}
+
+function getBrowserDemoRaw(): string | null {
+  if (fallbackActive) return fallbackRaw;
+  try {
+    return window.sessionStorage.getItem(DEMO_STORAGE_KEY);
+  } catch {
+    return fallbackRaw;
+  }
+}
+
+function getServerDemoRaw(): null { return null; }
+
+function writeDemoState(next: DemoState) {
+  const raw = JSON.stringify(next);
+  try {
+    window.sessionStorage.setItem(DEMO_STORAGE_KEY, raw);
+    fallbackActive = false;
+    fallbackRaw = null;
+  } catch {
+    fallbackActive = true;
+    fallbackRaw = raw;
+  }
+  window.dispatchEvent(new Event(STORE_EVENT));
+}
+
 export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
   const [section, setSection] = useState<Section>("santuario");
-  const [state, setState] = useState<DemoState>(initialDemoState);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!isolated) return;
-    try {
-      setState(parseDemoState(window.sessionStorage.getItem(DEMO_STORAGE_KEY)));
-    } catch {
-      setState(initialDemoState);
+  const [inMemoryState, setInMemoryState] = useState<DemoState>(initialDemoState);
+  const rawDemo = useSyncExternalStore(subscribeDemoStore, getBrowserDemoRaw, getServerDemoRaw);
+  const state = isolated ? parseDemoState(rawDemo) : inMemoryState;
+  const setState: Dispatch<SetStateAction<DemoState>> = (value) => {
+    if (!isolated) {
+      setInMemoryState(value);
+      return;
     }
-    setLoaded(true);
-  }, [isolated]);
-
-  useEffect(() => {
-    if (!isolated || !loaded) return;
-    try {
-      window.sessionStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // A blocked browser store keeps the disposable session in React memory.
-    }
-  }, [isolated, loaded, state]);
+    const previous = parseDemoState(getBrowserDemoRaw());
+    const nextState = typeof value === "function" ? value(previous) : value;
+    writeDemoState(nextState);
+  };
   const [taskTitle, setTaskTitle] = useState("");
   const [selectedPageId, setSelectedPageId] = useState<string>(DEMO_PAGES[0].id);
 
