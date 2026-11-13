@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { buildEducationalOverview } from "@/application/education/p1";
+import { buildPedagogicalKpis } from "@/application/education/pedagogical-kpis";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -194,6 +195,7 @@ describe("EstatisticasPage", () => {
             progressPercent: 0,
           }}
           educational={educational}
+          pedagogicalKpis={buildPedagogicalKpis([], [], [], "user-1")}
         />
       </div>,
     );
@@ -201,6 +203,17 @@ describe("EstatisticasPage", () => {
     expect(pageHtml).toBe(viewHtml);
   });
 
+  it("renders all six current pedagogical KPIs without guessing missing denominators", async () => {
+    const html = renderToStaticMarkup(await EstatisticasPage());
+    expect(html).toContain('data-statistics-region="pedagogical-kpis"');
+    for (const id of ["P01", "P02", "P03", "P04", "P05", "P06"]) {
+      expect(html).toContain(id + " — ");
+    }
+    expect(html).toContain("Sem dados");
+    expect(repositoryMocks.listPages).toHaveBeenCalledTimes(1);
+    expect(repositoryMocks.listPracticeItems).toHaveBeenCalledTimes(1);
+    expect(repositoryMocks.listPracticeAttempts).toHaveBeenCalledTimes(1);
+  });
   it("preserves the statistics semantic boundaries after extraction", async () => {
     const html = renderToStaticMarkup(await EstatisticasPage());
 

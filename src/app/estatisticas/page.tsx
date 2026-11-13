@@ -1,4 +1,4 @@
-import { getEducationalOverview } from "@/application/education/p1";
+import { getPedagogicalSnapshot } from "@/application/education/pedagogical-kpis";
 import { AuthenticatedShell } from "@/components/layout/AuthenticatedShell";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { getProgression } from "@/domains/gamification";
@@ -29,7 +29,7 @@ export default async function EstatisticasPage() {
     return Promise.all([
     repository.getProfile(claims.sub),
     repository.listDailyMissions(claims.sub, todayUtc()),
-    getEducationalOverview(educationalRepository, claims.sub),
+    getPedagogicalSnapshot(educationalRepository, claims.sub),
     ]);
   }
 
@@ -55,7 +55,7 @@ export default async function EstatisticasPage() {
     );
   }
 
-  const [profile, missions, educational] = snapshot;
+  const [profile, missions, { educational, pedagogicalKpis }] = snapshot;
   const progression = getProgression(profile, missions);
   const denominator = Math.max(
     1,
@@ -79,6 +79,7 @@ export default async function EstatisticasPage() {
           progressPercent,
         }}
         educational={educational}
+        pedagogicalKpis={pedagogicalKpis}
       />
     </AuthenticatedShell>
   );
