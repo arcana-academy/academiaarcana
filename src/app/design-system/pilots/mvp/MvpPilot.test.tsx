@@ -45,7 +45,10 @@ describe("MVP synthetic journey pilot", () => {
     expect(screen.getByText("Revisar um grimório")).toBeInTheDocument();
     const row = screen.getByText("Revisar um grimório").closest("li");
     expect(row).not.toBeNull();
-    fireEvent.click(row!.querySelector("button")!);
+    const complete = row?.querySelector("button");
+    expect(complete).toBeTruthy();
+    if (!complete) throw new Error("Expected the synthetic task completion button.");
+    fireEvent.click(complete);
     fireEvent.click(screen.getByRole("button", { name: "Missões" }));
     expect(screen.getByText("Revisar um grimório")).toBeInTheDocument();
     expect(screen.getAllByText("Concluída").length).toBeGreaterThan(0);

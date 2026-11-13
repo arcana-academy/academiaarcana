@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 /** Credential is mounted at runtime, never placed in build environment. */
 export const DEMO_ACCESS_FILE = "/etc/secrets/AA_DEMO_GATE";
 
+/** Reads the runtime-only access file or fails closed without exposing it. */
 export function readDemoAccessCode(): string | null {
   try {
     const value = readFileSync(DEMO_ACCESS_FILE, "utf8").trim();

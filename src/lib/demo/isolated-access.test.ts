@@ -5,12 +5,12 @@ describe("independent synthetic demonstration access", () => {
   const demoKey = "test-demonstration-key-of-sufficient-length";
 
   it("accepts only the independent Basic demo identity", () => {
-    const good = "Basic " + Buffer.from("arcana-demo:" + demoKey).toString("base64");
+    const good = `Basic ${Buffer.from(`arcana-demo:${demoKey}`).toString("base64")}`;
     expect(authorizeDemoBasic(good, demoKey)).toBe(true);
     expect(authorizeDemoBasic(null, demoKey)).toBe(false);
     expect(authorizeDemoBasic("Basic invalid!", demoKey)).toBe(false);
-    expect(authorizeDemoBasic("Basic " + Buffer.from("student:" + demoKey).toString("base64"), demoKey)).toBe(false);
-    expect(authorizeDemoBasic("Basic " + Buffer.from("arcana-demo:wrong").toString("base64"), demoKey)).toBe(false);
+    expect(authorizeDemoBasic(`Basic ${Buffer.from(`student:${demoKey}`).toString("base64")}`, demoKey)).toBe(false);
+    expect(authorizeDemoBasic(`Basic ${Buffer.from("arcana-demo:wrong").toString("base64")}`, demoKey)).toBe(false);
   });
 
   it("denies real modules and APIs", () => {

@@ -23,6 +23,7 @@ const STORE_EVENT = "academia-arcana-mvp-session-change";
 let fallbackRaw: string | null = null;
 let fallbackActive = false;
 
+/** Subscribes to disposable browser-tab state changes without backend traffic. */
 function subscribeDemoStore(onStoreChange: () => void) {
   window.addEventListener("storage", onStoreChange);
   window.addEventListener(STORE_EVENT, onStoreChange);
@@ -32,6 +33,7 @@ function subscribeDemoStore(onStoreChange: () => void) {
   };
 }
 
+/** Reads an optional per-tab synthetic snapshot, tolerating blocked browser storage. */
 function getBrowserDemoRaw(): string | null {
   if (fallbackActive) return fallbackRaw;
   try {
@@ -41,8 +43,10 @@ function getBrowserDemoRaw(): string | null {
   }
 }
 
+/** The server never renders persisted synthetic user state. */
 function getServerDemoRaw(): null { return null; }
 
+/** Stores bounded synthetic state in the same tab or an ephemeral fallback. */
 function writeDemoState(next: DemoState) {
   const raw = JSON.stringify(next);
   try {
@@ -56,11 +60,13 @@ function writeDemoState(next: DemoState) {
   window.dispatchEvent(new Event(STORE_EVENT));
 }
 
+/** Renders the existing synthetic MVP journey without any real application backend. */
 export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
   const [section, setSection] = useState<Section>("santuario");
   const [inMemoryState, setInMemoryState] = useState<DemoState>(initialDemoState);
   const rawDemo = useSyncExternalStore(subscribeDemoStore, getBrowserDemoRaw, getServerDemoRaw);
   const state = isolated ? parseDemoState(rawDemo) : inMemoryState;
+  /** Writes a demonstration-only state update without modifying real records. */
   const setState: Dispatch<SetStateAction<DemoState>> = (value) => {
     if (!isolated) {
       setInMemoryState(value);
@@ -77,13 +83,16 @@ export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
   const active = SECTIONS.find((item) => item.id === section) ?? SECTIONS[0];
   const selectedPage = DEMO_PAGES.find((page) => page.id === selectedPageId) ?? DEMO_PAGES[0];
   const pending = state.tasks.filter((task) => !task.done);
+  /** Adds a synthetic planning task to the local demonstration. */
   const taskAction = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!taskTitle.trim()) return;
     setState((previous) => addDemoTask(previous, taskTitle, `demo-${crypto.randomUUID()}`));
     setTaskTitle("");
   };
+  /** Changes the internal demonstration section. */
   const go = (next: Section) => setSection(next);
+  /** Opens a synthetic example page without calling a real content service. */
   const openPage = (id: string) => { setSelectedPageId(id); go("paginas"); };
 
   return (
