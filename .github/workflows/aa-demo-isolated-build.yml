@@ -15,6 +15,8 @@ concurrency:
 jobs:
   isolated-build:
     name: Isolated demo - no Supabase
+    # Only the explicitly authorized synthetic demo branch runs this isolated job.
+    if: github.event.pull_request.head.ref == 'work/aa-mvp-individual-demo-isolado-20261113'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -46,3 +48,48 @@ jobs:
 
       - name: Build isolated application without backend credentials
         run: npm run build
+
+      - name: Smoke-test runtime gate with no runtime secret
+        env:
+          PORT: "3179"
+        run: |
+          set -euo pipefail
+          npm start >/tmp/aa-demo-smoke.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+
+          # Only a local ephemeral CI server is used; no external service or secrets.
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl --silent --fail --max-time 2 http://127.0.0.1:3179/api/health >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo "Isolated demo health check did not become ready."
+            exit 1
+          fi
+
+          node --input-type=module <<'NODE'
+          const base = "http://127.0.0.1:3179";
+          const expectations = [
+            ["/api/health", 200],
+            ["/", 503],
+            ["/design-system/pilots/mvp", 503],
+            ["/estatisticas", 404],
+            ["/santuario", 404],
+            ["/api/ready", 404],
+          ];
+          for (const [path, expected] of expectations) {
+            const response = await fetch(base + path, { redirect: "manual" });
+            if (response.status !== expected) {
+              throw new Error(`Unexpected demo response for ${path}: expected ${expected}, received ${response.status}.`);
+            }
+            if (expected !== 200 && !response.headers.get("cache-control")?.includes("no-store")) {
+              throw new Error(`Isolated denial missing no-store: ${path}.`);
+            }
+          }
+          console.log("Isolated no-secret smoke: health 200, access 503, protected routes 404.");
+          NODE
