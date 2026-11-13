@@ -58,7 +58,7 @@ jobs:
           app_pid=$!
           trap 'kill "$app_pid" 2>/dev/null || true' EXIT
 
-          # Only a local ephemeral CI server is used; no external service or secrets.
+          # Runs locally, without outside endpoints or credentials.
           ready=0
           for attempt in $(seq 1 40); do
             if curl --silent --fail --max-time 2 http://127.0.0.1:3179/api/health >/dev/null; then
