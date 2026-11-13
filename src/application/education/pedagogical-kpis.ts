@@ -34,8 +34,9 @@ export type PedagogicalSnapshot = {
 };
 
 /** Returns a normalized ratio or null when there is no eligible denominator. */
-const rate = (numerator: number, denominator: number): number | null =>
-  denominator === 0 ? null : numerator / denominator;
+function rate(numerator: number, denominator: number): number | null {
+  return denominator === 0 ? null : numerator / denominator;
+}
 
 /**
  * Calcula somente projecoes: sem escrita, analytics paralelo ou chamadas externas.
