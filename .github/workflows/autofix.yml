@@ -8,6 +8,8 @@ permissions:
 
 jobs:
   autofix:
+    # P0 #536: never let autofix commit to the isolated review branch.
+    if: ${{ github.event.pull_request.head.repo.full_name != 'arcana-academy/academiaarcana' || github.event.pull_request.head.ref != 'work/aa-p0536-render-isolada-20261114' }}
     runs-on: ubuntu-latest
 
     steps:
