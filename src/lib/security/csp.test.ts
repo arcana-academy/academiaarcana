@@ -21,8 +21,16 @@ describe("createContentSecurityPolicy", () => {
 
     expect(csp).toContain("style-src-attr 'unsafe-inline'");
     expect(csp.split("; ")).toContain(
-      "style-src 'self' 'nonce-abc123' https://use.typekit.net",
+      "style-src 'self' 'nonce-abc123' https://use.typekit.net https://hcaptcha.com https://*.hcaptcha.com",
     );
+  });
+
+  it("permits hCaptcha script and style hosts without introducing unsafe production eval", () => {
+    const csp = createContentSecurityPolicy("abc123", { isDevelopment: false });
+    expect(csp).toContain("script-src 'self' 'nonce-abc123' 'strict-dynamic' https://hcaptcha.com https://*.hcaptcha.com");
+    expect(csp).toContain("style-src 'self' 'nonce-abc123' https://use.typekit.net https://hcaptcha.com https://*.hcaptcha.com");
+    expect(csp).not.toContain("'unsafe-eval'");
+    expect(csp).toContain("frame-src 'self' https:");
   });
 
   it("keeps a strict policy with HTTPS upgrades in production", () => {
