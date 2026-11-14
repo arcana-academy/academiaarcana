@@ -79,7 +79,7 @@ function c145VerifyPrSecurityWorkflow(source) {
   assert.match(source, /^        run: test "\$\(git rev-parse HEAD\)" = "\$EXPECTED_SHA"$/m);
   assert.match(source, /^        run: test "\$HEAD_REPO" = "\$GITHUB_REPOSITORY"$/m);
   assert.match(source,
-    /^        run: node --test scripts\/security\/test-build-secret-isolation-536\.test\.cjs scripts\/security\/test-docker-build-context-536\.test\.cjs$/m);
+    /^        run: node --test scripts\/security\/test-build-secret-isolation-536\.test\.cjs scripts\/security\/test-docker-build-context-536\.test\.cjs scripts\/security\/verify-render-live-build-536\.test\.cjs$/m);
 }
 
 function c145VerifyFallbackBuildGate(source) {
