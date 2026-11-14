@@ -163,7 +163,7 @@ function MvpHero({ section, label }: { section: Section; label: string }) {
   return (<section className={styles.hero} aria-labelledby="mvp-title">
             <div>
               <p className="aa-eyebrow">✧ Caminhos do conhecimento</p>
-              <h1 id="mvp-title">{section === "santuario" ? "Seu Santuário de estudos" : active.label}</h1>
+              <h1 id="mvp-title">{section === "santuario" ? "Seu Santuário de estudos" : label}</h1>
               <p>Uma jornada no seu ritmo. Progresso sem pressão, conhecimento com propósito.</p>
             </div>
             <div className={styles.heroMark} aria-hidden="true">✦</div>
