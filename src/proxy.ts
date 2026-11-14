@@ -11,27 +11,25 @@ import { updateSession } from "@/lib/supabase/proxy";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-function isCrossOriginMutation(request: NextRequest): boolean {
-  if (SAFE_METHODS.has((request.method ?? "GET").toUpperCase())) return false;
-
-  const origin = request.headers.get("origin");
-  // Non-browser clients may omit Origin; browsers include it on unsafe methods.
-  if (!origin) return false;
-
+/** Checks an untrusted Origin against the canonical URL and the public proxy Host. */
+function isOutsideOrigin(request: NextRequest, origin: string): boolean {
   try {
-    const originUrl = new URL(origin);
-    if (originUrl.origin === request.nextUrl.origin) return false;
-
-    // Behind a reverse proxy, Next.js can normalize nextUrl to an internal host
-    // while the browser's Origin still names the public Host sent to the app.
-    // The request Host is part of the actual connection target, unlike Origin.
+    const external = new URL(origin);
+    if (external.origin === request.nextUrl.origin) return false;
     const host = request.headers.get("host");
     if (!host) return true;
     const hostOrigin = new URL(`${request.nextUrl.protocol}//${host}`).origin;
-    return originUrl.origin !== hostOrigin;
+    return external.origin !== hostOrigin;
   } catch {
     return true;
   }
+}
+
+/** Enforces the existing unsafe-method origin boundary. */
+function isCrossOriginMutation(request: NextRequest): boolean {
+  if (SAFE_METHODS.has((request.method ?? "GET").toUpperCase())) return false;
+  const origin = request.headers.get("origin");
+  return origin ? isOutsideOrigin(request, origin) : false;
 }
 
 /**
@@ -55,6 +53,31 @@ function resolvePathname(request: NextRequest): string {
   }
 }
 
+/** Denies all real routes and requires a runtime-only secret for this synthetic preview. */
+function handleIsolatedPreview(
+  request: NextRequest,
+  pathname: string,
+  requestHeaders: Headers,
+): NextResponse {
+  const noCache = { "Cache-Control": "private, no-store" };
+  if (pathname === "/api/health") return NextResponse.next({ request: { headers: requestHeaders } });
+  if (!isAllowedDemoPath(pathname)) return new NextResponse(null, { status: 404, headers: noCache });
+
+  const expected = readDemoAccessCode();
+  if (expected === null) {
+    return new NextResponse("Demo indisponível: credencial runtime ausente.", { status: 503, headers: noCache });
+  }
+  if (!authorizeDemoBasic(request.headers.get("authorization"), expected)) {
+    return new NextResponse("Acesso restrito à demonstração.", {
+      status: 401,
+      headers: { ...noCache, "WWW-Authenticate": 'Basic realm="Academia Arcana - Demo", charset="UTF-8"' },
+    });
+  }
+  if (pathname === "/") return NextResponse.redirect(new URL("/design-system/pilots/mvp", request.url));
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
+/** Preserves the official CSP, nonce and session controls on regular deployments. */
 export async function proxy(request: NextRequest) {
   if (isCrossOriginMutation(request)) {
     return NextResponse.json(
@@ -77,32 +100,11 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set(cspHeaderName, contentSecurityPolicy);
 
-  // Explicitly isolated personal preview: preserve CSP and origin checks,
-  // but do not call real auth/session services or expose application endpoints.
+  // Preserve nonce and CSP in the independent synthetic-only preview.
   if (process.env.ARCANA_DEMO_ISOLATED === "1") {
-    const noCache = { "Cache-Control": "private, no-store" };
-    let isolatedResponse: NextResponse;
-    if (pathname === "/api/health") {
-      isolatedResponse = NextResponse.next({ request: { headers: requestHeaders } });
-    } else if (!isAllowedDemoPath(pathname)) {
-      isolatedResponse = new NextResponse(null, { status: 404, headers: noCache });
-    } else {
-      const expected = readDemoAccessCode();
-      if (expected === null) {
-        isolatedResponse = new NextResponse("Demo indisponível: credencial runtime ausente.", { status: 503, headers: noCache });
-      } else if (!authorizeDemoBasic(request.headers.get("authorization"), expected)) {
-        isolatedResponse = new NextResponse("Acesso restrito à demonstração.", {
-          status: 401,
-          headers: { ...noCache, "WWW-Authenticate": 'Basic realm="Academia Arcana - Demo", charset="UTF-8"' },
-        });
-      } else if (pathname === "/") {
-        isolatedResponse = NextResponse.redirect(new URL("/design-system/pilots/mvp", request.url));
-      } else {
-        isolatedResponse = NextResponse.next({ request: { headers: requestHeaders } });
-      }
-    }
-    isolatedResponse.headers.set(cspHeaderName, contentSecurityPolicy);
-    return isolatedResponse;
+    const response = handleIsolatedPreview(request, pathname, requestHeaders);
+    response.headers.set(cspHeaderName, contentSecurityPolicy);
+    return response;
   }
 
   // Liveness must not depend on an external Auth session refresh.

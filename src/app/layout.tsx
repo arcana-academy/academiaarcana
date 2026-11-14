@@ -55,6 +55,7 @@ function resolveApplicationIdentity(): Promise<ApplicationIdentityState> {
   return resolver.resolve();
 }
 
+/** Wraps the approved Arcana design and resolves real identity only outside preview mode. */
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {

@@ -93,3 +93,26 @@ jobs:
           }
           console.log("Isolated no-secret smoke: health 200, access 503, protected routes 404.");
           NODE
+          # The following value is a PUBLIC synthetic CI fixture, not a Render credential.
+          sudo install -d -m 700 /etc/secrets
+          printf '%s' 'ci-public-synthetic-gate-fixture-arcana-2026' | sudo tee /etc/secrets/AA_DEMO_GATE >/dev/null
+          sudo chmod 600 /etc/secrets/AA_DEMO_GATE
+          node --input-type=module <<'NODE'
+          const base = "http://127.0.0.1:3179";
+          const demo = "/design-system/pilots/mvp";
+          const noAuth = await fetch(base + demo);
+          if (noAuth.status !== 401 || !noAuth.headers.get("www-authenticate")?.startsWith("Basic")) {
+            throw new Error(`Expected Basic challenge 401, got ${noAuth.status}`);
+          }
+          const wrong = await fetch(base + demo, {
+            headers: { authorization: `Basic ${Buffer.from("arcana-demo:wrong").toString("base64")}` },
+          });
+          if (wrong.status !== 401) throw new Error("Incorrect demo credentials must fail.");
+          const auth = { authorization: `Basic ${Buffer.from("arcana-demo:ci-public-synthetic-gate-fixture-arcana-2026").toString("base64")}` };
+          const ok = await fetch(base + demo, { headers: auth });
+          if (ok.status !== 200) throw new Error(`Authorized synthetic preview must return 200, received ${ok.status}`);
+          const denied = await fetch(base + "/estatisticas", { headers: auth });
+          if (denied.status !== 404) throw new Error("Actual site routes must remain inaccessible.");
+          console.log("CI-only Basic fixture: 401 unauthorized, 200 demo, 404 real routes.");
+          NODE
+          sudo rm -f /etc/secrets/AA_DEMO_GATE

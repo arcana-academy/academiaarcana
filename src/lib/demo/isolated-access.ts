@@ -15,21 +15,38 @@ export function readDemoAccessCode(): string | null {
   }
 }
 
-/** Constant-time demo passphrase check, not production student authentication. */
-export function authorizeDemoBasic(header: string | null, expected: string): boolean {
-  if (!header?.startsWith("Basic ") || header.length > 1024 || !expected) return false;
+/** Decodes Basic-auth data, rejecting malformed headers. */
+function decodeBasicCredentials(header: string | null): string | null {
+  if (!header?.startsWith("Basic ") || header.length > 1024) return null;
+  const encoded = header.slice(6);
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) return null;
   try {
-    const encoded = header.slice(6);
-    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) return false;
-    const raw = Buffer.from(encoded, "base64").toString("utf8");
-    const divider = raw.indexOf(":");
-    if (divider < 0 || raw.slice(0, divider) !== "arcana-demo") return false;
-    const actual = Buffer.from(raw.slice(divider + 1), "utf8");
-    const reference = Buffer.from(expected, "utf8");
-    return actual.length === reference.length && timingSafeEqual(actual, reference);
+    return Buffer.from(encoded, "base64").toString("utf8");
   } catch {
-    return false;
+    return null;
   }
+}
+
+/** Recognizes the synthetic-only demo principal. */
+function getDemoPassword(credentials: string | null): string | null {
+  if (credentials === null) return null;
+  const divider = credentials.indexOf(":");
+  if (divider < 0 || credentials.slice(0, divider) !== "arcana-demo") return null;
+  return credentials.slice(divider + 1);
+}
+
+/** Checks matching byte lengths before a timing-safe comparison. */
+function matchesDemoPassword(candidate: string, expected: string): boolean {
+  const actual = Buffer.from(candidate, "utf8");
+  const reference = Buffer.from(expected, "utf8");
+  return actual.length === reference.length && timingSafeEqual(actual, reference);
+}
+
+/** Constant-time demo credential check, never granting student identity. */
+export function authorizeDemoBasic(header: string | null, expected: string): boolean {
+  if (!expected) return false;
+  const candidate = getDemoPassword(decodeBasicCredentials(header));
+  return candidate !== null && matchesDemoPassword(candidate, expected);
 }
 
 /** Deny all real application routes and API endpoints in isolated mode. */
