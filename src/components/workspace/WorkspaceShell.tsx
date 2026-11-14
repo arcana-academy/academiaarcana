@@ -9,6 +9,7 @@ import {
   openGrimoire,
   openNotebook,
   openPage,
+  resolveWorkspaceState,
 } from "@/application/learning/workspace/state";
 
 import { Workspace } from "./Workspace";
@@ -115,12 +116,51 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
 
   const [state, setState] = useState<WorkspaceState>(initialState);
+  const initialLocationReconciled = useRef(false);
+  const pendingLocationRecovery = useRef<WorkspaceState | null>(null);
 
   // Next.js can replace the browser URL while applying a server-action
   // revalidation even when the selected hierarchy item does not change. Run
   // after every shell render so mutations such as page saves reassert the
   // canonical, reloadable selection URL as well as explicit selections do.
   useEffect(() => {
+    // A revalidation may remount the shell with an empty selection while the
+    // browser still holds a deep link. Recover only from the authorized tree,
+    // never from the URL alone or from another user's identifiers.
+    if (!initialLocationReconciled.current) {
+      initialLocationReconciled.current = true;
+      const params = new URLSearchParams(window.location.search);
+      const requestedState = resolveWorkspaceState(
+        { grimoires: tree.grimoires },
+        {
+          grimoireId: params.get("grimoire"),
+          notebookId: params.get("notebook"),
+          chapterId: params.get("chapter"),
+          pageId: params.get("page"),
+        },
+      );
+      if (
+        !state.grimoireId &&
+        !state.notebookId &&
+        !state.chapterId &&
+        !state.pageId &&
+        requestedState.grimoireId
+      ) {
+        pendingLocationRecovery.current = requestedState;
+        queueMicrotask(() => setState(requestedState));
+        return;
+      }
+    }
+    if (pendingLocationRecovery.current) {
+      const restored = pendingLocationRecovery.current;
+      if (
+        state.grimoireId !== restored.grimoireId ||
+        state.notebookId !== restored.notebookId ||
+        state.chapterId !== restored.chapterId ||
+        state.pageId !== restored.pageId
+      ) return;
+      pendingLocationRecovery.current = null;
+    }
     const canonicalHref = getWorkspaceCanonicalHref(state);
     const currentHref =
       window.location.pathname + window.location.search + window.location.hash;

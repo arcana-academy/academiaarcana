@@ -623,4 +623,153 @@ describe("WorkspaceShell", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
+  // These are proposed regressions. They have not been executed.
+  const shellProps = (
+    tree: Parameters<typeof WorkspaceShell>[0]["tree"],
+    initialState: Parameters<typeof WorkspaceShell>[0]["initialState"],
+  ): Parameters<typeof WorkspaceShell>[0] => ({
+    tree,
+    initialState,
+    onCreateGrimoire: vi.fn(async () => createdGrimoire),
+    onRenameGrimoire: vi.fn(async () => createdGrimoire),
+    onRenameNotebook: vi.fn(async () => renamedNotebook),
+    onRenameChapter: vi.fn(async () => createdChapter),
+    onCreateNotebook: vi.fn(async () => createdNotebook),
+    onCreateChapter: vi.fn(async () => createdChapter),
+    onCreatePage: vi.fn(async () => createdPage),
+    onMovePage: vi.fn(async () => ({ movedPage: createdPage, swappedPage: null })),
+    onDeletePage: vi.fn(async () => undefined),
+    onSavePage: vi.fn(async () => createdPage),
+  });
+
+  test("recovers an authorized page selection after a stale revalidation remount", async () => {
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [createdPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=p1#current");
+    render(<WorkspaceShell {...shellProps(tree, {
+      grimoireId: null, notebookId: null, chapterId: null, pageId: null,
+    })} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("article", { name: "Editor da página" })).toBeInTheDocument(),
+    );
+    expect(window.location.pathname + window.location.search + window.location.hash)
+      .toBe("/workspace?view=tree&page=p1#current");
+    expect(screen.getByRole("button", { name: "Nova página" }))
+      .toHaveAttribute("aria-current", "page");
+  });
+
+  test("does not open a foreign page from an untrusted URL", async () => {
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [createdPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=foreign#current");
+    render(<WorkspaceShell {...shellProps(tree, {
+      grimoireId: null, notebookId: null, chapterId: null, pageId: null,
+    })} />);
+
+    await waitFor(() =>
+      expect(window.location.pathname + window.location.search + window.location.hash)
+        .toBe("/workspace?view=tree#current"),
+    );
+    expect(screen.queryByRole("article", { name: "Editor da página" }))
+      .not.toBeInTheDocument();
+    expect(screen.queryByDisplayValue("Nova página")).not.toBeInTheDocument();
+  });
+
+  test("derives page ancestors from the authorized tree, not forged URL parameters", async () => {
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [createdPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&grimoire=foreign&page=p1#current");
+    render(<WorkspaceShell {...shellProps(tree, {
+      grimoireId: null, notebookId: null, chapterId: null, pageId: null,
+    })} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("article", { name: "Editor da página" })).toBeInTheDocument(),
+    );
+    expect(window.location.search).toBe("?view=tree&page=p1");
+    expect(screen.getByRole("button", { name: "Grimório" }))
+      .toHaveAttribute("data-active-path", "true");
+  });
+
+  test("does not duplicate a grimoire after the server tree refreshes", async () => {
+    const props = shellProps({ grimoires: [] }, {
+      grimoireId: null, notebookId: null, chapterId: null, pageId: null,
+    });
+    const { rerender } = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Novo grimório"), {
+      target: { value: "Novo grimório" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar grimório" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Novo grimório" }))
+        .toHaveAttribute("aria-current", "true"),
+    );
+    rerender(<WorkspaceShell {...props} tree={{
+      grimoires: [{ ...createdGrimoire, notebooks: [] }],
+    }} />);
+    expect(screen.getAllByRole("button", { name: "Novo grimório" })).toHaveLength(1);
+  });
+
+  test("does not duplicate a notebook after the server tree refreshes", async () => {
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks = [];
+    const props = shellProps(tree, {
+      grimoireId: "g1", notebookId: null, chapterId: null, pageId: null,
+    });
+    const { rerender } = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Novo caderno"), {
+      target: { value: "Novo caderno" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar caderno" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Novo caderno" }))
+        .toHaveAttribute("aria-current", "true"),
+    );
+    const refreshed = createTree();
+    refreshed.grimoires[0]!.notebooks = [{ ...createdNotebook, chapters: [] }];
+    rerender(<WorkspaceShell {...props} tree={refreshed} />);
+    expect(screen.getAllByRole("button", { name: "Novo caderno" })).toHaveLength(1);
+  });
+
+  test("does not duplicate a chapter after the server tree refreshes", async () => {
+    const tree = createTree();
+    tree.grimoires[0]!.notebooks![0]!.chapters = [];
+    const props = shellProps(tree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: null, pageId: null,
+    });
+    const { rerender } = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Novo capítulo"), {
+      target: { value: "Novo capítulo" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar capítulo" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Novo capítulo" }))
+        .toHaveAttribute("aria-current", "true"),
+    );
+    const refreshed = createTree();
+    refreshed.grimoires[0]!.notebooks![0]!.chapters = [{ ...createdChapter, pages: [] }];
+    rerender(<WorkspaceShell {...props} tree={refreshed} />);
+    expect(screen.getAllByRole("button", { name: "Novo capítulo" })).toHaveLength(1);
+  });
+
+  test("does not duplicate a page after the server tree refreshes", async () => {
+    const props = shellProps(createTree(), {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: null,
+    });
+    const { rerender } = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Nova página"), {
+      target: { value: "Nova página" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar página" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Nova página" }))
+        .toHaveAttribute("aria-current", "page"),
+    );
+    const refreshed = createTree();
+    refreshed.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [createdPage];
+    rerender(<WorkspaceShell {...props} tree={refreshed} />);
+    expect(screen.getAllByRole("button", { name: "Nova página" })).toHaveLength(1);
+    expect(screen.getByRole("article", { name: "Editor da página" })).toBeInTheDocument();
+  });
 });
