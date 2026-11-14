@@ -73,8 +73,10 @@ describe("SanctuaryContinueLearning", () => {
 
     expect(screen.getByRole("region", { name: "Próximo estudo" }))
       .toBeInTheDocument();
-    expect(screen.getByText(/Nenhum conteúdo disponível/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Explorar Grimórios" }))
+    expect(screen.getByText("Crie ou organize seu próximo estudo em um Grimório, ou escolha um material da sua biblioteca.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Criar ou organizar estudos" }))
+      .toHaveAttribute("href", "/workspace");
+    expect(screen.getByRole("link", { name: "Ver meus Grimórios" }))
       .toHaveAttribute("href", "/grimorios");
     expect(screen.queryByText(/Não foi possível carregar/i)).not.toBeInTheDocument();
   });
@@ -94,8 +96,10 @@ describe("SanctuaryContinueLearning", () => {
     );
     expect(screen.getByText(/Recarregue a página/i)).toBeInTheDocument();
 
-    expect(screen.queryByText(/Nenhum conteúdo disponível/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Explorar Grimórios" }))
+    expect(screen.queryByText(/Crie ou organize seu próximo estudo/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Criar ou organizar estudos" }))
+      .not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ver meus Grimórios" }))
       .not.toBeInTheDocument();
     expect(screen.queryByText(/DB connection failed/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/abc123|stack trace|digest/i)).not.toBeInTheDocument();

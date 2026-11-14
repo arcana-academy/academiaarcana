@@ -168,11 +168,11 @@ describe("Sanctuary", () => {
             />,
         );
 
-        expect(
-            screen.getByText(
-                "Nenhum conteúdo disponível para abrir no Santuário ainda. Explore seus Grimórios quando estiver pronto.",
-            ),
-        ).toBeTruthy();
+        expect(screen.getByText("Crie ou organize seu próximo estudo em um Grimório, ou escolha um material da sua biblioteca.")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Criar ou organizar estudos" }))
+            .toHaveAttribute("href", "/workspace");
+        expect(screen.getByRole("link", { name: "Ver meus Grimórios" }))
+            .toHaveAttribute("href", "/grimorios");
     });
 
     it("renders learning-source error distinctly from empty", () => {
@@ -205,7 +205,7 @@ describe("Sanctuary", () => {
             screen.getByText("Não foi possível carregar seu contexto de aprendizagem agora."),
         ).toBeInTheDocument();
         expect(
-            screen.queryByText(/Nenhum conteúdo disponível/i),
+            screen.queryByText(/Crie ou organize seu próximo estudo/i),
         ).not.toBeInTheDocument();
         expect(
             screen.queryByText(/internal database failure/i),
