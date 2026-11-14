@@ -111,10 +111,10 @@
   background: linear-gradient(170deg, #24182F, #100D18 62%);
   border-right: 1px solid rgb(185 157 120 / .28);
 }
-.aa-shell .aa-sidebar-brand { border-bottom: 1px solid rgb(185 157 120 / .2); padding-bottom: 1.2rem; }
+.aa-shell .aa-sidebar-brand { flex-direction: column; align-items: stretch; gap: .6rem; border-bottom: 1px solid rgb(185 157 120 / .2); padding-bottom: 1.2rem; }
 .aa-shell .aa-brand-kicker { color: #D2B08E; }
 .aa-shell .aa-brand-name { color: #EDE3D9; }
-.aa-shell .aa-sidebar-list { display: grid; gap: .2rem; margin: 0; padding: 0; list-style: none; overflow-y: auto; }
+.aa-shell .aa-sidebar-nav { display: grid; gap: .2rem; margin: 0; padding: 0; list-style: none; }
 .aa-shell .aa-sidebar nav { min-height: 0; overflow-y: auto; }
 .aa-shell .aa-sidebar-link { display: flex; align-items: center; gap: .8rem; min-height: 2.75rem; border: 1px solid transparent; border-radius: .55rem; padding: .55rem .75rem; color: #E2D6E7; text-decoration: none; }
 .aa-shell .aa-sidebar-link svg { flex: 0 0 auto; color: #DABF95; }
@@ -144,6 +144,7 @@
 .aa-shell .aa-sanctuary-sigil { border-color: #B99D78; box-shadow: 0 0 50px rgb(185 157 120 / .14); }
 .aa-shell .aa-sanctuary-command { grid-template-columns: minmax(0, 1.4fr) minmax(15rem, .6fr); }
 .aa-shell .aa-sanctuary-command-primary, .aa-shell .aa-sanctuary-command-secondary { border: 1px solid rgb(185 157 120 / .32); background: linear-gradient(140deg, #30223D, #1B1424); border-radius: .85rem; }
+.aa-shell .aa-sanctuary-first-actions { display: flex; flex-wrap: wrap; gap: .7rem; }
 .aa-sanctuary-shortcuts-header h2 { margin: .15rem 0 1rem; font: 500 clamp(1.35rem, 2.3vw, 1.9rem) Georgia, serif; }
 .aa-sanctuary-shortcuts-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
 .aa-sanctuary-shortcut {
@@ -166,7 +167,10 @@
 @media (max-width: 64rem) {
   .aa-shell { grid-template-columns: 5.5rem minmax(0, 1fr); }
   .aa-shell .aa-sidebar-link { justify-content: center; padding: .6rem; }
-  .aa-shell .aa-sidebar-link span { display: none; }
+  .aa-shell .aa-sidebar-link .aa-sidebar-link-copy { display: none; }
+  .aa-shell .aa-sidebar-brand { align-items: center; }
+  .aa-shell .aa-sidebar-flonts { padding: 0 !important; border: 0 !important; background: transparent !important; margin-top: .25rem !important; }
+  .aa-shell .aa-sidebar-flonts > span { display: none; }
   .aa-sidebar-motto { display: none; }
   .aa-shell .aa-sanctuary-command { grid-template-columns: 1fr; }
 }

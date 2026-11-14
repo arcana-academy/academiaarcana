@@ -163,6 +163,18 @@ describe("Practice to page progress and scheduling contracts", () => {
     expect(mocks.revalidateLearningViews).toHaveBeenCalledWith("practice-review-planned");
   });
 
+  it("rejects an invalid review date before accessing the database", async () => {
+    await expect(planPracticeReviewAction(form({
+      practiceItemId: item.id,
+      dueAt: "invalid-date",
+      title: "Revisar",
+    }))).rejects.toThrow("Data da revisão inválida.");
+
+    expect(mocks.createClient).not.toHaveBeenCalled();
+    expect(mocks.createStudyTask).not.toHaveBeenCalled();
+    expect(mocks.revalidateLearningViews).not.toHaveBeenCalled();
+  });
+
   it("does not refresh a nonexistent review task", async () => {
     mocks.createStudyTask.mockRejectedValue(new Error("task not created"));
 

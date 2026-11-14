@@ -164,6 +164,10 @@ export async function planPracticeReviewAction(formData: FormData) {
   if (!dueAtRaw) {
     throw new Error("A data da revisão é obrigatória.");
   }
+  const dueAt = new Date(dueAtRaw);
+  if (!Number.isFinite(dueAt.getTime())) {
+    throw new Error("Data da revisão inválida.");
+  }
 
   const supabase = await createClient();
   const repository = new SupabaseEducationalPracticeRepository(supabase);
@@ -176,7 +180,7 @@ export async function planPracticeReviewAction(formData: FormData) {
   await taskService.create({
     ownerId: claims.sub,
     title: title || `Revisar: ${item.prompt}`,
-    dueAt: new Date(dueAtRaw).toISOString(),
+    dueAt: dueAt.toISOString(),
   });
 
   revalidateLearningViews("practice-review-planned");

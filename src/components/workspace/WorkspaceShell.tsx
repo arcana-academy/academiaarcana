@@ -87,6 +87,15 @@ function findWorkspaceTitle(
   return "Workspace";
 }
 
+/** Avoid duplicated items when the server tree refreshes after a successful creation. */
+function mergePersistedAndCreated<T extends { id: string }>(
+  persisted: T[],
+  created: T[],
+): T[] {
+  const existingIds = new Set(persisted.map((item) => item.id));
+  return [...persisted, ...created.filter((item) => !existingIds.has(item.id))];
+}
+
 /** Manage Workspace selection and saved page state on the client. */
 export function WorkspaceShell({
   tree,
@@ -153,32 +162,29 @@ export function WorkspaceShell({
   }, [state.pageId, deletedPageIds]);
 
   const workspaceTree = useMemo<WorkspaceTree>(() => ({
-    grimoires: [
-      ...tree.grimoires,
-      ...createdGrimoires,
-    ].map((grimoire) => ({
+    grimoires: mergePersistedAndCreated(tree.grimoires, createdGrimoires).map((grimoire) => ({
       ...grimoire,
       title: renamedGrimoires[grimoire.id] ?? grimoire.title,
-      notebooks: [
-        ...(grimoire.notebooks ?? []),
-        ...(createdNotebooks[grimoire.id] ?? []),
-      ]
+      notebooks: mergePersistedAndCreated(
+        grimoire.notebooks ?? [],
+        createdNotebooks[grimoire.id] ?? [],
+      )
         .sort((left, right) => left.position - right.position)
         .map((notebook) => ({
         ...notebook,
         title: renamedNotebooks[notebook.id] ?? notebook.title,
-        chapters: [
-          ...(notebook.chapters ?? []),
-          ...(createdChapters[notebook.id] ?? []),
-        ]
+        chapters: mergePersistedAndCreated(
+          notebook.chapters ?? [],
+          createdChapters[notebook.id] ?? [],
+        )
           .sort((left, right) => left.position - right.position)
           .map((chapter) => ({
           ...chapter,
           title: renamedChapters[chapter.id] ?? chapter.title,
-          pages: [
-            ...(chapter.pages ?? []),
-            ...(createdPages[chapter.id] ?? []),
-          ]
+          pages: mergePersistedAndCreated(
+            chapter.pages ?? [],
+            createdPages[chapter.id] ?? [],
+          )
             .map((page) => pages[page.id] ?? page)
             .filter((page) => !deletedPageIds.includes(page.id))
             .sort(

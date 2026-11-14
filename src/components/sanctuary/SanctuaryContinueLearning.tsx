@@ -37,10 +37,13 @@ export function SanctuaryContinueLearning({ continueLearning }: SanctuaryContinu
         <h2 id="sanctuary-continue-learning" className="aa-visually-hidden">
           Próximo estudo
         </h2>
-        <p>Nenhum conteúdo disponível para abrir no Santuário ainda. Explore seus Grimórios quando estiver pronto.</p>
-        <div className="aa-sanctuary-hero-action">
+        <p>Crie ou organize seu próximo estudo em um Grimório, ou escolha um material da sua biblioteca.</p>
+        <div className="aa-sanctuary-hero-action aa-sanctuary-first-actions">
+          <Link className="aa-button aa-button-primary" href="/workspace">
+            Criar ou organizar estudos
+          </Link>
           <Link className="aa-button aa-button-secondary" href="/grimorios">
-            Explorar Grimórios
+            Ver meus Grimórios
           </Link>
         </div>
       </section>
