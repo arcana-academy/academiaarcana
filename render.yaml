@@ -28,6 +28,9 @@ services:
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
         sync: false
+      # Public sitekey only; never commit or inject the private hCaptcha secret.
+      - key: NEXT_PUBLIC_HCAPTCHA_SITEKEY
+        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_AGENT_MODEL
