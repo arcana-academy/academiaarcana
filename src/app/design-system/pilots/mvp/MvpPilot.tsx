@@ -170,6 +170,45 @@ function MvpHero({ section, label }: { section: Section; label: string }) {
           </section>);
 }
 
+type MvpMainProps = DemoSectionProps & {
+  active: (typeof SECTIONS)[number];
+  isolated: boolean;
+};
+
+/** Discloses that the current preview uses only synthetic browser-tab state. */
+function MvpStatus({ isolated, href }: { isolated: boolean; href: string }) {
+  return (<div className={styles.status} role="status">{isolated
+            ? "Demonstração pessoal com dados fictícios. O progresso fica somente nesta aba do navegador; nada é enviado ao servidor. Não é uma conta de estudante."
+            : <>Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={href}>Acessar o módulo real (requer login)</Link>.</>}</div>);
+}
+
+/** Preserves the existing semantic main landmark, hero, sections, and footer. */
+function MvpMain({
+  section, state, progress, pending, selectedPage, selectedPageId,
+  setSelectedPageId, taskTitle, setTaskTitle, setState, taskAction, go, openPage,
+  active, isolated,
+}: MvpMainProps) {
+  return (<main id="mvp-content" className={styles.main}>
+        <header className={styles.topbar}>
+          <div><p className="aa-eyebrow">Academia Arcana · MVP</p><span className={styles.crumb}>Sua jornada / {active.label}</span></div>
+          <span className="aa-badge aa-badge-warning">Dados sintéticos</span>
+        </header>
+        <div className={styles.content}>
+          <MvpHero section={section} label={active.label} />
+          <MvpStatus isolated={isolated} href={active.realHref} />
+
+          <DemoSectionContent
+            section={section} state={state} progress={progress} pending={pending}
+            selectedPage={selectedPage} selectedPageId={selectedPageId}
+            setSelectedPageId={setSelectedPageId} taskTitle={taskTitle}
+            setTaskTitle={setTaskTitle} setState={setState} taskAction={taskAction}
+            go={go} openPage={openPage}
+          />
+        </div>
+        <footer className={styles.footer}>Academia Arcana · {isolated ? "demonstração isolada" : "piloto de desenvolvimento"} com dados sintéticos · sem integração produtiva · Seu caminho, seu ritmo, suas descobertas.</footer>
+      </main>);
+}
+
 /** Renders the existing synthetic MVP journey without any real application backend. */
 export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
   const [section, setSection] = useState<Section>("santuario");
@@ -197,27 +236,12 @@ export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
     <div className={styles.root} data-testid="mvp-pilot" data-demo="synthetic-only">
       <a className={styles.skip} href="#mvp-content">Ir para conteúdo</a>
       <MvpSidebar section={section} isolated={isolated} go={go} />
-      <main id="mvp-content" className={styles.main}>
-        <header className={styles.topbar}>
-          <div><p className="aa-eyebrow">Academia Arcana · MVP</p><span className={styles.crumb}>Sua jornada / {active.label}</span></div>
-          <span className="aa-badge aa-badge-warning">Dados sintéticos</span>
-        </header>
-        <div className={styles.content}>
-          <MvpHero section={section} label={active.label} />
-          <div className={styles.status} role="status">{isolated
-            ? "Demonstração pessoal com dados fictícios. O progresso fica somente nesta aba do navegador; nada é enviado ao servidor. Não é uma conta de estudante."
-            : <>Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</>}</div>
-
-          <DemoSectionContent
-            section={section} state={state} progress={progress} pending={pending}
-            selectedPage={selectedPage} selectedPageId={selectedPageId}
-            setSelectedPageId={setSelectedPageId} taskTitle={taskTitle}
-            setTaskTitle={setTaskTitle} setState={setState} taskAction={taskAction}
-            go={go} openPage={openPage}
-          />
-        </div>
-        <footer className={styles.footer}>Academia Arcana · {isolated ? "demonstração isolada" : "piloto de desenvolvimento"} com dados sintéticos · sem integração produtiva · Seu caminho, seu ritmo, suas descobertas.</footer>
-      </main>
+      <MvpMain section={section} state={state} progress={progress} pending={pending}
+        selectedPage={selectedPage} selectedPageId={selectedPageId}
+        setSelectedPageId={setSelectedPageId} taskTitle={taskTitle}
+        setTaskTitle={setTaskTitle} setState={setState} taskAction={taskAction}
+        go={go} openPage={openPage} active={active} isolated={isolated}
+      />
     </div>
   );
 }
