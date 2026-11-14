@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const { describe, it } = require("node:test");
 const { spawnSync } = require("node:child_process");
 const path = require("node:path");
+const { readFileSync } = require("node:fs");
 const { declaredBuildCommand, verifyLiveBuildContract } = require("./verify-render-live-build-536.cjs");
 
 const canonical = "node scripts/security/assert-build-secret-isolation-536.cjs && node scripts/verify-dependency-lifecycle-scripts.cjs && npm ci --ignore-scripts && npm rebuild unrs-resolver --ignore-scripts=false && npm run build";
@@ -47,6 +48,21 @@ describe("P0 #536: actual Render build contract vs versioned blueprint", () => {
   it("rejects unexpected added shell steps or a different dependency rebuild", () => {
     rejects(() => verifyLiveBuildContract(service(canonical + " && echo unsafe"), yaml()));
     rejects(() => verifyLiveBuildContract(service(observed), yaml(observed)));
+  });
+
+  it("rejects the isolated extra esbuild rebuild in live service metadata", () => {
+    const changedRebuildOnly = canonical.replace(
+      "npm rebuild unrs-resolver --ignore-scripts=false",
+      "npm rebuild esbuild unrs-resolver --ignore-scripts=false",
+    );
+    assert.notEqual(changedRebuildOnly, canonical);
+    rejects(() => verifyLiveBuildContract(service(changedRebuildOnly), yaml()));
+  });
+
+  it("accepts the exact checked-in render.yaml contract with synthetic matching service metadata", () => {
+    const realBlueprint = readFileSync(path.join(__dirname, "../../render.yaml"), "utf8");
+    assert.equal(declaredBuildCommand(realBlueprint), canonical);
+    assert.equal(verifyLiveBuildContract(service(canonical), realBlueprint), true);
   });
 
   it("requires the release freeze in both metadata and the blueprint", () => {
