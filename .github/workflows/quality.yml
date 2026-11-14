@@ -132,7 +132,7 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://abcdefghijklmnopqrst.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_AAAAAAAAAA_BBBBBBBBBBB_CCCCCCCC' }}
-          NEXT_PUBLIC_HCAPTCHA_SITEKEY: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/work/aa-site-auth-integrated-qa-20261114') && 'aa-ci-hcaptcha-public-synthetic-only' || vars.NEXT_PUBLIC_HCAPTCHA_SITEKEY || '' }}
+          NEXT_PUBLIC_HCAPTCHA_SITEKEY: ${{ (github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/work/aa-')) && 'aa-ci-hcaptcha-public-synthetic-only' || vars.NEXT_PUBLIC_HCAPTCHA_SITEKEY || '' }}
           NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'https://academiaarcana.onrender.com' }}
           NEXT_PUBLIC_ADOBE_FONTS_KIT_ID: ${{ vars.NEXT_PUBLIC_ADOBE_FONTS_KIT_ID }}
           NEXT_PUBLIC_HONEYBADGER_API_KEY: ${{ vars.NEXT_PUBLIC_HONEYBADGER_API_KEY }}
@@ -151,7 +151,7 @@ jobs:
             --tag "academiaarcana:$ACADEMIA_ARCANA_REVISION" .
 
       - name: Verify isolated synthetic hCaptcha sitekey in browser build
-        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/work/aa-site-auth-integrated-qa-20261114'
+        if: github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/work/aa-')
         run: |
           docker run --rm --entrypoint node "academiaarcana:${GITHUB_SHA}" -e '
             const fs = require("node:fs");
