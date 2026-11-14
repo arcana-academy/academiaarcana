@@ -81,7 +81,7 @@ function DemoSectionContent({
   section, state, progress, pending, selectedPage, selectedPageId,
   setSelectedPageId, taskTitle, setTaskTitle, setState, taskAction, go, openPage,
 }: DemoSectionProps) {
-  const views: Record<Section, React.ReactNode> = {
+  const views: Record<Section, React.ReactElement> = {
     santuario: (<>
             <div className={styles.metrics}>
               <article className={styles.metric}><span>Tarefas concluídas</span><strong>{progress.doneTasks} / {progress.totalTasks}</strong></article>
@@ -103,7 +103,7 @@ function DemoSectionContent({
     cronograma: (<section className={styles.panel} aria-labelledby="schedule-title"><p className="aa-eyebrow">Planejamento · ritmo</p><h2 id="schedule-title">Cronograma</h2><p>Crie e conclua tarefas nesta demonstração. Nada é enviado ao Supabase ou a integrações externas.</p><form className={styles.taskForm} onSubmit={taskAction}><label htmlFor="mvp-task">Nova tarefa</label><input className="aa-input" id="mvp-task" maxLength={120} required placeholder="Ex.: Revisar uma página" value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)}/><button type="submit" className="aa-button aa-button-primary" disabled={!taskTitle.trim()}>Adicionar tarefa</button></form><ul className={styles.cleanList}>{state.tasks.map((task) => <li className={styles.taskRow} key={task.id}><span className={task.done ? styles.taskDone : undefined}>{task.title}</span>{task.done ? <span className="aa-badge aa-badge-success">Concluída</span> : <button className="aa-button aa-button-secondary aa-button-sm" onClick={() => setState((previous) => completeDemoTask(previous, task.id))}>Concluir</button>}</li>)}</ul></section>),
     perfil: (<section className={styles.panel} aria-labelledby="profile-title"><p className="aa-eyebrow">Identidade de demonstração</p><h2 id="profile-title">Perfil</h2><div className={styles.profile}><div className={styles.avatar} aria-hidden="true">✧</div><div><h3>Aprendiz Arcano</h3><p>Perfil fictício · nenhuma conta criada</p><p>{progress.pages} páginas estudadas · {progress.doneTasks} tarefas concluídas</p></div></div><button className="aa-button aa-button-secondary" onClick={() => { setState(initialDemoState); setTaskTitle(""); }}> <RotateCcw size={16} aria-hidden="true" /> Reiniciar demonstração</button></section>),
   };
-  return <>{views[section]}</>;
+  return views[section];
 }
 
 /** Provides the official eight-section navigation for the isolated pilot. */
@@ -140,9 +140,8 @@ function MvpSidebar({
       </aside>);
 }
 
-/** Renders the existing synthetic MVP journey without any real application backend. */
-export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
-  const [section, setSection] = useState<Section>("santuario");
+/** Keeps synthetic session state isolated to one browser tab, never a backend. */
+function useMvpDemoState(isolated: boolean): [DemoState, Dispatch<SetStateAction<DemoState>>] {
   const [inMemoryState, setInMemoryState] = useState<DemoState>(initialDemoState);
   const rawDemo = useSyncExternalStore(subscribeDemoStore, getBrowserDemoRaw, getServerDemoRaw);
   const state = isolated ? parseDemoState(rawDemo) : inMemoryState;
@@ -156,6 +155,25 @@ export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
     const nextState = typeof value === "function" ? value(previous) : value;
     writeDemoState(nextState);
   };
+  return [state, setState];
+}
+
+/** Displays the original hero copy and visual mark without changing semantics. */
+function MvpHero({ section, label }: { section: Section; label: string }) {
+  return (<section className={styles.hero} aria-labelledby="mvp-title">
+            <div>
+              <p className="aa-eyebrow">✧ Caminhos do conhecimento</p>
+              <h1 id="mvp-title">{section === "santuario" ? "Seu Santuário de estudos" : active.label}</h1>
+              <p>Uma jornada no seu ritmo. Progresso sem pressão, conhecimento com propósito.</p>
+            </div>
+            <div className={styles.heroMark} aria-hidden="true">✦</div>
+          </section>);
+}
+
+/** Renders the existing synthetic MVP journey without any real application backend. */
+export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
+  const [section, setSection] = useState<Section>("santuario");
+  const [state, setState] = useMvpDemoState(isolated);
   const [taskTitle, setTaskTitle] = useState("");
   const [selectedPageId, setSelectedPageId] = useState<string>(DEMO_PAGES[0].id);
 
@@ -185,14 +203,7 @@ export function MvpPilot({ isolated = false }: { isolated?: boolean }) {
           <span className="aa-badge aa-badge-warning">Dados sintéticos</span>
         </header>
         <div className={styles.content}>
-          <section className={styles.hero} aria-labelledby="mvp-title">
-            <div>
-              <p className="aa-eyebrow">✧ Caminhos do conhecimento</p>
-              <h1 id="mvp-title">{section === "santuario" ? "Seu Santuário de estudos" : active.label}</h1>
-              <p>Uma jornada no seu ritmo. Progresso sem pressão, conhecimento com propósito.</p>
-            </div>
-            <div className={styles.heroMark} aria-hidden="true">✦</div>
-          </section>
+          <MvpHero section={section} label={active.label} />
           <div className={styles.status} role="status">{isolated
             ? "Demonstração pessoal com dados fictícios. O progresso fica somente nesta aba do navegador; nada é enviado ao servidor. Não é uma conta de estudante."
             : <>Este é um piloto interativo com dados fictícios em memória; ao atualizar a página, a demonstração reinicia. <Link href={active.realHref}>Acessar o módulo real (requer login)</Link>.</>}</div>

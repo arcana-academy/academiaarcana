@@ -94,9 +94,9 @@ jobs:
           console.log("Isolated no-secret smoke: health 200, access 503, protected routes 404.");
           NODE
           # The following value is a PUBLIC synthetic CI fixture, not a Render credential.
-          sudo install -d -m 700 /etc/secrets
-          printf '%s' 'ci-public-synthetic-gate-fixture-arcana-2026' | sudo tee /etc/secrets/AA_DEMO_GATE >/dev/null
-          sudo chmod 600 /etc/secrets/AA_DEMO_GATE
+          sudo install -d -m 700 -o "$(id -u)" -g "$(id -g)" /etc/secrets
+          printf '%s' 'ci-public-synthetic-gate-fixture-arcana-2026' > /etc/secrets/AA_DEMO_GATE
+          chmod 600 /etc/secrets/AA_DEMO_GATE
           node --input-type=module <<'NODE'
           const base = "http://127.0.0.1:3179";
           const demo = "/design-system/pilots/mvp";

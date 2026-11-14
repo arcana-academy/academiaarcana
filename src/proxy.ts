@@ -53,16 +53,9 @@ function resolvePathname(request: NextRequest): string {
   }
 }
 
-/** Denies all real routes and requires a runtime-only secret for this synthetic preview. */
-function handleIsolatedPreview(
-  request: NextRequest,
-  pathname: string,
-  requestHeaders: Headers,
-): NextResponse {
+/** Checks the runtime-only credential after route and health isolation. */
+function handleRestrictedDemo(request: NextRequest, pathname: string, requestHeaders: Headers): NextResponse {
   const noCache = { "Cache-Control": "private, no-store" };
-  if (pathname === "/api/health") return NextResponse.next({ request: { headers: requestHeaders } });
-  if (!isAllowedDemoPath(pathname)) return new NextResponse(null, { status: 404, headers: noCache });
-
   const expected = readDemoAccessCode();
   if (expected === null) {
     return new NextResponse("Demo indisponível: credencial runtime ausente.", { status: 503, headers: noCache });
@@ -75,6 +68,18 @@ function handleIsolatedPreview(
   }
   if (pathname === "/") return NextResponse.redirect(new URL("/design-system/pilots/mvp", request.url));
   return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
+/** Denies all real routes and requires a runtime-only secret for this synthetic preview. */
+function handleIsolatedPreview(
+  request: NextRequest,
+  pathname: string,
+  requestHeaders: Headers,
+): NextResponse {
+  const noCache = { "Cache-Control": "private, no-store" };
+  if (pathname === "/api/health") return NextResponse.next({ request: { headers: requestHeaders } });
+  if (!isAllowedDemoPath(pathname)) return new NextResponse(null, { status: 404, headers: noCache });
+  return handleRestrictedDemo(request, pathname, requestHeaders);
 }
 
 /** Preserves the official CSP, nonce and session controls on regular deployments. */
