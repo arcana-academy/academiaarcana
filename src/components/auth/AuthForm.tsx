@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useId, useState } from "react";
+import { FormEvent, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/client";
+import { HCaptchaChallenge, type HCaptchaChallengeHandle } from "./HCaptchaChallenge";
 
 type AuthMode = "login" | "signup" | "recover" | "update-password";
 
@@ -39,6 +40,16 @@ export function AuthForm({ mode }: AuthFormProps) {
   const emailId = useId();
   const passwordId = useId();
   const confirmPasswordId = useId();
+  const captchaRef = useRef<HCaptchaChallengeHandle>(null);
+  // This is a *public* hCaptcha sitekey; never use the private provider secret here.
+  const captchaSitekey = process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY?.trim() ?? "";
+  // Production must not silently bypass a CAPTCHA required by Supabase Auth.
+  // Non-production environments without a sitekey retain their existing test behavior.
+  const captchaRequired =
+    mode !== "update-password" &&
+    (process.env.NODE_ENV === "production" || Boolean(captchaSitekey));
+  const captchaEnabled = Boolean(captchaSitekey) && mode !== "update-password";
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,6 +60,20 @@ export function AuthForm({ mode }: AuthFormProps) {
   >("idle");
   const [message, setMessage] = useState("");
 
+  function requireCaptcha(): boolean {
+    if (captchaRequired && !captchaSitekey) {
+      setStatus("error");
+      setMessage("A verificação de segurança está indisponível. Tente novamente mais tarde.");
+      return false;
+    }
+    if (captchaRequired && !captchaToken) {
+      setStatus("error");
+      setMessage("Conclua a verificação de segurança para continuar.");
+      return false;
+    }
+    return true;
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("loading");
@@ -58,8 +83,10 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     try {
       if (mode === "recover") {
+        if (!requireCaptcha()) return;
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth/callback?next=/redefinir-senha`,
+          ...(captchaEnabled ? { captchaToken: captchaToken! } : {}),
         });
 
         if (error) {
@@ -110,11 +137,14 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
+        if (!requireCaptcha()) return;
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
+            ...(captchaEnabled ? { captchaToken: captchaToken! } : {}),
           },
         });
 
@@ -135,9 +165,12 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
+      if (!requireCaptcha()) return;
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        ...(captchaEnabled ? { options: { captchaToken: captchaToken! } } : {}),
       });
 
       if (error) {
@@ -150,6 +183,12 @@ export function AuthForm({ mode }: AuthFormProps) {
     } catch {
       setStatus("error");
       setMessage(GENERIC_AUTH_ERROR);
+    } finally {
+      // A hCaptcha token is one-time use; never reuse it after a request.
+      if (captchaEnabled) {
+        setCaptchaToken(null);
+        captchaRef.current?.reset();
+      }
     }
   }
 
@@ -244,6 +283,15 @@ export function AuthForm({ mode }: AuthFormProps) {
             />
           </div>
         )}
+
+        {captchaEnabled ? (
+          <HCaptchaChallenge
+            key={mode}
+            ref={captchaRef}
+            sitekey={captchaSitekey}
+            onTokenChange={setCaptchaToken}
+          />
+        ) : null}
 
         {message && (
           <p role="alert" aria-live="polite">
