@@ -125,6 +125,53 @@ class PublicMetadataTests(unittest.TestCase):
                 m, c = sample(env=[f"{name}=SYNTHETIC-DO-NOT-PRINT"])
                 self.assertRejected(m, c)
 
+    def test_rf01_database_connection_names_are_rejected(self):
+        # Stay aligned with the canonical JS build-secret guard.
+        for name in (
+            "POSTGRES_URL", "POSTGRESQL_URI", "REDIS_URL", "REDIS_DSN",
+            "MONGO_URI", "MONGODB_URI", "MYSQL_DSN",
+            "MARIADB_CONNECTION_STRING", "DATABASE_URI", "DB_DSN",
+            "NEXT_PUBLIC_REDIS_URL", "SOME_POSTGRES_URL_SECONDARY",
+        ):
+            with self.subTest(name=name):
+                m, c = sample(env=[f"{name}=SYNTHETIC-DO-NOT-PRINT"])
+                self.assertRejected(m, c)
+
+    def test_rf02_accepts_known_distributable_oci_docker_layer_types(self):
+        for layer_type in (
+            "application/vnd.docker.image.rootfs.diff.tar.gzip",
+            "application/vnd.oci.image.layer.v1.tar",
+            "application/vnd.oci.image.layer.v1.tar+gzip",
+            "application/vnd.oci.image.layer.v1.tar+zstd",
+        ):
+            with self.subTest(layer_type=layer_type):
+                m, c = sample()
+                m["layers"][0]["mediaType"] = layer_type
+                self.assertEqual(
+                    GUARD.verify(packed(m), c, digest(packed(m)))["result"], "PASS"
+                )
+
+    def test_rf02_rejects_unknown_and_non_distributable_layer_types(self):
+        for layer_type in (
+            "application/octet-stream",
+            "application/x-unknown",
+            "application/vnd.docker.image.rootfs.foreign.diff.tar.gzip",
+            "application/vnd.oci.image.layer.nondistributable.v1.tar+gzip",
+            "application/vnd.oci.image.layer.nondistributable.v1.tar",
+            "",
+            7,
+            None,
+        ):
+            with self.subTest(layer_type=layer_type):
+                m, c = sample()
+                m["layers"][0]["mediaType"] = layer_type
+                self.assertRejected(m, c)
+
+    def test_rf02_rejects_mixed_valid_and_invalid_layer_media_types(self):
+        m, c = sample(layers=[b"valid-one", b"synthetic-two"])
+        m["layers"][1]["mediaType"] = "application/x-invalid"
+        self.assertRejected(m, c)
+
     def test_duplicate_environment_keys(self):
         m, c = sample(env=["NODE_ENV=production", "NODE_ENV=test"])
         self.assertRejected(m, c)

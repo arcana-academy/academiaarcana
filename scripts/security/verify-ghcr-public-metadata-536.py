@@ -18,7 +18,9 @@ SENSITIVE_NAME = re.compile(
     r"(?:^|_)(?:API_KEY|ACCESS_TOKEN|REFRESH_TOKEN|CLIENT_SECRET|SECRET_KEY|"
     r"PRIVATE_KEY|SIGNING_KEY|SERVICE_ROLE_KEY|DATABASE_URL|DATABASE_PASSWORD|"
     r"DB_URL|DB_PASSWORD|ACCESS_KEY_ID|PGPASSWORD|PGPASSFILE|MYSQL_PWD|"
-    r"CONNECTION_STRING|PASSWORD|TOKEN|SECRET|CREDENTIALS?|DEPLOY_HOOK_URL)"
+    r"CONNECTION_STRING|(?:POSTGRES(?:QL)?|REDIS|MONGO(?:DB)?|MYSQL|"
+    r"MARIADB|DATABASE|DB)_(?:URL|URI|CONNECTION_STRING|DSN)|"
+    r"PASSWORD|TOKEN|SECRET|CREDENTIALS?|DEPLOY_HOOK_URL)"
     r"(?:$|_)",
     re.IGNORECASE,
 )
@@ -33,6 +35,13 @@ MANIFEST_TYPES = frozenset({
 CONFIG_TYPES = frozenset({
     "application/vnd.docker.container.image.v1+json",
     "application/vnd.oci.image.config.v1+json",
+})
+# Offline backup preflight: intentionally reject foreign/nondistributable layers.
+LAYER_TYPES = frozenset({
+    "application/vnd.docker.image.rootfs.diff.tar.gzip",
+    "application/vnd.oci.image.layer.v1.tar",
+    "application/vnd.oci.image.layer.v1.tar+gzip",
+    "application/vnd.oci.image.layer.v1.tar+zstd",
 })
 MAX_METADATA_BYTES = 2 * 1024 * 1024
 MAX_LAYER_COUNT = 100
@@ -103,7 +112,7 @@ def verify(manifest_bytes: bytes, config_bytes: bytes, expected_digest: str) -> 
     seen = {config_digest}
     declared_bytes = config_size
     for layer in layers:
-        layer_digest, layer_size = descriptor(layer)
+        layer_digest, layer_size = descriptor(layer, LAYER_TYPES)
         require(layer_digest not in seen)
         seen.add(layer_digest)
         declared_bytes += layer_size
