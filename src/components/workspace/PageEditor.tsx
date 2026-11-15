@@ -310,7 +310,18 @@ function getSaveLabel(status: PageSaveState): string {
   return status === "saving" ? "Salvando…" : "Salvar página";
 }
 
+export type WorkspaceDraftState = {
+  pageId: string;
+  title: string;
+  content: PageContent;
+  revision: number;
+  dirty: boolean;
+  saving: boolean;
+};
+
 type PageEditorProps = {
+  initialDraft?: WorkspaceDraftState | null;
+  onDraftStateChange?: (snapshot: WorkspaceDraftState) => void;
   page: Page;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -328,6 +339,8 @@ type PageEditorProps = {
 /** Edit and persist the currently selected learning page. */
 export function PageEditor({
   page,
+  initialDraft,
+  onDraftStateChange,
   canMoveUp,
   canMoveDown,
   onMove,
@@ -336,14 +349,19 @@ export function PageEditor({
   progressStatus = "not-started",
   onSetProgress = async () => undefined,
 }: PageEditorProps) {
-  const [title, setTitle] = useState(page.title);
-  const [content, setContent] = useState(page.content);
-  const [status, setStatus] = useState<PageSaveState>("idle");
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const restored = initialDraft?.pageId === page.id ? initialDraft : null;
+  const [title, setTitle] = useState(restored?.title ?? page.title);
+  const [content, setContent] = useState(restored?.content ?? page.content);
+  const [status, setStatus] = useState<PageSaveState>(restored?.saving ? "saving" : "idle");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(restored?.dirty ?? false);
   const [starter, setStarter] = useState<PageStarterTemplate>("blank");
-  const editRevision = useRef(0);
+  const editRevision = useRef(restored?.revision ?? 0);
+  const titleValue = useRef(title);
+  const contentValue = useRef(content);
+  const dirtyValue = useRef(restored?.dirty ?? false);
+  const savingValue = useRef(restored?.saving ?? false);
   const [blockKeys, setBlockKeys] = useState(() =>
-    page.content.blocks.map((_, index) => `${page.id}:block:${index}`),
+    (restored?.content ?? page.content).blocks.map((_, index) => page.id + ":block:" + index),
   );
   const [isMoving, setIsMoving] = useState(false);
   const [moveError, setMoveError] = useState<string | null>(null);
@@ -353,6 +371,46 @@ export function PageEditor({
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
   const [areStrategiesOpen, setAreStrategiesOpen] = useState(false);
+
+  /** Publish draft revisions before navigation can unmount the editor. */
+  const publishDraft = () => {
+    onDraftStateChange?.({
+      pageId: page.id,
+      title: titleValue.current,
+      content: contentValue.current,
+      revision: editRevision.current,
+      dirty: dirtyValue.current,
+      saving: savingValue.current,
+    });
+  };
+
+  /** Recover newer in-memory edits after server revalidation/remount. */
+  useEffect(() => {
+    if (!initialDraft || initialDraft.pageId !== page.id) {
+      if (savingValue.current && initialDraft === null) {
+        savingValue.current = false;
+        dirtyValue.current = false;
+        setHasUnsavedChanges(false);
+        setStatus("saved");
+      }
+      return;
+    }
+    if (initialDraft.revision > editRevision.current ||
+        (editRevision.current === 0 && !dirtyValue.current && initialDraft.dirty)) {
+      editRevision.current = initialDraft.revision;
+      titleValue.current = initialDraft.title;
+      contentValue.current = initialDraft.content;
+      dirtyValue.current = initialDraft.dirty;
+      setTitle(initialDraft.title);
+      setContent(initialDraft.content);
+      setBlockKeys(initialDraft.content.blocks.map((_, index) => page.id + ":restored:" + index));
+      setHasUnsavedChanges(initialDraft.dirty);
+    }
+    if (savingValue.current !== initialDraft.saving) {
+      savingValue.current = initialDraft.saving;
+      setStatus(initialDraft.saving ? "saving" : initialDraft.dirty ? "error" : "saved");
+    }
+  }, [initialDraft, page.id]);
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -375,18 +433,22 @@ export function PageEditor({
   /** Keep block edits local until the authenticated save confirms persistence. */
   const updateBlock = (index: number, changes: Partial<PageBlock>) => {
     editRevision.current += 1;
-    setHasUnsavedChanges(true);
-    setContent((current) => ({
-      ...current,
-      blocks: current.blocks.map((block, position) =>
+    const nextContent = {
+      ...contentValue.current,
+      blocks: contentValue.current.blocks.map((block, position) =>
         position === index
           ? changes.type && changes.type !== block.type
             ? { ...retagBlockPreservingAuthoredDescription(block, changes.type), ...changes }
             : { ...block, ...changes }
           : block,
       ),
-    }));
+    };
+    contentValue.current = nextContent;
+    dirtyValue.current = true;
+    setContent(nextContent);
+    setHasUnsavedChanges(true);
     setStatus((current) => current === "saving" ? current : "idle");
+    publishDraft();
   };
 
   const updateAccessibility = (
@@ -394,16 +456,20 @@ export function PageEditor({
     changes: NonNullable<PageBlock["accessibility"]>,
   ) => {
     editRevision.current += 1;
-    setHasUnsavedChanges(true);
-    setContent((current) => ({
-      ...current,
-      blocks: current.blocks.map((block, position) =>
+    const nextContent = {
+      ...contentValue.current,
+      blocks: contentValue.current.blocks.map((block, position) =>
         position === index
           ? { ...block, accessibility: { ...block.accessibility, ...changes } }
           : block,
       ),
-    }));
+    };
+    contentValue.current = nextContent;
+    dirtyValue.current = true;
+    setContent(nextContent);
+    setHasUnsavedChanges(true);
     setStatus((current) => current === "saving" ? current : "idle");
+    publishDraft();
   };
 
   /** Only persist progress for saved page content, never for an uncommitted draft. */
@@ -425,56 +491,69 @@ export function PageEditor({
 
   /** Save the current editor state through the authenticated server action. */
   const save = async () => {
+    if (savingValue.current) return;
+    savingValue.current = true;
     setStatus("saving");
+    publishDraft();
     const revisionAtSave = editRevision.current;
 
     try {
       const saved = await onSave({
         id: page.id,
-        title,
-        content,
+        title: titleValue.current,
+        content: contentValue.current,
       });
-
+      savingValue.current = false;
       if (editRevision.current === revisionAtSave) {
+        titleValue.current = saved.title;
+        contentValue.current = saved.content;
+        dirtyValue.current = false;
         setTitle(saved.title);
         setContent(saved.content);
         setHasUnsavedChanges(false);
         setStatus("saved");
       } else {
-        // The user continued editing: never replace newer local text with an
-        // older server response or falsely mark the new draft as saved.
+        dirtyValue.current = true;
         setStatus("idle");
       }
+      publishDraft();
     } catch {
+      savingValue.current = false;
+      dirtyValue.current = true;
+      setHasUnsavedChanges(true);
       setStatus("error");
+      publishDraft();
     }
   };
 
   /** Add a new paragraph block and generate its stable local key. */
   const addBlock = () => {
     editRevision.current += 1;
-    setStatus((current) => current === "saving" ? current : "idle");
-    setContent({
-      ...content,
-      blocks: [...content.blocks, { type: "paragraph", content: "" }],
-    });
-    setBlockKeys((current) => [
-      ...current,
-      `${page.id}:block:${current.length}`,
-    ]);
+    const nextContent = {
+      ...contentValue.current,
+      blocks: [...contentValue.current.blocks, { type: "paragraph", content: "" }],
+    };
+    contentValue.current = nextContent;
+    dirtyValue.current = true;
+    setContent(nextContent);
+    setBlockKeys((current) => [...current, page.id + ":block:" + current.length]);
     setHasUnsavedChanges(true);
-    setStatus("idle");
+    setStatus((current) => current === "saving" ? current : "idle");
+    publishDraft();
   };
 
   /** Templates never overwrite authored blocks or save without confirmation. */
   const applyStarter = () => {
     if (status === "saving" || !canApplyStarterTemplate(content)) return;
     editRevision.current += 1;
-    setHasUnsavedChanges(true);
     const nextContent = buildStarterTemplate(starter);
+    contentValue.current = nextContent;
+    dirtyValue.current = true;
     setContent(nextContent);
+    setHasUnsavedChanges(true);
     setBlockKeys(nextContent.blocks.map((_, index) => page.id + ":template:" + index));
     setStatus((current) => current === "saving" ? current : "idle");
+    publishDraft();
   };
 
   if (areStrategiesOpen) {
@@ -518,9 +597,12 @@ export function PageEditor({
         value={title}
         onChange={(event) => {
           editRevision.current += 1;
+          titleValue.current = event.target.value;
+          dirtyValue.current = true;
           setHasUnsavedChanges(true);
           setTitle(event.target.value);
           setStatus((current) => current === "saving" ? current : "idle");
+          publishDraft();
         }}
       />
 

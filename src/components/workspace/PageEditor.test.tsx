@@ -31,6 +31,38 @@ type SaveInput = {
 };
 
 describe("PageEditor", () => {
+  test("publishes a draft revision and clears it only after confirmed persistence", async () => {
+    const onDraftStateChange = vi.fn();
+    const onSave = vi.fn(async (input: SaveInput) => ({ ...page, ...input }));
+    render(<PageEditor {...movementProps} page={page}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave}
+      onDraftStateChange={onDraftStateChange} />);
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Rascunho protegido" },
+    });
+    expect(onDraftStateChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ pageId: "p1", title: "Rascunho protegido", dirty: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    await screen.findByText("Página salva.");
+    expect(onDraftStateChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ pageId: "p1", dirty: false, saving: false }));
+  });
+
+  test("refuses a duplicate save while the first action is still pending", async () => {
+    let resolveSave = (_page: Page) => {};
+    const onSave = vi.fn(() => new Promise<Page>((resolve) => {
+      resolveSave = resolve;
+    }));
+    render(<PageEditor {...movementProps} page={page}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.getByRole("button", { name: "Salvando…" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Salvando…" }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    await act(async () => resolveSave(page));
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
   afterEach(() => vi.restoreAllMocks());
 
   test("renders the selected page and saves title and content", async () => {

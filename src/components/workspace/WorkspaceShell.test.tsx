@@ -90,6 +90,46 @@ function createTree(): Parameters<typeof WorkspaceShell>[0]["tree"] {
 }
 
 describe("WorkspaceShell", () => {
+  test("does not discard a dirty page when the learner cancels selection", async () => {
+    const tree = createTree();
+    const draftPage = { ...createdPage, id: "draft-protect-case", title: "Página protegida" };
+    tree.grimoires[0]!.ownerId = "owner-protect-case";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [draftPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=draft-protect-case#current");
+    const props = shellProps(tree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: "draft-protect-case",
+    });
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Texto não salvo" } });
+    fireEvent.click(screen.getByRole("button", { name: "Caderno" }));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(screen.getByDisplayValue("Texto não salvo")).toBeInTheDocument();
+    confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByRole("button", { name: "Caderno" }));
+    expect(screen.queryByDisplayValue("Texto não salvo")).not.toBeInTheDocument();
+    confirm.mockRestore();
+  });
+
+  test("restores an owner-scoped volatile draft after an authorized remount", async () => {
+    const tree = createTree();
+    const draftPage = { ...createdPage, id: "draft-remount-case", title: "Página temporária" };
+    tree.grimoires[0]!.ownerId = "owner-remount-case";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [draftPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=draft-remount-case#current");
+    const props = shellProps(tree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: "draft-remount-case",
+    });
+    const first = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Preservar esta edição" } });
+    first.unmount();
+    render(<WorkspaceShell {...props} />);
+    expect(await screen.findByDisplayValue("Preservar esta edição")).toBeInTheDocument();
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    fireEvent.click(screen.getByRole("button", { name: "Caderno" }));
+    confirm.mockRestore();
+  });
+
   beforeEach(() => {
     window.history.replaceState({}, "", "/workspace?view=tree#current");
   });

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Chapter, Grimoire, Notebook, Page, PageProgressStatus, WorkspaceState } from "@/domains/learning";
 import { PageEditor } from "./PageEditor";
+import type { WorkspaceDraftState } from "./PageEditor";
 import { PageFrameStyleView } from "./PageFrameStyleView";
 import { PagePaperStyleView } from "./PagePaperStyleView";
 import { WorkspaceHeader } from "./WorkspaceHeader";
@@ -17,6 +18,9 @@ type WorkspaceProps = {
   title: string;
   selectedPage: Page | null;
   deletionFeedback?: string;
+  navigationNotice?: string;
+  draftSnapshot?: WorkspaceDraftState | null;
+  onDraftStateChange?: (snapshot: WorkspaceDraftState) => void;
   onOpenGrimoire: (id: string) => void;
   onOpenNotebook: (id: string) => void;
   onOpenChapter: (id: string) => void;
@@ -293,6 +297,9 @@ export function Workspace({
   title,
   selectedPage,
   deletionFeedback = "",
+  navigationNotice = "",
+  draftSnapshot,
+  onDraftStateChange,
   onOpenGrimoire,
   onOpenNotebook,
   onOpenChapter,
@@ -340,6 +347,7 @@ export function Workspace({
     <div className="workspace-shell">
       <WorkspaceHeader title={title} />
       <p role="status" aria-live="polite" aria-atomic="true">{deletionFeedback}</p>
+      {navigationNotice ? <p role="status" aria-live="polite">{navigationNotice}</p> : null}
       <a className="aa-workspace-skip-link" href="#current">Ir para o editor da página</a>
 
       <div className="workspace-regions">
@@ -438,6 +446,8 @@ export function Workspace({
                 <PageEditor
                   key={selectedPage.id}
                   page={selectedPage}
+                  initialDraft={draftSnapshot}
+                  onDraftStateChange={onDraftStateChange}
                   canMoveUp={canMovePageUp}
                   canMoveDown={canMovePageDown}
                   onMove={onMovePage}
