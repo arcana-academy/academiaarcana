@@ -4,7 +4,7 @@
 
 **Objetivo:** conferir cada referência no corpo da PR, sem fechamento automático e sem confundir documentação com código, teste ou aprovação. Nenhum campo abaixo concede GO de release.
 
-**Contagem de lacunas:** 23 entradas `GAP-*` no registro canônico; a PR #821 anuncia 22 e exige reconciliação da descrição antes de merge.
+**Contagem de lacunas:** 23 entradas `GAP-*` no registro canônico; a descrição da PR #821 foi atualizada para 23 e corresponde ao registro canônico.
 
 ## Estados que esta consulta efetivamente comprova
 

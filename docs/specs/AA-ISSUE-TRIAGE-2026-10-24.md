@@ -18,7 +18,7 @@
 
 A versão anterior informava 28 issues de Produto e apresentava uma soma de 147, embora o total informado fosse 148. Corrigido para 29, sem mover ou excluir issue.
 
-**Reconciliação adicional:** `AA-SPEC-GAP-REGISTER.md` contém **23** linhas `GAP-*`; a descrição original da PR #821 anuncia 22. Corrigir a descrição antes de qualquer integração autorizada.
+**Reconciliação adicional:** `AA-SPEC-GAP-REGISTER.md` contém **23** linhas `GAP-*`; a descrição da PR #821 foi atualizada para 23. A descrição agora corresponde ao registro canônico.
 
 ## 2. Reconciliação das 95 referências de fechamento
 
