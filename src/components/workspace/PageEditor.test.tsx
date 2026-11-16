@@ -31,6 +31,93 @@ type SaveInput = {
 };
 
 describe("PageEditor", () => {
+  test("acknowledges a matching confirmed snapshot only after the editor sees it", () => {
+    const confirmed = {
+      pageId: page.id, title: page.title, content: page.content,
+      revision: 12, dirty: false, saving: false, saveStatus: "saved" as const,
+    };
+    const onDraftStateChange = vi.fn();
+    const onSave = vi.fn(async () => page);
+    render(<PageEditor {...movementProps} page={page} initialDraft={confirmed}
+      onDraftStateChange={onDraftStateChange}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    expect(screen.getByText("Página salva.")).toBeInTheDocument();
+    expect(onDraftStateChange).toHaveBeenCalledWith({
+      ...confirmed, saveStatus: "idle",
+    });
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  test("offers manual export while a save never responds, without retrying", () => {
+    const pendingSave = vi.fn(() => new Promise<Page>(() => undefined));
+    render(<PageEditor {...movementProps} page={page}
+      onDelete={vi.fn(async () => undefined)} onSave={pendingSave} />);
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Rascunho que precisa de cópia" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.getByRole("button", { name: "Salvando…" })).toBeDisabled();
+    expect(screen.getByText(/Nenhum novo salvamento será iniciado/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Baixar texto acessível/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Baixar dados estruturados/ })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Outra edição enquanto aguarda" },
+    });
+    expect(screen.getByLabelText("Título")).toHaveValue("Outra edição enquanto aguarda");
+    expect(pendingSave).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+  });
+
+  test("keeps divergent confirmed content separate from the loaded page", () => {
+    const savedCopy = {
+      pageId: page.id,
+      title: "Cópia anterior que diverge",
+      content: { type: "document" as const, blocks: [{ type: "paragraph" as const, content: "Conteúdo antigo." }] },
+      revision: 8, dirty: false, saving: false, saveStatus: "saved" as const,
+    };
+    const onDraftStateChange = vi.fn();
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<PageEditor {...movementProps} page={page} initialDraft={savedCopy}
+      onDraftStateChange={onDraftStateChange}
+      onDelete={vi.fn(async () => undefined)} onSave={vi.fn(async () => page)} />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Nenhuma versão foi substituída");
+    expect(screen.getByText("Versão carregada: Dor lombar")).toBeInTheDocument();
+    expect(screen.getByText("Cópia local anterior: Cópia anterior que diverge")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Baixar texto acessível/ })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /Baixar dados estruturados/ })).toHaveLength(2);
+    expect(screen.queryByLabelText("Título")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", {
+      name: "Descartar cópia local anterior e usar versão carregada",
+    }));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(onDraftStateChange).not.toHaveBeenCalled();
+    expect(screen.getByText("Cópia local anterior: Cópia anterior que diverge")).toBeInTheDocument();
+  });
+
+  test("discards an old copy only after explicit acceptance, without server writes", () => {
+    const oldCopy = {
+      pageId: page.id,
+      title: "Anterior",
+      content: page.content,
+      revision: 9, dirty: false, saving: false, saveStatus: "saved" as const,
+    };
+    const onDraftStateChange = vi.fn();
+    const onSave = vi.fn(async () => page);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<PageEditor {...movementProps} page={page} initialDraft={oldCopy}
+      onDraftStateChange={onDraftStateChange}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave} />);
+    fireEvent.click(screen.getByRole("button", {
+      name: "Descartar cópia local anterior e usar versão carregada",
+    }));
+    expect(onDraftStateChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      pageId: page.id, title: page.title, revision: 10,
+      dirty: false, saving: false, saveStatus: "idle",
+    }));
+    expect(screen.getByLabelText("Título")).toHaveValue(page.title);
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   test("does not mark an in-flight save complete when its draft snapshot disappears", () => {
     const pendingDraft = {
       pageId: page.id,

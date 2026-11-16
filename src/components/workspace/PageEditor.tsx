@@ -322,6 +322,12 @@ export type WorkspaceDraftState = {
   saveStatus: PageSaveState;
 };
 
+/** Compare the displayed document content, not the server's version or commit order. */
+export function matchesConfirmedDraftContent(page: Page, draft: WorkspaceDraftState): boolean {
+  return page.id === draft.pageId && page.title === draft.title &&
+    JSON.stringify(page.content) === JSON.stringify(draft.content);
+}
+
 type PageEditorProps = {
   initialDraft?: WorkspaceDraftState | null;
   onDraftStateChange?: (snapshot: WorkspaceDraftState) => void;
@@ -352,7 +358,16 @@ export function PageEditor({
   progressStatus = "not-started",
   onSetProgress = async () => undefined,
 }: PageEditorProps) {
-  const restored = initialDraft?.pageId === page.id ? initialDraft : null;
+  const samePageDraft = initialDraft?.pageId === page.id ? initialDraft : null;
+  const [dismissedConflictRevision, setDismissedConflictRevision] = useState<number | null>(null);
+  const savedSnapshotDiverges = Boolean(
+    samePageDraft && samePageDraft.saveStatus === "saved" &&
+    !samePageDraft.dirty && !samePageDraft.saving &&
+    dismissedConflictRevision !== samePageDraft.revision &&
+    !matchesConfirmedDraftContent(page, samePageDraft),
+  );
+  // Never install an older confirmed snapshot over a different server document.
+  const restored = savedSnapshotDiverges ? null : samePageDraft;
   const [title, setTitle] = useState(restored?.title ?? page.title);
   const [content, setContent] = useState(restored?.content ?? page.content);
   const [status, setStatus] = useState<PageSaveState>(
@@ -360,7 +375,8 @@ export function PageEditor({
   );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(restored?.dirty ?? false);
   const [starter, setStarter] = useState<PageStarterTemplate>("blank");
-  const editRevision = useRef(restored?.revision ?? 0);
+  // Preserve monotonic revisions even when a confirmed snapshot is held for review.
+  const editRevision = useRef(samePageDraft?.revision ?? 0);
   const titleValue = useRef(title);
   const contentValue = useRef(content);
   const dirtyValue = useRef(restored?.dirty ?? false);
@@ -398,7 +414,9 @@ export function PageEditor({
 
   /** Never infer persistence from a missing snapshot or a remount. */
   useEffect(() => {
-    if (!initialDraft || initialDraft.pageId !== page.id) return;
+    if (!initialDraft || initialDraft.pageId !== page.id || savedSnapshotDiverges) return;
+    if (initialDraft.saveStatus === "saved" &&
+        dismissedConflictRevision === initialDraft.revision) return;
     if (initialDraft.revision < editRevision.current) return;
 
     const newerRevision = initialDraft.revision > editRevision.current;
@@ -425,7 +443,34 @@ export function PageEditor({
       saveStatusValue.current = nextStatus;
       setStatus(nextStatus);
     }
-  }, [initialDraft, page.id]);
+
+    // The editor, not its parent, acknowledges consumption of a confirmed
+    // snapshot. Never consume it when the loaded content differs.
+    if (confirmedRevision && matchesConfirmedDraftContent(page, initialDraft)) {
+      onDraftStateChange?.({ ...initialDraft, saveStatus: "idle" });
+    }
+  }, [initialDraft, page, savedSnapshotDiverges, dismissedConflictRevision, onDraftStateChange]);
+
+  /** Explicitly discard the old local copy only after a learner decision. */
+  const acceptLoadedVersion = () => {
+    if (!samePageDraft || !savedSnapshotDiverges) return;
+    if (!window.confirm(
+      "A cópia local anterior é diferente da página carregada. Exporte-a antes, se necessário. Descartar essa cópia e continuar com a página carregada?",
+    )) return;
+
+    editRevision.current = Math.max(editRevision.current, samePageDraft.revision) + 1;
+    titleValue.current = page.title;
+    contentValue.current = page.content;
+    dirtyValue.current = false;
+    savingValue.current = false;
+    setTitle(page.title);
+    setContent(page.content);
+    setBlockKeys(page.content.blocks.map((_, index) => page.id + ":loaded:" + index));
+    setHasUnsavedChanges(false);
+    changeSaveStatus("idle");
+    publishDraft();
+    setDismissedConflictRevision(samePageDraft.revision);
+  };
 
   /** Move the selected page and surface recoverable failures. */
   const move = async (direction: MovePageDirection) => {
@@ -604,6 +649,33 @@ export function PageEditor({
     );
   }
 
+  if (savedSnapshotDiverges && samePageDraft) {
+    return (
+      <article aria-label="Editor da página">
+        <h2>Revisar versões da página</h2>
+        <p role="alert">
+          A cópia local de um salvamento anterior difere da página carregada.
+          Nenhuma versão foi substituída. Compare e exporte as duas cópias antes
+          de escolher qual conservar. O estado da gravação remota não pode ser
+          deduzido apenas desta comparação.
+        </p>
+        <section aria-label="Versão carregada">
+          <h3>Versão carregada: {page.title}</h3>
+          <AccessiblePageTextExport title={page.title} content={page.content} />
+          <AccessiblePageStructuredExport title={page.title} content={page.content} />
+        </section>
+        <section aria-label="Cópia local anterior">
+          <h3>Cópia local anterior: {samePageDraft.title}</h3>
+          <AccessiblePageTextExport title={samePageDraft.title} content={samePageDraft.content} />
+          <AccessiblePageStructuredExport title={samePageDraft.title} content={samePageDraft.content} />
+        </section>
+        <button type="button" onClick={acceptLoadedVersion}>
+          Descartar cópia local anterior e usar versão carregada
+        </button>
+      </article>
+    );
+  }
+
   return (
     <article aria-label="Editor da página">
       <label htmlFor="workspace-page-title">Título</label>
@@ -661,6 +733,14 @@ export function PageEditor({
       </details>
       <AccessiblePageTextExport title={title} content={content} />
       <AccessiblePageStructuredExport title={title} content={content} />
+      {saveIsPending ? (
+        <p role="status" className="aa-state-copy">
+          O resultado do salvamento ainda não foi confirmado. Você pode continuar
+          editando e baixar uma cópia .txt ou .json acima para recuperação manual.
+          Não feche a aba antes de guardar a cópia. Nenhum novo salvamento será
+          iniciado enquanto a operação anterior permanecer pendente.
+        </p>
+      ) : null}
 
       <button type="button" onClick={addBlock}>
         Adicionar bloco

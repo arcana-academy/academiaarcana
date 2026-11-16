@@ -3,7 +3,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { Chapter, Grimoire, Notebook, Page } from "@/domains/learning";
-import { WorkspaceShell } from "./WorkspaceShell";
+import { WorkspaceShell, resetVolatileWorkspaceDraftsForTests } from "./WorkspaceShell";
 
 const createdGrimoire: Grimoire = {
   id: "g2",
@@ -90,6 +90,61 @@ function createTree(): Parameters<typeof WorkspaceShell>[0]["tree"] {
 }
 
 describe("WorkspaceShell", () => {
+  test("consumes a matching saved snapshot before a subsequent remote remount", async () => {
+    const tree = createTree();
+    const persisted = { ...createdPage, id: "p-consumed-ack", title: "Antes" };
+    tree.grimoires[0]!.ownerId = "owner-consumed-ack";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [persisted];
+    const props = shellProps(tree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: persisted.id,
+    });
+    const first = render(<WorkspaceShell {...props}
+      onSavePage={vi.fn(async (input: { id: string; title: string; content: Page["content"] }) => ({ ...persisted, ...input }))} />);
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Salvamento confirmado" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByLabelText("Título")).toHaveValue("Salvamento confirmado");
+    });
+    first.unmount();
+
+    const freshTree = createTree();
+    freshTree.grimoires[0]!.ownerId = "owner-consumed-ack";
+    freshTree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [{
+      ...persisted, title: "Versão remota posterior",
+    }];
+    render(<WorkspaceShell {...shellProps(freshTree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: persisted.id,
+    })} />);
+    expect(screen.getByLabelText("Título")).toHaveValue("Versão remota posterior");
+    expect(screen.queryByText("Revisar versões da página")).not.toBeInTheDocument();
+  });
+
+  test("isolates a new scenario from the previous volatile draft on explicit reset", () => {
+    const firstTree = createTree();
+    const pageOne = { ...createdPage, id: "p-same-across-scenarios", title: "Antes" };
+    firstTree.grimoires[0]!.ownerId = "owner-reused-id";
+    firstTree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [pageOne];
+    const currentSelection = {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: pageOne.id,
+    };
+    const first = render(<WorkspaceShell {...shellProps(firstTree, currentSelection)} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Rascunho antigo" } });
+    first.unmount();
+
+    resetVolatileWorkspaceDraftsForTests();
+    const secondTree = createTree();
+    secondTree.grimoires[0]!.ownerId = "owner-reused-id";
+    secondTree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [{
+      ...pageOne, title: "Versão limpa",
+    }];
+    render(<WorkspaceShell {...shellProps(secondTree, currentSelection)} />);
+    expect(screen.getByLabelText("Título")).toHaveValue("Versão limpa");
+  });
+
+
   test("does not forge history entries or claim cancellation of Back/Forward", () => {
     const tree = createTree();
     const currentPage = { ...createdPage, id: "p-history-case", title: "Histórico protegido" };
@@ -231,6 +286,7 @@ describe("WorkspaceShell", () => {
   });
 
   beforeEach(() => {
+    resetVolatileWorkspaceDraftsForTests();
     window.history.replaceState({}, "", "/workspace?view=tree#current");
   });
 

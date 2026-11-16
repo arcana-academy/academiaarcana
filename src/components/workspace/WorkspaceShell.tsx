@@ -58,6 +58,16 @@ function discardTransientDraft(ownerId: string | null, pageId: string | null): v
   draftSubscribers.forEach((listener) => listener());
 }
 
+/** Test-only isolation. Never clears active learners' drafts in production. */
+export function resetVolatileWorkspaceDraftsForTests(): void {
+  if (process.env.NODE_ENV !== "test") return;
+  transientDrafts?.clear();
+  draftSubscribers.forEach((listener) => listener());
+}
+
+const needsDraftProtection = (draft: WorkspaceDraftState | null) =>
+  Boolean(draft?.dirty || draft?.saving || draft?.saveStatus === "saved");
+
 
 type WorkspaceTree = Parameters<typeof Workspace>[0]["tree"];
 
@@ -274,12 +284,17 @@ export function WorkspaceShell({
   /** A cancelled transition must leave the draft untouched. */
   const mayLeave = useCallback(() => {
     const pending = readDraft(ownerId, state.pageId);
-    if (!pending?.dirty && !pending?.saving) return true;
-    if (pending.saving) {
+    if (!needsDraftProtection(pending)) return true;
+    if (pending?.saving) {
       setNavigationNotice("Aguarde o salvamento terminar antes de sair desta página.");
       return false;
     }
     setNavigationNotice("");
+    if (pending?.saveStatus === "saved") {
+      return window.confirm(
+        "Existe uma cópia local de um salvamento anterior. Exporte-a antes de sair, se necessário. Sair e descartar essa cópia?",
+      );
+    }
     return window.confirm("Há alterações não salvas nesta página. Sair e descartar o rascunho?");
   }, [ownerId, state.pageId]);
 
@@ -328,7 +343,7 @@ export function WorkspaceShell({
   useEffect(() => {
     const pending = () => readDraft(ownerId, state.pageId);
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (!pending()?.dirty && !pending()?.saving) return;
+      if (!needsDraftProtection(pending())) return;
       event.preventDefault();
       event.returnValue = "";
     };
@@ -342,7 +357,7 @@ export function WorkspaceShell({
       if (destination.origin === window.location.origin &&
           destination.pathname === window.location.pathname &&
           destination.search === window.location.search) return;
-      if (!pending()?.dirty && !pending()?.saving) return;
+      if (!needsDraftProtection(pending())) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       if (!mayLeave()) return;
@@ -352,7 +367,7 @@ export function WorkspaceShell({
     const submitForm = (event: SubmitEvent) => {
       const form = event.target;
       if (!(form instanceof HTMLFormElement) || form.closest(".workspace-shell")) return;
-      if (!pending()?.dirty && !pending()?.saving) return;
+      if (!needsDraftProtection(pending())) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       if (!mayLeave()) return;
