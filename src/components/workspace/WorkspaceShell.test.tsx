@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { Chapter, Grimoire, Notebook, Page } from "@/domains/learning";
 import { WorkspaceShell } from "./WorkspaceShell";
@@ -90,6 +90,106 @@ function createTree(): Parameters<typeof WorkspaceShell>[0]["tree"] {
 }
 
 describe("WorkspaceShell", () => {
+  test("does not forge history entries or claim cancellation of Back/Forward", () => {
+    const tree = createTree();
+    const currentPage = { ...createdPage, id: "p-history-case", title: "Histórico protegido" };
+    tree.grimoires[0]!.ownerId = "owner-history-case";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [currentPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=p-history-case#current");
+    render(<WorkspaceShell {...shellProps(tree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: "p-history-case",
+    })} />);
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Rascunho ainda não salvo" },
+    });
+    const pushState = vi.spyOn(window.history, "pushState");
+    const confirm = vi.spyOn(window, "confirm");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    expect(pushState).not.toHaveBeenCalled();
+    expect(confirm).not.toHaveBeenCalled();
+    // A synthetic popstate does not establish safe real-browser history traversal.
+    expect(screen.getByLabelText("Título")).toHaveValue("Rascunho ainda não salvo");
+    pushState.mockRestore();
+    confirm.mockRestore();
+  });
+
+  test("remounts a pending save as unconfirmed until its original server response arrives", async () => {
+    const tree = createTree();
+    const currentPage = { ...createdPage, id: "p-pending-remount", title: "Remount pendente" };
+    tree.grimoires[0]!.ownerId = "owner-pending-remount";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [currentPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=p-pending-remount#current");
+    let resolveSave!: (saved: Page) => void;
+    const onSavePage = vi.fn(() => new Promise<Page>((resolve) => { resolveSave = resolve; }));
+    const props = {
+      ...shellProps(tree, { grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: "p-pending-remount" }),
+      onSavePage,
+    };
+    const first = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Pendente confirmado depois" } });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+    first.unmount();
+    render(<WorkspaceShell {...props} />);
+    expect(screen.getByText("Salvamento sem confirmação. Seu rascunho continua nesta aba."))
+      .toBeInTheDocument();
+    expect(screen.getByLabelText("Título")).toHaveValue("Pendente confirmado depois");
+    await act(async () => {
+      resolveSave({ ...currentPage, title: "Pendente confirmado depois" });
+    });
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+  });
+
+  test("retains the draft and reports a real save failure after remount", async () => {
+    const tree = createTree();
+    const currentPage = { ...createdPage, id: "p-failed-remount", title: "Página pendente" };
+    tree.grimoires[0]!.ownerId = "owner-failed-remount";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [currentPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=p-failed-remount#current");
+    let rejectSave!: (reason: Error) => void;
+    const onSavePage = vi.fn(() => new Promise<Page>((_resolve, reject) => { rejectSave = reject; }));
+    const props = {
+      ...shellProps(tree, { grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: "p-failed-remount" }),
+      onSavePage,
+    };
+    const first = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Nunca perder este texto" } });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    first.unmount();
+    render(<WorkspaceShell {...props} />);
+    await act(async () => { rejectSave(new Error("Servidor indisponível")); });
+    expect(await screen.findByText("Não foi possível salvar a página.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Título")).toHaveValue("Nunca perder este texto");
+    expect(screen.getByRole("button", { name: "Salvar página" })).toBeEnabled();
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+  });
+
+  test("keeps edits made after remount when an older server acknowledgement arrives", async () => {
+    const tree = createTree();
+    const currentPage = { ...createdPage, id: "p-later-edit", title: "Original" };
+    tree.grimoires[0]!.ownerId = "owner-later-edit";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [currentPage];
+    window.history.replaceState({}, "", "/workspace?view=tree&page=p-later-edit#current");
+    let resolveSave!: (saved: Page) => void;
+    const onSavePage = vi.fn(() => new Promise<Page>((resolve) => { resolveSave = resolve; }));
+    const props = {
+      ...shellProps(tree, { grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: "p-later-edit" }),
+      onSavePage,
+    };
+    const first = render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Primeira edição" } });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    first.unmount();
+    render(<WorkspaceShell {...props} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Edição posterior" } });
+    await act(async () => { resolveSave({ ...currentPage, title: "Primeira edição" }); });
+    expect(screen.getByLabelText("Título")).toHaveValue("Edição posterior");
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Salvar página" })).toBeEnabled();
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+  });
+
   test("does not discard a dirty page when the learner cancels selection", async () => {
     const tree = createTree();
     const draftPage = { ...createdPage, id: "draft-protect-case", title: "Página protegida" };

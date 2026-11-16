@@ -283,7 +283,7 @@ function PageMoveControls({
   );
 }
 
-type PageSaveState = "idle" | "saving" | "saved" | "error";
+type PageSaveState = "idle" | "saving" | "saved" | "error" | "unconfirmed";
 
 type PageSaveStatusProps = {
   status: PageSaveState;
@@ -296,6 +296,7 @@ function PageSaveStatus({ status }: PageSaveStatusProps) {
     saving: "Salvando página…",
     saved: "Página salva.",
     error: "Não foi possível salvar a página.",
+    unconfirmed: "Salvamento sem confirmação. Seu rascunho continua nesta aba.",
   };
 
   return (
@@ -307,7 +308,7 @@ function PageSaveStatus({ status }: PageSaveStatusProps) {
 
 /** Return the save button label for the current save state. */
 function getSaveLabel(status: PageSaveState): string {
-  return status === "saving" ? "Salvando…" : "Salvar página";
+  return status === "saving" ? "Salvando…" : status === "unconfirmed" ? "Aguardando confirmação…" : "Salvar página";
 }
 
 export type WorkspaceDraftState = {
@@ -317,6 +318,8 @@ export type WorkspaceDraftState = {
   revision: number;
   dirty: boolean;
   saving: boolean;
+  /** A matched server response is the only evidence of confirmed persistence. */
+  saveStatus: PageSaveState;
 };
 
 type PageEditorProps = {
@@ -352,7 +355,9 @@ export function PageEditor({
   const restored = initialDraft?.pageId === page.id ? initialDraft : null;
   const [title, setTitle] = useState(restored?.title ?? page.title);
   const [content, setContent] = useState(restored?.content ?? page.content);
-  const [status, setStatus] = useState<PageSaveState>(restored?.saving ? "saving" : "idle");
+  const [status, setStatus] = useState<PageSaveState>(
+    restored?.saving ? "unconfirmed" : restored?.saveStatus ?? "idle",
+  );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(restored?.dirty ?? false);
   const [starter, setStarter] = useState<PageStarterTemplate>("blank");
   const editRevision = useRef(restored?.revision ?? 0);
@@ -360,6 +365,12 @@ export function PageEditor({
   const contentValue = useRef(content);
   const dirtyValue = useRef(restored?.dirty ?? false);
   const savingValue = useRef(restored?.saving ?? false);
+  const saveStatusValue = useRef<PageSaveState>(status);
+  const changeSaveStatus = (next: PageSaveState) => {
+    saveStatusValue.current = next;
+    setStatus(next);
+  };
+  const saveIsPending = status === "saving" || status === "unconfirmed";
   const [blockKeys, setBlockKeys] = useState(() =>
     (restored?.content ?? page.content).blocks.map((_, index) => page.id + ":block:" + index),
   );
@@ -381,22 +392,19 @@ export function PageEditor({
       revision: editRevision.current,
       dirty: dirtyValue.current,
       saving: savingValue.current,
+      saveStatus: saveStatusValue.current,
     });
   };
 
-  /** Recover newer in-memory edits after server revalidation/remount. */
+  /** Never infer persistence from a missing snapshot or a remount. */
   useEffect(() => {
-    if (!initialDraft || initialDraft.pageId !== page.id) {
-      if (savingValue.current && initialDraft === null) {
-        savingValue.current = false;
-        dirtyValue.current = false;
-        setHasUnsavedChanges(false);
-        setStatus("saved");
-      }
-      return;
-    }
-    if (initialDraft.revision > editRevision.current ||
-        (editRevision.current === 0 && !dirtyValue.current && initialDraft.dirty)) {
+    if (!initialDraft || initialDraft.pageId !== page.id) return;
+    if (initialDraft.revision < editRevision.current) return;
+
+    const newerRevision = initialDraft.revision > editRevision.current;
+    const confirmedRevision = !initialDraft.saving && !initialDraft.dirty &&
+      initialDraft.saveStatus === "saved";
+    if (newerRevision || confirmedRevision) {
       editRevision.current = initialDraft.revision;
       titleValue.current = initialDraft.title;
       contentValue.current = initialDraft.content;
@@ -406,9 +414,16 @@ export function PageEditor({
       setBlockKeys(initialDraft.content.blocks.map((_, index) => page.id + ":restored:" + index));
       setHasUnsavedChanges(initialDraft.dirty);
     }
-    if (savingValue.current !== initialDraft.saving) {
+
+    // When remounted, a pending request has no confirmed result in this editor.
+    const nextStatus: PageSaveState = initialDraft.saving
+      ? saveStatusValue.current === "saving" ? "saving" : "unconfirmed"
+      : initialDraft.saveStatus;
+    if (savingValue.current !== initialDraft.saving ||
+        saveStatusValue.current !== nextStatus) {
       savingValue.current = initialDraft.saving;
-      setStatus(initialDraft.saving ? "saving" : initialDraft.dirty ? "error" : "saved");
+      saveStatusValue.current = nextStatus;
+      setStatus(nextStatus);
     }
   }, [initialDraft, page.id]);
 
@@ -447,7 +462,7 @@ export function PageEditor({
     dirtyValue.current = true;
     setContent(nextContent);
     setHasUnsavedChanges(true);
-    setStatus((current) => current === "saving" ? current : "idle");
+    if (!savingValue.current) changeSaveStatus("idle");
     publishDraft();
   };
 
@@ -468,13 +483,13 @@ export function PageEditor({
     dirtyValue.current = true;
     setContent(nextContent);
     setHasUnsavedChanges(true);
-    setStatus((current) => current === "saving" ? current : "idle");
+    if (!savingValue.current) changeSaveStatus("idle");
     publishDraft();
   };
 
   /** Only persist progress for saved page content, never for an uncommitted draft. */
   const updateProgress = async () => {
-    if (hasUnsavedChanges || status === "saving" || isUpdatingProgress) return;
+    if (hasUnsavedChanges || saveIsPending || isUpdatingProgress) return;
     setIsUpdatingProgress(true);
     setProgressError(null);
 
@@ -493,7 +508,7 @@ export function PageEditor({
   const save = async () => {
     if (savingValue.current) return;
     savingValue.current = true;
-    setStatus("saving");
+    changeSaveStatus("saving");
     publishDraft();
     const revisionAtSave = editRevision.current;
 
@@ -511,17 +526,17 @@ export function PageEditor({
         setTitle(saved.title);
         setContent(saved.content);
         setHasUnsavedChanges(false);
-        setStatus("saved");
+        changeSaveStatus("saved");
       } else {
         dirtyValue.current = true;
-        setStatus("idle");
+        changeSaveStatus("idle");
       }
       publishDraft();
     } catch {
       savingValue.current = false;
       dirtyValue.current = true;
       setHasUnsavedChanges(true);
-      setStatus("error");
+      changeSaveStatus("error");
       publishDraft();
     }
   };
@@ -538,13 +553,13 @@ export function PageEditor({
     setContent(nextContent);
     setBlockKeys((current) => [...current, page.id + ":block:" + current.length]);
     setHasUnsavedChanges(true);
-    setStatus((current) => current === "saving" ? current : "idle");
+    if (!savingValue.current) changeSaveStatus("idle");
     publishDraft();
   };
 
   /** Templates never overwrite authored blocks or save without confirmation. */
   const applyStarter = () => {
-    if (status === "saving" || !canApplyStarterTemplate(content)) return;
+    if (saveIsPending || !canApplyStarterTemplate(content)) return;
     editRevision.current += 1;
     const nextContent = buildStarterTemplate(starter);
     contentValue.current = nextContent;
@@ -552,7 +567,7 @@ export function PageEditor({
     setContent(nextContent);
     setHasUnsavedChanges(true);
     setBlockKeys(nextContent.blocks.map((_, index) => page.id + ":template:" + index));
-    setStatus((current) => current === "saving" ? current : "idle");
+    if (!savingValue.current) changeSaveStatus("idle");
     publishDraft();
   };
 
@@ -601,7 +616,7 @@ export function PageEditor({
           dirtyValue.current = true;
           setHasUnsavedChanges(true);
           setTitle(event.target.value);
-          setStatus((current) => current === "saving" ? current : "idle");
+          if (!savingValue.current) changeSaveStatus("idle");
           publishDraft();
         }}
       />
@@ -614,7 +629,7 @@ export function PageEditor({
           id="workspace-page-starter"
           className="aa-input"
           value={starter}
-          disabled={!canApplyStarterTemplate(content) || status === "saving"}
+          disabled={!canApplyStarterTemplate(content) || saveIsPending}
           onChange={(event) => setStarter(event.target.value as PageStarterTemplate)}
         >
           {PAGE_STARTER_TEMPLATES.map((choice) => (
@@ -623,7 +638,7 @@ export function PageEditor({
         </select>
         <button
           type="button"
-          disabled={!canApplyStarterTemplate(content) || status === "saving"}
+          disabled={!canApplyStarterTemplate(content) || saveIsPending}
           onClick={applyStarter}
         >Aplicar modelo</button>
         <p className="aa-field-description">
@@ -651,13 +666,13 @@ export function PageEditor({
         Adicionar bloco
       </button>
 
-      <button type="button" disabled={status === "saving"} onClick={save}>
+      <button type="button" disabled={saveIsPending} onClick={save}>
         {getSaveLabel(status)}
       </button>
       <button
         type="button"
         className="aa-button aa-button-secondary"
-        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        disabled={hasUnsavedChanges || saveIsPending || !content.blocks.some((block) => block.content.trim())}
         onClick={() => setIsReading(true)}
       >
         Iniciar leitura guiada
@@ -665,7 +680,7 @@ export function PageEditor({
       <button
         type="button"
         className="aa-button aa-button-secondary"
-        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        disabled={hasUnsavedChanges || saveIsPending || !content.blocks.some((block) => block.content.trim())}
         onClick={() => setIsChecklistOpen(true)}
       >
         Organizar estudo por trechos
@@ -673,7 +688,7 @@ export function PageEditor({
       <button
         type="button"
         className="aa-button aa-button-secondary"
-        disabled={hasUnsavedChanges || status === "saving" || !content.blocks.some((block) => block.content.trim())}
+        disabled={hasUnsavedChanges || saveIsPending || !content.blocks.some((block) => block.content.trim())}
         onClick={() => setIsGlossaryOpen(true)}
       >
         Criar glossário temporário
@@ -687,7 +702,7 @@ export function PageEditor({
 
       <button
         type="button"
-        disabled={isUpdatingProgress || hasUnsavedChanges || status === "saving"}
+        disabled={isUpdatingProgress || hasUnsavedChanges || saveIsPending}
         onClick={updateProgress}
       >
         {isUpdatingProgress
@@ -703,7 +718,7 @@ export function PageEditor({
             ? "Página em andamento."
             : "Página ainda não iniciada."}
       </p>
-      {hasUnsavedChanges || status === "saving" ? (
+      {hasUnsavedChanges || saveIsPending ? (
         <p role="status">
           Salve as alterações desta página antes de abrir a Prática ou planejar uma missão.
         </p>
@@ -728,7 +743,7 @@ export function PageEditor({
           </p>
         </nav>
       )}
-      {hasUnsavedChanges || status === "saving" ? (
+      {hasUnsavedChanges || saveIsPending ? (
         <p className="aa-state-copy">Salve a página antes de atualizar o progresso de estudo.</p>
       ) : null}
       {progressError ? <p role="alert">{progressError}</p> : null}

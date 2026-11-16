@@ -31,6 +31,72 @@ type SaveInput = {
 };
 
 describe("PageEditor", () => {
+  test("does not mark an in-flight save complete when its draft snapshot disappears", () => {
+    const pendingDraft = {
+      pageId: page.id,
+      title: "Rascunho aguardando confirmação",
+      content: page.content,
+      revision: 3,
+      dirty: true,
+      saving: true,
+      saveStatus: "saving" as const,
+    };
+    const props = {
+      ...movementProps,
+      page,
+      onDelete: vi.fn(async () => undefined),
+      onSave: vi.fn(async () => page),
+    };
+    const { rerender } = render(<PageEditor {...props} initialDraft={pendingDraft} />);
+    expect(screen.getByText("Salvamento sem confirmação. Seu rascunho continua nesta aba."))
+      .toBeInTheDocument();
+    rerender(<PageEditor {...props} initialDraft={null} />);
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aguardando confirmação…" })).toBeDisabled();
+    expect(screen.getByLabelText("Título")).toHaveValue(pendingDraft.title);
+  });
+
+  test("recognizes only an explicit confirmed response for the same draft revision", () => {
+    const pendingDraft = {
+      pageId: page.id, title: "Anotação preservada", content: page.content,
+      revision: 4, dirty: true, saving: true, saveStatus: "saving" as const,
+    };
+    const props = {
+      ...movementProps,
+      page,
+      onDelete: vi.fn(async () => undefined),
+      onSave: vi.fn(async () => page),
+    };
+    const { rerender } = render(<PageEditor {...props} initialDraft={pendingDraft} />);
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+    rerender(<PageEditor {...props} initialDraft={{
+      ...pendingDraft, dirty: false, saving: false, saveStatus: "saved",
+    }} />);
+    expect(screen.getByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Título")).toHaveValue(pendingDraft.title);
+  });
+
+  test("keeps an unconfirmed draft when the prior server action fails", () => {
+    const pendingDraft = {
+      pageId: page.id, title: "Rascunho retido", content: page.content,
+      revision: 5, dirty: true, saving: true, saveStatus: "saving" as const,
+    };
+    const props = {
+      ...movementProps,
+      page,
+      onDelete: vi.fn(async () => undefined),
+      onSave: vi.fn(async () => page),
+    };
+    const { rerender } = render(<PageEditor {...props} initialDraft={pendingDraft} />);
+    rerender(<PageEditor {...props} initialDraft={{
+      ...pendingDraft, dirty: true, saving: false, saveStatus: "error",
+    }} />);
+    expect(screen.getByText("Não foi possível salvar a página.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Título")).toHaveValue(pendingDraft.title);
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Salvar página" })).toBeEnabled();
+  });
+
   test("publishes a draft revision and clears it only after confirmed persistence", async () => {
     const onDraftStateChange = vi.fn();
     const onSave = vi.fn(async (input: SaveInput) => ({ ...page, ...input }));

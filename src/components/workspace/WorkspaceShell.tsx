@@ -31,10 +31,25 @@ function publishTransientDraft(ownerId: string, snapshot: WorkspaceDraftState): 
   if (!transientDrafts) return;
   const key = draftKey(ownerId, snapshot.pageId);
   const previous = transientDrafts.get(key);
-  // An older save response must never discard a newer editor revision.
-  if (previous && previous.revision > snapshot.revision) return;
-  if (snapshot.dirty || snapshot.saving) transientDrafts.set(key, snapshot);
-  else transientDrafts.delete(key);
+  // A late response may finish an older save, but cannot overwrite a newer edit.
+  if (previous && previous.revision > snapshot.revision) {
+    if (previous.saving && !snapshot.saving) {
+      transientDrafts.set(key, {
+        ...previous,
+        saving: false,
+        saveStatus: snapshot.saveStatus === "error" ? "error" : "idle",
+      });
+      draftSubscribers.forEach((listener) => listener());
+    }
+    return;
+  }
+  // Retain a confirmed acknowledgement until the selected editor observes it.
+  // No storage outside this tab is created.
+  if (snapshot.dirty || snapshot.saving || snapshot.saveStatus === "saved") {
+    transientDrafts.set(key, snapshot);
+  } else {
+    transientDrafts.delete(key);
+  }
   draftSubscribers.forEach((listener) => listener());
 }
 function discardTransientDraft(ownerId: string | null, pageId: string | null): void {
@@ -146,8 +161,6 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
 
   const [state, setState] = useState<WorkspaceState>(initialState);
-  const lastLocation = useRef<string | null>(null);
-  const lastHistoryState = useRef<unknown>(null);
   const initialLocationReconciled = useRef(false);
   const pendingLocationRecovery = useRef<WorkspaceState | null>(null);
 
@@ -200,8 +213,6 @@ export function WorkspaceShell({
     if (currentHref !== canonicalHref) {
       window.history.replaceState(window.history.state, "", canonicalHref);
     }
-    lastLocation.current = canonicalHref;
-    lastHistoryState.current = window.history.state;
   });
   const [pages, setPages] = useState<Record<string, Page>>({});
   const [pageProgress, setPageProgress] = useState<Record<string, PageProgressStatus>>(initialPageProgress);
@@ -255,7 +266,7 @@ export function WorkspaceShell({
     setState(next);
   };
 
-  /** Guard links, logout, browser history and unload without persistent storage. */
+  /** Guard controlled links, forms and unload. Browser history traversal remains unguarded. */
   useEffect(() => {
     const pending = () => readDraft(ownerId, state.pageId);
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -289,26 +300,13 @@ export function WorkspaceShell({
       discardTransientDraft(ownerId, state.pageId);
       form.requestSubmit(event.submitter instanceof HTMLElement ? event.submitter : undefined);
     };
-    const popState = (event: PopStateEvent) => {
-      if (!pending()?.dirty && !pending()?.saving) return;
-      const destination = window.location.href;
-      event.stopImmediatePropagation();
-      if (lastLocation.current) {
-        window.history.pushState(lastHistoryState.current, "", lastLocation.current);
-      }
-      if (!mayLeave()) return;
-      discardTransientDraft(ownerId, state.pageId);
-      window.location.assign(destination);
-    };
     const pageHide = () => { transientDrafts?.clear(); };
     window.addEventListener("beforeunload", beforeUnload);
-    window.addEventListener("popstate", popState, true);
     window.addEventListener("pagehide", pageHide);
     document.addEventListener("click", followLink, true);
     document.addEventListener("submit", submitForm, true);
     return () => {
       window.removeEventListener("beforeunload", beforeUnload);
-      window.removeEventListener("popstate", popState, true);
       window.removeEventListener("pagehide", pageHide);
       document.removeEventListener("click", followLink, true);
       document.removeEventListener("submit", submitForm, true);
