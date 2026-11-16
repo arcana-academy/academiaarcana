@@ -61,6 +61,19 @@ function discardTransientDraft(ownerId: string | null, pageId: string | null): v
 
 type WorkspaceTree = Parameters<typeof Workspace>[0]["tree"];
 
+/** Snapshot the selection and draft authorizing an asynchronous creation. */
+type CreationOrigin = {
+  selection: WorkspaceState;
+  selectionEpoch: number;
+  ownerId: string | null;
+  draft: WorkspaceDraftState | null;
+};
+
+function sameWorkspaceSelection(a: WorkspaceState, b: WorkspaceState): boolean {
+  return a.grimoireId === b.grimoireId && a.notebookId === b.notebookId &&
+    a.chapterId === b.chapterId && a.pageId === b.pageId;
+}
+
 type WorkspaceShellProps = {
   tree: WorkspaceTree;
   initialState: WorkspaceState;
@@ -161,6 +174,8 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
 
   const [state, setState] = useState<WorkspaceState>(initialState);
+  const latestSelectionRef = useRef(state);
+  const selectionEpochRef = useRef(0);
   const initialLocationReconciled = useRef(false);
   const pendingLocationRecovery = useRef<WorkspaceState | null>(null);
 
@@ -239,6 +254,14 @@ export function WorkspaceShell({
   const restoreFocusAfterDelete = useRef(false);
   const [navigationNotice, setNavigationNotice] = useState("");
   const ownerId = tree.grimoires[0]?.ownerId ?? createdGrimoires[0]?.ownerId ?? null;
+  const latestOwnerRef = useRef(ownerId);
+  useEffect(() => {
+    if (!sameWorkspaceSelection(latestSelectionRef.current, state)) {
+      selectionEpochRef.current += 1;
+    }
+    latestSelectionRef.current = state;
+    latestOwnerRef.current = ownerId;
+  }, [ownerId, state]);
   const activeDraft = useSyncExternalStore(
     subscribeDrafts,
     () => readDraft(ownerId, state.pageId),
@@ -260,9 +283,44 @@ export function WorkspaceShell({
     return window.confirm("Há alterações não salvas nesta página. Sair e descartar o rascunho?");
   }, [ownerId, state.pageId]);
 
+  const captureCreationOrigin = (): CreationOrigin => ({
+    selection: { ...state },
+    selectionEpoch: selectionEpochRef.current,
+    ownerId,
+    draft: readDraft(ownerId, state.pageId),
+  });
+
+  /** Keep an existing selection and draft if anything changes while creation is pending. */
+  const selectAfterCreation = (
+    origin: CreationOrigin,
+    choose: (current: WorkspaceState) => WorkspaceState,
+  ) => {
+    if (selectionEpochRef.current !== origin.selectionEpoch ||
+        !sameWorkspaceSelection(latestSelectionRef.current, origin.selection) ||
+        latestOwnerRef.current !== origin.ownerId ||
+        readDraft(origin.ownerId, origin.selection.pageId) !== origin.draft) {
+      setNavigationNotice(
+        "Item criado. Sua seleção e alterações recentes foram preservadas. Salve a página antes de abrir o novo item.",
+      );
+      return;
+    }
+    const next = choose(latestSelectionRef.current);
+    discardTransientDraft(origin.ownerId, origin.selection.pageId);
+    if (!sameWorkspaceSelection(latestSelectionRef.current, next)) {
+      selectionEpochRef.current += 1;
+    }
+    latestSelectionRef.current = next;
+    setState(next);
+    setNavigationNotice("");
+  };
+
   const leaveSelection = (next: WorkspaceState) => {
     if (!mayLeave()) return;
     discardTransientDraft(ownerId, state.pageId);
+    if (!sameWorkspaceSelection(latestSelectionRef.current, next)) {
+      selectionEpochRef.current += 1;
+    }
+    latestSelectionRef.current = next;
     setState(next);
   };
 
@@ -281,7 +339,8 @@ export function WorkspaceShell({
       if (!(element instanceof HTMLAnchorElement) ||
           element.hasAttribute("download") || element.target === "_blank") return;
       const destination = new URL(element.href, window.location.href);
-      if (destination.pathname === window.location.pathname &&
+      if (destination.origin === window.location.origin &&
+          destination.pathname === window.location.pathname &&
           destination.search === window.location.search) return;
       if (!pending()?.dirty && !pending()?.saving) return;
       event.preventDefault();
@@ -441,8 +500,8 @@ export function WorkspaceShell({
   /** Create a grimoire, add it to the local tree, and select it. */
   const createGrimoire = async (input: { title: string }) => {
     if (!mayLeave()) throw new Error("Navegação cancelada para preservar o rascunho.");
+    const origin = captureCreationOrigin();
     const created = await onCreateGrimoire(input);
-    discardTransientDraft(ownerId, state.pageId);
     const grimoire = {
       ...created,
       notebooks: [] as Array<
@@ -450,15 +509,15 @@ export function WorkspaceShell({
       >,
     };
     setCreatedGrimoires((current) => [...current, grimoire]);
-    setState((current) => openGrimoire(current, created.id));
+    selectAfterCreation(origin, (current) => openGrimoire(current, created.id));
     return created;
   };
 
   /** Create a notebook, add it to the local tree, and select it. */
   const createNotebook = async (input: { grimoireId: string; title: string }) => {
     if (!mayLeave()) throw new Error("Navegação cancelada para preservar o rascunho.");
+    const origin = captureCreationOrigin();
     const created = await onCreateNotebook(input);
-    discardTransientDraft(ownerId, state.pageId);
     const notebook = {
       ...created,
       chapters: [] as Array<Chapter & { pages: Page[] }>,
@@ -470,11 +529,8 @@ export function WorkspaceShell({
         notebook,
       ],
     }));
-    setState((current) =>
-      openNotebook(
-        { ...current, grimoireId: created.grimoireId },
-        created.id,
-      ),
+    selectAfterCreation(origin, (current) =>
+      openNotebook({ ...current, grimoireId: created.grimoireId }, created.id),
     );
     return created;
   };
@@ -482,14 +538,14 @@ export function WorkspaceShell({
   /** Create a chapter, add it to the local tree, and select it. */
   const createChapter = async (input: { notebookId: string; title: string }) => {
     if (!mayLeave()) throw new Error("Navegação cancelada para preservar o rascunho.");
+    const origin = captureCreationOrigin();
     const created = await onCreateChapter(input);
-    discardTransientDraft(ownerId, state.pageId);
     const chapter = { ...created, pages: [] as Page[] };
     setCreatedChapters((current) => ({
       ...current,
       [created.notebookId]: [...(current[created.notebookId] ?? []), chapter],
     }));
-    setState((current) =>
+    selectAfterCreation(origin, (current) =>
       openChapter({
         ...current,
         notebookId: created.notebookId,
@@ -503,14 +559,14 @@ export function WorkspaceShell({
   /** Create a page, add it to the local tree, and select it for editing. */
   const createPage = async (input: { chapterId: string; title: string }) => {
     if (!mayLeave()) throw new Error("Navegação cancelada para preservar o rascunho.");
+    const origin = captureCreationOrigin();
     const created = await onCreatePage(input);
-    discardTransientDraft(ownerId, state.pageId);
     setCreatedPages((current) => ({
       ...current,
       [created.chapterId]: [...(current[created.chapterId] ?? []), created],
     }));
     setPages((current) => ({ ...current, [created.id]: created }));
-    setState((current) =>
+    selectAfterCreation(origin, (current) =>
       openPage({ ...current, chapterId: created.chapterId }, created.id),
     );
     return created;

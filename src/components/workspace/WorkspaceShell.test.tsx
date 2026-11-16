@@ -912,4 +912,96 @@ describe("WorkspaceShell", () => {
     expect(screen.getAllByRole("button", { name: "Nova página" })).toHaveLength(1);
     expect(screen.getByRole("article", { name: "Editor da página" })).toBeInTheDocument();
   });
+  test.each([false, true])(
+    "preserves an edit while page creation is pending (dirty before request: %s)",
+    async (dirtyBeforeRequest) => {
+      const tree = createTree();
+      const original = {
+        ...createdPage,
+        id: "p-create-race-" + String(dirtyBeforeRequest),
+        title: "Página original",
+      };
+      tree.grimoires[0]!.ownerId = "owner-create-race-" + String(dirtyBeforeRequest);
+      tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [original];
+      const added = {
+        ...createdPage,
+        id: "p-added-race-" + String(dirtyBeforeRequest),
+        title: "Página criada",
+        position: 1,
+      };
+      let completeCreate!: (created: Page) => void;
+      const onCreatePage = vi.fn(() => new Promise<Page>((resolve) => { completeCreate = resolve; }));
+      const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+      render(<WorkspaceShell
+        {...shellProps(tree, { grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: original.id })}
+        onCreatePage={onCreatePage}
+      />);
+      if (dirtyBeforeRequest) {
+        fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Rascunho inicial" } });
+      }
+      fireEvent.change(screen.getByLabelText("Nova página"), { target: { value: "Página criada" } });
+      fireEvent.click(screen.getByRole("button", { name: "Criar página" }));
+      expect(onCreatePage).toHaveBeenCalledTimes(1);
+      expect(confirm).toHaveBeenCalledTimes(dirtyBeforeRequest ? 1 : 0);
+      fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Edição durante criação" } });
+      await act(async () => { completeCreate(added); });
+      expect(screen.getByLabelText("Título")).toHaveValue("Edição durante criação");
+      expect(screen.getByRole("button", { name: "Página original" }))
+        .toHaveAttribute("aria-current", "page");
+      expect(screen.getByRole("button", { name: "Página criada" })).toBeInTheDocument();
+      expect(screen.getByText("Item criado. Sua seleção e alterações recentes foram preservadas. Salve a página antes de abrir o novo item."))
+        .toBeInTheDocument();
+      confirm.mockRestore();
+    },
+  );
+
+  test("preserves a more recent selection after an earlier page creation", async () => {
+    const tree = createTree();
+    const original = { ...createdPage, id: "p-later-selection", title: "Página atual" };
+    tree.grimoires[0]!.ownerId = "owner-later-selection";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [original];
+    let completeCreate!: (created: Page) => void;
+    const onCreatePage = vi.fn(() => new Promise<Page>((resolve) => { completeCreate = resolve; }));
+    render(<WorkspaceShell
+      {...shellProps(tree, { grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: null })}
+      onCreatePage={onCreatePage}
+    />);
+    fireEvent.change(screen.getByLabelText("Nova página"), { target: { value: "Nova página assíncrona" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar página" }));
+    fireEvent.click(screen.getByRole("button", { name: "Página atual" }));
+    await act(async () => {
+      completeCreate({ ...createdPage, id: "p-async-created", title: "Nova página assíncrona", position: 1 });
+    });
+    expect(screen.getByLabelText("Título")).toHaveValue("Página atual");
+    expect(screen.getByRole("button", { name: "Página atual" }))
+      .toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Nova página assíncrona" }))
+      .not.toHaveAttribute("aria-current", "page");
+  });
+
+  test("guards external links with an identical path and query", () => {
+    const tree = createTree();
+    const currentPage = { ...createdPage, id: "p-cross-origin", title: "Página privada" };
+    tree.grimoires[0]!.ownerId = "owner-cross-origin";
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [currentPage];
+    render(<WorkspaceShell {...shellProps(tree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: currentPage.id,
+    })} />);
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Rascunho local" } });
+    const external = document.createElement("a");
+    external.href = "https://external.example" + window.location.pathname + window.location.search;
+    document.body.appendChild(external);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    try {
+      const click = new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 });
+      external.dispatchEvent(click);
+      expect(click.defaultPrevented).toBe(true);
+      expect(confirm).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText("Título")).toHaveValue("Rascunho local");
+    } finally {
+      external.remove();
+      confirm.mockRestore();
+    }
+  });
+
 });
