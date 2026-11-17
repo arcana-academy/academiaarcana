@@ -838,6 +838,246 @@ describe("WorkspaceShell", () => {
     onSavePage: vi.fn(async () => createdPage),
   });
 
+  /** Build two existing selectable pages for NAV-ESCAPE regressions. */
+  const createNavigationFixture = (ownerId: string, key: string) => {
+    const tree = createTree();
+    const currentPage: Page = {
+      ...createdPage,
+      id: key + "-current",
+      title: "Página original",
+      content: {
+        type: "document",
+        blocks: [{ type: "paragraph", content: "Conteúdo original." }],
+      },
+    };
+    const nextPage: Page = {
+      ...createdPage,
+      id: key + "-next",
+      title: "Página seguinte",
+      position: 1,
+    };
+    tree.grimoires[0]!.ownerId = ownerId;
+    tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [currentPage, nextPage];
+    return {
+      tree,
+      currentPage,
+      nextPage,
+      selection: {
+        grimoireId: "g1",
+        notebookId: "n1",
+        chapterId: "c1",
+        pageId: currentPage.id,
+      },
+    };
+  };
+
+  const beginUnansweredSave = (draftTitle: string) => {
+    fireEvent.change(screen.getByLabelText("Título"), { target: { value: draftTitle } });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+  };
+
+  const attestManualRecoveryCopy = () => {
+    fireEvent.click(screen.getByRole("button", {
+      name: "Confirmo que já baixei uma cópia TXT ou JSON desta revisão",
+    }));
+  };
+
+  test("NAV-01 blocks internal selection until the current pending revision is exported and attested", () => {
+    const { tree, currentPage, nextPage, selection } =
+      createNavigationFixture("owner-nav-01", "nav-01");
+    const onSavePage = vi.fn(() => new Promise<Page>(() => undefined));
+    const props = { ...shellProps(tree, selection), onSavePage };
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<WorkspaceShell {...props} />);
+
+    beginUnansweredSave("Rascunho sem cópia confirmada");
+    fireEvent.click(screen.getByRole("button", { name: nextPage.title }));
+
+    expect(screen.getByLabelText("Título")).toHaveValue("Rascunho sem cópia confirmada");
+    expect(screen.getByRole("button", { name: currentPage.title }))
+      .toHaveAttribute("aria-current", "page");
+    expect(confirm).not.toHaveBeenCalled();
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+    confirm.mockRestore();
+  });
+
+  test("NAV-03 preserves the current selection when the second navigation confirmation is declined", () => {
+    const { tree, currentPage, nextPage, selection } =
+      createNavigationFixture("owner-nav-03", "nav-03");
+    const onSavePage = vi.fn(() => new Promise<Page>(() => undefined));
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<WorkspaceShell {...shellProps(tree, selection)} onSavePage={onSavePage} />);
+
+    beginUnansweredSave("Rascunho preservado ao cancelar");
+    attestManualRecoveryCopy();
+    fireEvent.click(screen.getByRole("button", { name: nextPage.title }));
+
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining(
+      "mantendo o salvamento original pendente",
+    ));
+    expect(screen.getByLabelText("Título")).toHaveValue("Rascunho preservado ao cancelar");
+    expect(screen.getByRole("button", { name: currentPage.title }))
+      .toHaveAttribute("aria-current", "page");
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+    confirm.mockRestore();
+  });
+
+  test("NAV-05 preserves the pending snapshot while navigating between existing Workspace items", () => {
+    const { tree, currentPage, nextPage, selection } =
+      createNavigationFixture("owner-nav-05", "nav-05");
+    const onSavePage = vi.fn(() => new Promise<Page>(() => undefined));
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<WorkspaceShell {...shellProps(tree, selection)} onSavePage={onSavePage} />);
+
+    beginUnansweredSave("Rascunho mantido na memória");
+    attestManualRecoveryCopy();
+    fireEvent.click(screen.getByRole("button", { name: nextPage.title }));
+    expect(screen.getByLabelText("Título")).toHaveValue(nextPage.title);
+
+    fireEvent.click(screen.getByRole("button", { name: currentPage.title }));
+    expect(screen.getByLabelText("Título")).toHaveValue("Rascunho mantido na memória");
+    expect(screen.getByText(/Você confirmou a cópia manual da revisão 1/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aguardando confirmação…" })).toBeDisabled();
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+    confirm.mockRestore();
+  });
+
+  test("NAV-06 reconciles the original save response after an authorized internal selection change", async () => {
+    const { tree, currentPage, nextPage, selection } =
+      createNavigationFixture("owner-nav-06", "nav-06");
+    let resolveOriginalSave!: (saved: Page) => void;
+    const onSavePage = vi.fn(() => new Promise<Page>((resolve) => {
+      resolveOriginalSave = resolve;
+    }));
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<WorkspaceShell {...shellProps(tree, selection)} onSavePage={onSavePage} />);
+
+    beginUnansweredSave("Revisão que será confirmada");
+    attestManualRecoveryCopy();
+    fireEvent.click(screen.getByRole("button", { name: nextPage.title }));
+    expect(screen.getByLabelText("Título")).toHaveValue(nextPage.title);
+
+    await act(async () => {
+      resolveOriginalSave({
+        ...currentPage,
+        title: "Revisão que será confirmada",
+      });
+    });
+    fireEvent.click(screen.getByRole("button", { name: currentPage.title }));
+
+    expect(await screen.findByText("Página salva.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Título")).toHaveValue("Revisão que será confirmada");
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledTimes(1);
+    confirm.mockRestore();
+  });
+
+  test("NAV-07 keeps a never-resolving save unconfirmed after internal navigation and return", () => {
+    const { tree, currentPage, nextPage, selection } =
+      createNavigationFixture("owner-nav-07", "nav-07");
+    const onSavePage = vi.fn(() => new Promise<Page>(() => undefined));
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<WorkspaceShell {...shellProps(tree, selection)} onSavePage={onSavePage} />);
+
+    beginUnansweredSave("Rascunho sem resposta");
+    attestManualRecoveryCopy();
+    fireEvent.click(screen.getByRole("button", { name: nextPage.title }));
+    fireEvent.click(screen.getByRole("button", { name: currentPage.title }));
+
+    expect(screen.getByLabelText("Título")).toHaveValue("Rascunho sem resposta");
+    expect(screen.getByText("Salvamento sem confirmação. Seu rascunho continua nesta aba."))
+      .toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aguardando confirmação…" })).toBeDisabled();
+    expect(screen.queryByText("Página salva.")).not.toBeInTheDocument();
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledTimes(1);
+    confirm.mockRestore();
+  });
+
+  test("NAV-08 keeps creation, deletion, external links, forms and document exit blocked while saving is unknown", async () => {
+    const { tree, currentPage, selection } =
+      createNavigationFixture("owner-nav-08", "nav-08");
+    const onSavePage = vi.fn(() => new Promise<Page>(() => undefined));
+    const onCreatePage = vi.fn(async () => createdPage);
+    const onDeletePage = vi.fn(async () => undefined);
+    const props = {
+      ...shellProps(tree, selection),
+      onSavePage,
+      onCreatePage,
+      onDeletePage,
+    };
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<WorkspaceShell {...props} />);
+
+    beginUnansweredSave("Rascunho protegido contra saídas");
+    attestManualRecoveryCopy();
+
+    fireEvent.change(screen.getByLabelText("Nova página"), {
+      target: { value: "Não criar durante salvamento desconhecido" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Criar página" }));
+    expect(await screen.findByText("Não foi possível criar a página.")).toBeInTheDocument();
+    expect(onCreatePage).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Excluir página" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar exclusão" }));
+    expect(await screen.findByText("Não foi possível excluir a página.")).toBeInTheDocument();
+    expect(onDeletePage).not.toHaveBeenCalled();
+
+    const external = document.createElement("a");
+    external.href = "https://external.example/workspace";
+    document.body.appendChild(external);
+    const click = new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 });
+    external.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+
+    const externalForm = document.createElement("form");
+    document.body.appendChild(externalForm);
+    const submit = new Event("submit", { bubbles: true, cancelable: true });
+    externalForm.dispatchEvent(submit);
+    expect(submit.defaultPrevented).toBe(true);
+
+    const unload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(true);
+
+    expect(screen.getByLabelText("Título")).toHaveValue("Rascunho protegido contra saídas");
+    expect(onSavePage).toHaveBeenCalledTimes(1);
+    expect(confirm).not.toHaveBeenCalled();
+    external.remove();
+    externalForm.remove();
+    confirm.mockRestore();
+    expect(currentPage.id).toBe(selection.pageId);
+  });
+
+  test("NAV-09 never restores a pending draft into another owner with the same page id", () => {
+    const { tree, currentPage, selection } =
+      createNavigationFixture("owner-nav-09-a", "nav-09");
+    const sharedPageId = currentPage.id;
+    const first = render(<WorkspaceShell {...shellProps(tree, selection)}
+      onSavePage={vi.fn(() => new Promise<Page>(() => undefined))} />);
+    beginUnansweredSave("Rascunho do proprietário A");
+    attestManualRecoveryCopy();
+    first.unmount();
+
+    const otherTree = createTree();
+    otherTree.grimoires[0]!.ownerId = "owner-nav-09-b";
+    otherTree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [{
+      ...createdPage,
+      id: sharedPageId,
+      title: "Página do proprietário B",
+    }];
+    render(<WorkspaceShell {...shellProps(otherTree, {
+      grimoireId: "g1", notebookId: "n1", chapterId: "c1", pageId: sharedPageId,
+    })} />);
+
+    expect(screen.getByLabelText("Título")).toHaveValue("Página do proprietário B");
+    expect(screen.queryByDisplayValue("Rascunho do proprietário A")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Você confirmou a cópia manual/)).not.toBeInTheDocument();
+  });
+
   test("recovers an authorized page selection after a stale revalidation remount", async () => {
     const tree = createTree();
     tree.grimoires[0]!.notebooks![0]!.chapters![0]!.pages = [createdPage];

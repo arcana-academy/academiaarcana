@@ -84,6 +84,26 @@ function sameWorkspaceSelection(a: WorkspaceState, b: WorkspaceState): boolean {
     a.chapterId === b.chapterId && a.pageId === b.pageId;
 }
 
+/** Allow recovery navigation only to a hierarchy item present in the current tree. */
+function isExistingWorkspaceSelection(tree: WorkspaceTree, selection: WorkspaceState): boolean {
+  if (!selection.grimoireId) return false;
+  const grimoire = tree.grimoires.find((item) => item.id === selection.grimoireId);
+  if (!grimoire) return false;
+  if (!selection.notebookId) return true;
+
+  const notebook = (grimoire.notebooks ?? [])
+    .find((item) => item.id === selection.notebookId);
+  if (!notebook) return false;
+  if (!selection.chapterId) return true;
+
+  const chapter = (notebook.chapters ?? [])
+    .find((item) => item.id === selection.chapterId);
+  if (!chapter) return false;
+  if (!selection.pageId) return true;
+
+  return (chapter.pages ?? []).some((page) => page.id === selection.pageId);
+}
+
 type WorkspaceShellProps = {
   tree: WorkspaceTree;
   initialState: WorkspaceState;
@@ -281,12 +301,26 @@ export function WorkspaceShell({
     if (ownerId) publishTransientDraft(ownerId, snapshot);
   }, [ownerId]);
 
-  /** A cancelled transition must leave the draft untouched. */
-  const mayLeave = useCallback(() => {
+  /**
+   * A pending save can authorize only an internal selection change, and only
+   * after the learner has attested to exporting this exact draft revision.
+   */
+  const mayLeave = useCallback((allowPendingInternalSelection = false) => {
     const pending = readDraft(ownerId, state.pageId);
     if (!needsDraftProtection(pending)) return true;
     if (pending?.saving) {
-      setNavigationNotice("Aguarde o salvamento terminar antes de sair desta página.");
+      if (allowPendingInternalSelection &&
+          pending.recoveryCopyRevision === pending.revision) {
+        setNavigationNotice("");
+        return window.confirm(
+          "O salvamento original ainda não foi confirmado. Você declarou que baixou uma cópia desta revisão. Deseja continuar para outro item existente do Workspace, mantendo o salvamento original pendente?",
+        );
+      }
+      setNavigationNotice(
+        pending.recoveryCopyRevision === pending.revision
+          ? "A cópia desta revisão foi confirmada. Essa autorização vale somente para selecionar outro item existente do Workspace; criação, exclusão e saída da aba continuam bloqueadas."
+          : "O salvamento original ainda está pendente. Baixe uma cópia TXT ou JSON desta revisão e confirme a cópia antes de solicitar a navegação interna.",
+      );
       return false;
     }
     setNavigationNotice("");
@@ -330,13 +364,31 @@ export function WorkspaceShell({
   };
 
   const leaveSelection = (next: WorkspaceState) => {
-    if (!mayLeave()) return;
-    discardTransientDraft(ownerId, state.pageId);
+    if (sameWorkspaceSelection(latestSelectionRef.current, next)) return;
+    if (!isExistingWorkspaceSelection(workspaceTree, next)) {
+      setNavigationNotice("A recuperação permite somente selecionar itens existentes do Workspace.");
+      return;
+    }
+
+    const pending = readDraft(ownerId, state.pageId);
+    const preservePendingSave = Boolean(pending?.saving);
+    if (!mayLeave(preservePendingSave)) return;
+
+    // Keep the pending snapshot and its original Promise reachable by owner/page.
+    // Creation, deletion, external navigation and document unload do not use this path.
+    if (!preservePendingSave) {
+      discardTransientDraft(ownerId, state.pageId);
+    }
     if (!sameWorkspaceSelection(latestSelectionRef.current, next)) {
       selectionEpochRef.current += 1;
     }
     latestSelectionRef.current = next;
     setState(next);
+    setNavigationNotice(
+      preservePendingSave
+        ? "Você continuou no Workspace. O salvamento original permanece pendente e o rascunho continua preservado nesta aba."
+        : "",
+    );
   };
 
   /** Guard controlled links, forms and unload. Browser history traversal remains unguarded. */

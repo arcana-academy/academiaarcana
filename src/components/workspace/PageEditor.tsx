@@ -318,6 +318,8 @@ export type WorkspaceDraftState = {
   revision: number;
   dirty: boolean;
   saving: boolean;
+  /** A learner's manual export acknowledgement, bound to this exact edit revision. */
+  recoveryCopyRevision: number | null;
   /** A matched server response is the only evidence of confirmed persistence. */
   saveStatus: PageSaveState;
 };
@@ -374,6 +376,9 @@ export function PageEditor({
     restored?.saving ? "unconfirmed" : restored?.saveStatus ?? "idle",
   );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(restored?.dirty ?? false);
+  const [recoveryCopyRevision, setRecoveryCopyRevision] = useState<number | null>(
+    restored?.recoveryCopyRevision ?? null,
+  );
   const [starter, setStarter] = useState<PageStarterTemplate>("blank");
   // Preserve monotonic revisions even when a confirmed snapshot is held for review.
   const editRevision = useRef(samePageDraft?.revision ?? 0);
@@ -382,11 +387,17 @@ export function PageEditor({
   const dirtyValue = useRef(restored?.dirty ?? false);
   const savingValue = useRef(restored?.saving ?? false);
   const saveStatusValue = useRef<PageSaveState>(status);
+  const recoveryCopyRevisionValue = useRef<number | null>(recoveryCopyRevision);
   const changeSaveStatus = (next: PageSaveState) => {
     saveStatusValue.current = next;
     setStatus(next);
   };
   const saveIsPending = status === "saving" || status === "unconfirmed";
+  const markEdited = () => {
+    editRevision.current += 1;
+    recoveryCopyRevisionValue.current = null;
+    setRecoveryCopyRevision(null);
+  };
   const [blockKeys, setBlockKeys] = useState(() =>
     (restored?.content ?? page.content).blocks.map((_, index) => page.id + ":block:" + index),
   );
@@ -408,8 +419,17 @@ export function PageEditor({
       revision: editRevision.current,
       dirty: dirtyValue.current,
       saving: savingValue.current,
+      recoveryCopyRevision: recoveryCopyRevisionValue.current,
       saveStatus: saveStatusValue.current,
     });
+  };
+
+  /** Record the learner's explicit declaration for the exact current revision. */
+  const confirmRecoveryCopy = () => {
+    if (!saveIsPending) return;
+    recoveryCopyRevisionValue.current = editRevision.current;
+    setRecoveryCopyRevision(editRevision.current);
+    publishDraft();
   };
 
   /** Never infer persistence from a missing snapshot or a remount. */
@@ -427,6 +447,8 @@ export function PageEditor({
       titleValue.current = initialDraft.title;
       contentValue.current = initialDraft.content;
       dirtyValue.current = initialDraft.dirty;
+      recoveryCopyRevisionValue.current = initialDraft.recoveryCopyRevision;
+      setRecoveryCopyRevision(initialDraft.recoveryCopyRevision);
       setTitle(initialDraft.title);
       setContent(initialDraft.content);
       setBlockKeys(initialDraft.content.blocks.map((_, index) => page.id + ":restored:" + index));
@@ -459,6 +481,8 @@ export function PageEditor({
     )) return;
 
     editRevision.current = Math.max(editRevision.current, samePageDraft.revision) + 1;
+    recoveryCopyRevisionValue.current = null;
+    setRecoveryCopyRevision(null);
     titleValue.current = page.title;
     contentValue.current = page.content;
     dirtyValue.current = false;
@@ -492,7 +516,7 @@ export function PageEditor({
 
   /** Keep block edits local until the authenticated save confirms persistence. */
   const updateBlock = (index: number, changes: Partial<PageBlock>) => {
-    editRevision.current += 1;
+    markEdited();
     const nextContent = {
       ...contentValue.current,
       blocks: contentValue.current.blocks.map((block, position) =>
@@ -515,7 +539,7 @@ export function PageEditor({
     index: number,
     changes: NonNullable<PageBlock["accessibility"]>,
   ) => {
-    editRevision.current += 1;
+    markEdited();
     const nextContent = {
       ...contentValue.current,
       blocks: contentValue.current.blocks.map((block, position) =>
@@ -588,7 +612,7 @@ export function PageEditor({
 
   /** Add a new paragraph block and generate its stable local key. */
   const addBlock = () => {
-    editRevision.current += 1;
+    markEdited();
     const nextContent = {
       ...contentValue.current,
       blocks: [...contentValue.current.blocks, { type: "paragraph", content: "" }],
@@ -605,7 +629,7 @@ export function PageEditor({
   /** Templates never overwrite authored blocks or save without confirmation. */
   const applyStarter = () => {
     if (saveIsPending || !canApplyStarterTemplate(content)) return;
-    editRevision.current += 1;
+    markEdited();
     const nextContent = buildStarterTemplate(starter);
     contentValue.current = nextContent;
     dirtyValue.current = true;
@@ -683,7 +707,7 @@ export function PageEditor({
         id="workspace-page-title"
         value={title}
         onChange={(event) => {
-          editRevision.current += 1;
+          markEdited();
           titleValue.current = event.target.value;
           dirtyValue.current = true;
           setHasUnsavedChanges(true);
@@ -734,12 +758,24 @@ export function PageEditor({
       <AccessiblePageTextExport title={title} content={content} />
       <AccessiblePageStructuredExport title={title} content={content} />
       {saveIsPending ? (
-        <p role="status" className="aa-state-copy">
-          O resultado do salvamento ainda não foi confirmado. Você pode continuar
-          editando e baixar uma cópia .txt ou .json acima para recuperação manual.
-          Não feche a aba antes de guardar a cópia. Nenhum novo salvamento será
-          iniciado enquanto a operação anterior permanecer pendente.
-        </p>
+        <section aria-label="Recuperação manual do rascunho">
+          <p role="status" className="aa-state-copy">
+            O resultado do salvamento ainda não foi confirmado. Baixe uma cópia
+            .txt ou .json acima antes de autorizar uma troca de página dentro do
+            Workspace. Não feche esta aba: a operação original continua pendente
+            e nenhum novo salvamento será iniciado.
+          </p>
+          {recoveryCopyRevision === editRevision.current ? (
+            <p role="status">
+              Você confirmou a cópia manual da revisão {recoveryCopyRevision}.
+              Uma segunda confirmação será solicitada antes de trocar de página.
+            </p>
+          ) : (
+            <button type="button" onClick={confirmRecoveryCopy}>
+              Confirmo que já baixei uma cópia TXT ou JSON desta revisão
+            </button>
+          )}
+        </section>
       ) : null}
 
       <button type="button" onClick={addBlock}>

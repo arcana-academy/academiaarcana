@@ -31,10 +31,65 @@ type SaveInput = {
 };
 
 describe("PageEditor", () => {
+  test("NAV-02 confirms a manual export for the exact pending revision", () => {
+    const onSave = vi.fn(() => new Promise<Page>(() => undefined));
+    const onDraftStateChange = vi.fn();
+    render(<PageEditor {...movementProps} page={page}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave}
+      onDraftStateChange={onDraftStateChange} />);
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Revisão exportada" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    expect(screen.getByRole("button", { name: "Confirmo que já baixei uma cópia TXT ou JSON desta revisão" }))
+      .toBeEnabled();
+    fireEvent.click(screen.getByRole("button", {
+      name: "Confirmo que já baixei uma cópia TXT ou JSON desta revisão",
+    }));
+    expect(onDraftStateChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      pageId: page.id,
+      revision: 1,
+      recoveryCopyRevision: 1,
+      saving: true,
+      saveStatus: "saving",
+    }));
+    expect(screen.getByText(/Uma segunda confirmação será solicitada/)).toBeInTheDocument();
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  test("NAV-04 invalidates the export acknowledgement after any later edit", () => {
+    const onSave = vi.fn(() => new Promise<Page>(() => undefined));
+    const onDraftStateChange = vi.fn();
+    render(<PageEditor {...movementProps} page={page}
+      onDelete={vi.fn(async () => undefined)} onSave={onSave}
+      onDraftStateChange={onDraftStateChange} />);
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Primeira revisão" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar página" }));
+    fireEvent.click(screen.getByRole("button", {
+      name: "Confirmo que já baixei uma cópia TXT ou JSON desta revisão",
+    }));
+    expect(onDraftStateChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      revision: 1, recoveryCopyRevision: 1, saving: true,
+    }));
+
+    fireEvent.change(screen.getByLabelText("Título"), {
+      target: { value: "Edição posterior" },
+    });
+    expect(onDraftStateChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      revision: 2, recoveryCopyRevision: null, saving: true,
+    }));
+    expect(screen.getByRole("button", {
+      name: "Confirmo que já baixei uma cópia TXT ou JSON desta revisão",
+    })).toBeEnabled();
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
   test("acknowledges a matching confirmed snapshot only after the editor sees it", () => {
     const confirmed = {
       pageId: page.id, title: page.title, content: page.content,
-      revision: 12, dirty: false, saving: false, saveStatus: "saved" as const,
+      revision: 12, recoveryCopyRevision: null, dirty: false, saving: false, saveStatus: "saved" as const,
     };
     const onDraftStateChange = vi.fn();
     const onSave = vi.fn(async () => page);
@@ -73,7 +128,7 @@ describe("PageEditor", () => {
       pageId: page.id,
       title: "Cópia anterior que diverge",
       content: { type: "document" as const, blocks: [{ type: "paragraph" as const, content: "Conteúdo antigo." }] },
-      revision: 8, dirty: false, saving: false, saveStatus: "saved" as const,
+      revision: 8, recoveryCopyRevision: null, dirty: false, saving: false, saveStatus: "saved" as const,
     };
     const onDraftStateChange = vi.fn();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
@@ -99,7 +154,7 @@ describe("PageEditor", () => {
       pageId: page.id,
       title: "Anterior",
       content: page.content,
-      revision: 9, dirty: false, saving: false, saveStatus: "saved" as const,
+      revision: 9, recoveryCopyRevision: null, dirty: false, saving: false, saveStatus: "saved" as const,
     };
     const onDraftStateChange = vi.fn();
     const onSave = vi.fn(async () => page);
@@ -112,6 +167,7 @@ describe("PageEditor", () => {
     }));
     expect(onDraftStateChange).toHaveBeenLastCalledWith(expect.objectContaining({
       pageId: page.id, title: page.title, revision: 10,
+      recoveryCopyRevision: null,
       dirty: false, saving: false, saveStatus: "idle",
     }));
     expect(screen.getByLabelText("Título")).toHaveValue(page.title);
@@ -124,6 +180,7 @@ describe("PageEditor", () => {
       title: "Rascunho aguardando confirmação",
       content: page.content,
       revision: 3,
+      recoveryCopyRevision: null,
       dirty: true,
       saving: true,
       saveStatus: "saving" as const,
@@ -146,7 +203,7 @@ describe("PageEditor", () => {
   test("recognizes only an explicit confirmed response for the same draft revision", () => {
     const pendingDraft = {
       pageId: page.id, title: "Anotação preservada", content: page.content,
-      revision: 4, dirty: true, saving: true, saveStatus: "saving" as const,
+      revision: 4, recoveryCopyRevision: null, dirty: true, saving: true, saveStatus: "saving" as const,
     };
     const props = {
       ...movementProps,
@@ -166,7 +223,7 @@ describe("PageEditor", () => {
   test("keeps an unconfirmed draft when the prior server action fails", () => {
     const pendingDraft = {
       pageId: page.id, title: "Rascunho retido", content: page.content,
-      revision: 5, dirty: true, saving: true, saveStatus: "saving" as const,
+      revision: 5, recoveryCopyRevision: null, dirty: true, saving: true, saveStatus: "saving" as const,
     };
     const props = {
       ...movementProps,
