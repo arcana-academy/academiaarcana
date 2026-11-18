@@ -18,11 +18,11 @@
 
 A versão anterior informava 28 issues de Produto e apresentava uma soma de 147, embora o total informado fosse 148. Corrigido para 29, sem mover ou excluir issue.
 
-**Reconciliação adicional:** `AA-SPEC-GAP-REGISTER.md` contém **23** linhas `GAP-*`; a descrição da PR #821 foi atualizada para 23. A descrição agora corresponde ao registro canônico.
+**Reconciliação adicional:** a descrição atual da PR #821 informa **23** lacunas, em conformidade com as 23 entradas `GAP-*` de `AA-SPEC-GAP-REGISTER.md`. O checkpoint F7 exigia revisão humana e tratamento individual das referências de fechamento.
 
 ## 2. Reconciliação das 95 referências de fechamento
 
-- Corpo da PR #821: 95 linhas `Closes #N`, identificadores únicos.
+- Na consulta F7, o corpo da PR #821 continha 95 linhas `Closes #N` com identificadores únicos.
 - Todas as 95 issues correspondentes permaneciam abertas na consulta F7.
 - 91 identificadores pertencem à série F1–F5; as quatro referências adicionais são #53, #55, #56, #186.
 - Inventário `f-series-resolution.json` após correção: 62 `CANÔNICO`, 21 `PARCIAL`, 8 `LACUNA` (91 itens).
@@ -56,8 +56,8 @@ F7 não promoveu nenhum item a `IMPLEMENTADO`/`TESTADO` apenas por consulta docu
 - `scripts/issue-triage/apply-f-series-triage.mjs` é **somente leitura**; `--apply` falha fechado sem chamar API do GitHub.
 - O `f-series-resolution.json` fixa `autoClose: false`, valida 91 entradas e mais quatro referências adicionais.
 - O script gera a decisão para 95/95 como `DOCUMENTED_REVIEW_ONLY`, `BLOCKED_*` ou `REVIEW_DUPLICATE_ONLY`.
-- **O corpo da PR #821 ainda contém 95 linhas `Closes`. Mesclá-la sem remover essas referências pode fechar as issues pelo próprio GitHub**, independentemente do script.
-- A PR #821 deve permanecer aberta/intacta enquanto a descrição e os critérios de aceite não forem revisados por pessoa autorizada.
+- Na consulta F7, as 95 linhas `Closes` poderiam fechar issues pelo próprio GitHub no merge, independentemente do script.
+- A PR #821 foi mesclada em 26 de outubro de 2026. A descrição atual lista as 95 referências para revisão individual. Cada issue da série F1–F5 continua sujeita a aceite individual com evidência de cumprimento do escopo.
 
 ## 6. Pendências fora da triagem documental
 
