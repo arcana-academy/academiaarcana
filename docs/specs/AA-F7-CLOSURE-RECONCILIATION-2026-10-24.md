@@ -4,7 +4,7 @@
 
 **Objetivo:** conferir cada referência no corpo da PR, sem fechamento automático e sem confundir documentação com código, teste ou aprovação. Nenhum campo abaixo concede GO de release.
 
-**Contagem de lacunas:** 23 entradas `GAP-*` no registro canônico; a PR #821 anuncia 22 e exige reconciliação da descrição antes de merge.
+**Contagem de lacunas:** o registro canônico e a descrição atual da PR #821 informam 23 entradas `GAP-*`. O NO-GO registrado no checkpoint F7 dizia respeito ao fechamento automático de issues e aos requisitos de revisão humana.
 
 ## Estados que esta consulta efetivamente comprova
 
@@ -123,7 +123,9 @@
 
 ## Gate de segurança para continuidade
 
-**NO-GO:** o corpo da PR #821 continua contendo 95 comandos de fechamento automático `Closes`. Não mesclar a PR sem retirar ou aprovar individualmente essas referências e sem satisfazer os controles humanos de revisão.
+**NO-GO no checkpoint F7:** na consulta original, o corpo da PR #821 continha 95 comandos de fechamento automático `Closes`. A integração exigia retirar ou aprovar individualmente essas referências e cumprir os controles de revisão humana.
+
+A PR #821 foi mesclada em 26 de outubro de 2026. A descrição atual lista as 95 referências para revisão individual, sem comandos `Closes`. O aceite e o eventual encerramento de cada issue da série F1–F5 dependem de evidência própria.
 
 **Permissões:** o histórico anterior registra 403 em operações `issues: write`; F7 não executou comentários ou fechamentos e não atestou a permissão atual por tentativa de escrita.
 
