@@ -9,6 +9,7 @@ import {
   type StatisticsPilotScenario,
 } from "@/app/design-system/pilots/statistics/statistics-pilot-fixtures";
 import { StatisticsView } from "./StatisticsView";
+import type { PedagogicalKpis } from "@/application/education/pedagogical-kpis";
 
 function renderScenario(scenario: StatisticsPilotScenario) {
   return render(
@@ -20,6 +21,36 @@ function renderScenario(scenario: StatisticsPilotScenario) {
 }
 
 describe("StatisticsView accessibility and educational evidence contract", () => {
+  it("exposes P01-P06 with textual values and a named semantic region", () => {
+    const missing: PedagogicalKpis = {
+      objectiveConfirmationRate: null,
+      confirmedObjectiveCount: 0,
+      objectiveAssessmentCount: 0,
+      practiceCoverageRate: null,
+      practicedPageCount: 0,
+      eligiblePageCount: 0,
+      reviewDueCount: 0,
+      strongRetrievalRate: null,
+      meanSelfEvidenceScore: null,
+      eligibleSelfAttemptCount: 0,
+      objectiveConflictRate: null,
+      conflictingObjectiveCount: 0,
+      attemptedObjectiveCount: 0,
+    };
+    render(
+      <StatisticsView
+        gamification={statisticsPilotGamification}
+        educational={statisticsPilotScenarios["no-data"]}
+        pedagogicalKpis={missing}
+      />,
+    );
+    const region = screen.getByRole("region", { name: "Indicadores pedagógicos P01 a P06" });
+    for (const id of ["P01", "P02", "P03", "P04", "P05", "P06"]) {
+      expect(within(region).getByText(new RegExp(`^${id} —`))).toBeInTheDocument();
+    }
+    expect(within(region).getAllByText(/Sem dados/)).toHaveLength(5);
+    expect(within(region).getByText(/0 atividade\(s\)/)).toBeInTheDocument();
+  });
   it("preserves progress semantics and non-colour evidence separation", () => {
     const { container } = renderScenario("mixed-evidence");
 

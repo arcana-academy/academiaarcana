@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { buildEducationalOverview } from "@/application/education/p1";
+import { buildPedagogicalKpis } from "@/application/education/pedagogical-kpis";
 import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -16,22 +17,14 @@ vi.mock("@/lib/auth/require-authenticated-user", () => ({
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({})),
+  createClient: vi.fn(() => Promise.resolve({})),
 }));
 
 vi.mock("@/infrastructure/supabase/education/practice-repository", () => {
   class MockSupabaseEducationalPracticeRepository {
-    listPages() {
-      return repositoryMocks.listPages();
-    }
-
-    listPracticeItems() {
-      return repositoryMocks.listPracticeItems();
-    }
-
-    listPracticeAttempts() {
-      return repositoryMocks.listPracticeAttempts();
-    }
+    readonly listPages = repositoryMocks.listPages;
+    readonly listPracticeItems = repositoryMocks.listPracticeItems;
+    readonly listPracticeAttempts = repositoryMocks.listPracticeAttempts;
   }
 
   return { SupabaseEducationalPracticeRepository: MockSupabaseEducationalPracticeRepository };
@@ -194,6 +187,7 @@ describe("EstatisticasPage", () => {
             progressPercent: 0,
           }}
           educational={educational}
+          pedagogicalKpis={buildPedagogicalKpis([], [], [], "user-1")}
         />
       </div>,
     );
@@ -201,6 +195,17 @@ describe("EstatisticasPage", () => {
     expect(pageHtml).toBe(viewHtml);
   });
 
+  it("renders all six current pedagogical KPIs without guessing missing denominators", async () => {
+    const html = renderToStaticMarkup(await EstatisticasPage());
+    expect(html).toContain('data-statistics-region="pedagogical-kpis"');
+    for (const id of ["P01", "P02", "P03", "P04", "P05", "P06"]) {
+      expect(html).toContain(`${id} — `);
+    }
+    expect(html).toContain("Sem dados");
+    expect(repositoryMocks.listPages).toHaveBeenCalledTimes(1);
+    expect(repositoryMocks.listPracticeItems).toHaveBeenCalledTimes(1);
+    expect(repositoryMocks.listPracticeAttempts).toHaveBeenCalledTimes(1);
+  });
   it("preserves the statistics semantic boundaries after extraction", async () => {
     const html = renderToStaticMarkup(await EstatisticasPage());
 

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import type { EducationalOverview } from "@/application/education/p1";
+import type { PedagogicalKpis } from "@/application/education/pedagogical-kpis";
 import { ArcanaFeatureGrid } from "@/components/layout/ArcanaFeatureGrid";
 import { ArcanaPage } from "@/components/layout/ArcanaPage";
 import { FeatureCard } from "@/components/ui/feature-card";
@@ -35,6 +36,7 @@ export type StatisticsGamificationProjection = {
 export type StatisticsViewProps = {
   gamification: StatisticsGamificationProjection;
   educational: EducationalOverview;
+  pedagogicalKpis?: PedagogicalKpis;
 };
 
 /** Formats a normalized evidence value for learner-facing statistics. */
@@ -42,6 +44,7 @@ function percent(value: number | null): string {
   return value === null ? "Sem dados" : `${Math.round(value * 100)}%`;
 }
 
+/** Renders persisted gamification metrics without inferring educational mastery. */
 function GamificationStats({
   gamification,
 }: {
@@ -221,6 +224,48 @@ function EducationalStats({ educational }: { educational: EducationalOverview })
   );
 }
 
+/** New snapshot KPIs; historical educational projections above stay untouched. */
+function PedagogicalKpiSection({ kpis }: { kpis: PedagogicalKpis }) {
+  return (
+    <section
+      className={`aa-card aa-card-default ${styles.analysisSection}`}
+      data-statistics-region="pedagogical-kpis"
+      aria-labelledby="pedagogical-kpis-title"
+    >
+      <h2 id="pedagogical-kpis-title">Indicadores pedagógicos P01 a P06</h2>
+      <p className="aa-state-copy">
+        Fotografia acumulada das atividades ativas e páginas visíveis. Autoavaliação
+        não confirma domínio acadêmico; confirmação objetiva vale apenas para a tarefa.
+      </p>
+      <dl className="aa-list">
+        <div className="aa-list-item aa-surface">
+          <dt>P01 — Critérios objetivos satisfeitos</dt>
+          <dd>{percent(kpis.objectiveConfirmationRate)} · {kpis.confirmedObjectiveCount}/{kpis.objectiveAssessmentCount} atividades</dd>
+        </div>
+        <div className="aa-list-item aa-surface">
+          <dt>P02 — Cobertura de prática atual</dt>
+          <dd>{percent(kpis.practiceCoverageRate)} · {kpis.practicedPageCount}/{kpis.eligiblePageCount} páginas</dd>
+        </div>
+        <div className="aa-list-item aa-surface">
+          <dt>P03 — Revisões pendentes</dt>
+          <dd>{kpis.reviewDueCount} atividade(s)</dd>
+        </div>
+        <div className="aa-list-item aa-surface">
+          <dt>P04 — Recuperação forte autorreportada em atividades ativas</dt>
+          <dd>{percent(kpis.strongRetrievalRate)} · {kpis.eligibleSelfAttemptCount} tentativa(s) elegíveis</dd>
+        </div>
+        <div className="aa-list-item aa-surface">
+          <dt>P05 — Evidência média autorreportada em atividades ativas</dt>
+          <dd>{percent(kpis.meanSelfEvidenceScore)} · {kpis.eligibleSelfAttemptCount} tentativa(s) elegíveis</dd>
+        </div>
+        <div className="aa-list-item aa-surface">
+          <dt>P06 — Conflitos em avaliações objetivas tentadas</dt>
+          <dd>{percent(kpis.objectiveConflictRate)} · {kpis.conflictingObjectiveCount}/{kpis.attemptedObjectiveCount} avaliações tentadas</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
 /** Renders confidence-labelled educational profile signals. */
 function ProfileSignals({ educational }: { educational: EducationalOverview }) {
   return (
@@ -329,12 +374,7 @@ function ObjectiveEvidenceSection({
                 <span className="aa-state-copy">{entry.reason}</span>
               </div>
               <Link
-                href={
-                  "/pratica?pagina=" +
-                  encodeURIComponent(entry.pageId) +
-                  "&avaliacao=" +
-                  encodeURIComponent(entry.practiceItemId)
-                }
+                href={`/pratica?pagina=${encodeURIComponent(entry.pageId)}&avaliacao=${encodeURIComponent(entry.practiceItemId)}`}
               >
                 Avaliar
               </Link>
@@ -427,6 +467,7 @@ function ReviewSection({ educational }: { educational: EducationalOverview }) {
 export function StatisticsView({
   gamification,
   educational,
+  pedagogicalKpis,
 }: StatisticsViewProps) {
   return (
     <ArcanaPage
@@ -437,6 +478,7 @@ export function StatisticsView({
       <div className={styles.statisticsView} data-statistics-view="production" data-testid="statistics-view">
         <GamificationStats gamification={gamification} />
         <EducationalStats educational={educational} />
+        {pedagogicalKpis ? <PedagogicalKpiSection kpis={pedagogicalKpis} /> : null}
         <ProfileSignals educational={educational} />
         <EvidenceSection educational={educational} />
         <ObjectiveEvidenceSection educational={educational} />
