@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   autofix:
+    if: ${{ !(github.event.pull_request.head.repo.full_name == 'arcana-academy/academiaarcana' && github.head_ref == 'work/aa-sec01-04-github-isolada-20261114') }}
     runs-on: ubuntu-latest
 
     steps:
