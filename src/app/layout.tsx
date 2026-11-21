@@ -43,7 +43,11 @@ export const metadata: Metadata = {
   },
 };
 
-async function resolveApplicationIdentity(): Promise<ApplicationIdentityState> {
+function resolveApplicationIdentity(): Promise<ApplicationIdentityState> {
+  // Preview-only browser session; never query real account identity.
+  if (process.env.ARCANA_DEMO_ISOLATED === "1") {
+    return Promise.resolve({ status: "anonymous", identity: null, error: null });
+  }
   const resolver = createIdentityResolver({
     resolveSubjectId: createResolveSubjectIdServer(),
   });
@@ -51,6 +55,7 @@ async function resolveApplicationIdentity(): Promise<ApplicationIdentityState> {
   return resolver.resolve();
 }
 
+/** Wraps the approved Arcana design and resolves real identity only outside preview mode. */
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
