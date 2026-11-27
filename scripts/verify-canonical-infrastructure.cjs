@@ -259,8 +259,27 @@
     return files;
   }
 
+  // Hosted builds can generate their own configuration after checking out Git.
+  // Permit only untracked build artifacts on that host; committed provider
+  // configuration and every other infrastructure restriction still fail closed.
+  const { execFileSync } = require("node:child_process");
+  const isGeneratedBuildArtifact = (relativePath) => {
+    if (process.env.VERCEL !== "1" ||
+        !["vercel.json", ".vercel"].includes(relativePath)) return false;
+    try {
+      const tracked = execFileSync("git", ["ls-files", "--", relativePath], {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      return tracked.trim() === "";
+    } catch {
+      return false;
+    }
+  };
+
   for (const relativePath of FORBIDDEN_PATHS) {
-    if (existsSync(resolve(root, relativePath))) {
+    if (existsSync(resolve(root, relativePath)) && !isGeneratedBuildArtifact(relativePath)) {
       fail(`forbidden provider configuration path exists: ${relativePath}`);
     }
   }
