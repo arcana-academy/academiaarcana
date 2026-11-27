@@ -259,8 +259,38 @@
     return files;
   }
 
+  // Hosted builds can generate their own configuration after checking out Git.
+  // Permit only untracked build artifacts on that host; committed provider
+  // configuration and every other infrastructure restriction still fail closed.
+  const { execFileSync } = require("node:child_process");
+  /**
+   * Recognize host-generated configuration absent from both index and HEAD.
+   * Missing Git metadata or an unborn repository cannot establish provenance.
+   * @param {string} relativePath Repository-relative configuration path.
+   * @returns {boolean} Whether the path is an untracked hosted build artifact.
+   */
+  const isGeneratedBuildArtifact = (relativePath) => {
+    if (process.env.VERCEL !== "1" ||
+        !["vercel.json", ".vercel"].includes(relativePath)) return false;
+    try {
+      const tracked = execFileSync("git", ["ls-files", "--", relativePath], {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      const committed = execFileSync("git", ["ls-tree", "--name-only", "HEAD", "--", relativePath], {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      return tracked.trim() === "" && committed.trim() === "";
+    } catch {
+      return false;
+    }
+  };
+
   for (const relativePath of FORBIDDEN_PATHS) {
-    if (existsSync(resolve(root, relativePath))) {
+    if (existsSync(resolve(root, relativePath)) && !isGeneratedBuildArtifact(relativePath)) {
       fail(`forbidden provider configuration path exists: ${relativePath}`);
     }
   }
